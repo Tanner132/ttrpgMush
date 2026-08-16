@@ -1,0 +1,67 @@
+# .NET build output
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userprefs
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# Test results
+[Tt]est[Rr]esults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Environment files (keep .env.example)
+.env
+.env.*
+!.env.example
+
+# Local secrets and deployment credentials
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+credentials.json
+.npmrc
+*.publishsettings
+*.pubxml.user
+*.pem
+*.key
+*.p12
+*.pfx
+*.kdbx
+
+# Local databases and exports
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.dump
+
+# Local database volumes
+*.pgdata/
+postgres_data/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SeattleByNight.Api/SeattleByNight.Api.csproj" />
+    <Project Path="src/SeattleByNight.Application/SeattleByNight.Application.csproj" />
+    <Project Path="src/SeattleByNight.Domain/SeattleByNight.Domain.csproj" />
+    <Project Path="src/SeattleByNight.Infrastructure/SeattleByNight.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SeattleByNight.Api.Tests/SeattleByNight.Api.Tests.csproj" />
+    <Project Path="tests/SeattleByNight.Domain.Tests/SeattleByNight.Domain.Tests.csproj" />
+    <Project Path="tests/SeattleByNight.Infrastructure.Tests/SeattleByNight.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

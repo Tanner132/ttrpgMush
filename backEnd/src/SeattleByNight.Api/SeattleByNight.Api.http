@@ -1,0 +1,83 @@
+@SeattleByNight.Api_HostAddress = http://localhost:5263
+
+### Liveness
+GET {{SeattleByNight.Api_HostAddress}}/health/live
+Accept: application/json
+
+###
+
+### Readiness (requires PostgreSQL)
+GET {{SeattleByNight.Api_HostAddress}}/health/ready
+Accept: application/json
+
+###
+
+### Antiforgery token (use the returned token in X-XSRF-TOKEN for state-changing requests)
+GET {{SeattleByNight.Api_HostAddress}}/api/antiforgery/token
+Accept: application/json
+
+###
+
+### Register
+POST {{SeattleByNight.Api_HostAddress}}/api/account/register
+Content-Type: application/json
+X-XSRF-TOKEN: {{requestToken}}
+
+{
+  "email": "dev@seattlebynight.local",
+  "username": "devuser",
+  "password": "DevPassword1!"
+}
+
+###
+
+### Login
+POST {{SeattleByNight.Api_HostAddress}}/api/account/login
+Content-Type: application/json
+X-XSRF-TOKEN: {{requestToken}}
+
+{
+  "login": "devuser",
+  "password": "DevPassword1!"
+}
+
+###
+
+### Current account
+GET {{SeattleByNight.Api_HostAddress}}/api/account/me
+Accept: application/json
+
+###
+
+### List characters
+GET {{SeattleByNight.Api_HostAddress}}/api/characters
+Accept: application/json
+
+###
+
+### Start or resume a play session
+POST {{SeattleByNight.Api_HostAddress}}/api/play-session/start
+Content-Type: application/json
+X-XSRF-TOKEN: {{requestToken}}
+
+{
+  "characterId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+}
+
+###
+
+### Current room session
+GET {{SeattleByNight.Api_HostAddress}}/api/play-session/current
+Accept: application/json
+
+###
+
+### Renew activity
+POST {{SeattleByNight.Api_HostAddress}}/api/play-session/activity
+X-XSRF-TOKEN: {{requestToken}}
+
+###
+
+### Logout (ends the play session)
+POST {{SeattleByNight.Api_HostAddress}}/api/account/logout
+X-XSRF-TOKEN: {{requestToken}}
