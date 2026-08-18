@@ -8,15 +8,13 @@ public sealed class StartPlaySessionCommandHandler : IRequestHandler<StartPlaySe
 {
     private readonly IPlaySessionStore _store;
     private readonly PlaySessionOptions _options;
-    private readonly TimeProvider _timeProvider;
 
-    public StartPlaySessionCommandHandler(IPlaySessionStore store, PlaySessionOptions options, TimeProvider timeProvider)
+    public StartPlaySessionCommandHandler(IPlaySessionStore store, PlaySessionOptions options)
     {
         _store = store;
         _options = options;
-        _timeProvider = timeProvider;
     }
 
     public Task<StartPlaySessionResult> Handle(StartPlaySessionCommand request, CancellationToken cancellationToken)
-        => _store.StartOrResumeAsync(request.UserId, request.CharacterId, _timeProvider.GetUtcNow(), _options.IdleTimeout, cancellationToken);
+        => _store.StartOrResumeAsync(request.UserId, request.CharacterId, _options.IdleTimeout, cancellationToken);
 }

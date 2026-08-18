@@ -36,7 +36,7 @@ public sealed class PlaySessionExpirationTests : IAsyncLifetime
         var sessionId = await CreateExpiredSessionAsync();
         var now = DateTimeOffset.UtcNow;
 
-        var store = CreateStore();
+        var store = CreateStore(now);
 
         // Candidate discovery selects the session while it is expired.
         var candidates = await store.ListExpiredAsync(now);
@@ -62,8 +62,8 @@ public sealed class PlaySessionExpirationTests : IAsyncLifetime
         var sessionId = await CreateExpiredSessionAsync();
         var now = DateTimeOffset.UtcNow;
 
-        var storeA = CreateStore();
-        var storeB = CreateStore();
+        var storeA = CreateStore(now);
+        var storeB = CreateStore(now);
 
         var results = await Task.WhenAll(
             storeA.TryEndExpiredAsync(sessionId, now),
@@ -77,6 +77,43 @@ public sealed class PlaySessionExpirationTests : IAsyncLifetime
         Assert.Equal(0, await db.RoomVisits.CountAsync(v => v.PlaySessionId == sessionId && v.LeftAtUtc == null));
     }
 
+    [Fact]
+    public async Task RenewAndExpire_ConcurrentOperations_HaveExactlyOneWinner()
+    {
+        var sessionId = await CreateExpiredSessionAsync();
+        var renewalTime = DateTimeOffset.UtcNow;
+        var expirationTime = renewalTime.AddMinutes(1);
+
+        await ExtendExpiryAsync(sessionId, renewalTime.AddSeconds(30));
+
+        await using var lookup = CreateDbContext();
+        var userId = await lookup.PlaySessions
+            .Where(session => session.Id == sessionId)
+            .Select(session => session.UserId)
+            .SingleAsync();
+
+        var renewalStore = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(renewalTime));
+        var expirationStore = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(expirationTime));
+
+        var renewalTask = renewalStore.RenewActivityByUserIdAsync(
+            userId, TimeSpan.FromHours(1), TimeSpan.Zero);
+        var expirationTask = expirationStore.TryEndExpiredAsync(sessionId, expirationTime);
+
+        await Task.WhenAll(renewalTask, expirationTask);
+
+        var renewed = await renewalTask is not null;
+        var ended = await expirationTask;
+        Assert.NotEqual(renewed, ended);
+
+        await using var verify = CreateDbContext();
+        var session = await verify.PlaySessions.AsNoTracking().SingleAsync(candidate => candidate.Id == sessionId);
+        var openVisitCount = await verify.RoomVisits.CountAsync(
+            visit => visit.PlaySessionId == sessionId && visit.LeftAtUtc == null);
+
+        Assert.Equal(ended, session.EndedAtUtc is not null);
+        Assert.Equal(ended ? 0 : 1, openVisitCount);
+    }
+
     private SeattleByNightDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<SeattleByNightDbContext>()
@@ -86,7 +123,8 @@ public sealed class PlaySessionExpirationTests : IAsyncLifetime
         return new SeattleByNightDbContext(options);
     }
 
-    private IPlaySessionStore CreateStore() => new PlaySessionStore(CreateDbContext());
+    private IPlaySessionStore CreateStore(DateTimeOffset now) =>
+        new PlaySessionStore(CreateDbContext(), new TestTimeProvider(now));
 
     private async Task<Guid> CreateExpiredSessionAsync()
     {

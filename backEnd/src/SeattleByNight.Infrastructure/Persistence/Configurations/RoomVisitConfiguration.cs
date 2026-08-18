@@ -8,7 +8,9 @@ public sealed class RoomVisitConfiguration : IEntityTypeConfiguration<RoomVisit>
 {
     public void Configure(EntityTypeBuilder<RoomVisit> builder)
     {
-        builder.ToTable("room_visits");
+        builder.ToTable("room_visits", table => table.HasCheckConstraint(
+            "ck_room_visits_interval",
+            "left_at_utc IS NULL OR left_at_utc >= entered_at_utc"));
 
         builder.HasKey(v => v.Id);
 
@@ -42,6 +44,9 @@ public sealed class RoomVisitConfiguration : IEntityTypeConfiguration<RoomVisit>
 
         builder.HasIndex(v => new { v.RoomId, v.EnteredAtUtc })
             .HasDatabaseName("ix_room_visits_room_id_entered_at_utc");
+
+        builder.HasIndex(v => new { v.PlaySessionId, v.RoomId, v.EnteredAtUtc, v.LeftAtUtc })
+            .HasDatabaseName("ix_room_visits_transcript_visibility");
 
         builder.HasOne<PlaySession>()
             .WithMany()

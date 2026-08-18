@@ -25,7 +25,9 @@ character creator are intentionally out of scope.
 - Treat command text, identifiers, dice expressions, profile fields, and editor payloads as untrusted input.
 - Persist mutations before broadcasting them or reporting success.
 - Do not add room or exit deletion endpoints, application commands, or UI controls.
-- Do not infer reverse exits. Each direction remains a separate `RoomExit`.
+- Each direction remains a separate `RoomExit`. Room creation may seed both
+  directed paths for occupied same-layer neighbors; manual exit creation never
+  silently creates a reverse path.
 - Update `README.md` and `PROJECT_CONTEXT.md` when a milestone changes the implemented surface or an architectural decision is accepted.
 - A ticket is complete only when its focused tests and the relevant build/lint checks pass.
 

@@ -33,16 +33,29 @@ public sealed class RoomConfiguration : IEntityTypeConfiguration<Room>
             .IsRequired();
 
         builder.Property(r => r.MapX)
-            .HasColumnName("map_x");
+            .HasColumnName("map_x")
+            .IsRequired();
 
         builder.Property(r => r.MapY)
-            .HasColumnName("map_y");
+            .HasColumnName("map_y")
+            .IsRequired();
 
         builder.Property(r => r.MapLayer)
-            .HasColumnName("map_layer");
+            .HasColumnName("map_layer")
+            .IsRequired();
+
+        builder.HasIndex(r => new { r.MapLayer, r.MapX, r.MapY })
+            .IsUnique()
+            .HasDatabaseName("ux_rooms_map_layer_map_x_map_y");
 
         builder.Property(r => r.CreatedAtUtc)
             .HasColumnName("created_at_utc")
             .HasColumnType("timestamp with time zone");
+
+        builder.Property(r => r.Version)
+            .HasColumnName("version")
+            .HasColumnType("uuid")
+            .IsConcurrencyToken()
+            .ValueGeneratedNever();
     }
 }

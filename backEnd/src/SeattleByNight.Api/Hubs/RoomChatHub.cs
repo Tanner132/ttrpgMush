@@ -1,76 +1,56 @@
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
+using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomChat;
 using SeattleByNight.Application.RoomSessions;
+using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Api.Hubs;
 
 public sealed class RoomChatHub : Hub<IRoomChatClient>
 {
-    private static class StateKeys
-    {
-        public const string PlaySessionId = "playSessionId";
-        public const string CharacterId = "characterId";
-        public const string RoomId = "roomId";
-    }
-
     private readonly IPlaySessionStore _store;
     private readonly IMediator _mediator;
     private readonly TimeProvider _timeProvider;
     private readonly IRoomConnectionRegistry _registry;
+    private readonly IRoomChatConnectionManager _connectionManager;
 
     public RoomChatHub(
         IPlaySessionStore store,
         IMediator mediator,
         TimeProvider timeProvider,
-        IRoomConnectionRegistry registry)
+        IRoomConnectionRegistry registry,
+        IRoomChatConnectionManager connectionManager)
     {
         _store = store;
         _mediator = mediator;
         _timeProvider = timeProvider;
         _registry = registry;
+        _connectionManager = connectionManager;
     }
 
     public async Task<RoomPresence> JoinCurrentRoom()
     {
         var active = await ResolveActivePlaySessionAsync(Context.ConnectionAborted);
+        var presence = await _connectionManager.JoinAsync(
+            Context.ConnectionId,
+            active,
+            ResolveCurrentPlaySessionAsync,
+            Context.ConnectionAborted);
 
-        var existing = _registry.Get(Context.ConnectionId);
-
-        if (existing is not null &&
-            existing.PlaySessionId == active.Id &&
-            existing.Character.Id == active.CharacterId &&
-            existing.RoomId == active.CurrentRoomId)
+        if (presence is null)
         {
-            SetJoinedState(active);
-            return _registry.GetPresence(active.CurrentRoomId);
+            throw new HubException("The play session changed while joining. Join the current room again.");
         }
 
-        if (existing is not null)
-        {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, RoomGroupNames.For(existing.RoomId), Context.ConnectionAborted);
-        }
-
-        await Groups.AddToGroupAsync(Context.ConnectionId, RoomGroupNames.For(active.CurrentRoomId), Context.ConnectionAborted);
-
-        // Commit registry and connection-local state only after group membership converged.
-        var character = new CharacterSummary(active.CharacterId, active.CharacterName);
-        var changedRooms = _registry.Add(Context.ConnectionId, active.Id, character, active.CurrentRoomId);
-        SetJoinedState(active);
-
-        foreach (var roomId in changedRooms)
-        {
-            await Clients.Group(RoomGroupNames.For(roomId)).RoomPresenceChanged(_registry.GetPresence(roomId));
-        }
-
-        return _registry.GetPresence(active.CurrentRoomId);
+        return presence;
     }
 
     public async Task<DateTimeOffset> RecordActivity()
     {
-        var active = await ResolveActivePlaySessionAsync(Context.ConnectionAborted);
+        var active = await RequireAuthoritativeJoinedStateAsync(Context.ConnectionAborted);
 
         var result = await _mediator.Send(new RenewActivityCommand(active.UserId, Throttled: true), Context.ConnectionAborted);
 
@@ -82,12 +62,19 @@ public sealed class RoomChatHub : Hub<IRoomChatClient>
         return result.ExpiresAtUtc.Value;
     }
 
-    public async Task<DateTimeOffset> SendMessage(string content)
+    public async Task<IReadOnlyList<CharacterSummary>> GetOnlineCharacters()
     {
-        RequireJoinedState();
+        _ = await RequireAuthoritativeJoinedStateAsync(Context.ConnectionAborted);
+
+        return _registry.GetOnlineCharacters();
+    }
+
+    public async Task<DateTimeOffset> SendMessage(string content, ChatMessageType type)
+    {
+        _ = await RequireAuthoritativeJoinedStateAsync(Context.ConnectionAborted);
 
         var result = await _mediator.Send(
-            new SendRoomMessageCommand(RequireUserId(), content),
+            new SendRoomMessageCommand(RequireUserId(), content, type),
             Context.ConnectionAborted);
 
         if (!result.IsSuccess)
@@ -96,7 +83,31 @@ public sealed class RoomChatHub : Hub<IRoomChatClient>
             {
                 SendRoomMessageError.NoActiveSession => "No active play session.",
                 SendRoomMessageError.InvalidContent => "Message content is invalid.",
+                SendRoomMessageError.InvalidType => "That message type is not allowed.",
                 _ => "Could not send message."
+            });
+        }
+
+        await Clients.Group(RoomGroupNames.For(result.Message!.RoomId)).MessageReceived(result.Message);
+
+        return result.ExpiresAtUtc!.Value;
+    }
+
+    public async Task<DateTimeOffset> RollDice(string expression)
+    {
+        _ = await RequireAuthoritativeJoinedStateAsync(Context.ConnectionAborted);
+
+        var result = await _mediator.Send(
+            new RollDiceCommand(RequireUserId(), expression),
+            Context.ConnectionAborted);
+
+        if (!result.IsSuccess)
+        {
+            throw new HubException(result.Error switch
+            {
+                RollDiceError.NoActiveSession => "No active play session.",
+                RollDiceError.InvalidExpression => result.ErrorMessage ?? "Invalid dice expression.",
+                _ => "Could not roll dice."
             });
         }
 
@@ -107,7 +118,7 @@ public sealed class RoomChatHub : Hub<IRoomChatClient>
 
     public async Task MoveThroughExit(Guid exitId)
     {
-        RequireJoinedState();
+        _ = await RequireAuthoritativeJoinedStateAsync(Context.ConnectionAborted);
 
         var result = await _mediator.Send(
             new MoveCharacterCommand(RequireUserId(), exitId),
@@ -128,53 +139,21 @@ public sealed class RoomChatHub : Hub<IRoomChatClient>
             });
         }
 
-        var newRoomId = result.NewRoomId;
         var session = result.Session!;
-        var character = session.Character;
+        await _connectionManager.MoveSessionAsync(
+            session.PlaySessionId,
+            result.OldRoomId,
+            result.NewRoomId,
+            session,
+            CancellationToken.None);
 
-        // The durable move has committed; update realtime group membership to follow.
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, RoomGroupNames.For(result.OldRoomId), Context.ConnectionAborted);
-        await Groups.AddToGroupAsync(Context.ConnectionId, RoomGroupNames.For(newRoomId), Context.ConnectionAborted);
-
-        Context.Items[StateKeys.RoomId] = newRoomId;
-
-        var changedRooms = _registry.Add(Context.ConnectionId, session.PlaySessionId, character, newRoomId);
-
-        // Deliver the caller's authoritative room first so the client can scope the
-        // presence snapshots that follow to the new room.
-        await Clients.Caller.RoomChanged(session);
-
-        await Clients.OthersInGroup(RoomGroupNames.For(result.OldRoomId)).CharacterDeparted(new RoomCharacterEvent(result.OldRoomId, character));
-        await Clients.OthersInGroup(RoomGroupNames.For(newRoomId)).CharacterArrived(new RoomCharacterEvent(newRoomId, character));
-
-        foreach (var roomId in changedRooms)
-        {
-            await Clients.Group(RoomGroupNames.For(roomId)).RoomPresenceChanged(_registry.GetPresence(roomId));
-        }
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var existing = _registry.Get(Context.ConnectionId);
-
-        if (existing is not null)
-        {
-            var changedRooms = _registry.Remove(Context.ConnectionId);
-
-            foreach (var roomId in changedRooms)
-            {
-                await Clients.Group(RoomGroupNames.For(roomId)).RoomPresenceChanged(_registry.GetPresence(roomId));
-            }
-        }
+        await _connectionManager.RemoveConnectionAsync(Context.ConnectionId);
 
         await base.OnDisconnectedAsync(exception);
-    }
-
-    private void SetJoinedState(ActivePlaySession active)
-    {
-        Context.Items[StateKeys.PlaySessionId] = active.Id;
-        Context.Items[StateKeys.CharacterId] = active.CharacterId;
-        Context.Items[StateKeys.RoomId] = active.CurrentRoomId;
     }
 
     private async Task<ActivePlaySession> ResolveActivePlaySessionAsync(CancellationToken cancellationToken)
@@ -191,16 +170,23 @@ public sealed class RoomChatHub : Hub<IRoomChatClient>
         return active;
     }
 
-    private (Guid PlaySessionId, Guid CharacterId, Guid RoomId) RequireJoinedState()
+    private async Task<ActivePlaySession?> ResolveCurrentPlaySessionAsync(CancellationToken cancellationToken)
+        => await _store.GetActiveByUserIdAsync(RequireUserId(), _timeProvider.GetUtcNow(), cancellationToken);
+
+    private async Task<ActivePlaySession> RequireAuthoritativeJoinedStateAsync(CancellationToken cancellationToken)
     {
-        if (!Context.Items.TryGetValue(StateKeys.PlaySessionId, out var playSessionValue) ||
-            !Context.Items.TryGetValue(StateKeys.CharacterId, out var characterValue) ||
-            !Context.Items.TryGetValue(StateKeys.RoomId, out var roomValue))
+        var active = await ResolveActivePlaySessionAsync(cancellationToken);
+        var registration = _registry.Get(Context.ConnectionId);
+
+        if (registration is null ||
+            registration.PlaySessionId != active.Id ||
+            registration.Character.Id != active.CharacterId ||
+            registration.RoomId != active.CurrentRoomId)
         {
             throw new HubException("Join the current room before sending messages.");
         }
 
-        return ((Guid)playSessionValue!, (Guid)characterValue!, (Guid)roomValue!);
+        return active;
     }
 
     private Guid RequireUserId()

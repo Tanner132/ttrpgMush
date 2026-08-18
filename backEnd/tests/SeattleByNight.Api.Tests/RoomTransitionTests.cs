@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Api.Hubs;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomSessions;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence.Seed;
 
 namespace SeattleByNight.Api.Tests;
@@ -70,16 +71,47 @@ public sealed class RoomTransitionTests : IClassFixture<ApiTestFactory>
         await moverConnection.InvokeAsync("MoveThroughExit", DevelopmentDataSeeder.DowntownToCoffeeExitId);
 
         var newRoomReceived = CreateMessageAwaiter(moverConnection);
-        await newOtherConnection.InvokeAsync("SendMessage", "coffee-msg");
+        await newOtherConnection.InvokeAsync("SendMessage", "coffee-msg", ChatMessageType.Say);
 
         var message = await newRoomReceived.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("coffee-msg", message.Content);
 
         var oldRoomReceived = CreateMessageAwaiter(moverConnection);
-        await oldOtherConnection.InvokeAsync("SendMessage", "downtown-msg");
+        await oldOtherConnection.InvokeAsync("SendMessage", "downtown-msg", ChatMessageType.Say);
 
         var missed = await AwaitMessageOrNullAsync(oldRoomReceived, TimeSpan.FromSeconds(2));
         Assert.Null(missed);
+    }
+
+    [Fact]
+    public async Task Move_ReconcilesEveryConnectionForThePlaySession()
+    {
+        var mover = await CreateChatUserAsync(DevelopmentDataSeeder.DowntownStreetId);
+        var oldRoomOther = await CreateChatUserAsync(DevelopmentDataSeeder.DowntownStreetId);
+        var newRoomOther = await CreateChatUserAsync(DevelopmentDataSeeder.CoffeeShopId);
+
+        await using var firstMoverConnection = await ConnectAsync(mover);
+        await using var secondMoverConnection = await ConnectAsync(mover);
+        await using var oldOtherConnection = await ConnectAsync(oldRoomOther);
+        await using var newOtherConnection = await ConnectAsync(newRoomOther);
+
+        var firstChanged = CreateRoomSessionAwaiter(firstMoverConnection);
+        var secondChanged = CreateRoomSessionAwaiter(secondMoverConnection);
+
+        await firstMoverConnection.InvokeAsync("MoveThroughExit", DevelopmentDataSeeder.DowntownToCoffeeExitId);
+
+        Assert.Equal(DevelopmentDataSeeder.CoffeeShopId, (await firstChanged.WaitAsync(TimeSpan.FromSeconds(10))).Room.Id);
+        Assert.Equal(DevelopmentDataSeeder.CoffeeShopId, (await secondChanged.WaitAsync(TimeSpan.FromSeconds(10))).Room.Id);
+
+        var newRoomReceived = CreateMessageAwaiter(secondMoverConnection);
+        await newOtherConnection.InvokeAsync("SendMessage", "all-connections-arrived", ChatMessageType.Say);
+        Assert.Equal("all-connections-arrived", (await newRoomReceived.WaitAsync(TimeSpan.FromSeconds(10))).Content);
+
+        var oldRoomReceived = CreateMessageAwaiter(secondMoverConnection);
+        await oldOtherConnection.InvokeAsync("SendMessage", "old-room-traffic", ChatMessageType.Say);
+        Assert.Null(await AwaitMessageOrNullAsync(oldRoomReceived, TimeSpan.FromSeconds(2)));
+
+        await secondMoverConnection.InvokeAsync("SendMessage", "second-connection-can-send", ChatMessageType.Say);
     }
 
     [Fact]
@@ -95,7 +127,7 @@ public sealed class RoomTransitionTests : IClassFixture<ApiTestFactory>
             moverConnection.InvokeAsync("MoveThroughExit", DevelopmentDataSeeder.CoffeeToDowntownExitId));
 
         var received = CreateMessageAwaiter(moverConnection);
-        await otherConnection.InvokeAsync("SendMessage", "still-downtown");
+        await otherConnection.InvokeAsync("SendMessage", "still-downtown", ChatMessageType.Say);
 
         var message = await received.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("still-downtown", message.Content);
@@ -119,7 +151,7 @@ public sealed class RoomTransitionTests : IClassFixture<ApiTestFactory>
 
         await expired.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
-        await Assert.ThrowsAsync<HubException>(() => moverConnection.InvokeAsync("SendMessage", "too-late"));
+        await Assert.ThrowsAsync<HubException>(() => moverConnection.InvokeAsync("SendMessage", "too-late", ChatMessageType.Say));
     }
 
     private async Task<ChatUser> CreateChatUserAsync(Guid roomId)

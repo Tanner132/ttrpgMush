@@ -1,16 +1,18 @@
 using MediatR;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomSessions;
+using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Application.RoomChat;
 
-public sealed record SendRoomMessageCommand(Guid UserId, string Content) : IRequest<SendRoomMessageResult>;
+public sealed record SendRoomMessageCommand(Guid UserId, string Content, ChatMessageType Type) : IRequest<SendRoomMessageResult>;
 
 public enum SendRoomMessageError
 {
     None = 0,
     NoActiveSession,
-    InvalidContent
+    InvalidContent,
+    InvalidType
 }
 
 public sealed record SendRoomMessageResult(SendRoomMessageError Error, RoomMessage? Message, DateTimeOffset? ExpiresAtUtc)
@@ -29,20 +31,22 @@ public sealed class SendRoomMessageCommandHandler : IRequestHandler<SendRoomMess
 
     private readonly IRoomChatStore _chatStore;
     private readonly PlaySessionOptions _options;
-    private readonly TimeProvider _timeProvider;
 
     public SendRoomMessageCommandHandler(
         IRoomChatStore chatStore,
-        PlaySessionOptions options,
-        TimeProvider timeProvider)
+        PlaySessionOptions options)
     {
         _chatStore = chatStore;
         _options = options;
-        _timeProvider = timeProvider;
     }
 
     public async Task<SendRoomMessageResult> Handle(SendRoomMessageCommand request, CancellationToken cancellationToken)
     {
+        if (request.Type is not (ChatMessageType.Say or ChatMessageType.Emote))
+        {
+            return SendRoomMessageResult.Failure(SendRoomMessageError.InvalidType);
+        }
+
         if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > MaxContentLength)
         {
             return SendRoomMessageResult.Failure(SendRoomMessageError.InvalidContent);
@@ -51,7 +55,7 @@ public sealed class SendRoomMessageCommandHandler : IRequestHandler<SendRoomMess
         var outcome = await _chatStore.SendMessageAsync(
             request.UserId,
             request.Content,
-            _timeProvider.GetUtcNow(),
+            request.Type,
             _options.IdleTimeout,
             cancellationToken);
 

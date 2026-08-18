@@ -9,16 +9,17 @@ namespace SeattleByNight.Infrastructure.Movement;
 public sealed class MovementStore : IMovementStore
 {
     private readonly SeattleByNightDbContext _dbContext;
+    private readonly TimeProvider _timeProvider;
 
-    public MovementStore(SeattleByNightDbContext dbContext)
+    public MovementStore(SeattleByNightDbContext dbContext, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider;
     }
 
     public async Task<MovementStoreResult> MoveAsync(
         Guid userId,
         Guid exitId,
-        DateTimeOffset now,
         TimeSpan idleTimeout,
         CancellationToken cancellationToken = default)
     {
@@ -29,6 +30,8 @@ public sealed class MovementStore : IMovementStore
         var session = await _dbContext.PlaySessions
             .FromSqlInterpolated($"SELECT * FROM play_sessions WHERE user_id = {userId} AND ended_at_utc IS NULL FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
+
+        var now = _timeProvider.GetUtcNow();
 
         if (session is null || session.ExpiresAtUtc <= now)
         {

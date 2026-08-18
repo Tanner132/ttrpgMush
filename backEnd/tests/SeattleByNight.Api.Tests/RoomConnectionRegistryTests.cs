@@ -76,6 +76,28 @@ public sealed class RoomConnectionRegistryTests
     }
 
     [Fact]
+    public void MovePlaySession_MovesEveryConnectionAndBumpsDistinctPresenceOnce()
+    {
+        var registry = new RoomConnectionRegistry();
+        var sessionId = Guid.NewGuid();
+        var character = new CharacterSummary(Guid.NewGuid(), "Runner");
+        var oldRoomId = Guid.NewGuid();
+        var newRoomId = Guid.NewGuid();
+
+        registry.Add("conn-1", sessionId, character, oldRoomId);
+        registry.Add("conn-2", sessionId, character, oldRoomId);
+
+        var changedRooms = registry.MovePlaySession(sessionId, newRoomId);
+
+        Assert.Equal(2, changedRooms.Count);
+        Assert.Contains(oldRoomId, changedRooms);
+        Assert.Contains(newRoomId, changedRooms);
+        Assert.All(registry.GetByPlaySessionId(sessionId), connection => Assert.Equal(newRoomId, connection.RoomId));
+        Assert.Equal(2, registry.GetPresence(oldRoomId).Revision);
+        Assert.Equal(1, registry.GetPresence(newRoomId).Revision);
+    }
+
+    [Fact]
     public void GetPresence_DeduplicatesAndOrdersByCharacter()
     {
         var registry = new RoomConnectionRegistry();
@@ -94,6 +116,32 @@ public sealed class RoomConnectionRegistryTests
         Assert.Equal(2, presence.OnlineCharacters.Count);
         Assert.Equal(ada, presence.OnlineCharacters[0]);
         Assert.Equal(zed, presence.OnlineCharacters[1]);
+    }
+
+    [Fact]
+    public void GetOnlineCharacters_DeduplicatesAndOrdersAcrossRooms()
+    {
+        var registry = new RoomConnectionRegistry();
+        var zed = new CharacterSummary(Guid.NewGuid(), "Zed");
+        var ada = new CharacterSummary(Guid.NewGuid(), "Ada");
+
+        registry.Add("conn-1", Guid.NewGuid(), zed, Guid.NewGuid());
+        registry.Add("conn-2", Guid.NewGuid(), ada, Guid.NewGuid());
+        registry.Add("conn-3", Guid.NewGuid(), zed, Guid.NewGuid());
+
+        var online = registry.GetOnlineCharacters();
+
+        Assert.Equal(2, online.Count);
+        Assert.Equal(ada, online[0]);
+        Assert.Equal(zed, online[1]);
+    }
+
+    [Fact]
+    public void GetOnlineCharacters_ReturnsEmptyWhenNoConnections()
+    {
+        var registry = new RoomConnectionRegistry();
+
+        Assert.Empty(registry.GetOnlineCharacters());
     }
 
     [Fact]

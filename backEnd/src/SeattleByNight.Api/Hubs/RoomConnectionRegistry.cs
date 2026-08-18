@@ -14,9 +14,13 @@ public interface IRoomConnectionRegistry
 
     IReadOnlyList<Guid> Remove(string connectionId);
 
+    IReadOnlyList<Guid> MovePlaySession(Guid playSessionId, Guid roomId);
+
     RegisteredRoomConnection? Get(string connectionId);
 
     IReadOnlyList<RegisteredRoomConnection> GetByPlaySessionId(Guid playSessionId);
+
+    IReadOnlyList<CharacterSummary> GetOnlineCharacters();
 
     RoomPresence GetPresence(Guid roomId);
 }
@@ -77,6 +81,34 @@ public sealed class RoomConnectionRegistry : IRoomConnectionRegistry
         }
     }
 
+    public IReadOnlyList<Guid> MovePlaySession(Guid playSessionId, Guid roomId)
+    {
+        lock (_sync)
+        {
+            var matches = _connections
+                .Where(entry => entry.Value.PlaySessionId == playSessionId)
+                .ToList();
+
+            if (matches.Count == 0)
+            {
+                return Array.Empty<Guid>();
+            }
+
+            var affectedRooms = matches
+                .Select(entry => entry.Value.RoomId)
+                .Append(roomId)
+                .ToHashSet();
+            var before = affectedRooms.ToDictionary(affectedRoomId => affectedRoomId, OnlineCharacterIds);
+
+            foreach (var (connectionId, registration) in matches)
+            {
+                _connections[connectionId] = registration with { RoomId = roomId };
+            }
+
+            return BumpChangedRooms(before);
+        }
+    }
+
     public RegisteredRoomConnection? Get(string connectionId)
     {
         lock (_sync)
@@ -117,6 +149,19 @@ public sealed class RoomConnectionRegistry : IRoomConnectionRegistry
             var revision = _revisions.TryGetValue(roomId, out var value) ? value : 0;
 
             return new RoomPresence(roomId, revision, characters);
+        }
+    }
+
+    public IReadOnlyList<CharacterSummary> GetOnlineCharacters()
+    {
+        lock (_sync)
+        {
+            return _connections.Values
+                .Select(registration => registration.Character)
+                .DistinctBy(character => character.Id)
+                .OrderBy(character => character.Name, StringComparer.Ordinal)
+                .ThenBy(character => character.Id)
+                .ToList();
         }
     }
 

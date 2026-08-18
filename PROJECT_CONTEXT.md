@@ -52,7 +52,12 @@ Do not introduce Redis, message brokers, Kubernetes, microservices, multiple rep
 - Vite 8.
 - Oxlint using the scaffolded configuration.
 - Responsive CSS without a component framework.
-- No routing, API client, or global state library; `@microsoft/signalr` powers the realtime client.
+- React Router 7 for client-side routing; no API client or global state library.
+- `@microsoft/signalr` powers the realtime client.
+- A project-owned retro-future neon-noir design system: semantic CSS custom
+  properties in `frontEnd/src/styles/tokens.css`, accessible UI primitives in
+  `frontEnd/src/components/ui`, and self-hosted Rajdhani and Source Code Pro
+  (SIL OFL 1.1) via `@fontsource`.
 
 ### Testing and Local Development
 
@@ -108,15 +113,18 @@ All persisted identifiers are UUIDs. Persisted timestamps use UTC `DateTimeOffse
 
 ### Room
 
-- Persistent location containing a name, description, public access type, optional map coordinates, and creation timestamp.
+- Persistent location containing a name, description, public access type, required immutable map coordinates, and creation timestamp.
+- Coordinates are unique within a layer. A room is created directly in an empty editor grid cell and cannot be repositioned.
 - `RoomAccessType` currently contains only `Public`.
 - Ownership and non-public access rules are deferred.
 
 ### RoomExit
 
 - Directed edge from `SourceRoomId` to `DestinationRoomId`.
-- Contains a name, direction, hidden flag, and locked flag.
-- A reverse path requires a separate `RoomExit`; never infer bidirectionality.
+- Contains one of the approved directions plus hidden and locked flags; exits have no separate names.
+- Approved directions are `north`, `northeast`, `east`, `southeast`, `south`, `southwest`, `west`, `northwest`, `up`, and `down`.
+- A source room has at most one exit per direction.
+- Creating a room generates separate forward and reverse exits for occupied same-layer cells in its eight-cell neighborhood. Other reverse paths require a separate `RoomExit`.
 - Movement must be requested through an exit from the character's current room, not by accepting an arbitrary destination room ID.
 
 ### Character
@@ -144,9 +152,9 @@ Treat the world as a directed graph, not a linked list or grid:
 - Rooms are nodes.
 - Room exits are directed edges.
 - Graph connectivity determines allowed movement.
-- Optional coordinates and map layers determine presentation only.
+- Required coordinates determine editor placement and seed default adjacency only. Persisted exits remain authoritative after room creation.
 - One-way exits, loops, branches, hidden paths, and locked paths must remain possible.
-- Visual map layout must not become the source of truth for connectivity.
+- Rooms cannot move. Manual exit editing may diverge from visual adjacency, so the map is not the ongoing source of truth for connectivity.
 
 An eventual movement operation should validate the character's current room, the selected exit, destination access, and any exit restrictions before updating `CurrentRoomId`.
 
@@ -160,7 +168,7 @@ SignalR is implemented. The design is:
 - Character location in PostgreSQL is durable state.
 - Active connections and online presence are ephemeral state.
 - A SignalR disconnect immediately removes that connection from realtime delivery, but does not by itself end the durable play session.
-- Moving removes the connection from the previous room group and adds it to the destination group only after the durable location update succeeds.
+- Moving removes every connection registered to the play session from its previous room group and adds it to the destination group only after the durable location update succeeds.
 - Messages are persisted before they are broadcast.
 - Clients deduplicate messages by server-generated message ID and rejoin the authoritative room after reconnecting.
 
@@ -168,19 +176,60 @@ Online presence is an in-memory projection of joined SignalR connections:
 
 - A connection registration carries the play-session ID, character summary, and room ID.
 - Presence is deduplicated by character ID, so multiple connections for one active play session show a single online character; the character goes offline only after the final connection leaves.
-- `JoinCurrentRoom()` returns the authoritative `RoomPresence` snapshot and is idempotent: re-joining the same session/character/room is a no-op, and re-joining after the durable room changed self-heals by leaving the stale group before joining the authoritative one.
+- `JoinCurrentRoom()` returns the authoritative `RoomPresence` snapshot and is idempotent: re-joining the same session/character/room is a no-op, and re-joining after the durable room changed self-heals by leaving the stale group before joining the authoritative one. The server revalidates the session after registration and rolls back stale membership if the session ended or changed concurrently.
+- Movement, session replacement, logout, and expiration reconcile every connection registered to the affected play session. Hub mutations revalidate the connection registration against the authoritative active session rather than trusting connection-local state or group membership.
 - `RoomPresenceChanged(presence)` is broadcast to a room only when its distinct online-character set changes, and carries a monotonic in-process `revision` that clients use to reject stale snapshots.
 - Presence is lost on application restart by design and never changes durable occupancy.
 
 The initial deployment has one backend instance, so SignalR's in-process connection and group state is sufficient. Before adding multiple backend replicas, introduce an appropriate SignalR backplane and distributed presence strategy.
 
+## Typed Messages And Dice
+
+Room communication carries an explicit `ChatMessageType` persisted with every
+`ChatMessage`. The approved types are `Say`, `Emote`, and `Roll`. Only room
+communication is persisted: speech, emotes, and the server-rendered result of a
+public roll. `/help`, `/look`, `/who`, parser output, and usage errors remain
+local-only, and `/go` persists movement rather than command text. Movement
+arrivals and departures remain ephemeral presence events, not durable typed
+messages.
+
+Dice rolls are server-authoritative. The client submits only a dice expression
+(`/roll <expression>`), never an outcome. The server parses and enforces the
+approved grammar, generates the result with an unbiased system random source,
+and persists one canonical server-rendered `Roll` chat message containing the
+normalized expression and result. There is no separate `DiceRoll` entity or
+structured roll-result columns; the durable chat entry is the room transcript
+record for the roll. Future mechanics that need rolls as gameplay inputs must
+introduce a separately approved structured model.
+
+Approved dice grammar and limits:
+
+- Expression form: `NdS` with an optional signed integer modifier, e.g. `2d6+3`.
+  The count must be explicit; `d6` is not accepted (write `1d6`).
+- Maximum 100 dice and maximum 1,000 sides.
+- No exploding dice, pools, limits, glitches, or opposed tests.
+- The default application-owned limits are configurable through the `Dice`
+  options section (`MaxDice`, `MaxSides`, `MaxExpressionLength`,
+  `MaxModifierMagnitude`).
+
+Dice library decision: no third-party package is used. Evaluated candidates
+(`DiceRoller`, `D20Tek.DiceNotation.Standard`, `RoguelikeToolkit.Dice`, and the
+dormant `EdCanHack.DiceNotation`/`DiceNotation.CoreClass`) all target older
+.NET Standard, add expression complexity (keep/drop/reroll) far beyond the
+approved `NdS ± modifier` grammar, and still require adapter code for
+server-controlled randomness and deterministic tests. A minimal internal parser
+is implemented behind the `IDiceEngine` application boundary so the grammar and
+limits stay explicit and a package can be swapped in later without changing
+transport or domain code.
+
 ## Transactional Gameplay Ordering
 
 PostgreSQL serializes gameplay mutations by locking the active play-session row
 (`SELECT ... FOR UPDATE`) before reading or changing its character room, expiry,
-active room visit, or chat destination. Chat send, movement, and expiration all
-acquire this lock first and in the same order, so they serialize without
-deadlocks:
+active room visit, or chat destination. The authoritative operation timestamp is
+obtained after lock acquisition so persisted time follows serialization order.
+Chat send, movement, activity renewal, explicit ending, session replacement, and
+expiration use the same lock discipline:
 
 - Chat send locks the user's active session, rejects ended/expired sessions,
   resolves the selected character's authoritative room, renews activity, and
@@ -192,6 +241,8 @@ deadlocks:
   time; a stale scan cannot end a session that was renewed concurrently. It closes
   the open visit at the same server timestamp and only notifies the connection
   manager when it actually ended the session.
+- Explicit ending and session replacement return the affected session identity so
+  the transport layer can reconcile its realtime connections after commit.
 
 ## Play Sessions and Chat Visibility
 
@@ -229,13 +280,59 @@ Use ASP.NET Core Identity rather than custom password storage:
 
 Registration creates only the user account. Character creation is a separate authenticated operation. Character creation must validate ownership count transactionally so concurrent requests cannot create a third character. It sets `CurrentRoomId` to the configured `New Character Room`; clients cannot choose an arbitrary starting room.
 
-Email confirmation, password reset delivery, administrator roles, and moderation UI are later hardening milestones. Their absence must be documented before public deployment.
+Email confirmation, password reset delivery, and moderation UI are later hardening milestones. Their absence must be documented before public deployment.
 
 Player transcript queries should use cursor pagination over the current session's eligible messages. Do not copy one row per message recipient. Visibility is derived from room-visit intervals, which avoids the largest source of storage amplification.
 
 All chat messages remain available to future authorized moderation queries independently of player transcript visibility. Administrative chat access must require a role, be auditable, and bypass room-visit filtering only through an explicit moderation use case. No moderation endpoint should be exposed before authentication and roles exist.
 
 PostgreSQL text storage is expected to be sufficient at the project's initial scale. A million typical short messages is generally measured in hundreds of megabytes before indexes, not four gigabytes merely because the maximum content length is 4,000 characters. Monitor actual growth before adding complexity. If needed later, add a documented retention period, time-based partitions, and compressed archival exports; do not sacrifice moderation records or player privacy semantics for premature optimization.
+
+## Roles, Policies, and Administrative Auditing
+
+Authorization uses named roles and named policies rather than inline role-name
+checks. The centralized role names in `ApplicationRoles` are `Administrator`,
+`WorldBuilder`, and `Moderator`. ASP.NET Core authorization policies are defined
+in the Api composition root and map to least-privilege role sets:
+
+- `RoleManagement` — `Administrator` only.
+- `WorldEditing` — `Administrator` or `WorldBuilder`.
+- `ModerationAccess` — `Administrator` or `Moderator`.
+- `AuditLogReading` — `Administrator` only.
+
+Policies are applied at endpoint boundaries. New registrations receive no role.
+Role definitions are created idempotently by database migration in every
+environment, and the deterministic Development `devuser` is granted
+`Administrator` there only. Production startup contains no default
+administrative credential or silent elevation; the first administrator is
+granted through a documented operator bootstrap procedure (see `README.md`).
+
+Every administrative mutation appends an append-only `AuditRecord` in the same
+database transaction as the mutation. Records contain the server-assigned UTC
+timestamp, authenticated actor user ID, action, target type, target ID, and
+bounded structured JSON details. There are no update or delete operations for
+audit records; failed or rolled-back mutations leave no audit record. The audit
+query is cursor-paginated (newest first, ID tie-breaker) with bounded filters
+for actor, action, target type/ID, and UTC time range.
+
+Role administration removes a role transactionally and refuses to remove the
+last effective `Administrator`. Concurrent role mutations serialize on a
+PostgreSQL advisory transaction lock so check-then-act remains atomic. Successful
+role assignment or removal rotates the target user's security stamp; authentication
+principals are validated on every request so stale role claims are rejected.
+
+World editing is available to `Administrator` and `WorldBuilder`. Room and exit
+creates and updates append audit records atomically. Both entities expose an
+opaque UUID version token; updates use it as an EF concurrency token, rotate it
+on success, and return a conflict without an audit success record when stale.
+Coordinates are required, immutable, and unique within a layer. Creating a room
+in an empty cell atomically creates both directed paths to every occupied
+same-layer compass neighbor. A PostgreSQL advisory transaction lock serializes
+topology creation so concurrent editors cannot miss adjacency. After creation,
+persisted exits remain authoritative and can be manually rewired or assigned
+hidden/locked state. Vertical `up` and `down` exits are always explicit.
+There is no room or exit deletion use case. Recovery is performed through edits
+or by locking/hiding an exit.
 
 ## Caching
 
@@ -249,20 +346,33 @@ No application cache is implemented. When caching is justified:
 
 ## Database and Development Data
 
-The current schema contains `rooms`, `room_exits`, `characters`, and `chat_messages`. The initial migration is `InitialWorldSchema`.
+The current schema includes Identity, rooms, directed exits, characters, typed chat
+messages, play sessions, room visits, and audit records. The initial migration is
+`InitialWorldSchema`; later migrations add ownership, sessions, authorization,
+auditing, world-editing concurrency, topology constraints, transcript indexes, and
+additional data constraints.
 
 Development startup applies migrations and attempts deterministic, idempotent seeding. Initialization failures are logged as warnings so the process can still expose liveness while PostgreSQL is unavailable.
+
+The configured New Character Room is required operational world data and is
+created by migration in every environment. Development seeding enriches that
+baseline with sample rooms, exits, users, and characters but is not required for
+character creation.
 
 Seed data contains:
 
 - Downtown Street.
 - Coffee Shop.
 - Alley.
-- Directed Downtown Street to Coffee Shop and Coffee Shop to Downtown Street exits.
-- Directed Downtown Street to Alley exit.
+- Downtown Street at `(0, 0, layer 0)`, Coffee Shop at `(1, 0, layer 0)`,
+  Alley at `(0, 1, layer 0)`, and New Character Room at `(0, 0, layer -1)`.
+- Direction-only east/west exits between Downtown and Coffee, north/south exits
+  between Downtown and Alley, and down/up exits between Downtown and the New
+  Character Room.
 - Dev Runner located in Downtown Street.
 
-The next authentication migration will add a deterministic `New Character Room` used as the configured starting location for all newly created characters. It does not need to replace Dev Runner's Downtown location.
+The deterministic `New Character Room` is the configured starting location for
+all newly created characters. Dev Runner remains in Downtown Street.
 
 No credentials or chat messages are seeded.
 
@@ -275,24 +385,74 @@ Backend endpoints:
 - `GET /api/antiforgery/token`: returns the antiforgery token used by
   state-changing cookie-authenticated requests.
 - `POST /api/account/register`, `POST /api/account/login`, `POST /api/account/logout`,
-  `GET /api/account/me`: ASP.NET Core Identity account management.
+  `GET /api/account/me`: ASP.NET Core Identity account management (`/me` includes roles).
 - `GET /api/characters`, `POST /api/characters`: list and create owned characters.
 - `POST /api/play-session/start`, `GET /api/play-session/current`,
   `POST /api/play-session/activity`: start/resume, read, and renew play sessions.
+- `GET /api/admin/users`, `POST /api/admin/users/{userId}/roles`,
+  `DELETE /api/admin/users/{userId}/roles/{roleName}`: administrator-only user
+  lookup and role assignment/removal (role-management policy).
+- `GET /api/admin/audit`: cursor-paginated audit log with bounded filters
+  (audit-reader policy).
+- `GET /api/admin/world`, `GET /api/admin/world/rooms/{roomId}`: complete
+  bounded world graph and room editor details, including hidden and locked
+  directed exits (world-editing policy).
+- `POST /api/admin/world/rooms`, `PUT /api/admin/world/rooms/{roomId}`,
+  `POST /api/admin/world/exits`, `PUT /api/admin/world/exits/{exitId}`:
+  antiforgery-protected, audited world mutations with optimistic concurrency
+  (world-editing policy). No room or exit deletion endpoints exist.
 
 SignalR hub (`/hubs/room-chat`):
 
-- `JoinCurrentRoom()`, `RecordActivity()`, `SendMessage(content)`,
-  `MoveThroughExit(exitId)`.
+- `JoinCurrentRoom()`, `RecordActivity()`, `SendMessage(content, type)`,
+  `RollDice(expression)`, `MoveThroughExit(exitId)`, `GetOnlineCharacters()`.
 - Events: `MessageReceived`, `CharacterDeparted` (`{ roomId, character }`),
   `CharacterArrived` (`{ roomId, character }`), `RoomChanged`,
   `RoomPresenceChanged` (`{ roomId, revision, onlineCharacters }`), `SessionExpired`.
-- `JoinCurrentRoom()` returns the joined room's `RoomPresence`; `RecordActivity()`
-  and `SendMessage()` return the authoritative renewed `ExpiresAtUtc`.
+- `JoinCurrentRoom()` returns the joined room's `RoomPresence`; `RecordActivity()`,
+  `SendMessage()`, and `RollDice()` return the authoritative renewed `ExpiresAtUtc`.
+- `SendMessage(content, type)` accepts only `Say` and `Emote`; `/roll` goes through
+  `RollDice(expression)`, which parses, rolls, and persists the result server-side.
+- `GetOnlineCharacters()` returns the distinct online characters across all rooms
+  (id and name only) and requires an active, joined play session.
+
+The frontend is a routed SPA. `src/pages` holds route-level pages (`LoginPage`,
+`CharactersPage`, `GameplayPage`, `admin/AdminUsersPage`, `admin/AdminAuditPage`,
+`admin/WorldEditorPage`),
+`src/components` holds reusable UI and the shared `AppShell`, `src/hooks` holds
+gameplay lifecycle hooks, and `src/auth` holds account restoration context.
+Routes are `/login`, `/characters`, `/play`, `/admin/users`, `/admin/audit`, and
+`/admin/world`,
+with a not-found fallback; `/` redirects based on authentication and active
+session. Guards redirect unauthenticated users to `/login` (preserving the
+intended destination), `/play` without an active session to `/characters`, and
+unauthorized users from protected administration routes to an access-denied
+state. Role management and audit remain administrator-only; the world editor
+allows `Administrator` or `WorldBuilder`. Server authorization remains
+authoritative.
 
 The frontend implements registration, login, character creation/selection, room
-session rendering, realtime room chat, idle-expiry handling, and movement
-through visible unlocked exits.
+session rendering, realtime room chat with typed rendering (speech, emotes, and
+rolls) and a message filter, idle-expiry handling, movement through visible
+unlocked exits, and a client-side command composer (`/help`, `/who`, `/look`,
+`/say`, `/emote`, `/roll`, `/go`) whose output is rendered as private local
+transcript entries. `/go` resolves a selector against the current room's visible
+exits and submits only the resolved exit ID; the server remains the movement
+authority. `/emote` and plain speech are sent through the typed message path, and
+`/roll` submits only an expression for server-authoritative dice.
+
+The realtime client retries failed initial starts, rejoins before reporting a
+reconnection as ready, and uses lifecycle generations to reject obsolete joins and
+HTTP room-session refreshes. Explicit idle renewal is awaitable and bypasses the
+passive activity throttle; logout preserves local authenticated state when the
+server cannot confirm that the session was ended.
+
+The world editor provides a responsive layered coordinate grid and an
+always-present keyboard-accessible room list. Occupied cells select rooms; empty
+cells open an accessible metadata modal and create the room at that immutable
+coordinate. Same-layer adjacency seeds both directed paths. The editor also
+provides distinct incoming/outgoing direction-only exit editing, including
+manual vertical exits. Reverse exits are separate confirmed creates.
 
 Exit and send controls are enabled only while connected and joined. Deployment
 does not yet serve the built React application from ASP.NET Core (static-file and
@@ -318,10 +478,10 @@ SPA fallback hosting are not configured).
 ## Deferred Features
 
 - Email confirmation and password-reset delivery.
-- Administrator roles, moderation APIs, and moderation audit logs.
+- Moderation APIs and moderation UI.
 - Room ownership and access policies beyond public access.
 - Room metadata caching.
-- Graphical map rendering.
+- Player-facing graphical city map rendering.
 - Shadowrun character sheets, dice, combat, initiative, equipment, and Matrix systems.
 - Redis, brokers, load balancing, and horizontal scaling.
 

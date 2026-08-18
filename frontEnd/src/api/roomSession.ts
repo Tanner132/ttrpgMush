@@ -1,5 +1,13 @@
 import { apiGet } from './client.ts'
 
+export const MessageType = {
+  Say: 0,
+  Emote: 1,
+  Roll: 2,
+} as const
+
+export type MessageType = (typeof MessageType)[keyof typeof MessageType]
+
 export interface CharacterSummary {
   id: string
   name: string
@@ -10,15 +18,14 @@ export interface RoomSummary {
   name: string
   description: string
   accessType: number
-  mapX: number | null
-  mapY: number | null
-  mapLayer: number | null
+  mapX: number
+  mapY: number
+  mapLayer: number
 }
 
 export interface RoomExitSummary {
   id: string
   direction: string
-  name: string
   destinationRoomId: string
   destinationRoomName: string
   isLocked: boolean
@@ -30,6 +37,7 @@ export interface RoomMessage {
   characterId: string
   characterName: string
   content: string
+  type: MessageType
   createdAtUtc: string
 }
 

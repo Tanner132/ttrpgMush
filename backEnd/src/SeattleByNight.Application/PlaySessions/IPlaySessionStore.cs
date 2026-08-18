@@ -7,17 +7,15 @@ public interface IPlaySessionStore
     Task<StartPlaySessionResult> StartOrResumeAsync(
         Guid userId,
         Guid characterId,
-        DateTimeOffset now,
         TimeSpan idleTimeout,
         CancellationToken cancellationToken = default);
 
-    Task EndAsync(Guid playSessionId, DateTimeOffset endedAt, CancellationToken cancellationToken = default);
+    Task<EndedPlaySession?> EndAsync(Guid playSessionId, CancellationToken cancellationToken = default);
 
-    Task EndActiveByUserIdAsync(Guid userId, DateTimeOffset endedAt, CancellationToken cancellationToken = default);
+    Task<EndedPlaySession?> EndActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
     Task<DateTimeOffset?> RenewActivityByUserIdAsync(
         Guid userId,
-        DateTimeOffset now,
         TimeSpan idleTimeout,
         TimeSpan throttleInterval,
         CancellationToken cancellationToken = default);

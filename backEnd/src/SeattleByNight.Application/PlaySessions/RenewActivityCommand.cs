@@ -14,13 +14,11 @@ public sealed class RenewActivityCommandHandler : IRequestHandler<RenewActivityC
 
     private readonly IPlaySessionStore _store;
     private readonly PlaySessionOptions _options;
-    private readonly TimeProvider _timeProvider;
 
-    public RenewActivityCommandHandler(IPlaySessionStore store, PlaySessionOptions options, TimeProvider timeProvider)
+    public RenewActivityCommandHandler(IPlaySessionStore store, PlaySessionOptions options)
     {
         _store = store;
         _options = options;
-        _timeProvider = timeProvider;
     }
 
     public async Task<RenewActivityResult> Handle(RenewActivityCommand request, CancellationToken cancellationToken)
@@ -29,7 +27,6 @@ public sealed class RenewActivityCommandHandler : IRequestHandler<RenewActivityC
 
         var expiresAtUtc = await _store.RenewActivityByUserIdAsync(
             request.UserId,
-            _timeProvider.GetUtcNow(),
             _options.IdleTimeout,
             throttleInterval,
             cancellationToken);

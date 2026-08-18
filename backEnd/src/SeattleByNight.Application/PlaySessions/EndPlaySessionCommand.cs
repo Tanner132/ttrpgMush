@@ -2,19 +2,17 @@ using MediatR;
 
 namespace SeattleByNight.Application.PlaySessions;
 
-public sealed record EndPlaySessionCommand(Guid UserId) : IRequest;
+public sealed record EndPlaySessionCommand(Guid UserId) : IRequest<EndedPlaySession?>;
 
-public sealed class EndPlaySessionCommandHandler : IRequestHandler<EndPlaySessionCommand>
+public sealed class EndPlaySessionCommandHandler : IRequestHandler<EndPlaySessionCommand, EndedPlaySession?>
 {
     private readonly IPlaySessionStore _store;
-    private readonly TimeProvider _timeProvider;
 
-    public EndPlaySessionCommandHandler(IPlaySessionStore store, TimeProvider timeProvider)
+    public EndPlaySessionCommandHandler(IPlaySessionStore store)
     {
         _store = store;
-        _timeProvider = timeProvider;
     }
 
-    public Task Handle(EndPlaySessionCommand request, CancellationToken cancellationToken)
-        => _store.EndActiveByUserIdAsync(request.UserId, _timeProvider.GetUtcNow(), cancellationToken);
+    public Task<EndedPlaySession?> Handle(EndPlaySessionCommand request, CancellationToken cancellationToken)
+        => _store.EndActiveByUserIdAsync(request.UserId, cancellationToken);
 }

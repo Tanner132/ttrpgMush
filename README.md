@@ -83,7 +83,39 @@ dotnet ef database update --project backEnd/src/SeattleByNight.Infrastructure --
 In Development, the API also applies migrations and seeds deterministic sample
 data on startup (Downtown Street, Coffee Shop, Alley, their exits, and a
 development `devuser` / `DevPassword1!` account with the `Dev Runner` character
-in Downtown Street).
+in Downtown Street). In Development, `devuser` is also granted the
+`Administrator` role as the bootstrap administrator. No elevated role is ever
+assigned automatically outside Development.
+
+## Roles and the first administrator
+
+Role definitions are created idempotently by database migration in every
+environment. In production, the first administrator must be granted explicitly
+by an operator; there is no default administrative credential or silent
+elevation.
+
+Bootstrap procedure (run once against the target database):
+
+```powershell
+# 1. Apply migrations to create the role definitions (idempotent).
+dotnet ef database update --project backEnd/src/SeattleByNight.Infrastructure --startup-project backEnd/src/SeattleByNight.Api
+
+# 2. Create (or choose) the operator account through the normal registration flow,
+#    then grant Administrator using psql. Replace the placeholder IDs.
+```
+
+```sql
+-- Find the target user's id and the Administrator role's id, then:
+INSERT INTO asp_net_user_roles (user_id, role_id)
+SELECT u.id, r.id
+FROM asp_net_users u, asp_net_roles r
+WHERE u.normalized_user_name = 'OPERATOR_USERNAME'
+  AND r.normalized_name = 'ADMINISTRATOR'
+ON CONFLICT DO NOTHING;
+```
+
+`WorldBuilder` grants access to the world editor without granting user-role or
+audit-log administration. `Moderator` is reserved for later moderation work.
 
 ## Running the applications
 
@@ -120,7 +152,7 @@ header `X-XSRF-TOKEN` obtained from `GET /api/antiforgery/token`.
 - `POST /api/account/register` — `{ email, username, password }`
 - `POST /api/account/login` — `{ login, password }` (email or username)
 - `POST /api/account/logout` — ends the active play session, then signs out
-- `GET /api/account/me` — `{ id, email, userName }`
+- `GET /api/account/me` — `{ id, email, userName, roles }`
 
 ### Characters
 
@@ -138,6 +170,55 @@ The `RoomSession` response contains the play-session ID and expiry, the current
 character, room, visible exits, durable occupants, the latest message page, and
 an older-messages cursor.
 
+### Administration
+
+Administrative endpoints use named authorization policies rather than inline
+role checks. Roles are `Administrator`, `WorldBuilder`, and `Moderator`. New
+registrations receive no roles.
+
+- `GET /api/admin/users?query=` — user lookup for role management (role-management policy)
+- `POST /api/admin/users/{userId}/roles` — `{ roleName }`; assigns a role (role-management policy)
+- `DELETE /api/admin/users/{userId}/roles/{roleName}` — removes a role; the last administrator cannot be removed
+- `GET /api/admin/audit` — cursor-paginated audit log (audit-reader policy);
+  filters: `actor`, `action`, `targetType`, `targetId`, `from`, `to`, `cursor`
+- `GET /api/admin/world` — bounded complete room graph for world builders,
+  including hidden and locked directed exits
+- `GET /api/admin/world/rooms/{roomId}` — room editor details with distinct
+  incoming and outgoing exits
+- `POST /api/admin/world/rooms`, `PUT /api/admin/world/rooms/{roomId}` — create
+  and update rooms
+- `POST /api/admin/world/exits`, `PUT /api/admin/world/exits/{exitId}` — create
+  and update one directed exit at a time
+
+Every administrative mutation appends an append-only audit record in the same
+transaction as the mutation. Audit records cannot be updated or deleted through
+the API.
+
+### World editor
+
+`/admin/world` is available to `Administrator` and `WorldBuilder`. It provides a
+layered coordinate grid, an accessible room list, empty-cell room creation, room
+metadata editing, and explicit incoming/outgoing exit editing.
+
+Coordinates are required, unique within a layer, and immutable. Selecting an
+empty grid cell opens the room metadata form. Saving creates both directed paths
+to each occupied same-layer compass neighbor. Those exits are defaults only:
+persisted directed exits remain authoritative and builders can rewire them or
+change hidden and locked state. Vertical `up` and `down` exits are added
+explicitly.
+
+Exits have no separate names. Their direction is the player-visible label, and a
+room can have at most one exit for each approved compass or vertical direction.
+A manually created reverse path remains a separate confirmed operation.
+
+Rooms and exits carry opaque version tokens. An update based on a stale version
+returns `409 Conflict` and preserves the newer committed value. Reload before
+retrying the edit.
+
+There are no room or exit deletion commands, endpoints, or editor controls.
+Incorrect world data is recovered by editing the record or by locking/hiding an
+exit while it is repaired.
+
 ## SignalR hub
 
 Route: `/hubs/room-chat` (authenticated).
@@ -148,9 +229,13 @@ Client-to-server methods:
   and returns the authoritative `RoomPresence` snapshot for that room
 - `RecordActivity()` — throttled meaningful browser activity; returns the
   authoritative renewed `expiresAtUtc`
-- `SendMessage(content)` — persists and broadcasts a room message; returns the
-  authoritative renewed `expiresAtUtc`
+- `SendMessage(content, type)` — persists and broadcasts a room message of the
+  given type (`Say` or `Emote`); returns the authoritative renewed `expiresAtUtc`
+- `RollDice(expression)` — parses, rolls, and persists a server-rendered `Roll`
+  message; returns the authoritative renewed `expiresAtUtc`
 - `MoveThroughExit(exitId)` — moves through a valid exit from the current room
+- `GetOnlineCharacters()` — returns the distinct online characters across all
+  rooms (id and name only; never their rooms)
 
 Server-to-client events:
 
@@ -170,6 +255,25 @@ The frontend derives its idle warning from the authoritative `expiresAtUtc`
 timestamps carried by `RoomSession` (from `JoinCurrentRoom` and `RoomChanged`)
 and by the results of `RecordActivity` and `SendMessage`; there is no separate
 warning event.
+
+## Gameplay commands
+
+The composer accepts plain text (speech) and a small command set parsed entirely
+on the client:
+
+- `/say <text>` — speak; identical to typing plain text
+- `/emote <action>` — act in the current room; rendered as `Name <action>`
+- `/roll <NdS[+/-M]>` — roll dice (e.g. `2d6+3`); the expression is submitted to
+  the server, which parses, rolls, and persists the authoritative result
+- `/help` — list commands
+- `/look` — describe the current room, its visible exits, and its occupants
+- `/go <direction|exit>` — move through a visible exit resolved locally, then
+  submitted to the server as the authoritative exit ID
+- `/who` — list characters online right now (no locations)
+
+`/help`, `/look`, `/who`, and parser/usage errors are private local transcript
+output and are never persisted or broadcast. `/go` persists only the resulting
+movement; the command text is not a chat message.
 
 ## Tests
 
@@ -225,16 +329,18 @@ Redis, load balancer, message broker, or multiple replicas are required yet.
 - Character selection and all gameplay operations are authorized against the
   authenticated user's ownership; room, character, and session IDs are never
   accepted as credentials.
+- Administrative endpoints are guarded by named authorization policies, and
+  every administrative mutation writes an append-only audit record.
 
-Authentication hardening (email confirmation, password-reset delivery,
-administrator roles, and moderation APIs) is deferred and must be completed
-before enabling non-public rooms or production deployment.
+Authentication hardening (email confirmation and password-reset delivery) is
+deferred and must be completed before enabling non-public rooms or production
+deployment. Moderation APIs remain a later milestone.
 
 ## Deferred work
 
 - Room ownership and access policies beyond public rooms
 - Email confirmation and password-reset delivery
-- Administrator roles, moderation APIs, and audit logs
+- Moderation APIs (role and policy scaffolding already exists)
 - Gameplay systems (character sheets, dice, combat, initiative, equipment, Matrix)
 - In-memory caching and invalidation
 - Graphical map rendering

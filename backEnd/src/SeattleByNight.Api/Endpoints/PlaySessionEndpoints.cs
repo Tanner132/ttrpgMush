@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using SeattleByNight.Api.Hubs;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomSessions;
 using SeattleByNight.Infrastructure.Identity;
@@ -25,6 +26,7 @@ public static class PlaySessionEndpoints
         StartPlaySessionRequest request,
         UserManager<ApplicationUser> userManager,
         IMediator mediator,
+        IRoomChatConnectionManager roomChatConnectionManager,
         HttpContext httpContext)
     {
         var user = await userManager.GetUserAsync(httpContext.User);
@@ -35,6 +37,11 @@ public static class PlaySessionEndpoints
         }
 
         var result = await mediator.Send(new StartPlaySessionCommand(user.Id, request.CharacterId));
+
+        if (result.ReplacedSession is not null)
+        {
+            await roomChatConnectionManager.EndSessionAsync(result.ReplacedSession.PlaySessionId, CancellationToken.None);
+        }
 
         return result.Error switch
         {
@@ -52,6 +59,15 @@ public static class PlaySessionEndpoints
         IMediator mediator,
         HttpContext httpContext)
     {
+        if (!string.IsNullOrWhiteSpace(cursor) &&
+            (cursor.Length > RoomSessionCursor.MaxCursorLength ||
+                !RoomSessionCursor.TryDecode(cursor, out _, out _)))
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "The room transcript cursor is invalid.");
+        }
+
         var user = await userManager.GetUserAsync(httpContext.User);
 
         if (user is null)

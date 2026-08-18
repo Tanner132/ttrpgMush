@@ -1,13 +1,16 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using SeattleByNight.Api.BackgroundServices;
+using SeattleByNight.Api.Authorization;
 using SeattleByNight.Api.Endpoints;
 using SeattleByNight.Api.Hubs;
 using SeattleByNight.Api.Middleware;
 using SeattleByNight.Application;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Infrastructure;
 using SeattleByNight.Infrastructure.Persistence;
@@ -56,6 +59,26 @@ var worldOptions = builder.Configuration.GetSection(WorldOptions.SectionName).Ge
 
 builder.Services.AddSingleton(worldOptions);
 
+var diceOptions = builder.Configuration.GetSection(DiceOptions.SectionName).Get<DiceOptions>()
+    ?? new DiceOptions();
+
+if (diceOptions.MaxDice <= 0)
+{
+    throw new InvalidOperationException("Dice:MaxDice must be positive.");
+}
+
+if (diceOptions.MaxSides <= 0)
+{
+    throw new InvalidOperationException("Dice:MaxSides must be positive.");
+}
+
+if (diceOptions.MaxExpressionLength <= 0)
+{
+    throw new InvalidOperationException("Dice:MaxExpressionLength must be positive.");
+}
+
+builder.Services.AddSingleton(diceOptions);
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(connectionString);
 
@@ -66,7 +89,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddHostedService<PlaySessionExpirationService>();
 
-builder.Services.AddAuthorization();
+builder.Services.AddApplicationAuthorization();
 
 builder.Services.AddAntiforgery(options =>
 {
@@ -95,8 +118,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    options.SlidingExpiration = true;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
+    options.SlidingExpiration = false;
     options.ExpireTimeSpan = playSessionOptions.IdleTimeout;
 
     options.Events.OnRedirectToLogin = context =>
@@ -110,6 +135,11 @@ builder.Services.ConfigureApplicationCookie(options =>
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
         return Task.CompletedTask;
     };
+});
+
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.Zero;
 });
 
 builder.Services.AddHealthChecks()
@@ -140,6 +170,8 @@ app.MapAntiforgeryEndpoints();
 app.MapAccountEndpoints();
 app.MapCharacterEndpoints();
 app.MapPlaySessionEndpoints();
+app.MapAdminEndpoints();
+app.MapWorldEditorEndpoints();
 
 app.MapHub<RoomChatHub>("/hubs/room-chat").RequireAuthorization();
 

@@ -1,4 +1,5 @@
 using SeattleByNight.Application.RoomSessions;
+using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Application.RoomChat;
 
@@ -9,7 +10,7 @@ public interface IRoomChatStore
     Task<SendRoomMessageOutcome?> SendMessageAsync(
         Guid userId,
         string content,
-        DateTimeOffset now,
+        ChatMessageType type,
         TimeSpan idleTimeout,
         CancellationToken cancellationToken = default);
 }

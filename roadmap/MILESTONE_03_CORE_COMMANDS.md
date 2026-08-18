@@ -76,14 +76,14 @@ See [`../ROADMAP.md`](../ROADMAP.md) for shared delivery rules and verification 
 
 **Scope:**
 
-- Resolve the selector against the current room's visible exits by exact case-insensitive direction or exact case-insensitive exit name.
-- If no exact match exists, allow a unique case-insensitive prefix match across direction and name.
+- Resolve the selector against the current room's visible exits by exact case-insensitive direction.
+- If no exact match exists, allow a unique case-insensitive direction prefix.
 - Reject ambiguous and missing matches locally with candidate guidance.
 - Submit only the resolved exit ID through the existing server-authoritative movement method.
 
 **Acceptance criteria:**
 
-- `/go north` and `/go front door` can resolve an available exit.
+- `/go north` can resolve an available exit.
 - Locked exits resolve but are rejected with a locked message; hidden exits cannot resolve.
 - Ambiguous prefixes do not move the character.
 - The server still validates current room, visibility, lock state, and destination before movement.

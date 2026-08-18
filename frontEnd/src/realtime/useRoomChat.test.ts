@@ -4,6 +4,7 @@ import { HubConnectionState, type HubConnection } from '@microsoft/signalr'
 import { useRoomChat, type UseRoomChatHandlers } from './useRoomChat.ts'
 import { createRoomChatConnection } from './roomChat.ts'
 import type { RoomPresence } from './presence.ts'
+import { MessageType } from '../api/roomSession.ts'
 import type { RoomSession } from '../api/roomSession.ts'
 
 vi.mock('./roomChat.ts', () => ({
@@ -70,6 +71,25 @@ describe('useRoomChat', () => {
     expect(fake.connection.invoke).toHaveBeenCalledWith('JoinCurrentRoom')
   })
 
+  it('retries a failed initial start', async () => {
+    vi.useFakeTimers()
+    fake.connection.start.mockRejectedValueOnce(new Error('offline'))
+
+    const { result } = renderHook(() => useRoomChat(noopHandlers))
+    await act(async () => {})
+
+    expect(result.current.state).toBe('disconnected')
+    expect(fake.connection.start).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000)
+    })
+
+    expect(fake.connection.start).toHaveBeenCalledTimes(2)
+    expect(result.current.joined).toBe(true)
+    vi.useRealTimers()
+  })
+
   it('delivers the join presence snapshot', async () => {
     const onPresence = vi.fn()
     const { result } = renderHook(() => useRoomChat({ ...noopHandlers, onPresence }))
@@ -91,6 +111,48 @@ describe('useRoomChat', () => {
     expect(fake.connection.invoke).toHaveBeenCalledTimes(2)
   })
 
+  it('ignores an obsolete join result after reconnecting', async () => {
+    let resolveInitialJoin: ((presence: RoomPresence) => void) | null = null
+    const rejoinedPresence = { ...joinedPresence, revision: 2 }
+    fake.connection.invoke.mockImplementation((method: string) => {
+      if (method !== 'JoinCurrentRoom') return Promise.resolve(undefined)
+      if (!resolveInitialJoin) {
+        return new Promise((resolve) => {
+          resolveInitialJoin = resolve
+        })
+      }
+      return Promise.resolve(rejoinedPresence)
+    })
+    const onPresence = vi.fn()
+    const onReconnected = vi.fn()
+
+    const { result } = renderHook(() => useRoomChat({ ...noopHandlers, onPresence, onReconnected }))
+    await waitFor(() => expect(fake.connection.invoke).toHaveBeenCalledWith('JoinCurrentRoom'))
+
+    const reconnectingHandler = fake.connection.onreconnecting.mock.calls[0][0] as () => void
+    const reconnectedHandler = fake.connection.onreconnected.mock.calls[0][0] as () => void
+    act(() => reconnectingHandler())
+    act(() => reconnectedHandler())
+
+    await waitFor(() => expect(result.current.joined).toBe(true))
+    expect(onPresence).toHaveBeenCalledWith(rejoinedPresence)
+    expect(onReconnected).toHaveBeenCalledAfter(onPresence)
+
+    await act(async () => resolveInitialJoin?.(joinedPresence))
+    expect(onPresence).toHaveBeenCalledTimes(1)
+  })
+
+  it('clears joined when the connection disconnects', async () => {
+    const { result } = renderHook(() => useRoomChat(noopHandlers))
+    await waitFor(() => expect(result.current.joined).toBe(true))
+
+    const closeHandler = fake.connection.onclose.mock.calls[0][0] as () => void
+    act(() => closeHandler())
+
+    expect(result.current.joined).toBe(false)
+    expect(result.current.state).toBe('disconnected')
+  })
+
   it('throttles activity updates to once every five minutes', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     const base = new Date('2026-08-16T11:00:00Z')
@@ -99,12 +161,12 @@ describe('useRoomChat', () => {
     const { result } = renderHook(() => useRoomChat(noopHandlers))
     await waitFor(() => expect(result.current.joined).toBe(true))
 
-    act(() => result.current.recordActivity())
-    act(() => result.current.recordActivity())
+    await act(() => result.current.recordActivity())
+    await act(() => result.current.recordActivity())
     expect(fake.connection.invoke.mock.calls.filter((call) => call[0] === 'RecordActivity')).toHaveLength(1)
 
     vi.setSystemTime(new Date(base.getTime() + 5 * 60 * 1000))
-    act(() => result.current.recordActivity())
+    await act(() => result.current.recordActivity())
     expect(fake.connection.invoke.mock.calls.filter((call) => call[0] === 'RecordActivity')).toHaveLength(2)
 
     vi.useRealTimers()
@@ -136,8 +198,8 @@ describe('useRoomChat', () => {
     const { result } = renderHook(() => useRoomChat(noopHandlers))
     await waitFor(() => expect(result.current.joined).toBe(true))
 
-    const first = result.current.sendMessage('one')
-    const second = await result.current.sendMessage('two')
+    const first = result.current.sendMessage('one', MessageType.Say)
+    const second = await result.current.sendMessage('two', MessageType.Say)
 
     expect(second).toBe(false)
     expect(fake.connection.invoke.mock.calls.filter((call) => call[0] === 'SendMessage')).toHaveLength(1)
@@ -154,6 +216,22 @@ describe('useRoomChat', () => {
 
     expect(ok).toBe(true)
     expect(fake.connection.invoke).toHaveBeenCalledWith('MoveThroughExit', 'exit-1')
+  })
+
+  it('queries the global online characters', async () => {
+    fake.connection.invoke.mockImplementation(async (method: string) => {
+      if (method === 'JoinCurrentRoom') return joinedPresence
+      if (method === 'GetOnlineCharacters') return [{ id: 'char-1', name: 'Dev Runner' }]
+      return undefined
+    })
+
+    const { result } = renderHook(() => useRoomChat(noopHandlers))
+    await waitFor(() => expect(result.current.joined).toBe(true))
+
+    const online = await act(() => result.current.queryOnlineCharacters())
+
+    expect(online).toEqual([{ id: 'char-1', name: 'Dev Runner' }])
+    expect(fake.connection.invoke).toHaveBeenCalledWith('GetOnlineCharacters')
   })
 
   it('rejects a move while another move is in flight', async () => {
@@ -232,9 +310,40 @@ describe('useRoomChat', () => {
     const { result } = renderHook(() => useRoomChat({ ...noopHandlers, onActivityExpiry }))
     await waitFor(() => expect(result.current.joined).toBe(true))
 
-    act(() => result.current.recordActivity())
+    await act(() => result.current.recordActivity())
 
     await waitFor(() => expect(onActivityExpiry).toHaveBeenCalledWith('2026-08-16T12:00:00Z'))
+  })
+
+  it('allows activity renewal to retry immediately after a failure', async () => {
+    fake.connection.invoke.mockImplementation(async (method: string) => {
+      if (method === 'JoinCurrentRoom') return joinedPresence
+      if (method === 'RecordActivity') throw new Error('offline')
+      return undefined
+    })
+    const { result } = renderHook(() => useRoomChat(noopHandlers))
+    await waitFor(() => expect(result.current.joined).toBe(true))
+
+    expect(await act(() => result.current.recordActivity())).toBe(false)
+    fake.connection.invoke.mockImplementation(async (method: string) => {
+      if (method === 'JoinCurrentRoom') return joinedPresence
+      if (method === 'RecordActivity') return '2026-08-16T12:00:00Z'
+      return undefined
+    })
+    expect(await act(() => result.current.recordActivity())).toBe(true)
+
+    expect(fake.connection.invoke.mock.calls.filter((call) => call[0] === 'RecordActivity')).toHaveLength(2)
+  })
+
+  it('bypasses the passive throttle for explicit renewal', async () => {
+    const { result } = renderHook(() => useRoomChat(noopHandlers))
+    await waitFor(() => expect(result.current.joined).toBe(true))
+
+    expect(await act(() => result.current.recordActivity())).toBe(true)
+    expect(await act(() => result.current.recordActivity())).toBe(true)
+    expect(await act(() => result.current.recordActivity(true))).toBe(true)
+
+    expect(fake.connection.invoke.mock.calls.filter((call) => call[0] === 'RecordActivity')).toHaveLength(2)
   })
 
   it('delivers the renewed expiry after sending a message', async () => {
@@ -242,8 +351,40 @@ describe('useRoomChat', () => {
     const { result } = renderHook(() => useRoomChat({ ...noopHandlers, onActivityExpiry }))
     await waitFor(() => expect(result.current.joined).toBe(true))
 
-    await act(() => result.current.sendMessage('hello'))
+    await act(() => result.current.sendMessage('hello', MessageType.Say))
 
     expect(onActivityExpiry).toHaveBeenCalledWith('2026-08-16T12:00:00Z')
+  })
+
+  it('rolls dice and delivers the renewed expiry', async () => {
+    fake.connection.invoke.mockImplementation(async (method: string) => {
+      if (method === 'JoinCurrentRoom') return joinedPresence
+      if (method === 'RollDice') return '2026-08-16T12:00:00Z'
+      return undefined
+    })
+    const onActivityExpiry = vi.fn()
+    const { result } = renderHook(() => useRoomChat({ ...noopHandlers, onActivityExpiry }))
+    await waitFor(() => expect(result.current.joined).toBe(true))
+
+    const outcome = await act(() => result.current.rollDice('2d6+3'))
+
+    expect(outcome).toEqual({ ok: true, error: null })
+    expect(fake.connection.invoke).toHaveBeenCalledWith('RollDice', '2d6+3')
+    expect(onActivityExpiry).toHaveBeenCalledWith('2026-08-16T12:00:00Z')
+  })
+
+  it('reports a roll failure without throwing', async () => {
+    fake.connection.invoke.mockImplementation(async (method: string) => {
+      if (method === 'JoinCurrentRoom') return joinedPresence
+      if (method === 'RollDice') throw new Error('Expected a dice expression like 2d6 or 1d20+3.')
+      return undefined
+    })
+    const { result } = renderHook(() => useRoomChat(noopHandlers))
+    await waitFor(() => expect(result.current.joined).toBe(true))
+
+    const outcome = await act(() => result.current.rollDice('bad'))
+
+    expect(outcome.ok).toBe(false)
+    expect(outcome.error).toContain('Expected a dice expression')
   })
 })

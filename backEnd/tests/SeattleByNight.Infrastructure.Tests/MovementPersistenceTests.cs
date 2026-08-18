@@ -1,13 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Application.RoomChat;
+using SeattleByNight.Application.WorldEditing;
 using SeattleByNight.Domain.Entities;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Identity;
+using SeattleByNight.Infrastructure.Auditing;
 using SeattleByNight.Infrastructure.Movement;
 using SeattleByNight.Infrastructure.Persistence;
 using SeattleByNight.Infrastructure.Persistence.Seed;
 using SeattleByNight.Infrastructure.PlaySessions;
 using SeattleByNight.Infrastructure.RoomChat;
+using SeattleByNight.Infrastructure.WorldEditing;
 using Testcontainers.PostgreSql;
 
 namespace SeattleByNight.Infrastructure.Tests;
@@ -39,8 +43,8 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
         var setup = await CreateActiveSessionInRoomAsync(DevelopmentDataSeeder.DowntownStreetId);
         var now = DateTimeOffset.UtcNow;
 
-        var store = new MovementStore(CreateDbContext());
-        var result = await store.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, now, TimeSpan.FromHours(1));
+        var store = new MovementStore(CreateDbContext(), new TestTimeProvider(now));
+        var result = await store.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(DevelopmentDataSeeder.DowntownStreetId, result.OldRoomId);
@@ -68,6 +72,47 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Move_AfterEditorLocksExit_UsesCommittedExitState()
+    {
+        var setup = await CreateActiveSessionInRoomAsync(DevelopmentDataSeeder.DowntownStreetId);
+
+        await using (var editorDb = CreateDbContext())
+        {
+            var exit = await editorDb.RoomExits
+                .AsNoTracking()
+                .SingleAsync(candidate => candidate.Id == DevelopmentDataSeeder.DowntownToCoffeeExitId);
+            var editor = new WorldEditorStore(
+                editorDb,
+                new AuditWriter(editorDb, TimeProvider.System),
+                TimeProvider.System);
+
+            var update = await editor.UpdateExitAsync(
+                DevelopmentDataSeeder.DevUserId,
+                exit.Id,
+                exit.Version,
+                new RoomExitMutation(
+                    exit.SourceRoomId,
+                    exit.DestinationRoomId,
+                    exit.Direction,
+                    exit.IsHidden,
+                    true));
+
+            Assert.Equal(WorldMutationError.None, update.Error);
+        }
+
+        var movement = await new MovementStore(CreateDbContext(), new TestTimeProvider(DateTimeOffset.UtcNow)).MoveAsync(
+            setup.UserId,
+            DevelopmentDataSeeder.DowntownToCoffeeExitId,
+            TimeSpan.FromHours(1));
+
+        Assert.Equal(MoveCharacterError.ExitLocked, movement.Error);
+
+        await using var verify = CreateDbContext();
+        var character = await verify.Characters.AsNoTracking().SingleAsync(candidate => candidate.Id == setup.CharacterId);
+        Assert.Equal(DevelopmentDataSeeder.DowntownStreetId, character.CurrentRoomId);
+    }
+
+    [Fact]
     public async Task Move_ExpiredSession_RejectsWithoutChange()
     {
         var setup = await CreateActiveSessionInRoomAsync(DevelopmentDataSeeder.DowntownStreetId);
@@ -75,8 +120,8 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
 
         await SetExpiryAsync(setup.SessionId, now.AddSeconds(-5));
 
-        var store = new MovementStore(CreateDbContext());
-        var result = await store.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, now, TimeSpan.FromHours(1));
+        var store = new MovementStore(CreateDbContext(), new TestTimeProvider(now));
+        var result = await store.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
 
         Assert.Equal(MoveCharacterError.NoActiveSession, result.Error);
 
@@ -94,8 +139,8 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
 
         await EndSessionAsync(setup.SessionId, now);
 
-        var store = new MovementStore(CreateDbContext());
-        var result = await store.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, now, TimeSpan.FromHours(1));
+        var store = new MovementStore(CreateDbContext(), new TestTimeProvider(now));
+        var result = await store.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
 
         Assert.Equal(MoveCharacterError.NoActiveSession, result.Error);
 
@@ -116,12 +161,12 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
         // expiration scan's later clock, modelling a stale candidate discovery.
         await SetExpiryAsync(setup.SessionId, nowMove.AddSeconds(30));
 
-        var movementStore = new MovementStore(CreateDbContext());
-        var moveResult = await movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, nowMove, TimeSpan.FromHours(1));
+        var movementStore = new MovementStore(CreateDbContext(), new TestTimeProvider(nowMove));
+        var moveResult = await movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
 
         Assert.True(moveResult.IsSuccess);
 
-        var expirationStore = new PlaySessionStore(CreateDbContext());
+        var expirationStore = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(nowExp));
         var ended = await expirationStore.TryEndExpiredAsync(setup.SessionId, nowExp);
 
         Assert.False(ended);
@@ -145,13 +190,13 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
 
         await SetExpiryAsync(setup.SessionId, nowMove.AddSeconds(30));
 
-        var expirationStore = new PlaySessionStore(CreateDbContext());
+        var expirationStore = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(nowExp));
         var ended = await expirationStore.TryEndExpiredAsync(setup.SessionId, nowExp);
 
         Assert.True(ended);
 
-        var movementStore = new MovementStore(CreateDbContext());
-        var moveResult = await movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, nowMove, TimeSpan.FromHours(1));
+        var movementStore = new MovementStore(CreateDbContext(), new TestTimeProvider(nowMove));
+        var moveResult = await movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
 
         Assert.Equal(MoveCharacterError.NoActiveSession, moveResult.Error);
 
@@ -173,10 +218,10 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
 
         await SetExpiryAsync(setup.SessionId, nowMove.AddSeconds(30));
 
-        var movementStore = new MovementStore(CreateDbContext());
-        var expirationStore = new PlaySessionStore(CreateDbContext());
+        var movementStore = new MovementStore(CreateDbContext(), new TestTimeProvider(nowMove));
+        var expirationStore = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(nowExp));
 
-        var moveTask = movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, nowMove, TimeSpan.FromHours(1));
+        var moveTask = movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
         var expireTask = expirationStore.TryEndExpiredAsync(setup.SessionId, nowExp);
 
         await Task.WhenAll(moveTask, expireTask);
@@ -210,6 +255,38 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task End_ConcurrentWithMovement_LeavesNoPartialTransition()
+    {
+        var setup = await CreateActiveSessionInRoomAsync(DevelopmentDataSeeder.DowntownStreetId);
+        var now = DateTimeOffset.UtcNow;
+        var movementStore = new MovementStore(CreateDbContext(), new TestTimeProvider(now));
+        var sessionStore = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(now.AddSeconds(1)));
+
+        var endTask = sessionStore.EndActiveByUserIdAsync(setup.UserId);
+        var moveTask = movementStore.MoveAsync(
+            setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
+
+        await Task.WhenAll(endTask, moveTask);
+
+        var ended = await endTask;
+        var move = await moveTask;
+        Assert.NotNull(ended);
+
+        await using var db = CreateDbContext();
+        var character = await db.Characters.AsNoTracking().SingleAsync(candidate => candidate.Id == setup.CharacterId);
+        var session = await db.PlaySessions.AsNoTracking().SingleAsync(candidate => candidate.Id == setup.SessionId);
+        var visits = await db.RoomVisits
+            .Where(visit => visit.PlaySessionId == setup.SessionId)
+            .ToListAsync();
+
+        Assert.NotNull(session.EndedAtUtc);
+        Assert.DoesNotContain(visits, visit => visit.LeftAtUtc is null);
+        Assert.Equal(character.CurrentRoomId, ended.RoomId);
+        Assert.Equal(move.IsSuccess ? DevelopmentDataSeeder.CoffeeShopId : DevelopmentDataSeeder.DowntownStreetId,
+            character.CurrentRoomId);
+    }
+
+    [Fact]
     public async Task SendBeforeMove_MessageBelongsToSourceRoom()
     {
         var setup = await CreateActiveSessionInRoomAsync(DevelopmentDataSeeder.DowntownStreetId);
@@ -217,14 +294,14 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
         var nowSend = DateTimeOffset.UtcNow;
         var nowMove = nowSend.AddSeconds(1);
 
-        var chatStore = new RoomChatStore(CreateDbContext());
-        var outcome = await chatStore.SendMessageAsync(setup.UserId, "before-move", nowSend, TimeSpan.FromHours(1));
+        var chatStore = new RoomChatStore(CreateDbContext(), new TestTimeProvider(nowSend));
+        var outcome = await chatStore.SendMessageAsync(setup.UserId, "before-move", ChatMessageType.Say, TimeSpan.FromHours(1));
 
         Assert.NotNull(outcome);
         Assert.Equal(DevelopmentDataSeeder.DowntownStreetId, outcome.Message.RoomId);
 
-        var movementStore = new MovementStore(CreateDbContext());
-        var move = await movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, nowMove, TimeSpan.FromHours(1));
+        var movementStore = new MovementStore(CreateDbContext(), new TestTimeProvider(nowMove));
+        var move = await movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
 
         Assert.True(move.IsSuccess);
 
@@ -244,13 +321,13 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
         var nowMove = DateTimeOffset.UtcNow;
         var nowSend = nowMove.AddSeconds(1);
 
-        var movementStore = new MovementStore(CreateDbContext());
-        var move = await movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, nowMove, TimeSpan.FromHours(1));
+        var movementStore = new MovementStore(CreateDbContext(), new TestTimeProvider(nowMove));
+        var move = await movementStore.MoveAsync(setup.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
 
         Assert.True(move.IsSuccess);
 
-        var chatStore = new RoomChatStore(CreateDbContext());
-        var outcome = await chatStore.SendMessageAsync(setup.UserId, "after-move", nowSend, TimeSpan.FromHours(1));
+        var chatStore = new RoomChatStore(CreateDbContext(), new TestTimeProvider(nowSend));
+        var outcome = await chatStore.SendMessageAsync(setup.UserId, "after-move", ChatMessageType.Say, TimeSpan.FromHours(1));
 
         Assert.NotNull(outcome);
         Assert.Equal(DevelopmentDataSeeder.CoffeeShopId, outcome.Message.RoomId);

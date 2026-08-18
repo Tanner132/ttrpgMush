@@ -28,7 +28,6 @@ public interface IMovementStore
     Task<MovementStoreResult> MoveAsync(
         Guid userId,
         Guid exitId,
-        DateTimeOffset now,
         TimeSpan idleTimeout,
         CancellationToken cancellationToken = default);
 }

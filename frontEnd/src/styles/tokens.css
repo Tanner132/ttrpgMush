@@ -1,0 +1,68 @@
+/*
+ * Seattle by Night — design tokens.
+ *
+ * Semantic custom properties only. Components reference these tokens, never
+ * raw color values, so the palette can be tuned without touching markup.
+ */
+
+:root {
+  /* Surfaces — deep obsidian backdrop, true black only for inset displays. */
+  --sb-bg: #0b0c10;
+  --sb-bg-inset: #000000;
+  --sb-surface: #12141b;
+  --sb-surface-raised: #191c25;
+  --sb-border: #232836;
+  --sb-border-strong: #303748;
+
+  /* Text — softened green-tinted off-white for prose, subdued secondary. */
+  --sb-text: #d7e4e0;
+  --sb-text-muted: #93a6a2;
+  --sb-text-faint: #64746f;
+
+  /* Semantic accents — emerald (positive), amber (caution), magenta (danger),
+     cyan (informational / future Matrix). */
+  --sb-accent: #00ffcc;
+  --sb-accent-ink: #06251f;
+  --sb-info: #00d2ff;
+  --sb-warning: #ffb000;
+  --sb-danger: #ff0055;
+
+  /* Glow (box-shadow / text-shadow) derived from accents. */
+  --sb-glow-accent: 0 0 10px rgba(0, 255, 204, 0.28);
+  --sb-glow-info: 0 0 10px rgba(0, 210, 255, 0.24);
+  --sb-glow-warning: 0 0 10px rgba(255, 176, 0, 0.24);
+  --sb-glow-danger: 0 0 10px rgba(255, 0, 85, 0.26);
+
+  /* Focus — a ring that survives angular clipping and remains clearly visible. */
+  --sb-focus: 0 0 0 2px var(--sb-bg), 0 0 0 4px var(--sb-accent);
+
+  /* Elevation — restrained, used only where a layer genuinely floats. */
+  --sb-shadow-1: 0 2px 10px rgba(0, 0, 0, 0.5);
+  --sb-shadow-2: 0 8px 28px rgba(0, 0, 0, 0.6);
+
+  /* Spacing scale. */
+  --sb-space-1: 0.25rem;
+  --sb-space-2: 0.5rem;
+  --sb-space-3: 0.75rem;
+  --sb-space-4: 1rem;
+  --sb-space-5: 1.5rem;
+  --sb-space-6: 2rem;
+
+  /* Angular-cut size for 45-degree chamfered accents. */
+  --sb-cut: 10px;
+
+  /* Motion. */
+  --sb-duration-fast: 90ms;
+  --sb-duration-base: 160ms;
+  --sb-duration-slow: 240ms;
+  --sb-ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+
+  /* Typography. */
+  --sb-font-heading: 'Rajdhani', 'Segoe UI', system-ui, sans-serif;
+  --sb-font-body: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sb-font-data: 'Source Code Pro', ui-monospace, 'Cascadia Mono', monospace;
+
+  /* Reading measure for long-form transcript content. */
+  --sb-measure: 72ch;
+  --sb-line-height: 1.6;
+}

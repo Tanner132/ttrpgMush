@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { HubConnectionState, type HubConnection } from '@microsoft/signalr'
 import { createRoomChatConnection, type RoomChatConnectionState } from './roomChat.ts'
 import type { RoomPresence, RoomCharacterEvent } from './presence.ts'
-import type { RoomMessage, RoomSession } from '../api/roomSession.ts'
+import type { CharacterSummary, MessageType, RoomMessage, RoomSession } from '../api/roomSession.ts'
 
 const ACTIVITY_THROTTLE_MS = 5 * 60 * 1000
+const START_RETRY_MS = 1_000
 
 export interface UseRoomChatHandlers {
   onMessage: (message: RoomMessage) => void
@@ -22,11 +23,14 @@ export interface UseRoomChatResult {
   joined: boolean
   sending: boolean
   sendError: string | null
+  rolling: boolean
   moving: boolean
   moveError: string | null
-  sendMessage: (content: string) => Promise<boolean>
+  sendMessage: (content: string, type: MessageType) => Promise<boolean>
+  rollDice: (expression: string) => Promise<{ ok: boolean; error: string | null }>
   moveThroughExit: (exitId: string) => Promise<boolean>
-  recordActivity: () => void
+  queryOnlineCharacters: () => Promise<CharacterSummary[]>
+  recordActivity: (force?: boolean) => Promise<boolean>
 }
 
 export function useRoomChat(handlers: UseRoomChatHandlers): UseRoomChatResult {
@@ -34,6 +38,7 @@ export function useRoomChat(handlers: UseRoomChatHandlers): UseRoomChatResult {
   const [joined, setJoined] = useState(false)
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
+  const [rolling, setRolling] = useState(false)
   const [moving, setMoving] = useState(false)
   const [moveError, setMoveError] = useState<string | null>(null)
 
@@ -42,12 +47,17 @@ export function useRoomChat(handlers: UseRoomChatHandlers): UseRoomChatResult {
   handlersRef.current = handlers
 
   const sendingRef = useRef(false)
+  const rollingRef = useRef(false)
   const movingRef = useRef(false)
   const lastActivityRef = useRef(0)
+  const activityPromiseRef = useRef<Promise<boolean> | null>(null)
 
   useEffect(() => {
     const connection = createRoomChatConnection()
     connectionRef.current = connection
+    let active = true
+    let generation = 0
+    let retryTimer: number | null = null
 
     connection.on('MessageReceived', (message: RoomMessage) => handlersRef.current.onMessage(message))
     connection.on('SessionExpired', () => {
@@ -59,44 +69,78 @@ export function useRoomChat(handlers: UseRoomChatHandlers): UseRoomChatResult {
     connection.on('CharacterDeparted', (event: RoomCharacterEvent) => handlersRef.current.onCharacterDeparted(event))
     connection.on('RoomPresenceChanged', (presence: RoomPresence) => handlersRef.current.onPresence(presence))
 
-    connection.onreconnecting(() => setState('reconnecting'))
-    connection.onreconnected(() => {
-      setState('connected')
-      void join(connection)
-      handlersRef.current.onReconnected()
+    connection.onreconnecting(() => {
+      if (!active) return
+      generation += 1
+      setJoined(false)
+      setState('reconnecting')
     })
-    connection.onclose(() => setState('disconnected'))
+    connection.onreconnected(() => {
+      if (!active) return
+      const currentGeneration = ++generation
+      setJoined(false)
+      setState('reconnecting')
+      void join(connection, currentGeneration, true)
+    })
+    connection.onclose(() => {
+      if (!active) return
+      generation += 1
+      setJoined(false)
+      setState('disconnected')
+    })
 
-    async function join(conn: HubConnection) {
+    async function join(conn: HubConnection, currentGeneration: number, notifyReconnected: boolean) {
       try {
         const presence = await conn.invoke<RoomPresence>('JoinCurrentRoom')
+        if (!active || currentGeneration !== generation) return
         handlersRef.current.onPresence(presence)
         setJoined(true)
-      } catch {
-        setJoined(false)
-      }
-    }
-
-    async function start() {
-      try {
-        await connection.start()
         setState('connected')
-        await join(connection)
+        if (notifyReconnected) handlersRef.current.onReconnected()
       } catch {
-        setState('disconnected')
+        if (!active || currentGeneration !== generation) return
+        setJoined(false)
+        scheduleRetry(notifyReconnected)
       }
     }
 
-    void start()
+    function scheduleRetry(notifyReconnected: boolean) {
+      if (!active || retryTimer !== null) return
+      retryTimer = window.setTimeout(() => {
+        retryTimer = null
+        void start(notifyReconnected)
+      }, START_RETRY_MS)
+    }
+
+    async function start(notifyReconnected: boolean) {
+      const currentGeneration = ++generation
+      setJoined(false)
+      setState('connecting')
+
+      try {
+        if (connection.state === HubConnectionState.Disconnected) await connection.start()
+        if (!active || currentGeneration !== generation) return
+        await join(connection, currentGeneration, notifyReconnected)
+      } catch {
+        if (!active || currentGeneration !== generation) return
+        setState('disconnected')
+        scheduleRetry(notifyReconnected)
+      }
+    }
+
+    void start(false)
 
     return () => {
+      active = false
+      generation += 1
+      if (retryTimer !== null) window.clearTimeout(retryTimer)
       void connection.stop()
       connectionRef.current = null
     }
   }, [])
 
   const sendMessage = useCallback(
-    async (content: string): Promise<boolean> => {
+    async (content: string, type: MessageType): Promise<boolean> => {
       const connection = connectionRef.current
 
       if (!connection || connection.state !== HubConnectionState.Connected || !joined || sendingRef.current) {
@@ -108,7 +152,7 @@ export function useRoomChat(handlers: UseRoomChatHandlers): UseRoomChatResult {
       setSendError(null)
 
       try {
-        const expiresAtUtc = await connection.invoke<string>('SendMessage', content)
+        const expiresAtUtc = await connection.invoke<string>('SendMessage', content, type)
         handlersRef.current.onActivityExpiry(expiresAtUtc)
         return true
       } catch (error) {
@@ -122,22 +166,55 @@ export function useRoomChat(handlers: UseRoomChatHandlers): UseRoomChatResult {
     [joined],
   )
 
-  const recordActivity = useCallback(() => {
+  const rollDice = useCallback(
+    async (expression: string): Promise<{ ok: boolean; error: string | null }> => {
+      const connection = connectionRef.current
+
+      if (!connection || connection.state !== HubConnectionState.Connected || !joined || rollingRef.current) {
+        return { ok: false, error: 'You are not connected.' }
+      }
+
+      rollingRef.current = true
+      setRolling(true)
+
+      try {
+        const expiresAtUtc = await connection.invoke<string>('RollDice', expression)
+        handlersRef.current.onActivityExpiry(expiresAtUtc)
+        return { ok: true, error: null }
+      } catch (error) {
+        return { ok: false, error: error instanceof Error ? error.message : 'Could not roll dice.' }
+      } finally {
+        rollingRef.current = false
+        setRolling(false)
+      }
+    },
+    [joined],
+  )
+
+  const recordActivity = useCallback((force = false): Promise<boolean> => {
     const connection = connectionRef.current
 
-    if (!connection || connection.state !== HubConnectionState.Connected) return
+    if (!connection || connection.state !== HubConnectionState.Connected || !joined) return Promise.resolve(false)
 
     const now = Date.now()
-    if (now - lastActivityRef.current < ACTIVITY_THROTTLE_MS) return
-    lastActivityRef.current = now
+    if (!force && now - lastActivityRef.current < ACTIVITY_THROTTLE_MS) return Promise.resolve(true)
+    if (activityPromiseRef.current) return activityPromiseRef.current
 
-    void connection
+    const renewal = connection
       .invoke<string>('RecordActivity')
-      .then((expiresAtUtc) => handlersRef.current.onActivityExpiry(expiresAtUtc))
-      .catch(() => {
-        // Activity renewal is best-effort; failures must not surface to the user.
+      .then((expiresAtUtc) => {
+        lastActivityRef.current = Date.now()
+        handlersRef.current.onActivityExpiry(expiresAtUtc)
+        return true
       })
-  }, [])
+      .catch(() => false)
+      .finally(() => {
+        if (activityPromiseRef.current === renewal) activityPromiseRef.current = null
+      })
+
+    activityPromiseRef.current = renewal
+    return renewal
+  }, [joined])
 
   const moveThroughExit = useCallback(
     async (exitId: string): Promise<boolean> => {
@@ -165,5 +242,28 @@ export function useRoomChat(handlers: UseRoomChatHandlers): UseRoomChatResult {
     [joined],
   )
 
-  return { state, joined, sending, sendError, moving, moveError, sendMessage, moveThroughExit, recordActivity }
+  const queryOnlineCharacters = useCallback(async (): Promise<CharacterSummary[]> => {
+    const connection = connectionRef.current
+
+    if (!connection || connection.state !== HubConnectionState.Connected || !joined) {
+      throw new Error('You are not connected.')
+    }
+
+    return connection.invoke<CharacterSummary[]>('GetOnlineCharacters')
+  }, [joined])
+
+  return {
+    state,
+    joined,
+    sending,
+    sendError,
+    rolling,
+    moving,
+    moveError,
+    sendMessage,
+    rollDice,
+    moveThroughExit,
+    queryOnlineCharacters,
+    recordActivity,
+  }
 }

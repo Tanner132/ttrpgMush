@@ -8,7 +8,9 @@ public sealed class RoomExitConfiguration : IEntityTypeConfiguration<RoomExit>
 {
     public void Configure(EntityTypeBuilder<RoomExit> builder)
     {
-        builder.ToTable("room_exits");
+        builder.ToTable("room_exits", table => table.HasCheckConstraint(
+            "ck_room_exits_direction",
+            "direction IN ('north','northeast','east','southeast','south','southwest','west','northwest','up','down')"));
 
         builder.HasKey(e => e.Id);
 
@@ -27,14 +29,9 @@ public sealed class RoomExitConfiguration : IEntityTypeConfiguration<RoomExit>
             .HasColumnType("uuid")
             .IsRequired();
 
-        builder.Property(e => e.Name)
-            .HasColumnName("name")
-            .HasMaxLength(80)
-            .IsRequired();
-
         builder.Property(e => e.Direction)
             .HasColumnName("direction")
-            .HasMaxLength(40)
+            .HasMaxLength(9)
             .IsRequired();
 
         builder.Property(e => e.IsHidden)
@@ -47,8 +44,15 @@ public sealed class RoomExitConfiguration : IEntityTypeConfiguration<RoomExit>
             .HasColumnName("created_at_utc")
             .HasColumnType("timestamp with time zone");
 
-        builder.HasIndex(e => e.SourceRoomId)
-            .HasDatabaseName("ix_room_exits_source_room_id");
+        builder.Property(e => e.Version)
+            .HasColumnName("version")
+            .HasColumnType("uuid")
+            .IsConcurrencyToken()
+            .ValueGeneratedNever();
+
+        builder.HasIndex(e => new { e.SourceRoomId, e.Direction })
+            .IsUnique()
+            .HasDatabaseName("ux_room_exits_source_room_id_direction");
 
         builder.HasIndex(e => e.DestinationRoomId)
             .HasDatabaseName("ix_room_exits_destination_room_id");

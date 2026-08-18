@@ -38,18 +38,15 @@ public sealed class MoveCharacterCommandHandler : IRequestHandler<MoveCharacterC
     private readonly IMovementStore _movementStore;
     private readonly IRoomSessionReader _roomSessionReader;
     private readonly PlaySessionOptions _options;
-    private readonly TimeProvider _timeProvider;
 
     public MoveCharacterCommandHandler(
         IMovementStore movementStore,
         IRoomSessionReader roomSessionReader,
-        PlaySessionOptions options,
-        TimeProvider timeProvider)
+        PlaySessionOptions options)
     {
         _movementStore = movementStore;
         _roomSessionReader = roomSessionReader;
         _options = options;
-        _timeProvider = timeProvider;
     }
 
     public async Task<MoveCharacterResult> Handle(MoveCharacterCommand request, CancellationToken cancellationToken)
@@ -57,7 +54,6 @@ public sealed class MoveCharacterCommandHandler : IRequestHandler<MoveCharacterC
         var storeResult = await _movementStore.MoveAsync(
             request.UserId,
             request.ExitId,
-            _timeProvider.GetUtcNow(),
             _options.IdleTimeout,
             cancellationToken);
 

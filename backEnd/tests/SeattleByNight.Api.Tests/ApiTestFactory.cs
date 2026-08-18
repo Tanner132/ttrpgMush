@@ -22,7 +22,7 @@ public sealed class ApiTestFactory : IAsyncLifetime
 
     public string ConnectionString { get; private set; } = null!;
 
-    public Uri ServerBaseAddress => _factory.Server.BaseAddress;
+    public Uri ServerBaseAddress => _factory.ClientOptions.BaseAddress;
 
     public HttpMessageHandler CreateHandler() => _factory.Server.CreateHandler();
 
@@ -48,6 +48,7 @@ public sealed class ApiTestFactory : IAsyncLifetime
                 builder.UseSetting("Authentication:RateLimit:WindowSeconds", "60");
                 builder.UseSetting("PlaySession:ExpirationScanInterval", "00:00:01");
             });
+        _factory.ClientOptions.BaseAddress = new Uri("https://localhost");
 
         Client = _factory.CreateClient();
     }
@@ -76,6 +77,15 @@ public sealed class ApiTestFactory : IAsyncLifetime
 
         await RegisterAsync(client, email, username, password);
         await LoginAsync(client, username, password);
+
+        return client;
+    }
+
+    public async Task<HttpClient> LoginDevAdminAsync()
+    {
+        var client = CreateClient();
+
+        await LoginAsync(client, "devuser", "DevPassword1!");
 
         return client;
     }
@@ -192,14 +202,14 @@ public sealed class ApiTestFactory : IAsyncLifetime
         await db.SaveChangesAsync();
     }
 
-    public async Task AddHiddenExitAsync(Guid sourceRoomId, Guid destinationRoomId, string name, string direction)
+    public async Task AddHiddenExitAsync(Guid sourceRoomId, Guid destinationRoomId, string direction)
     {
-        await AddExitAsync(sourceRoomId, destinationRoomId, name, direction, isHidden: true, isLocked: false);
+        await AddExitAsync(sourceRoomId, destinationRoomId, direction, isHidden: true, isLocked: false);
     }
 
-    public async Task<Guid> AddLockedExitAsync(Guid sourceRoomId, Guid destinationRoomId, string name, string direction)
+    public async Task<Guid> AddLockedExitAsync(Guid sourceRoomId, Guid destinationRoomId, string direction)
     {
-        return await AddExitAsync(sourceRoomId, destinationRoomId, name, direction, isHidden: false, isLocked: true);
+        return await AddExitAsync(sourceRoomId, destinationRoomId, direction, isHidden: false, isLocked: true);
     }
 
     public async Task BackdateSessionAsync(Guid sessionId, DateTimeOffset backdateTo)
@@ -218,7 +228,6 @@ public sealed class ApiTestFactory : IAsyncLifetime
     private async Task<Guid> AddExitAsync(
         Guid sourceRoomId,
         Guid destinationRoomId,
-        string name,
         string direction,
         bool isHidden,
         bool isLocked)
@@ -230,7 +239,6 @@ public sealed class ApiTestFactory : IAsyncLifetime
             Id = Guid.NewGuid(),
             SourceRoomId = sourceRoomId,
             DestinationRoomId = destinationRoomId,
-            Name = name,
             Direction = direction,
             IsHidden = isHidden,
             IsLocked = isLocked
@@ -263,3 +271,5 @@ public sealed class ApiTestFactory : IAsyncLifetime
 public sealed record CharacterResponseDto(Guid Id, string Name);
 
 public sealed record AccountResponseDto(Guid Id, string Email, string UserName);
+
+public sealed record AccountWithRolesDto(Guid Id, string Email, string UserName, IReadOnlyList<string> Roles);

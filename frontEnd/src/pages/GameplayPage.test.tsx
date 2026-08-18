@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import App from './App'
-import type { RoomMessage, RoomSession } from './api/roomSession.ts'
-import { getCurrentAccount, type Account } from './api/account.ts'
-import { listCharacters, type Character } from './api/characters.ts'
-import { startPlaySession, type PlaySessionInfo } from './api/playSession.ts'
-import { getRoomSession } from './api/roomSession.ts'
-import type { RoomPresence, RoomCharacterEvent } from './realtime/presence.ts'
-import type { RoomChatConnectionState } from './realtime/roomChat.ts'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import GameplayPage from './GameplayPage.tsx'
+import type { RoomMessage, RoomSession } from '../api/roomSession.ts'
+import { getRoomSession, MessageType } from '../api/roomSession.ts'
+import type { RoomPresence, RoomCharacterEvent } from '../realtime/presence.ts'
+import type { RoomChatConnectionState } from '../realtime/roomChat.ts'
 
 interface RealtimeHandlers {
   onMessage: (message: RoomMessage) => void
@@ -25,14 +23,17 @@ const realtime = vi.hoisted(() => ({
   handlers: null as RealtimeHandlers | null,
   joined: true,
   state: 'connected' as RoomChatConnectionState,
+  rolling: false,
   moving: false,
   moveError: null as string | null,
-  sendMessage: vi.fn<(content: string) => Promise<boolean>>(),
+  sendMessage: vi.fn<(content: string, type: number) => Promise<boolean>>(),
+  rollDice: vi.fn<(expression: string) => Promise<{ ok: boolean; error: string | null }>>(),
   moveThroughExit: vi.fn<(exitId: string) => Promise<boolean>>(),
-  recordActivity: vi.fn<() => void>(),
+  queryOnlineCharacters: vi.fn<() => Promise<Array<{ id: string; name: string }>>>(),
+  recordActivity: vi.fn<(force?: boolean) => Promise<boolean>>(),
 }))
 
-vi.mock('./realtime/useRoomChat.ts', () => ({
+vi.mock('../realtime/useRoomChat.ts', () => ({
   useRoomChat: (handlers: RealtimeHandlers) => {
     realtime.handlers = handlers
     return {
@@ -40,54 +41,31 @@ vi.mock('./realtime/useRoomChat.ts', () => ({
       joined: realtime.joined,
       sending: false,
       sendError: null,
+      rolling: realtime.rolling,
       moving: realtime.moving,
       moveError: realtime.moveError,
       sendMessage: realtime.sendMessage,
+      rollDice: realtime.rollDice,
       moveThroughExit: realtime.moveThroughExit,
+      queryOnlineCharacters: realtime.queryOnlineCharacters,
       recordActivity: realtime.recordActivity,
     }
   },
 }))
 
-vi.mock('./api/account.ts', () => ({
-  getCurrentAccount: vi.fn(),
-  login: vi.fn(),
-  register: vi.fn(),
-  logout: vi.fn(),
-}))
-
-vi.mock('./api/characters.ts', () => ({
-  listCharacters: vi.fn(),
-  createCharacter: vi.fn(),
-}))
-
-vi.mock('./api/playSession.ts', () => ({
-  startPlaySession: vi.fn(),
-}))
-
-vi.mock('./api/roomSession.ts', () => ({
+vi.mock('../api/roomSession.ts', () => ({
   getRoomSession: vi.fn(),
+  MessageType: { Say: 0, Emote: 1, Roll: 2 },
 }))
-
-const account: Account = { id: 'user-1', email: 'dev@example.com', userName: 'devuser' }
-const devRunner: Character = { id: 'char-1', name: 'Dev Runner' }
-
-const startInfo: PlaySessionInfo = {
-  playSessionId: 'session-1',
-  characterId: devRunner.id,
-  currentRoomId: 'room-1',
-  startAtUtc: '2026-08-16T11:00:00Z',
-  expiresAtUtc: '2026-08-16T12:00:00Z',
-}
 
 const emptySession: RoomSession = {
   playSessionId: 'session-1',
   expiresAtUtc: '2026-08-16T12:00:00Z',
-  character: { id: devRunner.id, name: devRunner.name },
-  room: { id: 'room-1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 0, mapX: null, mapY: null, mapLayer: null },
+  character: { id: 'char-1', name: 'Dev Runner' },
+  room: { id: 'room-1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 0, mapX: 0, mapY: 0, mapLayer: 0 },
   exits: [
-    { id: 'exit-1', direction: 'north', name: 'Front Door', destinationRoomId: 'room-2', destinationRoomName: 'Coffee Shop', isLocked: false },
-    { id: 'exit-2', direction: 'east', name: 'Side Street', destinationRoomId: 'room-3', destinationRoomName: 'Alley', isLocked: false },
+    { id: 'exit-1', direction: 'north', destinationRoomId: 'room-2', destinationRoomName: 'Coffee Shop', isLocked: false },
+    { id: 'exit-2', direction: 'east', destinationRoomId: 'room-3', destinationRoomName: 'Alley', isLocked: false },
   ],
   occupants: [],
   messages: [],
@@ -95,14 +73,17 @@ const emptySession: RoomSession = {
 }
 
 const coffeeShopSession: RoomSession = {
-  playSessionId: 'session-1',
-  expiresAtUtc: '2026-08-16T12:00:00Z',
-  character: { id: devRunner.id, name: devRunner.name },
-  room: { id: 'room-2', name: 'Coffee Shop', description: 'A cramped cafe.', accessType: 0, mapX: null, mapY: null, mapLayer: null },
+  ...emptySession,
+  room: { id: 'room-2', name: 'Coffee Shop', description: 'A cramped cafe.', accessType: 0, mapX: 1, mapY: 0, mapLayer: 0 },
   exits: [],
-  occupants: [],
-  messages: [],
-  olderMessagesCursor: null,
+}
+
+const withOccupants: RoomSession = {
+  ...emptySession,
+  occupants: [
+    { id: 'char-1', name: 'Dev Runner' },
+    { id: 'char-2', name: 'Street Sam' },
+  ],
 }
 
 beforeEach(() => {
@@ -110,23 +91,30 @@ beforeEach(() => {
   realtime.handlers = null
   realtime.joined = true
   realtime.state = 'connected'
+  realtime.rolling = false
   realtime.moving = false
   realtime.moveError = null
   realtime.sendMessage.mockResolvedValue(true)
+  realtime.rollDice.mockResolvedValue({ ok: true, error: null })
   realtime.moveThroughExit.mockResolvedValue(true)
+  realtime.queryOnlineCharacters.mockResolvedValue([{ id: 'char-2', name: 'Street Sam' }])
+  realtime.recordActivity.mockResolvedValue(true)
 })
 
 async function renderPlaying(session: RoomSession = emptySession) {
-  vi.mocked(getCurrentAccount).mockResolvedValue(account)
-  vi.mocked(listCharacters).mockResolvedValue([devRunner])
-  vi.mocked(startPlaySession).mockResolvedValue(startInfo)
   vi.mocked(getRoomSession).mockResolvedValue(session)
 
-  const user = userEvent.setup()
-  render(<App />)
-  await user.click(await screen.findByRole('button', { name: /enter world/i }))
+  const view = render(
+    <MemoryRouter initialEntries={['/play']}>
+      <Routes>
+        <Route path="/play" element={<GameplayPage />} />
+        <Route path="/characters" element={<div>Characters stub</div>} />
+      </Routes>
+    </MemoryRouter>,
+  )
+
   await screen.findByText(session.room.name)
-  return user
+  return view
 }
 
 describe('realtime chat', () => {
@@ -139,6 +127,7 @@ describe('realtime chat', () => {
       characterId: 'char-2',
       characterName: 'Street Sam',
       content: 'hello there',
+      type: 0,
       createdAtUtc: '2026-08-16T11:30:00Z',
     }
 
@@ -160,15 +149,16 @@ describe('realtime chat', () => {
   })
 
   it('enables the composer and clears the draft on send', async () => {
-    const user = await renderPlaying()
+    await renderPlaying()
 
+    const user = userEvent.setup()
     const composer = screen.getByLabelText('Message')
     expect(composer).toBeEnabled()
 
     await user.type(composer, 'hello world')
     await user.click(screen.getByRole('button', { name: /send/i }))
 
-    expect(realtime.sendMessage).toHaveBeenCalledWith('hello world')
+    expect(realtime.sendMessage).toHaveBeenCalledWith('hello world', MessageType.Say)
     expect(composer).toHaveValue('')
   })
 
@@ -210,21 +200,58 @@ describe('realtime chat', () => {
     expect(screen.queryByText('Your session will expire soon due to inactivity.')).not.toBeInTheDocument()
   })
 
+  it('keeps the idle warning open until explicit renewal succeeds', async () => {
+    let resolveRenewal: ((success: boolean) => void) | null = null
+    realtime.recordActivity.mockReturnValue(new Promise((resolve) => {
+      resolveRenewal = resolve
+    }))
+    const nearExpiry: RoomSession = {
+      ...emptySession,
+      expiresAtUtc: new Date(Date.now() + 3 * 60 * 1000).toISOString(),
+    }
+    await renderPlaying(nearExpiry)
+    await screen.findByText('Your session will expire soon due to inactivity.')
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: 'Remain signed in' }))
+    expect(realtime.recordActivity).toHaveBeenCalledWith(true)
+    expect(screen.getByText('Your session will expire soon due to inactivity.')).toBeInTheDocument()
+
+    await act(async () => resolveRenewal?.(true))
+    expect(screen.queryByText('Your session will expire soon due to inactivity.')).not.toBeInTheDocument()
+  })
+
+  it('keeps the idle warning open when explicit renewal fails', async () => {
+    realtime.recordActivity.mockResolvedValue(false)
+    const nearExpiry: RoomSession = {
+      ...emptySession,
+      expiresAtUtc: new Date(Date.now() + 3 * 60 * 1000).toISOString(),
+    }
+    await renderPlaying(nearExpiry)
+    await screen.findByText('Your session will expire soon due to inactivity.')
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: 'Remain signed in' }))
+
+    expect(screen.getByText('Your session will expire soon due to inactivity.')).toBeInTheDocument()
+  })
+
   it('returns to character selection when the session expires', async () => {
     await renderPlaying()
 
     act(() => realtime.handlers?.onSessionExpired())
 
-    expect(await screen.findByRole('button', { name: /enter world/i })).toBeInTheDocument()
+    expect(await screen.findByText('Characters stub')).toBeInTheDocument()
     expect(screen.queryByText('Downtown Street')).not.toBeInTheDocument()
   })
 })
 
 describe('room movement', () => {
   it('moves through an exit and applies the RoomChanged session', async () => {
-    const user = await renderPlaying()
+    await renderPlaying()
 
-    await user.click(screen.getByRole('button', { name: /front door/i }))
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /^north$/i }))
 
     expect(realtime.moveThroughExit).toHaveBeenCalledWith('exit-1')
 
@@ -238,13 +265,13 @@ describe('room movement', () => {
     const lockedSession: RoomSession = {
       ...emptySession,
       exits: [
-        { id: 'exit-3', direction: 'west', name: 'Barred Door', destinationRoomId: 'room-4', destinationRoomName: 'Alley', isLocked: true },
+        { id: 'exit-3', direction: 'west', destinationRoomId: 'room-4', destinationRoomName: 'Alley', isLocked: true },
       ],
     }
 
     await renderPlaying(lockedSession)
 
-    expect(screen.getByRole('button', { name: /barred door/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /west.*locked/i })).toBeDisabled()
   })
 
   it('shows a movement error while keeping the current room', async () => {
@@ -261,19 +288,11 @@ describe('room movement', () => {
 
     await renderPlaying()
 
-    expect(screen.getByRole('button', { name: /front door/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^north$/i })).toBeDisabled()
   })
 })
 
 describe('occupants and online presence', () => {
-  const withOccupants: RoomSession = {
-    ...emptySession,
-    occupants: [
-      { id: 'char-1', name: 'Dev Runner' },
-      { id: 'char-2', name: 'Street Sam' },
-    ],
-  }
-
   it('marks occupants online and offline distinctly', async () => {
     await renderPlaying(withOccupants)
 
@@ -338,5 +357,134 @@ describe('occupants and online presence', () => {
     act(() => realtime.handlers?.onPresence({ roomId: 'room-1', revision: 1, onlineCharacters: [{ id: 'char-2', name: 'Street Sam' }] }))
 
     expect(screen.getByText('Street Sam').closest('li')).toHaveTextContent('online')
+  })
+})
+
+describe('commands', () => {
+  it('renders /help output locally and clears the draft', async () => {
+    await renderPlaying()
+
+    const user = userEvent.setup()
+    const composer = screen.getByLabelText('Message')
+
+    await user.type(composer, '/help')
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    expect((await screen.findAllByText(/Available commands:/)).length).toBeGreaterThan(0)
+    expect(composer).toHaveValue('')
+    expect(realtime.sendMessage).not.toHaveBeenCalled()
+  })
+
+  it('resolves /go north through the composer to the matching exit', async () => {
+    await renderPlaying()
+
+    const user = userEvent.setup()
+    const composer = screen.getByLabelText('Message')
+
+    await user.type(composer, '/go north')
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    expect(realtime.moveThroughExit).toHaveBeenCalledWith('exit-1')
+    expect(composer).toHaveValue('')
+  })
+
+  it('keeps the draft for an unknown command', async () => {
+    await renderPlaying()
+
+    const user = userEvent.setup()
+    const composer = screen.getByLabelText('Message')
+
+    await user.type(composer, '/dance')
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    expect((await screen.findAllByText(/Unknown command:/)).length).toBeGreaterThan(0)
+    expect(composer).toHaveValue('/dance')
+    expect(realtime.sendMessage).not.toHaveBeenCalled()
+  })
+})
+
+describe('typed messages and filtering', () => {
+  it('renders an emote inline with the character name', async () => {
+    await renderPlaying()
+
+    act(() =>
+      realtime.handlers?.onMessage({
+        id: 'msg-emote',
+        roomId: 'room-1',
+        characterId: 'char-2',
+        characterName: 'Street Sam',
+        content: 'leans against a wall "how are you?"',
+        type: MessageType.Emote,
+        createdAtUtc: '2026-08-16T11:30:00Z',
+      }),
+    )
+
+    const content = await screen.findByText(/leans against a wall/, { selector: '.message-log__emote' })
+    const entry = content.closest('.message-log__entry')!
+    expect(entry).toHaveClass('message-log__entry--emote')
+    expect(entry).toHaveTextContent('Street Sam')
+    expect(entry).toHaveTextContent('"how are you?"')
+  })
+
+  it('renders a roll result distinctly', async () => {
+    await renderPlaying()
+
+    act(() =>
+      realtime.handlers?.onMessage({
+        id: 'msg-roll',
+        roomId: 'room-1',
+        characterId: 'char-2',
+        characterName: 'Street Sam',
+        content: '2d6+3 = 11 [3, 5]',
+        type: MessageType.Roll,
+        createdAtUtc: '2026-08-16T11:31:00Z',
+      }),
+    )
+
+    const content = await screen.findByText(/2d6\+3 = 11/, { selector: '.message-log__roll' })
+    const entry = content.closest('.message-log__entry')!
+    expect(entry).toHaveClass('message-log__entry--roll')
+    expect(entry).toHaveTextContent('Street Sam')
+  })
+
+  it('filters roleplay and roll messages independently', async () => {
+    await renderPlaying()
+
+    act(() =>
+      realtime.handlers?.onMessage({
+        id: 'msg-say',
+        roomId: 'room-1',
+        characterId: 'char-2',
+        characterName: 'Street Sam',
+        content: 'plain speech',
+        type: MessageType.Say,
+        createdAtUtc: '2026-08-16T11:30:00Z',
+      }),
+    )
+    act(() =>
+      realtime.handlers?.onMessage({
+        id: 'msg-roll',
+        roomId: 'room-1',
+        characterId: 'char-2',
+        characterName: 'Street Sam',
+        content: '2d6 = 7 [3, 4]',
+        type: MessageType.Roll,
+        createdAtUtc: '2026-08-16T11:31:00Z',
+      }),
+    )
+
+    expect(await screen.findByText('plain speech')).toBeInTheDocument()
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Rolls' }))
+
+    expect(screen.queryByText('plain speech')).not.toBeInTheDocument()
+    expect(screen.getByText(/2d6 = 7/, { selector: '.message-log__roll' })).toBeInTheDocument()
+    expect(await screen.findByText('1 entry hidden by the current filter.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Roleplay' }))
+
+    expect(screen.getByText('plain speech')).toBeInTheDocument()
+    expect(screen.queryByText(/2d6 = 7/, { selector: '.message-log__roll' })).not.toBeInTheDocument()
   })
 })

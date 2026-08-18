@@ -20,6 +20,7 @@ public sealed class SeattleByNightDbContext : IdentityDbContext<ApplicationUser,
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<PlaySession> PlaySessions => Set<PlaySession>();
     public DbSet<RoomVisit> RoomVisits => Set<RoomVisit>();
+    public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

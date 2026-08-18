@@ -1,10 +1,14 @@
 using System.Net;
 using System.Net.Http;
+using MediatR;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
+using SeattleByNight.Api.Hubs;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomSessions;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence.Seed;
 
 namespace SeattleByNight.Api.Tests;
@@ -34,7 +38,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
         await using var downtownConnection = await ConnectAsync(downtown);
 
         var received = CreateMessageAwaiter(downtownConnection);
-        await moverConnection.InvokeAsync("SendMessage", "now-in-downtown");
+        await moverConnection.InvokeAsync("SendMessage", "now-in-downtown", ChatMessageType.Say);
 
         var message = await received.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("now-in-downtown", message.Content);
@@ -51,7 +55,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
         await using var receiverConnection = await ConnectAsync(receiver);
 
         var received = CreateMessageAwaiter(receiverConnection);
-        await senderConnection.InvokeAsync("SendMessage", "hello-from-sender");
+        await senderConnection.InvokeAsync("SendMessage", "hello-from-sender", ChatMessageType.Say);
 
         var message = await received.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("hello-from-sender", message.Content);
@@ -68,7 +72,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
         await using var otherConnection = await ConnectAsync(other);
 
         var received = CreateMessageAwaiter(otherConnection);
-        await senderConnection.InvokeAsync("SendMessage", "not-for-you");
+        await senderConnection.InvokeAsync("SendMessage", "not-for-you", ChatMessageType.Say);
 
         var message = await AwaitMessageOrNullAsync(received, TimeSpan.FromSeconds(2));
         Assert.Null(message);
@@ -82,7 +86,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
         await using var connection = await ConnectAsync(sender);
         var received = CreateMessageAwaiter(connection);
 
-        await connection.InvokeAsync("SendMessage", "persisted-message");
+        await connection.InvokeAsync("SendMessage", "persisted-message", ChatMessageType.Say);
         var message = await received.WaitAsync(TimeSpan.FromSeconds(10));
 
         await using var db = _factory.CreateDbContext();
@@ -98,7 +102,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
     {
         var early = await CreateChatUserAsync(DevelopmentDataSeeder.DowntownStreetId);
         await using var earlyConnection = await ConnectAsync(early);
-        await earlyConnection.InvokeAsync("SendMessage", "before-entrant-arrives");
+        await earlyConnection.InvokeAsync("SendMessage", "before-entrant-arrives", ChatMessageType.Say);
         await earlyConnection.DisposeAsync();
 
         var entrant = await CreateChatUserAsync(DevelopmentDataSeeder.DowntownStreetId);
@@ -113,7 +117,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
     {
         var user = await CreateChatUserAsync();
         await using var firstConnection = await ConnectAsync(user);
-        await firstConnection.InvokeAsync("SendMessage", "first-session");
+        await firstConnection.InvokeAsync("SendMessage", "first-session", ChatMessageType.Say);
         await firstConnection.DisposeAsync();
 
         await _factory.LogoutAsync(user.Client);
@@ -139,7 +143,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
         }
 
         await using var connectionB = await ConnectAsync(userB);
-        await connectionB.InvokeAsync("SendMessage", "sent-while-a-disconnected");
+        await connectionB.InvokeAsync("SendMessage", "sent-while-a-disconnected", ChatMessageType.Say);
 
         var (status, body) = await _factory.GetCurrentAsync(userA.Client);
         Assert.Equal(HttpStatusCode.OK, status);
@@ -154,7 +158,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
         await using var connection = BuildConnection(user);
         await connection.StartAsync();
 
-        var ex = await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "too-early"));
+        var ex = await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "too-early", ChatMessageType.Say));
         Assert.Contains("Join", ex.Message);
     }
 
@@ -164,7 +168,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
         var user = await CreateChatUserAsync();
         await using var connection = await ConnectAsync(user);
 
-        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "   "));
+        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "   ", ChatMessageType.Say));
 
         await using var db = _factory.CreateDbContext();
         Assert.DoesNotContain(db.ChatMessages, m => m.Content == "   ");
@@ -177,7 +181,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
         await using var connection = await ConnectAsync(user);
 
         var oversized = new string('x', 4001);
-        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", oversized));
+        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", oversized, ChatMessageType.Say));
 
         await using var db = _factory.CreateDbContext();
         Assert.DoesNotContain(db.ChatMessages, m => m.Content == oversized);
@@ -191,7 +195,7 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
 
         await _factory.EndSessionAsync(user.Session.PlaySessionId);
 
-        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "after-end"));
+        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "after-end", ChatMessageType.Say));
     }
 
     [Fact]
@@ -202,7 +206,152 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
 
         await _factory.ExpireSessionAsync(user.Session.PlaySessionId);
 
-        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "after-expiry"));
+        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "after-expiry", ChatMessageType.Say));
+    }
+
+    [Fact]
+    public async Task StartSession_WithAnotherCharacter_RetiresLiveRegistrations()
+    {
+        var user = await CreateChatUserAsync(DevelopmentDataSeeder.DowntownStreetId);
+        var oldRoomOther = await CreateChatUserAsync(DevelopmentDataSeeder.DowntownStreetId);
+        await using var connection = await ConnectAsync(user);
+        await using var oldRoomOtherConnection = await ConnectAsync(oldRoomOther);
+
+        var expired = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.On("SessionExpired", () => expired.TrySetResult());
+
+        var replacementCharacter = await _factory.CreateCharacterAsync(user.Client, $"Runner-{Guid.NewGuid():N}");
+        await _factory.RelocateCharacterAsync(replacementCharacter.Id, DevelopmentDataSeeder.CoffeeShopId);
+        var replacement = await _factory.StartSessionAsync(user.Client, replacementCharacter.Id);
+
+        await expired.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.NotEqual(user.Session.PlaySessionId, replacement.PlaySessionId);
+
+        var registry = _factory.Services.GetRequiredService<IRoomConnectionRegistry>();
+        Assert.Empty(registry.GetByPlaySessionId(user.Session.PlaySessionId));
+
+        await Assert.ThrowsAsync<HubException>(
+            () => connection.InvokeAsync("SendMessage", "stale-character", ChatMessageType.Say));
+
+        var oldTraffic = CreateMessageAwaiter(connection);
+        await oldRoomOtherConnection.InvokeAsync("SendMessage", "old-room-after-switch", ChatMessageType.Say);
+        Assert.Null(await AwaitMessageOrNullAsync(oldTraffic, TimeSpan.FromSeconds(2)));
+    }
+
+    [Fact]
+    public async Task Mutation_WithRegistrationForReplacedSession_IsRejected()
+    {
+        var user = await CreateChatUserAsync();
+        await using var connection = await ConnectAsync(user);
+        var replacementCharacter = await _factory.CreateCharacterAsync(user.Client, $"Runner-{Guid.NewGuid():N}");
+        var account = await _factory.GetAccountAsync(user.Client);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var result = await mediator.Send(new StartPlaySessionCommand(account.Id, replacementCharacter.Id));
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.ReplacedSession);
+        await Assert.ThrowsAsync<HubException>(
+            () => connection.InvokeAsync("SendMessage", "must-not-use-new-session", ChatMessageType.Say));
+    }
+
+    [Fact]
+    public async Task Logout_ExpiredBeforeScan_CleansTheEndedSessionRegistration()
+    {
+        var user = await CreateChatUserAsync();
+        await using var connection = await ConnectAsync(user);
+        var expired = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.On("SessionExpired", () => expired.TrySetResult());
+
+        await _factory.ExpireSessionAsync(user.Session.PlaySessionId);
+        var status = await _factory.LogoutAsync(user.Client);
+
+        Assert.Equal(HttpStatusCode.OK, status);
+        await expired.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        var registry = _factory.Services.GetRequiredService<IRoomConnectionRegistry>();
+        Assert.Empty(registry.GetByPlaySessionId(user.Session.PlaySessionId));
+    }
+
+    [Fact]
+    public async Task SendMessage_Emote_BroadcastsTypedMessage()
+    {
+        var sender = await CreateChatUserAsync();
+        var receiver = await CreateChatUserAsync();
+
+        await using var senderConnection = await ConnectAsync(sender);
+        await using var receiverConnection = await ConnectAsync(receiver);
+
+        var received = CreateMessageAwaiter(receiverConnection);
+        await senderConnection.InvokeAsync("SendMessage", "leans against the wall", ChatMessageType.Emote);
+
+        var message = await received.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal("leans against the wall", message.Content);
+        Assert.Equal(ChatMessageType.Emote, message.Type);
+        Assert.Equal(sender.CharacterName, message.CharacterName);
+    }
+
+    [Fact]
+    public async Task SendMessage_RollType_Rejected()
+    {
+        var user = await CreateChatUserAsync();
+        await using var connection = await ConnectAsync(user);
+
+        var ex = await Assert.ThrowsAsync<HubException>(
+            () => connection.InvokeAsync("SendMessage", "forged-roll", ChatMessageType.Roll));
+        Assert.Contains("not allowed", ex.Message);
+
+        await using var db = _factory.CreateDbContext();
+        Assert.DoesNotContain(db.ChatMessages, m => m.Content == "forged-roll");
+    }
+
+    [Fact]
+    public async Task SendMessage_UnknownTypeValue_Rejected()
+    {
+        var user = await CreateChatUserAsync();
+        await using var connection = await ConnectAsync(user);
+
+        var ex = await Assert.ThrowsAsync<HubException>(
+            () => connection.InvokeAsync("SendMessage", "weird-type", (ChatMessageType)42));
+        Assert.Contains("not allowed", ex.Message);
+    }
+
+    [Fact]
+    public async Task RollDice_ValidExpression_PersistsAndBroadcasts()
+    {
+        var roller = await CreateChatUserAsync();
+        var receiver = await CreateChatUserAsync();
+
+        await using var rollerConnection = await ConnectAsync(roller);
+        await using var receiverConnection = await ConnectAsync(receiver);
+
+        var received = CreateMessageAwaiter(receiverConnection);
+        await rollerConnection.InvokeAsync("RollDice", "2d6+3");
+
+        var message = await received.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(ChatMessageType.Roll, message.Type);
+        Assert.Equal(roller.CharacterName, message.CharacterName);
+        Assert.Matches(@"^2d6\+3 = \d+ \[.+\]$", message.Content);
+
+        await using var db = _factory.CreateDbContext();
+        Assert.Contains(db.ChatMessages, m => m.Id == message.Id && m.Type == ChatMessageType.Roll);
+
+        var (status, body) = await _factory.GetCurrentAsync(roller.Client);
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.Contains(body!.Messages, m => m.Id == message.Id && m.Type == ChatMessageType.Roll);
+    }
+
+    [Fact]
+    public async Task RollDice_InvalidExpression_Rejected()
+    {
+        var user = await CreateChatUserAsync();
+        await using var connection = await ConnectAsync(user);
+
+        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("RollDice", "not-a-roll"));
+
+        await using var db = _factory.CreateDbContext();
+        Assert.DoesNotContain(db.ChatMessages, m => m.CharacterId == user.Character.Id && m.Type == ChatMessageType.Roll);
     }
 
     [Fact]
@@ -218,7 +367,65 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
 
         await expired.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
-        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "too-late"));
+        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("SendMessage", "too-late", ChatMessageType.Say));
+    }
+
+    [Fact]
+    public async Task GetOnlineCharacters_ReturnsDistinctOnlineAcrossRooms()
+    {
+        var downtown = await CreateChatUserAsync(DevelopmentDataSeeder.DowntownStreetId);
+        var coffee = await CreateChatUserAsync(DevelopmentDataSeeder.CoffeeShopId);
+
+        await using var downtownConnection = await ConnectAsync(downtown);
+        await using var coffeeConnection = await ConnectAsync(coffee);
+
+        var online = await downtownConnection.InvokeAsync<IReadOnlyList<CharacterSummary>>("GetOnlineCharacters");
+
+        var names = online.Select(character => character.Name).OrderBy(name => name, StringComparer.Ordinal).ToArray();
+        var expected = new[] { downtown.CharacterName, coffee.CharacterName }.OrderBy(name => name, StringComparer.Ordinal).ToArray();
+
+        Assert.Equal(expected, names);
+    }
+
+    [Fact]
+    public async Task GetOnlineCharacters_DeduplicatesMultipleConnections()
+    {
+        var user = await CreateChatUserAsync();
+        var other = await CreateChatUserAsync();
+
+        await using var firstConnection = await ConnectAsync(user);
+        await using var secondConnection = await ConnectAsync(user);
+        await using var otherConnection = await ConnectAsync(other);
+
+        var online = await otherConnection.InvokeAsync<IReadOnlyList<CharacterSummary>>("GetOnlineCharacters");
+
+        Assert.Equal(2, online.Count);
+        Assert.Single(online, character => character.Id == user.Character.Id);
+        Assert.Single(online, character => character.Id == other.Character.Id);
+    }
+
+    [Fact]
+    public async Task GetOnlineCharacters_BeforeJoin_Fails()
+    {
+        var user = await CreateChatUserAsync();
+
+        await using var connection = BuildConnection(user);
+        await connection.StartAsync();
+
+        var ex = await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("GetOnlineCharacters"));
+        Assert.Contains("Join", ex.Message);
+    }
+
+    [Fact]
+    public async Task GetOnlineCharacters_WithoutActiveSession_Fails()
+    {
+        var user = await CreateChatUserAsync();
+        await _factory.EndSessionAsync(user.Session.PlaySessionId);
+
+        await using var connection = BuildConnection(user);
+        await connection.StartAsync();
+
+        await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("GetOnlineCharacters"));
     }
 
     private async Task<ChatUser> CreateChatUserAsync(Guid? relocateToRoomId = null)

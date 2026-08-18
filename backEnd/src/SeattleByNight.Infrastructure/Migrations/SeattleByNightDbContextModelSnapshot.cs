@@ -174,6 +174,55 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.ToTable("asp_net_user_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.AuditRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("action");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("details");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("target_type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId")
+                        .HasDatabaseName("ix_audit_records_actor_user_id");
+
+                    b.HasIndex("CreatedAtUtc", "Id")
+                        .HasDatabaseName("ix_audit_records_created_at_utc_id");
+
+                    b.HasIndex("TargetType", "TargetId")
+                        .HasDatabaseName("ix_audit_records_target");
+
+                    b.ToTable("audit_records", (string)null);
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.Character", b =>
                 {
                     b.Property<Guid>("Id")
@@ -242,6 +291,13 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("room_id");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Say")
+                        .HasColumnName("type");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CharacterId");
@@ -249,7 +305,10 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.HasIndex("RoomId", "CreatedAtUtc")
                         .HasDatabaseName("ix_chat_messages_room_id_created_at_utc");
 
-                    b.ToTable("chat_messages", (string)null);
+                    b.ToTable("chat_messages", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_chat_messages_type", "type IN ('Say','Emote','Roll')");
+                        });
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.PlaySession", b =>
@@ -316,15 +375,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("description");
 
-                    b.Property<int?>("MapLayer")
+                    b.Property<int>("MapLayer")
                         .HasColumnType("integer")
                         .HasColumnName("map_layer");
 
-                    b.Property<int?>("MapX")
+                    b.Property<int>("MapX")
                         .HasColumnType("integer")
                         .HasColumnName("map_x");
 
-                    b.Property<int?>("MapY")
+                    b.Property<int>("MapY")
                         .HasColumnType("integer")
                         .HasColumnName("map_y");
 
@@ -334,7 +393,16 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("character varying(120)")
                         .HasColumnName("name");
 
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("version");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("MapLayer", "MapX", "MapY")
+                        .IsUnique()
+                        .HasDatabaseName("ux_rooms_map_layer_map_x_map_y");
 
                     b.ToTable("rooms", (string)null);
                 });
@@ -355,8 +423,8 @@ namespace SeattleByNight.Infrastructure.Migrations
 
                     b.Property<string>("Direction")
                         .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("character varying(40)")
+                        .HasMaxLength(9)
+                        .HasColumnType("character varying(9)")
                         .HasColumnName("direction");
 
                     b.Property<bool>("IsHidden")
@@ -367,25 +435,28 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_locked");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
-                        .HasColumnName("name");
-
                     b.Property<Guid>("SourceRoomId")
                         .HasColumnType("uuid")
                         .HasColumnName("source_room_id");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("version");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DestinationRoomId")
                         .HasDatabaseName("ix_room_exits_destination_room_id");
 
-                    b.HasIndex("SourceRoomId")
-                        .HasDatabaseName("ix_room_exits_source_room_id");
+                    b.HasIndex("SourceRoomId", "Direction")
+                        .IsUnique()
+                        .HasDatabaseName("ux_room_exits_source_room_id_direction");
 
-                    b.ToTable("room_exits", (string)null);
+                    b.ToTable("room_exits", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_room_exits_direction", "direction IN ('north','northeast','east','southeast','south','southwest','west','northwest','up','down')");
+                        });
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.RoomVisit", b =>
@@ -420,7 +491,13 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.HasIndex("RoomId", "EnteredAtUtc")
                         .HasDatabaseName("ix_room_visits_room_id_entered_at_utc");
 
-                    b.ToTable("room_visits", (string)null);
+                    b.HasIndex("PlaySessionId", "RoomId", "EnteredAtUtc", "LeftAtUtc")
+                        .HasDatabaseName("ix_room_visits_transcript_visibility");
+
+                    b.ToTable("room_visits", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_room_visits_interval", "left_at_utc IS NULL OR left_at_utc >= entered_at_utc");
+                        });
                 });
 
             modelBuilder.Entity("SeattleByNight.Infrastructure.Identity.ApplicationUser", b =>
@@ -556,6 +633,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.AuditRecord", b =>
+                {
+                    b.HasOne("SeattleByNight.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

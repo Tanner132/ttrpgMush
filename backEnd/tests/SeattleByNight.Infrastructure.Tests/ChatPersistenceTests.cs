@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using SeattleByNight.Application.Dice;
+using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomChat;
 using SeattleByNight.Domain.Entities;
+using SeattleByNight.Domain.Enums;
+using SeattleByNight.Infrastructure.Dice;
 using SeattleByNight.Infrastructure.Identity;
 using SeattleByNight.Infrastructure.Persistence;
 using SeattleByNight.Infrastructure.Persistence.Seed;
@@ -37,8 +41,8 @@ public sealed class ChatPersistenceTests : IAsyncLifetime
         var setup = await CreateActiveSessionAsync();
         var now = DateTimeOffset.UtcNow;
 
-        var store = CreateStore();
-        var outcome = await store.SendMessageAsync(setup.UserId, "hello", now, TimeSpan.FromMinutes(60));
+        var store = CreateStore(now);
+        var outcome = await store.SendMessageAsync(setup.UserId, "hello", ChatMessageType.Say, TimeSpan.FromMinutes(60));
 
         Assert.NotNull(outcome);
         Assert.Equal("hello", outcome.Message.Content);
@@ -62,8 +66,8 @@ public sealed class ChatPersistenceTests : IAsyncLifetime
 
         await ExpireSessionAsync(setup.SessionId, now.AddSeconds(-5));
 
-        var store = CreateStore();
-        var outcome = await store.SendMessageAsync(setup.UserId, "too-late", now, TimeSpan.FromMinutes(60));
+        var store = CreateStore(now);
+        var outcome = await store.SendMessageAsync(setup.UserId, "too-late", ChatMessageType.Say, TimeSpan.FromMinutes(60));
 
         Assert.Null(outcome);
 
@@ -83,8 +87,8 @@ public sealed class ChatPersistenceTests : IAsyncLifetime
 
         await EndSessionAsync(setup.SessionId, now);
 
-        var store = CreateStore();
-        var outcome = await store.SendMessageAsync(setup.UserId, "after-end", now, TimeSpan.FromMinutes(60));
+        var store = CreateStore(now);
+        var outcome = await store.SendMessageAsync(setup.UserId, "after-end", ChatMessageType.Say, TimeSpan.FromMinutes(60));
 
         Assert.Null(outcome);
 
@@ -100,10 +104,10 @@ public sealed class ChatPersistenceTests : IAsyncLifetime
 
         await ExpireSessionAsync(setup.SessionId, now.AddSeconds(-1));
 
-        var chatStore = CreateStore();
-        var expirationStore = new PlaySessionStore(CreateDbContext());
+        var chatStore = CreateStore(now);
+        var expirationStore = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(now));
 
-        var sendTask = chatStore.SendMessageAsync(setup.UserId, "race", now, TimeSpan.FromMinutes(60));
+        var sendTask = chatStore.SendMessageAsync(setup.UserId, "race", ChatMessageType.Say, TimeSpan.FromMinutes(60));
         var expireTask = expirationStore.TryEndExpiredAsync(setup.SessionId, now);
 
         await Task.WhenAll(sendTask, expireTask);
@@ -130,14 +134,80 @@ public sealed class ChatPersistenceTests : IAsyncLifetime
         }
     }
 
+    [Theory]
+    [InlineData(ChatMessageType.Say)]
+    [InlineData(ChatMessageType.Emote)]
+    [InlineData(ChatMessageType.Roll)]
+    public async Task SendMessage_PersistsMessageType(ChatMessageType type)
+    {
+        var setup = await CreateActiveSessionAsync();
+        var now = DateTimeOffset.UtcNow;
+
+        var store = CreateStore(now);
+        var outcome = await store.SendMessageAsync(setup.UserId, "typed-content", type, TimeSpan.FromMinutes(60));
+
+        Assert.NotNull(outcome);
+        Assert.Equal(type, outcome.Message.Type);
+
+        await using var db = CreateDbContext();
+        var message = await db.ChatMessages.AsNoTracking().SingleAsync(m => m.Id == outcome.Message.Id);
+        Assert.Equal(type, message.Type);
+    }
+
+    [Fact]
+    public async Task RollDice_ActiveSession_PersistsRollMessageUnderLock()
+    {
+        var setup = await CreateActiveSessionAsync();
+
+        var result = await CreateRollHandler().Handle(
+            new RollDiceCommand(setup.UserId, "2d6+3"),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Message);
+        Assert.Equal(ChatMessageType.Roll, result.Message.Type);
+        Assert.Matches(@"^2d6\+3 = \d+ \[.+\]$", result.Message.Content);
+
+        await using var db = CreateDbContext();
+        var message = await db.ChatMessages.AsNoTracking().SingleAsync(m => m.Id == result.Message.Id);
+        Assert.Equal(ChatMessageType.Roll, message.Type);
+        Assert.Equal(result.Message.Content, message.Content);
+    }
+
+    [Fact]
+    public async Task RollDice_InvalidExpression_RejectsWithoutPersistence()
+    {
+        var setup = await CreateActiveSessionAsync();
+
+        var result = await CreateRollHandler().Handle(
+            new RollDiceCommand(setup.UserId, "not-a-roll"),
+            CancellationToken.None);
+
+        Assert.Equal(RollDiceError.InvalidExpression, result.Error);
+        Assert.Null(result.Message);
+
+        await using var db = CreateDbContext();
+        Assert.Equal(0, await db.ChatMessages.CountAsync(m => m.CharacterId == setup.CharacterId));
+    }
+
+    [Fact]
+    public async Task RollDice_NoActiveSession_ReturnsNoActiveSession()
+    {
+        var result = await CreateRollHandler().Handle(
+            new RollDiceCommand(Guid.NewGuid(), "2d6"),
+            CancellationToken.None);
+
+        Assert.Equal(RollDiceError.NoActiveSession, result.Error);
+    }
+
     [Fact]
     public async Task RenewActivity_Unthrottled_ExtendsExpiryAndReturnsIt()
     {
         var setup = await CreateActiveSessionAsync();
         var now = DateTimeOffset.UtcNow;
 
-        var store = new PlaySessionStore(CreateDbContext());
-        var expiresAtUtc = await store.RenewActivityByUserIdAsync(setup.UserId, now, TimeSpan.FromHours(1), TimeSpan.Zero);
+        var store = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(now));
+        var expiresAtUtc = await store.RenewActivityByUserIdAsync(setup.UserId, TimeSpan.FromHours(1), TimeSpan.Zero);
 
         Assert.NotNull(expiresAtUtc);
         Assert.True(expiresAtUtc.Value > now);
@@ -154,8 +224,8 @@ public sealed class ChatPersistenceTests : IAsyncLifetime
         var setup = await CreateActiveSessionAsync();
         var now = DateTimeOffset.UtcNow;
 
-        var store = new PlaySessionStore(CreateDbContext());
-        var first = await store.RenewActivityByUserIdAsync(setup.UserId, now, TimeSpan.FromHours(1), TimeSpan.Zero);
+        var store = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(now));
+        var first = await store.RenewActivityByUserIdAsync(setup.UserId, TimeSpan.FromHours(1), TimeSpan.Zero);
 
         await using (var db = CreateDbContext())
         {
@@ -164,10 +234,9 @@ public sealed class ChatPersistenceTests : IAsyncLifetime
             await db.SaveChangesAsync();
         }
 
-        var throttledStore = new PlaySessionStore(CreateDbContext());
+        var throttledStore = new PlaySessionStore(CreateDbContext(), new TestTimeProvider(now.AddSeconds(30)));
         var throttled = await throttledStore.RenewActivityByUserIdAsync(
             setup.UserId,
-            now.AddSeconds(30),
             TimeSpan.FromHours(1),
             TimeSpan.FromMinutes(5));
 
@@ -189,7 +258,14 @@ public sealed class ChatPersistenceTests : IAsyncLifetime
         return new SeattleByNightDbContext(options);
     }
 
-    private IRoomChatStore CreateStore() => new RoomChatStore(CreateDbContext());
+    private IRoomChatStore CreateStore(DateTimeOffset? now = null) =>
+        new RoomChatStore(CreateDbContext(), new TestTimeProvider(now ?? DateTimeOffset.UtcNow));
+
+    private RollDiceCommandHandler CreateRollHandler() => new(
+        CreateStore(),
+        new DiceEngine(new DiceOptions()),
+        new DiceOptions(),
+        new PlaySessionOptions());
 
     private async Task<ChatSetup> CreateActiveSessionAsync(Guid? roomId = null)
     {

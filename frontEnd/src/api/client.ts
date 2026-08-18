@@ -93,3 +93,29 @@ export async function apiPost<T>(url: string, body?: unknown, signal?: AbortSign
     signal,
   })
 }
+
+export async function apiPut<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
+  const token = await ensureCsrfToken()
+
+  const headers: Record<string, string> = { 'X-XSRF-TOKEN': token }
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json'
+  }
+
+  return request<T>(url, {
+    method: 'PUT',
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+    signal,
+  })
+}
+
+export async function apiDelete<T>(url: string, signal?: AbortSignal): Promise<T> {
+  const token = await ensureCsrfToken()
+
+  return request<T>(url, {
+    method: 'DELETE',
+    headers: { 'X-XSRF-TOKEN': token },
+    signal,
+  })
+}

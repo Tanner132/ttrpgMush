@@ -79,7 +79,6 @@ public sealed class MovementTests : IClassFixture<ApiTestFactory>
         var lockedExitId = await _factory.AddLockedExitAsync(
             DevelopmentDataSeeder.DowntownStreetId,
             DevelopmentDataSeeder.AlleyId,
-            "Barred Door",
             "west");
 
         await using var scope = _factory.Services.CreateAsyncScope();
@@ -102,8 +101,7 @@ public sealed class MovementTests : IClassFixture<ApiTestFactory>
         var hiddenExitId = await AddExitAsync(
             DevelopmentDataSeeder.DowntownStreetId,
             DevelopmentDataSeeder.AlleyId,
-            "Secret Passage",
-            "down",
+            "southwest",
             isHidden: true,
             isLocked: false);
 
@@ -218,7 +216,6 @@ public sealed class MovementTests : IClassFixture<ApiTestFactory>
     private async Task<Guid> AddExitAsync(
         Guid sourceRoomId,
         Guid destinationRoomId,
-        string name,
         string direction,
         bool isHidden,
         bool isLocked)
@@ -230,7 +227,6 @@ public sealed class MovementTests : IClassFixture<ApiTestFactory>
             Id = Guid.NewGuid(),
             SourceRoomId = sourceRoomId,
             DestinationRoomId = destinationRoomId,
-            Name = name,
             Direction = direction,
             IsHidden = isHidden,
             IsLocked = isLocked

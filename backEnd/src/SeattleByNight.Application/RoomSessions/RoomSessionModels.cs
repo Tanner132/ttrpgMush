@@ -9,14 +9,13 @@ public sealed record RoomSummary(
     string Name,
     string Description,
     RoomAccessType AccessType,
-    int? MapX,
-    int? MapY,
-    int? MapLayer);
+    int MapX,
+    int MapY,
+    int MapLayer);
 
 public sealed record RoomExitSummary(
     Guid Id,
     string Direction,
-    string Name,
     Guid DestinationRoomId,
     string DestinationRoomName,
     bool IsLocked);
@@ -27,6 +26,7 @@ public sealed record RoomMessage(
     Guid CharacterId,
     string CharacterName,
     string Content,
+    ChatMessageType Type,
     DateTimeOffset CreatedAtUtc);
 
 public sealed record RoomSession(

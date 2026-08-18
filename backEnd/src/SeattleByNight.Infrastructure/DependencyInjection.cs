@@ -1,18 +1,26 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SeattleByNight.Application.Auditing;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Application.PlaySessions;
+using SeattleByNight.Application.RoleAdmin;
 using SeattleByNight.Application.RoomChat;
 using SeattleByNight.Application.RoomSessions;
+using SeattleByNight.Application.WorldEditing;
+using SeattleByNight.Infrastructure.Auditing;
 using SeattleByNight.Infrastructure.Characters;
+using SeattleByNight.Infrastructure.Dice;
 using SeattleByNight.Infrastructure.Identity;
 using SeattleByNight.Infrastructure.Movement;
 using SeattleByNight.Infrastructure.Persistence;
 using SeattleByNight.Infrastructure.PlaySessions;
+using SeattleByNight.Infrastructure.RoleAdmin;
 using SeattleByNight.Infrastructure.RoomChat;
 using SeattleByNight.Infrastructure.RoomSessions;
+using SeattleByNight.Infrastructure.WorldEditing;
 
 namespace SeattleByNight.Infrastructure;
 
@@ -28,6 +36,13 @@ public static class DependencyInjection
         services.AddScoped<IPlaySessionStore, PlaySessionStore>();
         services.AddScoped<IRoomChatStore, RoomChatStore>();
         services.AddScoped<IMovementStore, MovementStore>();
+        services.AddScoped<IAuditWriter, AuditWriter>();
+        services.AddScoped<IUserAdminStore, UserAdminStore>();
+        services.AddScoped<IAuditLogReader, AuditLogReader>();
+        services.AddScoped<IWorldGraphReader, WorldGraphReader>();
+        services.AddScoped<IWorldEditorStore, WorldEditorStore>();
+        services.AddSingleton<IDiceRandom, CryptographicDiceRandom>();
+        services.AddSingleton<IDiceEngine, DiceEngine>();
 
         services
             .AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>

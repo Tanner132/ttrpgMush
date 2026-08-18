@@ -62,7 +62,6 @@ public sealed class RoomSessionReader : IRoomSessionReader
             .AsNoTracking()
             .Where(e => e.SourceRoomId == character.CurrentRoomId && !e.IsHidden)
             .OrderBy(e => e.Direction)
-            .ThenBy(e => e.Name)
             .Join(
                 _dbContext.Rooms.AsNoTracking(),
                 e => e.DestinationRoomId,
@@ -70,7 +69,6 @@ public sealed class RoomSessionReader : IRoomSessionReader
                 (e, r) => new RoomExitSummary(
                     e.Id,
                     e.Direction,
-                    e.Name,
                     e.DestinationRoomId,
                     r.Name,
                     e.IsLocked))
@@ -136,6 +134,7 @@ public sealed class RoomSessionReader : IRoomSessionReader
                     m.CharacterId,
                     c.Name,
                     m.Content,
+                    m.Type,
                     m.CreatedAtUtc))
             .Take(RoomSessionCursor.MessagePageSize + 1)
             .ToListAsync(cancellationToken);

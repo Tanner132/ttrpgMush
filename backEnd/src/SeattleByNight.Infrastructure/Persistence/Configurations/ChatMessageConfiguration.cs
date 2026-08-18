@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SeattleByNight.Domain.Entities;
+using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Infrastructure.Persistence.Configurations;
 
@@ -8,7 +9,9 @@ public sealed class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMess
 {
     public void Configure(EntityTypeBuilder<ChatMessage> builder)
     {
-        builder.ToTable("chat_messages");
+        builder.ToTable("chat_messages", table => table.HasCheckConstraint(
+            "ck_chat_messages_type",
+            "type IN ('Say','Emote','Roll')"));
 
         builder.HasKey(m => m.Id);
 
@@ -25,6 +28,12 @@ public sealed class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMess
         builder.Property(m => m.CharacterId)
             .HasColumnName("character_id")
             .HasColumnType("uuid")
+            .IsRequired();
+
+        builder.Property(m => m.Type)
+            .HasColumnName("type")
+            .HasConversion<string>()
+            .HasDefaultValue(ChatMessageType.Say)
             .IsRequired();
 
         builder.Property(m => m.Content)

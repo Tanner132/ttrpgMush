@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.RoomChat;
 using SeattleByNight.Application.RoomSessions;
 using SeattleByNight.Domain.Entities;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence;
 
 namespace SeattleByNight.Infrastructure.RoomChat;
@@ -9,16 +10,18 @@ namespace SeattleByNight.Infrastructure.RoomChat;
 public sealed class RoomChatStore : IRoomChatStore
 {
     private readonly SeattleByNightDbContext _dbContext;
+    private readonly TimeProvider _timeProvider;
 
-    public RoomChatStore(SeattleByNightDbContext dbContext)
+    public RoomChatStore(SeattleByNightDbContext dbContext, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider;
     }
 
     public async Task<SendRoomMessageOutcome?> SendMessageAsync(
         Guid userId,
         string content,
-        DateTimeOffset now,
+        ChatMessageType type,
         TimeSpan idleTimeout,
         CancellationToken cancellationToken = default)
     {
@@ -29,6 +32,8 @@ public sealed class RoomChatStore : IRoomChatStore
         var session = await _dbContext.PlaySessions
             .FromSqlInterpolated($"SELECT * FROM play_sessions WHERE user_id = {userId} AND ended_at_utc IS NULL FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
+
+        var now = _timeProvider.GetUtcNow();
 
         if (session is null || session.ExpiresAtUtc <= now)
         {
@@ -56,6 +61,7 @@ public sealed class RoomChatStore : IRoomChatStore
             Id = Guid.NewGuid(),
             RoomId = character.CurrentRoomId,
             CharacterId = character.Id,
+            Type = type,
             Content = content,
             CreatedAtUtc = now
         };
@@ -66,7 +72,7 @@ public sealed class RoomChatStore : IRoomChatStore
         await transaction.CommitAsync(cancellationToken);
 
         return new SendRoomMessageOutcome(
-            new RoomMessage(message.Id, character.CurrentRoomId, character.Id, character.Name, content, now),
+            new RoomMessage(message.Id, character.CurrentRoomId, character.Id, character.Name, content, type, now),
             session.ExpiresAtUtc);
     }
 }

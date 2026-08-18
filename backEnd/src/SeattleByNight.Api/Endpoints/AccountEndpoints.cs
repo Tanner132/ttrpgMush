@@ -10,7 +10,7 @@ public sealed record RegisterRequest(string Email, string Username, string Passw
 
 public sealed record LoginRequest(string Login, string Password);
 
-public sealed record AccountResponse(Guid Id, string Email, string UserName);
+public sealed record AccountResponse(Guid Id, string Email, string UserName, IReadOnlyList<string> Roles);
 
 public static class AccountEndpoints
 {
@@ -65,7 +65,7 @@ public static class AccountEndpoints
 
         if (result.Succeeded)
         {
-            return Results.Ok(new AccountResponse(user.Id, user.Email, user.UserName));
+            return Results.Ok(new AccountResponse(user.Id, user.Email, user.UserName, Array.Empty<string>()));
         }
 
         if (result.Errors.Any(e =>
@@ -123,28 +123,27 @@ public static class AccountEndpoints
 
         await signInManager.SignInAsync(user, isPersistent: false);
 
-        return Results.Ok(new AccountResponse(user.Id, user.Email!, user.UserName!));
+        var roles = await userManager.GetRolesAsync(user);
+
+        return Results.Ok(new AccountResponse(user.Id, user.Email!, user.UserName!, roles.ToList()));
     }
 
     private static async Task<IResult> LogoutAsync(
         SignInManager<ApplicationUser> signInManager,
         UserManager<ApplicationUser> userManager,
         IMediator mediator,
-        IPlaySessionStore playSessionStore,
         IRoomChatConnectionManager roomChatConnectionManager,
-        TimeProvider timeProvider,
         HttpContext httpContext)
     {
         var user = await userManager.GetUserAsync(httpContext.User);
 
         if (user is not null)
         {
-            var active = await playSessionStore.GetActiveByUserIdAsync(user.Id, timeProvider.GetUtcNow());
-            await mediator.Send(new EndPlaySessionCommand(user.Id));
+            var ended = await mediator.Send(new EndPlaySessionCommand(user.Id));
 
-            if (active is not null)
+            if (ended is not null)
             {
-                await roomChatConnectionManager.EndSessionAsync(active.Id);
+                await roomChatConnectionManager.EndSessionAsync(ended.PlaySessionId, CancellationToken.None);
             }
         }
 
@@ -165,6 +164,8 @@ public static class AccountEndpoints
                 title: "Not authenticated.");
         }
 
-        return Results.Ok(new AccountResponse(user.Id, user.Email!, user.UserName!));
+        var roles = await userManager.GetRolesAsync(user);
+
+        return Results.Ok(new AccountResponse(user.Id, user.Email!, user.UserName!, roles.ToList()));
     }
 }

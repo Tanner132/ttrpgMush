@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using SeattleByNight.Infrastructure.Persistence.Seed;
 
 namespace SeattleByNight.Api.Tests;
@@ -55,7 +56,9 @@ public sealed class RoomSessionApiTests : IClassFixture<ApiTestFactory>
 
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal("New Character Room", body!.Room.Name);
-        Assert.Empty(body.Exits);
+        var exit = Assert.Single(body.Exits);
+        Assert.Equal("up", exit.Direction);
+        Assert.Equal(DevelopmentDataSeeder.DowntownStreetId, exit.DestinationRoomId);
         Assert.Empty(body.Messages);
         Assert.Contains(body.Occupants, o => o.Id == character.Id);
     }
@@ -151,8 +154,8 @@ public sealed class RoomSessionApiTests : IClassFixture<ApiTestFactory>
         Assert.Equal(DevelopmentDataSeeder.DowntownStreetId, body!.Room.Id);
         Assert.Equal("Downtown Street", body.Room.Name);
 
-        var exitNames = body.Exits.Select(e => e.Name).OrderBy(n => n, StringComparer.Ordinal).ToArray();
-        Assert.Equal(new[] { "Front Door", "Side Street" }, exitNames);
+        var directions = body.Exits.Select(exit => exit.Direction).OrderBy(direction => direction, StringComparer.Ordinal).ToArray();
+        Assert.Equal(new[] { "down", "east", "north" }, directions);
     }
 
     [Fact]
@@ -164,16 +167,15 @@ public sealed class RoomSessionApiTests : IClassFixture<ApiTestFactory>
         await _factory.AddHiddenExitAsync(
             DevelopmentDataSeeder.DowntownStreetId,
             DevelopmentDataSeeder.NewCharacterRoomId,
-            "Secret Passage",
-            "down");
+            "northwest");
 
         await _factory.StartSessionAsync(client, character.Id);
 
         var (status, body) = await _factory.GetCurrentAsync(client);
 
         Assert.Equal(HttpStatusCode.OK, status);
-        Assert.DoesNotContain(body!.Exits, e => e.Name == "Secret Passage");
-        Assert.Equal(2, body.Exits.Count);
+        Assert.DoesNotContain(body!.Exits, exit => exit.Direction == "northwest");
+        Assert.Equal(3, body.Exits.Count);
     }
 
     [Fact]
@@ -209,6 +211,23 @@ public sealed class RoomSessionApiTests : IClassFixture<ApiTestFactory>
         Assert.Null(second.OlderMessagesCursor);
         Assert.Equal("msg-00", second.Messages[0].Content);
         Assert.Equal("msg-04", second.Messages[^1].Content);
+    }
+
+    [Theory]
+    [InlineData("not-a-cursor")]
+    [InlineData("9223372036854775807|00000000000000000000000000000000")]
+    public async Task GetCurrent_InvalidNonemptyCursor_ReturnsBadRequest(string cursorPayload)
+    {
+        var (client, character) = await CreateUserWithCharacterAsync();
+        await _factory.StartSessionAsync(client, character.Id);
+        var cursor = cursorPayload == "not-a-cursor"
+            ? cursorPayload
+            : Convert.ToBase64String(Encoding.UTF8.GetBytes(cursorPayload));
+
+        var (status, body) = await _factory.GetCurrentAsync(client, cursor);
+
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        Assert.Null(body);
     }
 
     [Fact]

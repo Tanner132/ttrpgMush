@@ -9,17 +9,20 @@ public sealed class PlaySessionExpirationService : BackgroundService
     private readonly IRoomChatConnectionManager _connectionManager;
     private readonly PlaySessionOptions _options;
     private readonly TimeProvider _timeProvider;
+    private readonly ILogger<PlaySessionExpirationService> _logger;
 
     public PlaySessionExpirationService(
         IServiceScopeFactory scopeFactory,
         IRoomChatConnectionManager connectionManager,
         PlaySessionOptions options,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        ILogger<PlaySessionExpirationService> logger)
     {
         _scopeFactory = scopeFactory;
         _connectionManager = connectionManager;
         _options = options;
         _timeProvider = timeProvider;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,9 +41,7 @@ public sealed class PlaySessionExpirationService : BackgroundService
             }
             catch (Exception ex)
             {
-                // A transient failure must not stop the expiration loop.
-                // There is no logger available in this scope; let the host log the fault.
-                _ = ex;
+                _logger.LogError(ex, "Play-session expiration scan failed; the next scan will retry.");
             }
         }
     }

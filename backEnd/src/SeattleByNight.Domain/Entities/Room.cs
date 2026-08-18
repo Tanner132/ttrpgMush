@@ -8,8 +8,9 @@ public sealed class Room
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public RoomAccessType AccessType { get; set; } = RoomAccessType.Public;
-    public int? MapX { get; set; }
-    public int? MapY { get; set; }
-    public int? MapLayer { get; set; }
+    public int MapX { get; init; }
+    public int MapY { get; init; }
+    public int MapLayer { get; init; }
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
+    public Guid Version { get; set; } = Guid.NewGuid();
 }

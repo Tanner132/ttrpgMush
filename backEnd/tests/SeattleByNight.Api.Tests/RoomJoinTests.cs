@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomSessions;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence.Seed;
 
 namespace SeattleByNight.Api.Tests;
@@ -38,12 +39,12 @@ public sealed class RoomJoinTests : IClassFixture<ApiTestFactory>
         await moverConnection.InvokeAsync("JoinCurrentRoom");
 
         var coffeeReceived = CreateMessageAwaiter(moverConnection);
-        await coffeeConnection.InvokeAsync("SendMessage", "coffee-traffic");
+        await coffeeConnection.InvokeAsync("SendMessage", "coffee-traffic", ChatMessageType.Say);
         var message = await coffeeReceived.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("coffee-traffic", message.Content);
 
         var downtownReceived = CreateMessageAwaiter(moverConnection);
-        await downtownConnection.InvokeAsync("SendMessage", "downtown-traffic");
+        await downtownConnection.InvokeAsync("SendMessage", "downtown-traffic", ChatMessageType.Say);
         var missed = await AwaitMessageOrNullAsync(downtownReceived, TimeSpan.FromSeconds(2));
         Assert.Null(missed);
     }
@@ -61,7 +62,7 @@ public sealed class RoomJoinTests : IClassFixture<ApiTestFactory>
         await moverConnection.InvokeAsync("JoinCurrentRoom");
 
         var received = CreateMessageAwaiter(moverConnection);
-        await otherConnection.InvokeAsync("SendMessage", "still-here");
+        await otherConnection.InvokeAsync("SendMessage", "still-here", ChatMessageType.Say);
         var message = await received.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal("still-here", message.Content);
     }

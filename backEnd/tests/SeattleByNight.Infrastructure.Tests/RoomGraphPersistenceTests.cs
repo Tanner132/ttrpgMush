@@ -37,14 +37,20 @@ public sealed class RoomGraphPersistenceTests : IAsyncLifetime
         {
             Name = "Downtown Street",
             Description = "A rain-slicked street.",
-            AccessType = RoomAccessType.Public
+            AccessType = RoomAccessType.Public,
+            MapX = 0,
+            MapY = 0,
+            MapLayer = 0
         };
 
         var coffeeShop = new Room
         {
             Name = "Coffee Shop",
             Description = "A cramped cafe.",
-            AccessType = RoomAccessType.Public
+            AccessType = RoomAccessType.Public,
+            MapX = 1,
+            MapY = 0,
+            MapLayer = 0
         };
 
         _dbContext.Rooms.AddRange(downtown, coffeeShop);
@@ -53,7 +59,6 @@ public sealed class RoomGraphPersistenceTests : IAsyncLifetime
         {
             SourceRoomId = downtown.Id,
             DestinationRoomId = coffeeShop.Id,
-            Name = "Front Door",
             Direction = "north"
         });
 

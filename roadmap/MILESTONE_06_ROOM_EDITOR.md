@@ -3,6 +3,8 @@
 **Outcome:** Authorized world builders can create and update rooms and directed exits
 on a coordinate map. No room or exit can be deleted through this application.
 
+**Status:** Complete.
+
 See [`../ROADMAP.md`](../ROADMAP.md) for shared delivery rules and verification commands.
 
 ## WORLD-601: Add Authorized World Graph Queries
@@ -12,7 +14,7 @@ See [`../ROADMAP.md`](../ROADMAP.md) for shared delivery rules and verification 
 **Scope:**
 
 - Add Application queries for the complete room graph and individual room editor details.
-- Include room metadata, nullable coordinates/layer, and all outgoing/incoming exits including hidden and locked state.
+- Include room metadata, required coordinates/layer, and all outgoing/incoming exits including hidden and locked state.
 - Expose policy-protected HTTP GET endpoints for world builders.
 - Keep player room-session queries unchanged so hidden exits remain hidden from players.
 
@@ -28,16 +30,16 @@ See [`../ROADMAP.md`](../ROADMAP.md) for shared delivery rules and verification 
 
 **Scope:**
 
-- Add commands to create and update room name, description, access type, `MapX`, `MapY`, and `MapLayer`.
+- Create rooms with name, description, access type, `MapX`, `MapY`, and `MapLayer`; updates edit metadata but never coordinates.
 - Validate existing database length limits and coordinate integer bounds.
-- Allow nullable coordinates for rooms not yet placed. Coordinates affect presentation only and never graph connectivity.
+- Require unique immutable coordinates. Creation seeds both directed paths to occupied same-layer compass neighbors; persisted exits remain authoritative afterward.
 - Write the room mutation and audit record atomically.
 - Do not add a room deletion command.
 
 **Acceptance criteria:**
 
 - Clients cannot set IDs, creation timestamps, or unsupported access types arbitrarily.
-- Overlapping coordinates have explicitly documented behavior. Initial recommendation: allow them and surface an editor warning rather than creating a connectivity rule.
+- Duplicate coordinates are rejected as conflicts.
 - Tests cover validation, authorization at transport, audit details, and rollback.
 
 ## WORLD-603: Add Audited Directed Exit Create And Update Use Cases
@@ -46,15 +48,15 @@ See [`../ROADMAP.md`](../ROADMAP.md) for shared delivery rules and verification 
 
 **Scope:**
 
-- Add commands to create and update source, destination, name, direction, hidden state, and locked state.
+- Add commands to create and update source, destination, direction, hidden state, and locked state. Exits have no separate names.
 - Validate both rooms exist and preserve directed-edge semantics.
 - Permit one-way exits, loops, branches, hidden paths, and locked paths.
 - Write the exit mutation and audit record atomically.
-- Do not infer or create a reverse exit and do not add an exit deletion command.
+- Manual exit creation does not infer a reverse exit. Room creation is the explicit exception and seeds separate forward/reverse adjacency records. Do not add an exit deletion command.
 
 **Acceptance criteria:**
 
-- Creating a reverse path requires a separate explicit create request.
+- Outside automatic room adjacency, creating a reverse path requires a separate explicit create request.
 - Invalid room IDs and failed exit updates produce no audit success records.
 - Existing player movement immediately uses committed exit changes on its next operation.
 - Tests cover all supported graph shapes and policy enforcement.
@@ -83,15 +85,15 @@ See [`../ROADMAP.md`](../ROADMAP.md) for shared delivery rules and verification 
 **Scope:**
 
 - Add a protected `/admin/world` page with layer selection and a coordinate-based room view.
-- Support selecting, creating, positioning, and editing rooms through accessible forms.
-- Represent unplaced rooms in a separate list so nullable coordinates remain usable.
+- Support selecting occupied cells and creating rooms from empty cells through an accessible modal form.
+- Keep coordinates immutable after creation.
 - Provide a non-graphical list/table fallback for keyboard and narrow-screen use.
 - Preserve the established application visual language; do not introduce a component framework.
 
 **Acceptance criteria:**
 
-- Coordinates are presentation metadata only; moving a room does not create, remove, or redirect exits.
-- Overlapping rooms are visibly warned about and remain editable.
+- Room creation uses spatial adjacency only to seed default exits; later connectivity comes from persisted exits.
+- Occupied coordinates cannot be selected for creation.
 - The editor is usable with keyboard controls and on a narrow mobile viewport.
 - No deletion action appears in menus, forms, keyboard shortcuts, or context controls.
 
@@ -102,7 +104,7 @@ See [`../ROADMAP.md`](../ROADMAP.md) for shared delivery rules and verification 
 **Scope:**
 
 - Display outgoing and incoming directed exits distinctly for the selected room.
-- Add forms to create and update exit direction, name, source, destination, hidden state, and locked state.
+- Add forms to create and update exit direction, source, destination, hidden state, and locked state.
 - Offer an explicit convenience action to create a separate reverse exit, with its own editable fields and confirmation.
 - Refresh only affected graph state after successful changes where practical.
 

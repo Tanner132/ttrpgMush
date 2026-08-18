@@ -4,6 +4,7 @@ export interface Account {
   id: string
   email: string
   userName: string
+  roles: string[]
 }
 
 export async function getCurrentAccount(): Promise<Account> {

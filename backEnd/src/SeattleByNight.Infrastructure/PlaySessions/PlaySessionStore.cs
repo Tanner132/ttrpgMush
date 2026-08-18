@@ -8,10 +8,12 @@ namespace SeattleByNight.Infrastructure.PlaySessions;
 public sealed class PlaySessionStore : IPlaySessionStore
 {
     private readonly SeattleByNightDbContext _dbContext;
+    private readonly TimeProvider _timeProvider;
 
-    public PlaySessionStore(SeattleByNightDbContext dbContext)
+    public PlaySessionStore(SeattleByNightDbContext dbContext, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider;
     }
 
     public async Task<ActivePlaySession?> GetActiveByUserIdAsync(Guid userId, DateTimeOffset now, CancellationToken cancellationToken = default)
@@ -30,7 +32,6 @@ public sealed class PlaySessionStore : IPlaySessionStore
     public async Task<StartPlaySessionResult> StartOrResumeAsync(
         Guid userId,
         Guid characterId,
-        DateTimeOffset now,
         TimeSpan idleTimeout,
         CancellationToken cancellationToken = default)
     {
@@ -41,6 +42,10 @@ public sealed class PlaySessionStore : IPlaySessionStore
             $"SELECT id FROM asp_net_users WHERE id = {userId} FOR UPDATE",
             cancellationToken);
 
+        var existing = await _dbContext.PlaySessions
+            .FromSqlInterpolated($"SELECT * FROM play_sessions WHERE user_id = {userId} AND ended_at_utc IS NULL FOR UPDATE")
+            .FirstOrDefaultAsync(cancellationToken);
+
         var character = await _dbContext.Characters
             .AsNoTracking()
             .Where(c => c.Id == characterId && c.UserId == userId)
@@ -49,12 +54,11 @@ public sealed class PlaySessionStore : IPlaySessionStore
 
         if (character is null)
         {
+            await transaction.RollbackAsync(cancellationToken);
             return StartPlaySessionResult.Failure(StartPlaySessionError.CharacterNotFound);
         }
 
-        var existing = await _dbContext.PlaySessions
-            .Where(s => s.UserId == userId && s.EndedAtUtc == null)
-            .FirstOrDefaultAsync(cancellationToken);
+        var now = _timeProvider.GetUtcNow();
 
         if (existing is not null && existing.CharacterId == characterId && existing.ExpiresAtUtc > now)
         {
@@ -62,6 +66,8 @@ public sealed class PlaySessionStore : IPlaySessionStore
             return StartPlaySessionResult.Success(new PlaySessionInfo(
                 existing.Id, character.Id, character.CurrentRoomId, existing.StartAtUtc, existing.ExpiresAtUtc));
         }
+
+        EndedPlaySession? replacedSession = null;
 
         if (existing is not null)
         {
@@ -77,6 +83,9 @@ public sealed class PlaySessionStore : IPlaySessionStore
             {
                 openVisit.LeftAtUtc = now;
             }
+
+            replacedSession = new EndedPlaySession(
+                existing.Id, existing.CharacterId, openVisit?.RoomId, now);
         }
 
         var newSession = new PlaySession
@@ -102,20 +111,26 @@ public sealed class PlaySessionStore : IPlaySessionStore
         await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        return StartPlaySessionResult.Success(new PlaySessionInfo(
-            newSession.Id, character.Id, character.CurrentRoomId, now, newSession.ExpiresAtUtc));
+        return StartPlaySessionResult.Success(
+            new PlaySessionInfo(newSession.Id, character.Id, character.CurrentRoomId, now, newSession.ExpiresAtUtc),
+            replacedSession);
     }
 
-    public async Task EndAsync(Guid playSessionId, DateTimeOffset endedAt, CancellationToken cancellationToken = default)
+    public async Task<EndedPlaySession?> EndAsync(Guid playSessionId, CancellationToken cancellationToken = default)
     {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
         var session = await _dbContext.PlaySessions
-            .Where(s => s.Id == playSessionId)
+            .FromSqlInterpolated($"SELECT * FROM play_sessions WHERE id = {playSessionId} FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
 
         if (session is null || session.EndedAtUtc is not null)
         {
-            return;
+            await transaction.RollbackAsync(cancellationToken);
+            return null;
         }
+
+        var endedAt = _timeProvider.GetUtcNow();
 
         session.EndedAtUtc = endedAt;
         session.LastActivityUtc = endedAt;
@@ -131,38 +146,72 @@ public sealed class PlaySessionStore : IPlaySessionStore
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return new EndedPlaySession(session.Id, session.CharacterId, openVisit?.RoomId, endedAt);
     }
 
-    public async Task EndActiveByUserIdAsync(Guid userId, DateTimeOffset endedAt, CancellationToken cancellationToken = default)
+    public async Task<EndedPlaySession?> EndActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var session = await _dbContext.PlaySessions
-            .Where(s => s.UserId == userId && s.EndedAtUtc == null)
-            .FirstOrDefaultAsync(cancellationToken);
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        if (session is not null)
-        {
-            await EndAsync(session.Id, endedAt, cancellationToken);
-        }
-    }
+        await _dbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT id FROM asp_net_users WHERE id = {userId} FOR UPDATE",
+            cancellationToken);
 
-    public async Task<DateTimeOffset?> RenewActivityByUserIdAsync(
-        Guid userId,
-        DateTimeOffset now,
-        TimeSpan idleTimeout,
-        TimeSpan throttleInterval,
-        CancellationToken cancellationToken = default)
-    {
         var session = await _dbContext.PlaySessions
-            .Where(s => s.UserId == userId && s.EndedAtUtc == null && s.ExpiresAtUtc > now)
+            .FromSqlInterpolated($"SELECT * FROM play_sessions WHERE user_id = {userId} AND ended_at_utc IS NULL FOR UPDATE")
             .FirstOrDefaultAsync(cancellationToken);
 
         if (session is null)
         {
+            await transaction.RollbackAsync(cancellationToken);
+            return null;
+        }
+
+        var endedAt = _timeProvider.GetUtcNow();
+        session.EndedAtUtc = endedAt;
+        session.LastActivityUtc = endedAt;
+        session.ExpiresAtUtc = endedAt;
+
+        var openVisit = await _dbContext.RoomVisits
+            .Where(v => v.PlaySessionId == session.Id && v.LeftAtUtc == null)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (openVisit is not null)
+        {
+            openVisit.LeftAtUtc = endedAt;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return new EndedPlaySession(session.Id, session.CharacterId, openVisit?.RoomId, endedAt);
+    }
+
+    public async Task<DateTimeOffset?> RenewActivityByUserIdAsync(
+        Guid userId,
+        TimeSpan idleTimeout,
+        TimeSpan throttleInterval,
+        CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var session = await _dbContext.PlaySessions
+            .FromSqlInterpolated($"SELECT * FROM play_sessions WHERE user_id = {userId} AND ended_at_utc IS NULL FOR UPDATE")
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var now = _timeProvider.GetUtcNow();
+
+        if (session is null || session.ExpiresAtUtc <= now)
+        {
+            await transaction.RollbackAsync(cancellationToken);
             return null;
         }
 
         if (throttleInterval > TimeSpan.Zero && now - session.LastActivityUtc < throttleInterval)
         {
+            await transaction.CommitAsync(cancellationToken);
             return session.ExpiresAtUtc;
         }
 
@@ -170,6 +219,7 @@ public sealed class PlaySessionStore : IPlaySessionStore
         session.ExpiresAtUtc = now + idleTimeout;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return session.ExpiresAtUtc;
     }
@@ -183,8 +233,12 @@ public sealed class PlaySessionStore : IPlaySessionStore
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> TryEndExpiredAsync(Guid playSessionId, DateTimeOffset now, CancellationToken cancellationToken = default)
+    public async Task<bool> TryEndExpiredAsync(Guid playSessionId, DateTimeOffset observedAtUtc, CancellationToken cancellationToken = default)
     {
+        // The scan time only identified the candidate. Expiry is re-evaluated
+        // against the operation clock after acquiring the session lock.
+        _ = observedAtUtc;
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         // Serialize concurrent expiration, renewal, movement, and chat against this session row.
@@ -195,6 +249,8 @@ public sealed class PlaySessionStore : IPlaySessionStore
         var session = await _dbContext.PlaySessions
             .Where(s => s.Id == playSessionId)
             .FirstOrDefaultAsync(cancellationToken);
+
+        var now = _timeProvider.GetUtcNow();
 
         if (session is null || session.EndedAtUtc is not null || session.ExpiresAtUtc > now)
         {
