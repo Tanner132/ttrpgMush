@@ -237,6 +237,16 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("current_room_id");
 
+                    b.Property<DateTimeOffset?>("FinalizedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finalized_at_utc");
+
+                    b.Property<string>("LifecycleState")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("lifecycle_state");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -262,9 +272,140 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_characters_normalized_name");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "LifecycleState")
+                        .HasDatabaseName("ix_characters_user_id_lifecycle_state");
 
-                    b.ToTable("characters", (string)null);
+                    b.ToTable("characters", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_characters_lifecycle_finalized_at", "(lifecycle_state = 'Draft' AND finalized_at_utc IS NULL) OR (lifecycle_state = 'Finalized' AND finalized_at_utc IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterCreationDraft", b =>
+                {
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("CatalogSemanticDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("catalog_semantic_digest");
+
+                    b.Property<string>("CatalogVersion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("catalog_version");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("CreationMethodId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("creation_method_id");
+
+                    b.Property<int>("DocumentSchemaVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("document_schema_version");
+
+                    b.Property<string>("RulesetId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ruleset_id");
+
+                    b.Property<string>("SelectionsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("selections");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("version");
+
+                    b.HasKey("CharacterId");
+
+                    b.ToTable("character_creation_drafts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_creation_drafts_digest", "length(catalog_semantic_digest) = 64");
+
+                            t.HasCheckConstraint("ck_character_creation_drafts_document_schema_version", "document_schema_version > 0");
+                        });
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterSheet", b =>
+                {
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("CanonicalSheetJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("canonical_sheet");
+
+                    b.Property<string>("CatalogSemanticDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("catalog_semantic_digest");
+
+                    b.Property<string>("CatalogVersion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("catalog_version");
+
+                    b.Property<string>("CreationMethodId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("creation_method_id");
+
+                    b.Property<DateTimeOffset>("FinalizedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finalized_at_utc");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("RulesetId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ruleset_id");
+
+                    b.Property<int>("SheetSchemaVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("sheet_schema_version");
+
+                    b.Property<string>("SourceDraftDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("source_draft_digest");
+
+                    b.HasKey("CharacterId");
+
+                    b.ToTable("character_sheets", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_sheets_digests", "length(catalog_semantic_digest) = 64 AND length(source_draft_digest) = 64");
+
+                            t.HasCheckConstraint("ck_character_sheets_schema_version", "sheet_schema_version > 0");
+                        });
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.ChatMessage", b =>
@@ -656,6 +797,24 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.HasOne("SeattleByNight.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterCreationDraft", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithOne()
+                        .HasForeignKey("SeattleByNight.Domain.Entities.CharacterCreationDraft", "CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterSheet", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithOne()
+                        .HasForeignKey("SeattleByNight.Domain.Entities.CharacterSheet", "CharacterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

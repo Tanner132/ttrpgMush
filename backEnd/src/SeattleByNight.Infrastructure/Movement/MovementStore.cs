@@ -41,7 +41,7 @@ public sealed class MovementStore : IMovementStore
 
         // Resolve the selected character and its current room after acquiring the lock.
         var character = await _dbContext.Characters
-            .Where(c => c.Id == session.CharacterId)
+            .Where(c => c.Id == session.CharacterId && c.LifecycleState == CharacterLifecycleState.Finalized)
             .Select(c => new { c.Id, c.CurrentRoomId })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -95,7 +95,9 @@ public sealed class MovementStore : IMovementStore
 
         // Update the character's durable location: exactly one row must change.
         var updatedCharacters = await _dbContext.Characters
-            .Where(c => c.Id == character.Id && c.CurrentRoomId == exit.SourceRoomId)
+            .Where(c => c.Id == character.Id
+                && c.CurrentRoomId == exit.SourceRoomId
+                && c.LifecycleState == CharacterLifecycleState.Finalized)
             .ExecuteUpdateAsync(
                 s => s.SetProperty(c => c.CurrentRoomId, exit.DestinationRoomId),
                 cancellationToken);

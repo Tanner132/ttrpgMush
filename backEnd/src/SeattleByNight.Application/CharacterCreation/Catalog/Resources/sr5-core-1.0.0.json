@@ -1,0 +1,71 @@
+{
+  "rulesetId": "sr5-core",
+  "version": "1.0.0",
+  "sources": [
+    {
+      "id": "sr5-core",
+      "fileName": "Shadowrun 5th Edition Core Rulebook (Jennifer Brozek, Raymond Croteau etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "4928B5F45F94C542820D7A7688BD68B7940BF2E9480898CCAFA6111996497F79"
+    },
+    {
+      "id": "run-faster",
+      "fileName": "Shadowrun Run Faster (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "F037FEFADC7FB91EE10180CD0116B55BC5EA825BF4BE56546D80C6F35D555BAF"
+    }
+  ],
+  "creationMethods": [
+    {
+      "id": "standard-priority",
+      "displayName": "Standard Priority",
+      "kind": "standardPriority",
+      "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }
+    },
+    {
+      "id": "sum-to-ten",
+      "displayName": "Sum-to-Ten",
+      "kind": "sumToTen",
+      "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 }
+    }
+  ],
+  "priorityLevels": [
+    { "id": "a", "displayName": "A", "sumToTenCost": 4, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } },
+    { "id": "b", "displayName": "B", "sumToTenCost": 3, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } },
+    { "id": "c", "displayName": "C", "sumToTenCost": 2, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } },
+    { "id": "d", "displayName": "D", "sumToTenCost": 1, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } },
+    { "id": "e", "displayName": "E", "sumToTenCost": 0, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } }
+  ],
+  "priorityCategories": [
+    { "id": "metatype", "displayName": "Metatype", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "attributes", "displayName": "Attributes", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "magic-resonance", "displayName": "Magic or Resonance", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "skills", "displayName": "Skills", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "resources", "displayName": "Resources", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } }
+  ],
+  "priorityCells": [
+    { "id": "priority-metatype-a", "categoryId": "metatype", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-metatype-b", "categoryId": "metatype", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-metatype-c", "categoryId": "metatype", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-metatype-d", "categoryId": "metatype", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-metatype-e", "categoryId": "metatype", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-attributes-a", "categoryId": "attributes", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-attributes-b", "categoryId": "attributes", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-attributes-c", "categoryId": "attributes", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-attributes-d", "categoryId": "attributes", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-attributes-e", "categoryId": "attributes", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-magic-resonance-a", "categoryId": "magic-resonance", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-magic-resonance-b", "categoryId": "magic-resonance", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-magic-resonance-c", "categoryId": "magic-resonance", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-magic-resonance-d", "categoryId": "magic-resonance", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-magic-resonance-e", "categoryId": "magic-resonance", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-skills-a", "categoryId": "skills", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-skills-b", "categoryId": "skills", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-skills-c", "categoryId": "skills", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-skills-d", "categoryId": "skills", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-skills-e", "categoryId": "skills", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-resources-a", "categoryId": "resources", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-resources-b", "categoryId": "resources", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-resources-c", "categoryId": "resources", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-resources-d", "categoryId": "resources", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-resources-e", "categoryId": "resources", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } }
+  ]
+}

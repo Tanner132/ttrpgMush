@@ -17,6 +17,8 @@ public sealed class SeattleByNightDbContext : IdentityDbContext<ApplicationUser,
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<RoomExit> RoomExits => Set<RoomExit>();
     public DbSet<Character> Characters => Set<Character>();
+    public DbSet<CharacterCreationDraft> CharacterCreationDrafts => Set<CharacterCreationDraft>();
+    public DbSet<CharacterSheet> CharacterSheets => Set<CharacterSheet>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<PlaySession> PlaySessions => Set<PlaySession>();
     public DbSet<RoomVisit> RoomVisits => Set<RoomVisit>();

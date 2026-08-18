@@ -2,8 +2,8 @@
 
 Realtime presence and consistency cleanup is complete. The remaining accepted
 features are split into milestone files so an implementation agent only needs to
-load the work it is executing. The complete Shadowrun character domain and full
-character creator are intentionally out of scope.
+load the work it is executing. Shadowrun character creation is now an accepted
+multi-slice milestone with a separately versioned rules contract.
 
 ## Milestones
 
@@ -16,6 +16,7 @@ character creator are intentionally out of scope.
 | 5 | [`roadmap/MILESTONE_05_ADMIN_AUTHORIZATION.md`](roadmap/MILESTONE_05_ADMIN_AUTHORIZATION.md) | Roles, policies, and administrative auditing |
 | 6 | [`roadmap/MILESTONE_06_ROOM_EDITOR.md`](roadmap/MILESTONE_06_ROOM_EDITOR.md) | Protected coordinate-and-exit editor without deletion |
 | 7 | [`roadmap/MILESTONE_07_CHARACTER_PROFILES.md`](roadmap/MILESTONE_07_CHARACTER_PROFILES.md) | Lightweight, non-mechanical character profiles |
+| 8 | [`roadmap/MILESTONE_08_SR5_CHARACTER_CREATION.md`](roadmap/MILESTONE_08_SR5_CHARACTER_CREATION.md) | Core SR5 Standard Priority and Sum-to-Ten character creation |
 
 ## Delivery Rules
 
@@ -49,9 +50,10 @@ npm --prefix frontEnd run build
 5. Release Milestone 5 before exposing any administrative editor route.
 6. Release Milestone 6 behind the world-editor policy.
 7. Complete PROFILE-701, then release Milestone 7 independently of the future Shadowrun character domain.
+8. Complete CHAR-801 and approve the rules baseline before implementing Milestone 8 slices.
 
-## First Build Ticket
+## Next Build Ticket
 
-Begin with **FE-201: Add React Router And Route Skeleton** in the Milestone 2 file.
-Establish routing and route guards without extracting every view in the same change;
-FE-202 through FE-204 then move each page behind those established boundaries.
+Continue the accepted character-creation feature with **CHAR-805: Build Slot
+Dashboard And Creator Shell** in the Milestone 8 file. CHAR-801 through CHAR-804
+are complete.

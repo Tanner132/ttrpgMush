@@ -9,7 +9,6 @@ import { useGameplayCommands } from '../commands/useGameplayCommands.ts'
 import type { RoomSession } from '../api/roomSession.ts'
 import { Composer } from '../components/Composer.tsx'
 import { ConnectionStatus } from '../components/ConnectionStatus.tsx'
-import { ExitList } from '../components/ExitList.tsx'
 import { IdleWarning } from '../components/IdleWarning.tsx'
 import { OccupantList } from '../components/OccupantList.tsx'
 import { RoomDetails } from '../components/RoomDetails.tsx'
@@ -158,8 +157,6 @@ export default function GameplayPage() {
 
         {idleWarning && <IdleWarning onRemainSignedIn={() => void handleRemainSignedIn()} />}
 
-        <RoomDetails room={room ?? null} />
-
         <Transcript
           roomId={room?.id ?? null}
           entries={entries}
@@ -173,7 +170,13 @@ export default function GameplayPage() {
       </main>
 
       <aside className="app__sidebar">
-        <ExitList exits={session?.exits ?? []} disabled={!canMove} moveError={moveError} onMove={handleMove} />
+        <RoomDetails
+          room={room ?? null}
+          exits={session?.exits ?? []}
+          disabled={!canMove}
+          moveError={moveError}
+          onMove={handleMove}
+        />
         <OccupantList occupants={occupants} onlineCharacters={onlineCharacters} />
       </aside>
     </div>

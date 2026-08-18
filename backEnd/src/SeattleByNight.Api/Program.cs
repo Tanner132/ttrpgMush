@@ -169,6 +169,7 @@ app.UseAntiforgeryValidation();
 app.MapAntiforgeryEndpoints();
 app.MapAccountEndpoints();
 app.MapCharacterEndpoints();
+app.MapCharacterCreationEndpoints();
 app.MapPlaySessionEndpoints();
 app.MapAdminEndpoints();
 app.MapWorldEditorEndpoints();

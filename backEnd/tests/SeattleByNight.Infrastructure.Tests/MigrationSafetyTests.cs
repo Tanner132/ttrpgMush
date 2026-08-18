@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
 
@@ -49,6 +50,13 @@ public sealed class MigrationSafetyTests : IAsyncLifetime
         Assert.Equal("LEGACY-CHARACTER-OWNER", owner.NormalizedUserName);
         Assert.Null(owner.PasswordHash);
         Assert.True(owner.LockoutEnabled);
+
+        Assert.Equal(CharacterLifecycleState.Finalized, character.LifecycleState);
+        Assert.NotNull(character.FinalizedAtUtc);
+        var sheet = await db.CharacterSheets.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(CharacterSheetKind.Legacy, sheet.Kind);
+        Assert.Equal("legacy", sheet.RulesetId);
+        Assert.Equal("{\"legacy\": true}", sheet.CanonicalSheetJson);
     }
 
     [Fact]

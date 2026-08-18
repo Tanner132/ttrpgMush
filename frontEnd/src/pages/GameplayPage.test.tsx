@@ -290,6 +290,22 @@ describe('room movement', () => {
 
     expect(screen.getByRole('button', { name: /^north$/i })).toBeDisabled()
   })
+
+  it('renders vertical exits below the compass grid', async () => {
+    const verticalSession: RoomSession = {
+      ...emptySession,
+      exits: [
+        ...emptySession.exits,
+        { id: 'exit-up', direction: 'up', destinationRoomId: 'room-up', destinationRoomName: 'Rooftop', isLocked: false },
+        { id: 'exit-down', direction: 'down', destinationRoomId: 'room-down', destinationRoomName: 'Basement', isLocked: false },
+      ],
+    }
+
+    await renderPlaying(verticalSession)
+
+    expect(screen.getByRole('button', { name: /^up$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^down$/i })).toBeInTheDocument()
+  })
 })
 
 describe('occupants and online presence', () => {

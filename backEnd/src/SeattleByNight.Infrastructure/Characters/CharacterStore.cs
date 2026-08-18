@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Domain.Entities;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence;
 
 namespace SeattleByNight.Infrastructure.Characters;
@@ -21,7 +23,7 @@ public sealed class CharacterStore : ICharacterStore
     {
         return await _dbContext.Characters
             .AsNoTracking()
-            .Where(c => c.UserId == userId)
+            .Where(c => c.UserId == userId && c.LifecycleState == CharacterLifecycleState.Finalized)
             .OrderBy(c => c.CreatedAtUtc)
             .Select(c => new CharacterSummary(c.Id, c.Name))
             .ToListAsync(cancellationToken);
@@ -57,16 +59,33 @@ public sealed class CharacterStore : ICharacterStore
             return CreateCharacterResult.Failure(CreateCharacterError.NameTaken);
         }
 
+        var now = DateTimeOffset.UtcNow;
         var character = new Character
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             Name = name,
             NormalizedName = normalizedName,
-            CurrentRoomId = startingRoomId
+            CurrentRoomId = startingRoomId,
+            LifecycleState = CharacterLifecycleState.Finalized,
+            FinalizedAtUtc = now,
+            CreatedAtUtc = now,
         };
 
         _dbContext.Characters.Add(character);
+        _dbContext.CharacterSheets.Add(new CharacterSheet
+        {
+            CharacterId = character.Id,
+            RulesetId = LegacyCharacterSheetDefaults.RulesetId,
+            CatalogVersion = LegacyCharacterSheetDefaults.CatalogVersion,
+            CatalogSemanticDigest = LegacyCharacterSheetDefaults.EmptyDocumentDigest,
+            CreationMethodId = LegacyCharacterSheetDefaults.CreationMethodId,
+            SheetSchemaVersion = CharacterCreationDocumentVersions.Sheet,
+            CanonicalSheetJson = LegacyCharacterSheetDefaults.CanonicalSheetJson,
+            SourceDraftDigest = LegacyCharacterSheetDefaults.EmptyDocumentDigest,
+            FinalizedAtUtc = now,
+            Kind = CharacterSheetKind.Legacy,
+        });
 
         try
         {

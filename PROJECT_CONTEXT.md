@@ -131,10 +131,14 @@ All persisted identifiers are UUIDs. Persisted timestamps use UTC `DateTimeOffse
 
 - Player-facing identity in the game world.
 - Has a durable `CurrentRoomId`.
-- Must have a required owner user ID once the next authentication migration is applied.
-- A user may own at most two characters.
-- Character names are globally unique after normalization and initially support creation by name only.
+- Has a required owner user ID and an explicit `Draft` or `Finalized` lifecycle.
+- A user may own at most two characters, counting both incomplete creation drafts
+  and finalized playable characters.
+- Character names are globally unique after normalization; drafts reserve their
+  names until discarded or finalized.
 - Every newly created character starts in the configured `New Character Room`.
+- Drafts are not playable and are excluded from character selection, room
+  occupants, play sessions, movement, chat, and presence.
 - Location, chat, and gameplay behavior operates on the selected character while authorization is derived from the authenticated owner.
 
 ### ChatMessage
@@ -221,6 +225,23 @@ server-controlled randomness and deterministic tests. A minimal internal parser
 is implemented behind the `IDiceEngine` application boundary so the grammar and
 limits stay explicit and a package can be swapped in later without changing
 transport or domain code.
+
+## Shadowrun Character Creation
+
+Initial Shadowrun Fifth Edition character creation uses only the two approved
+local PDFs at the repository root: the SR5 core rulebook and Run Faster. It
+supports Standard Priority and the Sum-to-Ten method from Run Faster. Run Faster
+is used only for Sum-to-Ten allocation and its priority-grant clarification that
+magician and mystic-adept spell grants may be selected as spells, rituals, and/or
+alchemical preparations; all selectable character options remain
+core-rulebook-only. Do not use external rules summaries, implementations,
+catalogs, errata documents, or other books as rules or completeness references
+unless the project owner explicitly adds them to the approved source set.
+Seattle by Night must implement its own typed, server-authoritative rules and
+validation behavior within the existing modular-monolith boundaries. Every
+implemented rule and catalog option must cite the approved PDF and page.
+Unclear interpretations must still be recorded as product decisions and
+confirmed before implementation.
 
 ## Transactional Gameplay Ordering
 
@@ -346,11 +367,12 @@ No application cache is implemented. When caching is justified:
 
 ## Database and Development Data
 
-The current schema includes Identity, rooms, directed exits, characters, typed chat
-messages, play sessions, room visits, and audit records. The initial migration is
+The current schema includes Identity, rooms, directed exits, characters,
+character-creation drafts, immutable character sheets, typed chat messages, play
+sessions, room visits, and audit records. The initial migration is
 `InitialWorldSchema`; later migrations add ownership, sessions, authorization,
-auditing, world-editing concurrency, topology constraints, transcript indexes, and
-additional data constraints.
+auditing, world-editing concurrency, topology constraints, transcript indexes,
+character lifecycle, and additional data constraints.
 
 Development startup applies migrations and attempts deterministic, idempotent seeding. Initialization failures are logged as warnings so the process can still expose liveness while PostgreSQL is unavailable.
 
@@ -378,6 +400,19 @@ No credentials or chat messages are seeded.
 
 ## Current Implemented Surface
 
+The Application layer includes the first immutable SR5 catalog foundation for
+`sr5-core` version `1.0.0`, pinned by a semantic SHA-256 digest. It validates the
+approved sources, creation methods, priority levels/categories, and all 25
+priority cells at startup. Its pure evaluator returns structured diagnostics and
+canonical previews for Standard Priority and Sum-to-Ten assignments.
+
+The persistence layer supports slot-bearing, name-reserving SR5 drafts with JSONB
+typed selections, UUID optimistic concurrency, start/read/update/discard/finalize
+application operations, and immutable evaluated sheets. Existing characters were
+migrated to explicit legacy finalized sheets without invented SR5 statistics.
+Only finalized characters are playable. The authenticated character-creation
+HTTP surface is implemented; the creator UI is not implemented yet.
+
 Backend endpoints:
 
 - `GET /health/live`: process liveness without a PostgreSQL dependency.
@@ -386,7 +421,22 @@ Backend endpoints:
   state-changing cookie-authenticated requests.
 - `POST /api/account/register`, `POST /api/account/login`, `POST /api/account/logout`,
   `GET /api/account/me`: ASP.NET Core Identity account management (`/me` includes roles).
-- `GET /api/characters`, `POST /api/characters`: list and create owned characters.
+- `GET /api/characters`, `POST /api/characters`: list and create owned finalized
+  legacy characters until the creator flow replaces name-only creation.
+- `GET /api/character-creation/catalogs/current`,
+  `GET /api/character-creation/catalogs/{catalogId}/{version}`: current and
+  retained immutable SR5 catalog contracts.
+- `POST /api/character-creation/drafts`, `GET /api/character-creation/drafts`,
+  `GET /api/character-creation/drafts/{characterId}`,
+  `PUT /api/character-creation/drafts/{characterId}`: authenticated,
+  owner-scoped draft lifecycle with server-derived evaluation and UUID
+  optimistic concurrency.
+- `POST /api/character-creation/drafts/{characterId}/change-preview`,
+  `DELETE /api/character-creation/drafts/{characterId}`,
+  `POST /api/character-creation/drafts/{characterId}/finalize`: version-matched
+  impact preview, discard, and atomic finalization operations.
+- `GET /api/characters/{characterId}/sheet`: owner-scoped immutable finalized
+  sheet retrieval.
 - `POST /api/play-session/start`, `GET /api/play-session/current`,
   `POST /api/play-session/activity`: start/resume, read, and renew play sessions.
 - `GET /api/admin/users`, `POST /api/admin/users/{userId}/roles`,

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.RoomSessions;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence;
 
 namespace SeattleByNight.Infrastructure.RoomSessions;
@@ -31,7 +32,7 @@ public sealed class RoomSessionReader : IRoomSessionReader
 
         var character = await _dbContext.Characters
             .AsNoTracking()
-            .Where(c => c.Id == session.CharacterId)
+            .Where(c => c.Id == session.CharacterId && c.LifecycleState == CharacterLifecycleState.Finalized)
             .Select(c => new { c.Id, c.Name, c.CurrentRoomId })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -76,7 +77,8 @@ public sealed class RoomSessionReader : IRoomSessionReader
 
         var occupants = await _dbContext.Characters
             .AsNoTracking()
-            .Where(c => c.CurrentRoomId == character.CurrentRoomId)
+            .Where(c => c.CurrentRoomId == character.CurrentRoomId
+                && c.LifecycleState == CharacterLifecycleState.Finalized)
             .OrderBy(c => c.Name)
             .Select(c => new CharacterSummary(c.Id, c.Name))
             .ToListAsync(cancellationToken);

@@ -43,7 +43,7 @@ public sealed class RoomChatStore : IRoomChatStore
 
         var character = await _dbContext.Characters
             .AsNoTracking()
-            .Where(c => c.Id == session.CharacterId)
+            .Where(c => c.Id == session.CharacterId && c.LifecycleState == CharacterLifecycleState.Finalized)
             .Select(c => new { c.Id, c.Name, c.CurrentRoomId })
             .FirstOrDefaultAsync(cancellationToken);
 

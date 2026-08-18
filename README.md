@@ -156,9 +156,32 @@ header `X-XSRF-TOKEN` obtained from `GET /api/antiforgery/token`.
 
 ### Characters
 
-- `GET /api/characters` — lists the current user's characters
+- `GET /api/characters` — lists the current user's finalized playable characters
 - `POST /api/characters` — `{ name }`; creates a character in the configured
-  New Character Room (maximum two characters per user)
+  New Character Room as a finalized legacy sheet (maximum two total drafts and
+  finalized characters per user); this endpoint remains until the creator UI
+  replaces the legacy flow
+- `GET /api/characters/{characterId}/sheet` — returns the owner's immutable
+  finalized sheet
+
+### Character creation
+
+- `GET /api/character-creation/catalogs/current?method=` — current immutable catalog
+- `GET /api/character-creation/catalogs/{catalogId}/{version}` — retained pinned catalog
+- `POST /api/character-creation/drafts` — `{ name, creationMethodId }`
+- `GET /api/character-creation/drafts` — lists resumable drafts
+- `GET /api/character-creation/drafts/{characterId}` — canonical evaluated draft
+- `PUT /api/character-creation/drafts/{characterId}` — replaces a draft using
+  `{ expectedVersion, name, document }`
+- `POST /api/character-creation/drafts/{characterId}/change-preview` — evaluates
+  a candidate document without saving it
+- `DELETE /api/character-creation/drafts/{characterId}` — discards using
+  `{ expectedVersion }`
+- `POST /api/character-creation/drafts/{characterId}/finalize` — finalizes using
+  `{ expectedVersion }`; rule-invalid drafts return `422` diagnostics
+
+All character-creation routes require authentication. Mutations also require
+antiforgery, non-owned IDs return `404`, and stale versions return `409`.
 
 ### Play session
 

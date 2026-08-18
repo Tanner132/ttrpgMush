@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Domain.Entities;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence;
 
 namespace SeattleByNight.Infrastructure.PlaySessions;
@@ -22,7 +23,7 @@ public sealed class PlaySessionStore : IPlaySessionStore
             .AsNoTracking()
             .Where(s => s.UserId == userId && s.EndedAtUtc == null && s.ExpiresAtUtc > now)
             .Join(
-                _dbContext.Characters.AsNoTracking(),
+                _dbContext.Characters.AsNoTracking().Where(c => c.LifecycleState == CharacterLifecycleState.Finalized),
                 s => s.CharacterId,
                 c => c.Id,
                 (s, c) => new ActivePlaySession(s.Id, s.UserId, s.CharacterId, c.Name, c.CurrentRoomId, s.StartAtUtc, s.ExpiresAtUtc))
@@ -48,7 +49,9 @@ public sealed class PlaySessionStore : IPlaySessionStore
 
         var character = await _dbContext.Characters
             .AsNoTracking()
-            .Where(c => c.Id == characterId && c.UserId == userId)
+            .Where(c => c.Id == characterId
+                && c.UserId == userId
+                && c.LifecycleState == CharacterLifecycleState.Finalized)
             .Select(c => new { c.Id, c.CurrentRoomId })
             .FirstOrDefaultAsync(cancellationToken);
 

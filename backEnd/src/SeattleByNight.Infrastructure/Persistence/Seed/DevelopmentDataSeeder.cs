@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.Authorization;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Domain.Entities;
 using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Identity;
@@ -176,15 +177,34 @@ public static class DevelopmentDataSeeder
             });
         }
 
-        if (!await db.Characters.AnyAsync(c => c.Id == DevCharacterId, cancellationToken))
+        var devCharacter = await db.Characters.SingleOrDefaultAsync(c => c.Id == DevCharacterId, cancellationToken);
+        if (devCharacter is null)
         {
-            db.Characters.Add(new Character
+            devCharacter = new Character
             {
                 Id = DevCharacterId,
                 UserId = DevUserId,
                 Name = "Dev Runner",
                 NormalizedName = "DEV RUNNER",
                 CurrentRoomId = DowntownStreetId
+            };
+            db.Characters.Add(devCharacter);
+        }
+
+        if (!await db.CharacterSheets.AnyAsync(sheet => sheet.CharacterId == DevCharacterId, cancellationToken))
+        {
+            db.CharacterSheets.Add(new CharacterSheet
+            {
+                CharacterId = DevCharacterId,
+                RulesetId = LegacyCharacterSheetDefaults.RulesetId,
+                CatalogVersion = LegacyCharacterSheetDefaults.CatalogVersion,
+                CatalogSemanticDigest = LegacyCharacterSheetDefaults.EmptyDocumentDigest,
+                CreationMethodId = LegacyCharacterSheetDefaults.CreationMethodId,
+                SheetSchemaVersion = CharacterCreationDocumentVersions.Sheet,
+                CanonicalSheetJson = LegacyCharacterSheetDefaults.CanonicalSheetJson,
+                SourceDraftDigest = LegacyCharacterSheetDefaults.EmptyDocumentDigest,
+                FinalizedAtUtc = devCharacter.FinalizedAtUtc ?? devCharacter.CreatedAtUtc,
+                Kind = CharacterSheetKind.Legacy,
             });
         }
 

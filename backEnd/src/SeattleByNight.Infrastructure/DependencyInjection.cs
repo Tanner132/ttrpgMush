@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SeattleByNight.Application.Auditing;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Application.PlaySessions;
@@ -12,6 +13,7 @@ using SeattleByNight.Application.RoomSessions;
 using SeattleByNight.Application.WorldEditing;
 using SeattleByNight.Infrastructure.Auditing;
 using SeattleByNight.Infrastructure.Characters;
+using SeattleByNight.Infrastructure.CharacterCreation;
 using SeattleByNight.Infrastructure.Dice;
 using SeattleByNight.Infrastructure.Identity;
 using SeattleByNight.Infrastructure.Movement;
@@ -33,6 +35,7 @@ public static class DependencyInjection
 
         services.AddScoped<IRoomSessionReader, RoomSessionReader>();
         services.AddScoped<ICharacterStore, CharacterStore>();
+        services.AddScoped<ICharacterCreationDraftStore, CharacterCreationDraftStore>();
         services.AddScoped<IPlaySessionStore, PlaySessionStore>();
         services.AddScoped<IRoomChatStore, RoomChatStore>();
         services.AddScoped<IMovementStore, MovementStore>();
