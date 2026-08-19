@@ -65,4 +65,26 @@
   /* Reading measure for long-form transcript content. */
   --sb-measure: 72ch;
   --sb-line-height: 1.6;
+
+  /* Creator shell layout. */
+  --sb-creator-rail-width: 220px;
+  --sb-creator-inspector-width: 300px;
+  --sb-creator-header-height: 56px;
+  --sb-creator-commandbar-height: 52px;
+  --sb-creator-breakpoint: 900px;
+
+  /* Save-state colors. */
+  --sb-save-idle: var(--sb-text-muted);
+  --sb-save-unsaved: var(--sb-warning);
+  --sb-save-saving: var(--sb-info);
+  --sb-save-saved: var(--sb-accent);
+  --sb-save-failed: var(--sb-danger);
+  --sb-save-conflict: var(--sb-danger);
+
+  /* Step states. */
+  --sb-step-locked: var(--sb-text-faint);
+  --sb-step-available: var(--sb-text-muted);
+  --sb-step-complete: var(--sb-accent);
+  --sb-step-attention: var(--sb-warning);
+  --sb-step-conflict: var(--sb-danger);
 }

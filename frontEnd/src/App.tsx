@@ -10,6 +10,8 @@ import AdminUsersPage from './pages/admin/AdminUsersPage.tsx'
 import AdminAuditPage from './pages/admin/AdminAuditPage.tsx'
 import WorldEditorPage from './pages/admin/WorldEditorPage.tsx'
 import NotFoundPage from './pages/NotFoundPage.tsx'
+import MethodSelectionPage from './components/characterCreation/MethodSelectionPage.tsx'
+import CreatorShellPage from './pages/characterCreation/CreatorShellPage.tsx'
 import { useAccount } from './auth/useAccount.ts'
 
 function RootRedirect() {
@@ -24,6 +26,8 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/characters" element={<CharactersPage />} />
+          <Route path="/characters/create" element={<MethodSelectionPage />} />
+          <Route path="/characters/create/:characterId" element={<CreatorShellPage />} />
           <Route path="/play" element={<GameplayPage />} />
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<Navigate to="/admin/users" replace />} />

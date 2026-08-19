@@ -1,65 +1,81 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { createCharacter, listCharacters, type Character } from '../api/characters.ts'
+import { useEffect, useState, useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  listDrafts,
+  listFinalizedCharacters,
+  type DraftSummary,
+  type FinalizedCharacter,
+} from '../api/characterCreation.ts'
 import { startPlaySession } from '../api/playSession.ts'
 import { toErrorMessage } from '../api/client.ts'
 import { Panel } from '../components/ui/Panel.tsx'
-import { TextField } from '../components/ui/TextField.tsx'
-import { Button } from '../components/ui/Button.tsx'
+import { SlotCard } from '../components/characterCreation/SlotCard.tsx'
+
+export interface SlotData {
+  kind: 'empty' | 'draft' | 'finalized'
+  draft?: DraftSummary
+  finalized?: FinalizedCharacter
+}
 
 export default function CharactersPage() {
   const navigate = useNavigate()
 
-  const [characters, setCharacters] = useState<Character[]>([])
+  const [slots, setSlots] = useState<SlotData[]>([
+    { kind: 'empty' },
+    { kind: 'empty' },
+  ])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [createName, setCreateName] = useState('')
-  const [creating, setCreating] = useState(false)
-  const [createError, setCreateError] = useState<string | null>(null)
   const [selectingId, setSelectingId] = useState<string | null>(null)
   const [selectError, setSelectError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
+  const load = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
+    try {
+      const [drafts, finalized] = await Promise.all([
+        listDrafts(),
+        listFinalizedCharacters(),
+      ])
 
-    async function load() {
-      try {
-        const list = await listCharacters()
-        if (!cancelled) setCharacters(list)
-      } catch (error) {
-        if (!cancelled) setLoadError(toErrorMessage(error))
-      } finally {
-        if (!cancelled) setLoading(false)
+      const nextSlots: SlotData[] = []
+      const usedDrafts = new Set<string>()
+      const usedFinalized = new Set<string>()
+
+      // Fill slots: drafts first, then finalized
+      for (const d of drafts) {
+        if (nextSlots.length < 2) {
+          nextSlots.push({ kind: 'draft', draft: d })
+          usedDrafts.add(d.characterId)
+        }
       }
-    }
+      for (const f of finalized) {
+        if (nextSlots.length < 2) {
+          nextSlots.push({ kind: 'finalized', finalized: f })
+          usedFinalized.add(f.characterId)
+        }
+      }
+      while (nextSlots.length < 2) {
+        nextSlots.push({ kind: 'empty' })
+      }
 
-    void load()
-
-    return () => {
-      cancelled = true
+      setSlots(nextSlots)
+    } catch (error) {
+      setLoadError(toErrorMessage(error))
+    } finally {
+      setLoading(false)
     }
   }, [])
 
-  async function handleCreate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setCreateError(null)
-    setCreating(true)
-    try {
-      const created = await createCharacter(createName)
-      setCreateName('')
-      setCharacters((current) => [...current, created])
-    } catch (error) {
-      setCreateError(toErrorMessage(error))
-    } finally {
-      setCreating(false)
-    }
-  }
+  useEffect(() => {
+    void load()
+  }, [load])
 
-  async function handleSelect(character: Character) {
+  async function handleEnterWorld(characterId: string) {
     setSelectError(null)
-    setSelectingId(character.id)
+    setSelectingId(characterId)
     try {
-      await startPlaySession(character.id)
+      await startPlaySession(characterId)
       navigate('/play', { replace: true })
     } catch (error) {
       setSelectError(toErrorMessage(error))
@@ -68,35 +84,32 @@ export default function CharactersPage() {
     }
   }
 
-  const atLimit = characters.length >= 2
+  const hasEmptySlot = slots.some((s) => s.kind === 'empty')
 
   return (
     <div className="character-view">
       <Panel title="Your characters">
         <div className="ui-panel__body">
           {loading ? (
-            <p className="app__status">Loading…</p>
+            <p className="app__status" role="status">
+              Loading…
+            </p>
           ) : loadError ? (
             <p className="form__error" role="alert">
               {loadError}
             </p>
-          ) : characters.length === 0 ? (
-            <p className="app__status">You have no characters yet.</p>
           ) : (
-            <ul className="panel__list">
-              {characters.map((character) => (
-                <li key={character.id} className="character-list__item">
-                  <span>{character.name}</span>
-                  <Button
-                    intent="primary"
-                    disabled={selectingId !== null}
-                    onClick={() => void handleSelect(character)}
-                  >
-                    {selectingId === character.id ? 'Entering…' : 'Enter world'}
-                  </Button>
-                </li>
+            <div className="slot-dashboard" role="list" aria-label="Character slots">
+              {slots.map((slot, index) => (
+                <SlotCard
+                  key={slot.draft?.characterId ?? slot.finalized?.characterId ?? `empty-${index}`}
+                  slot={slot}
+                  index={index}
+                  selectingId={selectingId}
+                  onEnterWorld={handleEnterWorld}
+                />
               ))}
-            </ul>
+            </div>
           )}
 
           {selectError && (
@@ -104,31 +117,15 @@ export default function CharactersPage() {
               {selectError}
             </p>
           )}
-        </div>
-      </Panel>
 
-      <Panel title="Create a character">
-        {atLimit ? (
-          <p className="form__note">You have reached the maximum of two characters.</p>
-        ) : (
-          <form className="form" onSubmit={handleCreate}>
-            <TextField
-              label="Character name"
-              maxLength={50}
-              required
-              value={createName}
-              onChange={(event) => setCreateName(event.target.value)}
-            />
-            <Button type="submit" intent="primary" disabled={creating || createName.trim().length < 2}>
-              {creating ? 'Creating…' : 'Create character'}
-            </Button>
-            {createError && (
-              <p className="form__error" role="alert">
-                {createError}
-              </p>
-            )}
-          </form>
-        )}
+          {hasEmptySlot && !loading && !loadError && (
+            <div className="slot-dashboard__cta">
+              <Link to="/characters/create" className="ui-button ui-button--primary">
+                Create a new character
+              </Link>
+            </div>
+          )}
+        </div>
       </Panel>
     </div>
   )

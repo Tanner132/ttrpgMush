@@ -110,12 +110,13 @@ export async function apiPut<T>(url: string, body?: unknown, signal?: AbortSigna
   })
 }
 
-export async function apiDelete<T>(url: string, signal?: AbortSignal): Promise<T> {
+export async function apiDelete<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const token = await ensureCsrfToken()
 
   return request<T>(url, {
     method: 'DELETE',
     headers: { 'X-XSRF-TOKEN': token },
+    body: body === undefined ? undefined : JSON.stringify(body),
     signal,
   })
 }
