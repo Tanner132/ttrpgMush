@@ -49,7 +49,18 @@ public sealed record CatalogResponse(
     IReadOnlyList<QualityDefinition> Qualities,
     IReadOnlyList<SkillDefinition> Skills,
     IReadOnlyList<SkillGroupDefinition> SkillGroups,
-    IReadOnlyList<KnowledgeCategoryDefinition> KnowledgeCategories);
+    IReadOnlyList<KnowledgeCategoryDefinition> KnowledgeCategories,
+    IReadOnlyList<CreationPathDefinition> CreationPaths,
+    IReadOnlyList<AspectedValueDefinition> AspectedValues,
+    IReadOnlyList<TraditionDefinition> Traditions,
+    IReadOnlyList<SpellDefinition> Spells,
+    IReadOnlyList<RitualDefinition> Rituals,
+    IReadOnlyList<AdeptPowerDefinition> AdeptPowers,
+    IReadOnlyList<MentorSpiritDefinition> MentorSpirits,
+    IReadOnlyList<ComplexFormDefinition> ComplexForms,
+    IReadOnlyList<SpiritTypeDefinition> SpiritTypes,
+    IReadOnlyList<SpriteTypeDefinition> SpriteTypes,
+    IReadOnlyList<FocusDefinition> Foci);
 
 public sealed record CharacterCreationDraftResponse(
     Guid CharacterId,
@@ -242,7 +253,18 @@ public static class CharacterCreationEndpoints
          catalog.Qualities.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
          catalog.Skills.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
          catalog.SkillGroups.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-         catalog.KnowledgeCategories.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
+         catalog.KnowledgeCategories.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.CreationPaths.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.AspectedValues.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Traditions.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Spells.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Rituals.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.AdeptPowers.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.MentorSpirits.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.ComplexForms.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.SpiritTypes.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.SpriteTypes.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Foci.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
 
     private static CharacterCreationDraftResponse ToResponse(CharacterCreationDraftDetails details)
     {

@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SeattleByNight.Application.CharacterCreation.Catalog;
-using SeattleByNight.Application.CharacterCreation.Evaluation;
 
 namespace SeattleByNight.Application.CharacterCreation.Drafts;
 
@@ -24,8 +23,10 @@ public static class CharacterCreationDraftSerialization
     public static string DigestDocument(CharacterCreationDraftDocument document) =>
         RulesetCatalogLoader.ComputeSemanticDigest(SerializeDocument(document));
 
-    public static string SerializeCanonicalSheet(PriorityAssignmentPreview preview) =>
-        JsonSerializer.Serialize(new CanonicalCharacterCreationSheet(preview), Options);
+    public static string SerializeCanonicalSheet(CanonicalCharacterSheet sheet) =>
+        JsonSerializer.Serialize(sheet, Options);
 
-    private sealed record CanonicalCharacterCreationSheet(PriorityAssignmentPreview PriorityAssignment);
+    public static CanonicalCharacterSheet DeserializeCanonicalSheet(string json) =>
+        JsonSerializer.Deserialize<CanonicalCharacterSheet>(json, Options)
+        ?? throw new JsonException("The canonical sheet is empty.");
 }

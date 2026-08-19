@@ -6,7 +6,12 @@ namespace SeattleByNight.Application.CharacterCreation.Drafts;
 public static class CharacterCreationDocumentVersions
 {
     public const int Draft = 1;
-    public const int Sheet = 1;
+
+    // Sheet version 1 carried only the priority assignment preview. Version 2
+    // carries the full evaluated canonical sheet. Both remain readable: the
+    // version is persisted alongside the JSON and the reader never re-parses an
+    // old shape as a new one.
+    public const int Sheet = 2;
 }
 
 public static class LegacyCharacterSheetDefaults
@@ -34,7 +39,37 @@ public sealed record KnowledgeSkillAllocation(string Name, string CategoryId, in
 
 public sealed record LanguageAllocation(string Name, int Rating, string? Specialization = null);
 
-public sealed record LanguageSelection(string Name, bool Native = false);
+public sealed record LanguageSelection(string Name);
+
+public sealed record MagicResonanceSelection(
+    string PathId,
+    string? TraditionId = null,
+    string? AspectedValueId = null,
+    IReadOnlyList<SkillGrantAllocation>? SkillGrants = null,
+    IReadOnlyList<SkillGroupGrantAllocation>? SkillGroupGrants = null,
+    IReadOnlyList<SpellSelection>? Spells = null,
+    IReadOnlyList<RitualSelection>? Rituals = null,
+    IReadOnlyList<PreparationSelection>? Preparations = null,
+    IReadOnlyList<AdeptPowerSelection>? AdeptPowers = null,
+    IReadOnlyList<ComplexFormSelection>? ComplexForms = null,
+    MentorSpiritSelection? MentorSpirit = null,
+    int? PurchasedPowerPoints = null);
+
+public sealed record SkillGrantAllocation(string SkillId);
+
+public sealed record SkillGroupGrantAllocation(string SkillGroupId);
+
+public sealed record SpellSelection(string SpellId, string? Parameter = null, bool Granted = false);
+
+public sealed record RitualSelection(string RitualId, bool Granted = false);
+
+public sealed record PreparationSelection(string SpellId, string Trigger, int? DelayHours = null, bool Granted = false);
+
+public sealed record AdeptPowerSelection(string PowerId, int? Rank = null, string? Parameter = null);
+
+public sealed record ComplexFormSelection(string ComplexFormId, bool Granted = false);
+
+public sealed record MentorSpiritSelection(string MentorSpiritId, string? Choice = null);
 
 public sealed record CharacterCreationDraftDocument(
     PriorityAssignment? PriorityAssignment,
@@ -46,7 +81,8 @@ public sealed record CharacterCreationDraftDocument(
     IReadOnlyList<SkillGroupAllocation>? SkillGroups = null,
     IReadOnlyList<KnowledgeSkillAllocation>? KnowledgeSkills = null,
     IReadOnlyList<LanguageAllocation>? Languages = null,
-    LanguageSelection? NativeLanguage = null);
+    IReadOnlyList<LanguageSelection>? NativeLanguages = null,
+    MagicResonanceSelection? MagicResonance = null);
 
 public sealed record CharacterCreationChangePreview(
     CharacterCreationDraftDetails Candidate,
@@ -86,6 +122,7 @@ public sealed record CharacterCreationDraftSnapshot(
 public sealed record CharacterCreationDraftDetails(
     CharacterCreationDraftSnapshot Draft,
     PriorityAssignmentPreview? Preview,
+    CanonicalCharacterSheet? CanonicalSheet,
     IReadOnlyList<CharacterCreationDiagnostic> Diagnostics,
     bool IsReadyToFinalize);
 

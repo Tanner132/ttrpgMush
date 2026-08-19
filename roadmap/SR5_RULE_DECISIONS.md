@@ -17,7 +17,7 @@ slice until the project owner records a selection, reviewer, and date.
 | `gear.legality-at-creation` | Numeric Availability may not exceed 12. Restricted items require an appropriate license; Forbidden items cannot be licensed. The creation ceiling does not exclude an item solely for an R/F suffix. | `sr5-core` pp. 94, 416-419 (PDF 96, 418-421) |
 | `contact.creation-cap` | Connection and Loyalty are each at least 1 and no contact may consume more than 7 Karma total at creation. | `sr5-core` p. 98 (PDF 100) |
 | `identity.fake-license-link` | A fake license belongs to one fake SIN and one item/activity type; Forbidden items have no license. | `sr5-core` pp. 419, 443 (PDF 421, 445) |
-| `allocation.unused-priority-points` | Physical/Mental attribute points and priority skill/group points must be spent; unused special attribute points are lost. | `sr5-core` pp. 66, 88 (PDF 68, 90) |
+| `allocation.unused-priority-points` | Physical/Mental attribute points, priority skill/group points, and metatype special-attribute points must be spent at finalization; special-attribute points never convert to another currency. | `sr5-core` pp. 66, 88 (PDF 68, 90); special-attribute clause superseded by `special-attribute.full-allocation` |
 | `carryover` | At most 5,000 nuyen and 7 Karma carry into play. | `sr5-core` pp. 94, 98, 101 (PDF 96, 100, 103) |
 | `technomancer.priority-grants` | A grants Resonance 6, two Rating 5 Resonance skills, and 5 complex forms; B grants 4, two Rating 4 skills, and 2 forms; C grants 3 and 1 form. | `sr5-core` p. 65 (PDF 67) |
 | `preparation.basic-eligibility` | A preparation requires its separately learned alchemical formula; healing preparations require Command; targets must be on the physical plane. | `sr5-core` pp. 304-306 (PDF 306-308) |
@@ -67,6 +67,10 @@ Recommended choices are engineering proposals, not approved rules.
 | `gear.missile-sensor-range` | Missile cost requires a Sensor rating, but the reviewed core rules provide no permitted missile Sensor-rating range. | Do not invent a range: retain Sensor rating as an unspecified source parameter on creation-unavailable missile rows and expose no missile purchase choice during initial creation. | CHAR-801, CHAR-802, CHAR-809 | Approved 2026-08-18 |
 | `gear.arrow-rating-range` | Arrow cost and Availability require a Rating, but only bows receive an explicit maximum of 10. | Use Rating 1-10 for arrows and injection arrows by matching their host bow's printed range; apply the global creation cap of 6. | CHAR-801, CHAR-802, CHAR-809 | Approved 2026-08-18 |
 | `gear.super-squirt-ammunition` | The Ares S-III Super Squirt requires DMSO gel packs, but the ammunition catalog gives them no cost or Availability. | Keep the weapon selectable, but expose no separately purchasable gel-pack ammunition until an approved source supplies merchandise facts; retain its included 20-round clip capacity as a weapon fact. | CHAR-801, CHAR-802, CHAR-809 | Approved 2026-08-18 |
+| `special-attribute.values-model` | `SpecialAttributeAllocation.Values` entries could be absolute ratings or points-spent deltas. | Treat each entry as points spent above the metatype minimum; absolute = minimum + delta. | TD-03 | Approved 2026-08-19 |
+| `special-attribute.edge-range` | Edge's per-metatype racial minimum/maximum is defined but was never validated. | Enforce absolute Edge within `[metatype minimum, metatype maximum]`; out-of-range emits `attributes.edge-out-of-range`. | TD-03 | Approved 2026-08-19 |
+| `special-attribute.full-allocation` | Core permits unspent special-attribute points to be lost, which can leave final sheets incomplete. | Require metatype special-attribute points to be fully allocated at finalization; underspend emits `attributes.special-points-underallocated`. Supersedes the "lost" clause of `allocation.unused-priority-points`. | TD-03 | Approved 2026-08-19 |
+| `karma.creation-pool-semantics` | Negative-quality awards and the shared creation pool's interaction with quality and awakening purchases were computed inconsistently across evaluators. | Spendable pool = `25 + negative`; positive qualities (capped at 25), purchased formulae (5 each), mystic-adept Power Points (2 each), and complex forms (4 each) all draw from it; negative qualities add their award to the pool; independent 25-Karma caps remain on positive and negative qualities. Drop the unreachable `positive - negative > 25` check. | TD-04 | Approved 2026-08-19 |
 
 ## Source Defects Retained As Provenance
 
@@ -126,3 +130,7 @@ These entries must not silently create catalog options:
 | `gear.missile-sensor-range` | Preserve the unspecified range and expose no initial missile purchase. | Project owner | 2026-08-18 |
 | `gear.arrow-rating-range` | Use Rating 1-10, limited to Rating 1-6 during creation. | Project owner | 2026-08-18 |
 | `gear.super-squirt-ammunition` | Expose no gel-pack purchase without approved merchandise facts. | Project owner | 2026-08-18 |
+| `special-attribute.values-model` | Entries are points-spent deltas above the metatype minimum. | Project owner | 2026-08-19 |
+| `special-attribute.edge-range` | Absolute Edge must stay within the metatype racial range. | Project owner | 2026-08-19 |
+| `special-attribute.full-allocation` | Metatype special-attribute points must be fully allocated; unused points are no longer silently lost. | Project owner | 2026-08-19 |
+| `karma.creation-pool-semantics` | Spendable pool = 25 + negative; purchases draw from it; drop the `positive - negative > 25` check. | Project owner | 2026-08-19 |

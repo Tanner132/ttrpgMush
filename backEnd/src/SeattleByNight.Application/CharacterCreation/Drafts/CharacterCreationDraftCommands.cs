@@ -147,14 +147,42 @@ internal static class CharacterCreationDraftDocumentValidator
         var groupsSafe = document.SkillGroups is null || (document.SkillGroups.Count <= 20 && document.SkillGroups.All(item => IsBounded(item.SkillGroupId) && item.Rating is >= 0 and <= 6));
         var knowledgeSafe = document.KnowledgeSkills is null || (document.KnowledgeSkills.Count <= 100 && document.KnowledgeSkills.All(item => IsBoundedText(item.Name) && IsBounded(item.CategoryId) && item.Rating is >= 0 and <= 6 && IsBoundedText(item.Specialization)));
         var languagesSafe = document.Languages is null || (document.Languages.Count <= 100 && document.Languages.All(item => IsBoundedText(item.Name) && item.Rating is >= 0 and <= 6 && IsBoundedText(item.Specialization)));
+        var magicSafe = document.MagicResonance is null || IsMagicResonanceSafe(document.MagicResonance);
         return IsBounded(assignment.Metatype)
             && IsBounded(assignment.Attributes)
             && IsBounded(assignment.MagicOrResonance)
             && IsBounded(assignment.Skills)
             && IsBounded(assignment.Resources)
             && (document.Metatype is null || document.Metatype.MetatypeId.Length <= MaxOptionIdLength)
-            && allocationSafe && specialSafe && qualitiesSafe && skillsSafe && groupsSafe && knowledgeSafe && languagesSafe
-            && (document.NativeLanguage is null || IsBoundedText(document.NativeLanguage.Name));
+            && allocationSafe && specialSafe && qualitiesSafe && skillsSafe && groupsSafe && knowledgeSafe && languagesSafe && magicSafe
+            && (document.NativeLanguages is null || (document.NativeLanguages.Count <= 2 && document.NativeLanguages.All(item => IsBoundedText(item.Name))));
+    }
+
+    private static bool IsMagicResonanceSafe(MagicResonanceSelection selection)
+    {
+        var grantsSafe = selection.SkillGrants is null || (selection.SkillGrants.Count <= 100
+            && selection.SkillGrants.All(item => IsBounded(item.SkillId)));
+        var groupGrantsSafe = selection.SkillGroupGrants is null || (selection.SkillGroupGrants.Count <= 20
+            && selection.SkillGroupGrants.All(item => IsBounded(item.SkillGroupId)));
+        var spellsSafe = selection.Spells is null || (selection.Spells.Count <= 200
+            && selection.Spells.All(item => IsBounded(item.SpellId) && IsBoundedText(item.Parameter)));
+        var ritualsSafe = selection.Rituals is null || (selection.Rituals.Count <= 200
+            && selection.Rituals.All(item => IsBounded(item.RitualId)));
+        var preparationsSafe = selection.Preparations is null || (selection.Preparations.Count <= 200
+            && selection.Preparations.All(item => IsBounded(item.SpellId) && IsBounded(item.Trigger)
+                && (item.DelayHours is null || item.DelayHours is >= 0 and <= 100000)));
+        var powersSafe = selection.AdeptPowers is null || (selection.AdeptPowers.Count <= 100
+            && selection.AdeptPowers.All(item => IsBounded(item.PowerId) && (item.Rank is null or >= 0 and <= 100)
+                && IsBoundedText(item.Parameter)));
+        var formsSafe = selection.ComplexForms is null || (selection.ComplexForms.Count <= 200
+            && selection.ComplexForms.All(item => IsBounded(item.ComplexFormId)));
+        var mentorSafe = selection.MentorSpirit is null
+            || (IsBounded(selection.MentorSpirit.MentorSpiritId) && IsBoundedText(selection.MentorSpirit.Choice));
+        return (selection.PathId is null || IsBounded(selection.PathId))
+            && (selection.TraditionId is null || IsBounded(selection.TraditionId))
+            && (selection.AspectedValueId is null || IsBounded(selection.AspectedValueId))
+            && (selection.PurchasedPowerPoints is null or >= 0 and <= 100)
+            && grantsSafe && groupGrantsSafe && spellsSafe && ritualsSafe && preparationsSafe && powersSafe && formsSafe && mentorSafe;
     }
 
     private static bool IsBounded(string? value) => value is not null && value.Length <= MaxOptionIdLength;
@@ -207,7 +235,7 @@ public sealed class FinalizeCharacterCreationDraftCommandHandler
         }
 
         var details = evaluator.Evaluate(draft);
-        if (!details.IsReadyToFinalize || details.Preview is null)
+        if (!details.IsReadyToFinalize || details.Preview is null || details.CanonicalSheet is null)
         {
             return new FinalizeCharacterResult(
                 CharacterCreationDraftError.RuleViolation,
@@ -220,7 +248,7 @@ public sealed class FinalizeCharacterCreationDraftCommandHandler
             request.ExpectedVersion,
             CharacterCreationDraftSerialization.DigestDocument(draft.Document),
             CharacterCreationDocumentVersions.Sheet,
-            CharacterCreationDraftSerialization.SerializeCanonicalSheet(details.Preview),
+            CharacterCreationDraftSerialization.SerializeCanonicalSheet(details.CanonicalSheet),
             worldOptions.StartingRoomId), cancellationToken);
     }
 }

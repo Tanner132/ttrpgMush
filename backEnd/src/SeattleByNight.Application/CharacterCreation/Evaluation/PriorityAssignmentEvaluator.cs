@@ -38,14 +38,13 @@ public sealed class PriorityAssignmentEvaluator
                 diagnostics.Add(UnknownOption(value.FieldPath, value.LevelId, catalog));
                 selections.Add(new PriorityAssignmentSelection(
                     value.CategoryId,
-                    Bounded(value.LevelId),
+                    CharacterCreationDiagnosticFactory.Bounded(value.LevelId),
                     null,
                     null));
                 continue;
             }
 
-            var cell = catalog.PriorityCells.Values.FirstOrDefault(item =>
-                item.CategoryId == value.CategoryId && item.LevelId == level.Id);
+            var cell = catalog.GetPriorityCell(value.CategoryId, level.Id);
             if (cell is null)
             {
                 diagnostics.Add(new CharacterCreationDiagnostic(
@@ -109,7 +108,7 @@ public sealed class PriorityAssignmentEvaluator
         }
 
         return new PriorityAssignmentEvaluation(
-            new PriorityAssignmentPreview(Bounded(creationMethodId), selections, sumToTenTotal),
+            new PriorityAssignmentPreview(CharacterCreationDiagnosticFactory.Bounded(creationMethodId), selections, sumToTenTotal),
             diagnostics);
     }
 
@@ -122,18 +121,6 @@ public sealed class PriorityAssignmentEvaluator
             .OrderBy(item => item.Id, StringComparer.Ordinal)
             .First()
             .Source;
-        var boundedId = Bounded(optionId);
-        return new CharacterCreationDiagnostic(
-            "catalog.option.unknown",
-            CharacterCreationDiagnosticSeverity.Error,
-            PriorityStep,
-            fieldPath,
-            boundedId.Length == 0 ? [] : [boundedId],
-            source,
-            new Dictionary<string, string> { ["optionId"] = boundedId },
-            "Choose an option from the pinned core catalog.");
+        return CharacterCreationDiagnosticFactory.Unknown(PriorityStep, optionId, fieldPath, source);
     }
-
-    private static string Bounded(string? value) =>
-        string.IsNullOrEmpty(value) ? string.Empty : value[..Math.Min(value.Length, 64)];
 }

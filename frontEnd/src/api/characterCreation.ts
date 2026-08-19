@@ -76,6 +76,7 @@ export interface PriorityCell {
     physicalMentalAttributePoints?: number
     metatypeSpecialAttributePoints?: Record<string, number>
     availableMetatypeIds?: string[]
+    magicResonancePathGrants?: MagicResonancePathGrant[]
 }
 
 export interface MetatypeAttributeRange {
@@ -116,7 +117,8 @@ export interface CharacterCreationDocument {
     skillGroups?: SkillGroupAllocation[] | null
     knowledgeSkills?: KnowledgeSkillAllocation[] | null
     languages?: LanguageAllocation[] | null
-    nativeLanguage?: { name: string; native: boolean } | null
+    nativeLanguages?: { name: string }[] | null
+    magicResonance?: MagicResonanceSelection | null
 }
 
 export interface QualitySelection { qualityId: string; rating?: number; parameters?: Record<string, string> }
@@ -125,9 +127,140 @@ export interface SkillGroupAllocation { skillGroupId: string; rating: number }
 export interface KnowledgeSkillAllocation { name: string; categoryId: string; rating: number; specialization?: string }
 export interface LanguageAllocation { name: string; rating: number; specialization?: string }
 export interface QualityDefinition { id: string; displayName: string; polarity: string; cost: number; parameterized: boolean; repeatable: boolean; conflicts: string[]; source: SourceCitation }
-export interface SkillDefinition { id: string; displayName: string; category: string; linkedAttribute: string; groupId?: string; parameterized: boolean; source: SourceCitation }
+export interface SkillDefinition { id: string; displayName: string; category: string; linkedAttribute: string; groupId?: string; parameterized: boolean; domain: string; source: SourceCitation }
 export interface SkillGroupDefinition { id: string; displayName: string; skillIds: string[]; source: SourceCitation }
 export interface KnowledgeCategoryDefinition { id: string; displayName: string; linkedAttribute: string; source: SourceCitation }
+
+export type CreationPathKind = 'Mundane' | 'Magician' | 'MysticAdept' | 'Adept' | 'AspectedMagician' | 'Technomancer'
+
+export interface MagicResonanceSelection {
+    pathId: string
+    traditionId?: string | null
+    aspectedValueId?: string | null
+    skillGrants?: SkillGrantAllocation[] | null
+    skillGroupGrants?: SkillGroupGrantAllocation[] | null
+    spells?: SpellSelection[] | null
+    rituals?: RitualSelection[] | null
+    preparations?: PreparationSelection[] | null
+    adeptPowers?: AdeptPowerSelection[] | null
+    complexForms?: ComplexFormSelection[] | null
+    mentorSpirit?: MentorSpiritSelection | null
+    purchasedPowerPoints?: number | null
+}
+
+export interface SkillGrantAllocation { skillId: string }
+export interface SkillGroupGrantAllocation { skillGroupId: string }
+export interface SpellSelection { spellId: string; parameter?: string | null; granted?: boolean }
+export interface RitualSelection { ritualId: string; granted?: boolean }
+export interface PreparationSelection { spellId: string; trigger: string; delayHours?: number | null; granted?: boolean }
+export interface AdeptPowerSelection { powerId: string; rank?: number | null; parameter?: string | null }
+export interface ComplexFormSelection { complexFormId: string; granted?: boolean }
+export interface MentorSpiritSelection { mentorSpiritId: string; choice?: string | null }
+
+export interface CreationPathDefinition {
+    id: string
+    displayName: string
+    kind: CreationPathKind
+    attributeId?: string | null
+    requiresTradition: boolean
+    aspectedValueIds: string[]
+    source: SourceCitation
+}
+
+export interface AspectedValueDefinition {
+    id: string
+    displayName: string
+    canSelectSpells: boolean
+    canSelectRituals: boolean
+    canSelectPreparations: boolean
+    source: SourceCitation
+}
+
+export interface TraditionDefinition {
+    id: string
+    displayName: string
+    drainAttribute: string
+    source: SourceCitation
+}
+
+export interface SpellDefinition {
+    id: string
+    displayName: string
+    category: string
+    type: string
+    range: string
+    duration: string
+    drain: string
+    parameterized: boolean
+    source: SourceCitation
+}
+
+export interface RitualDefinition {
+    id: string
+    displayName: string
+    requiredMaterials: string[]
+    category?: string | null
+    source: SourceCitation
+}
+
+export interface AdeptPowerDefinition {
+    id: string
+    displayName: string
+    powerPointCost: number
+    parameterized: boolean
+    ranked: boolean
+    maxRank?: number | null
+    powerPointCostByRank?: Record<number, number>
+    source: SourceCitation
+}
+
+export function effectivePowerPointCost(power: AdeptPowerDefinition, rank: number): number {
+    return power.powerPointCostByRank?.[rank] ?? power.powerPointCost * rank
+}
+
+export interface MentorSpiritDefinition {
+    id: string
+    displayName: string
+    parameterized: boolean
+    source: SourceCitation
+}
+
+export interface ComplexFormDefinition {
+    id: string
+    displayName: string
+    target: string
+    duration: string
+    fade: string
+    source: SourceCitation
+}
+
+export interface SpiritTypeDefinition {
+    id: string
+    displayName: string
+    traditionIds: string[]
+    source: SourceCitation
+}
+
+export interface SpriteTypeDefinition {
+    id: string
+    displayName: string
+    source: SourceCitation
+}
+
+export interface FocusDefinition {
+    id: string
+    displayName: string
+    creationUnavailable: boolean
+    source: SourceCitation
+}
+
+export interface MagicResonancePathGrant {
+    pathId: string
+    attributeRating: number
+    skillGrants: { domain: string; count: number; rating: number }[]
+    formulaGrants: number
+    complexFormGrants: number
+}
 
 export interface StepStatus {
     index: number
@@ -166,6 +299,17 @@ export interface CatalogContract {
     skills: SkillDefinition[]
     skillGroups: SkillGroupDefinition[]
     knowledgeCategories: KnowledgeCategoryDefinition[]
+    creationPaths: CreationPathDefinition[]
+    aspectedValues: AspectedValueDefinition[]
+    traditions: TraditionDefinition[]
+    spells: SpellDefinition[]
+    rituals: RitualDefinition[]
+    adeptPowers: AdeptPowerDefinition[]
+    mentorSpirits: MentorSpiritDefinition[]
+    complexForms: ComplexFormDefinition[]
+    spiritTypes: SpiritTypeDefinition[]
+    spriteTypes: SpriteTypeDefinition[]
+    foci: FocusDefinition[]
 }
 
 // ─── API ─────────────────────────────────────────────────────────────────────

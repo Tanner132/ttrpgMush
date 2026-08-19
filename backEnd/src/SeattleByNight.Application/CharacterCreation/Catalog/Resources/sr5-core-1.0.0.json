@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "sources": [
     {
-      "id": "sr5-core",
-      "fileName": "Shadowrun 5th Edition Core Rulebook (Jennifer Brozek, Raymond Croteau etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
-      "sha256": "4928B5F45F94C542820D7A7688BD68B7940BF2E9480898CCAFA6111996497F79"
-    },
-    {
       "id": "run-faster",
       "fileName": "Shadowrun Run Faster (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
       "sha256": "F037FEFADC7FB91EE10180CD0116B55BC5EA825BF4BE56546D80C6F35D555BAF"
+    },
+    {
+      "id": "sr5-core",
+      "fileName": "Shadowrun 5th Edition Core Rulebook (Jennifer Brozek, Raymond Croteau etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "4928B5F45F94C542820D7A7688BD68B7940BF2E9480898CCAFA6111996497F79"
     }
   ],
   "creationMethods": [
@@ -18,75 +18,5630 @@
       "id": "standard-priority",
       "displayName": "Standard Priority",
       "kind": "standardPriority",
-      "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
     },
     {
       "id": "sum-to-ten",
       "displayName": "Sum-to-Ten",
       "kind": "sumToTen",
-      "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 }
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
     }
   ],
   "priorityLevels": [
-    { "id": "a", "displayName": "A", "sumToTenCost": 4, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } },
-    { "id": "b", "displayName": "B", "sumToTenCost": 3, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } },
-    { "id": "c", "displayName": "C", "sumToTenCost": 2, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } },
-    { "id": "d", "displayName": "D", "sumToTenCost": 1, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } },
-    { "id": "e", "displayName": "E", "sumToTenCost": 0, "source": { "sourceId": "run-faster", "printedPage": 62, "pdfPage": 64 } }
+    {
+      "id": "a",
+      "displayName": "A",
+      "sumToTenCost": 4,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    },
+    {
+      "id": "b",
+      "displayName": "B",
+      "sumToTenCost": 3,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    },
+    {
+      "id": "c",
+      "displayName": "C",
+      "sumToTenCost": 2,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    },
+    {
+      "id": "d",
+      "displayName": "D",
+      "sumToTenCost": 1,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    },
+    {
+      "id": "e",
+      "displayName": "E",
+      "sumToTenCost": 0,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    }
   ],
   "priorityCategories": [
-    { "id": "metatype", "displayName": "Metatype", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "attributes", "displayName": "Attributes", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "magic-resonance", "displayName": "Magic or Resonance", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "skills", "displayName": "Skills", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "resources", "displayName": "Resources", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } }
+    {
+      "id": "attributes",
+      "displayName": "Attributes",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "magic-resonance",
+      "displayName": "Magic or Resonance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "metatype",
+      "displayName": "Metatype",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "resources",
+      "displayName": "Resources",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "skills",
+      "displayName": "Skills",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    }
   ],
   "priorityCells": [
-    { "id": "priority-metatype-a", "categoryId": "metatype", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 9, "elf": 8, "dwarf": 7, "ork": 7, "troll": 5 }, "availableMetatypeIds": ["human", "elf", "dwarf", "ork", "troll"] },
-    { "id": "priority-metatype-b", "categoryId": "metatype", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 7, "elf": 6, "dwarf": 4, "ork": 4, "troll": 0 }, "availableMetatypeIds": ["human", "elf", "dwarf", "ork", "troll"] },
-    { "id": "priority-metatype-c", "categoryId": "metatype", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 5, "elf": 3, "dwarf": 1, "ork": 0 }, "availableMetatypeIds": ["human", "elf", "dwarf", "ork"] },
-    { "id": "priority-metatype-d", "categoryId": "metatype", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 3, "elf": 0 }, "availableMetatypeIds": ["human", "elf"] },
-    { "id": "priority-metatype-e", "categoryId": "metatype", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 1 }, "availableMetatypeIds": ["human"] },
-    { "id": "priority-attributes-a", "categoryId": "attributes", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 24 },
-    { "id": "priority-attributes-b", "categoryId": "attributes", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 20 },
-    { "id": "priority-attributes-c", "categoryId": "attributes", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 16 },
-    { "id": "priority-attributes-d", "categoryId": "attributes", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 14 },
-    { "id": "priority-attributes-e", "categoryId": "attributes", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 12 },
-    { "id": "priority-magic-resonance-a", "categoryId": "magic-resonance", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-magic-resonance-b", "categoryId": "magic-resonance", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-magic-resonance-c", "categoryId": "magic-resonance", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-magic-resonance-d", "categoryId": "magic-resonance", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-magic-resonance-e", "categoryId": "magic-resonance", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-skills-a", "categoryId": "skills", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-skills-b", "categoryId": "skills", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-skills-c", "categoryId": "skills", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-skills-d", "categoryId": "skills", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-skills-e", "categoryId": "skills", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-resources-a", "categoryId": "resources", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-resources-b", "categoryId": "resources", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-resources-c", "categoryId": "resources", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-resources-d", "categoryId": "resources", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-resources-e", "categoryId": "resources", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } }
+    {
+      "id": "priority-attributes-a",
+      "categoryId": "attributes",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 24
+    },
+    {
+      "id": "priority-attributes-b",
+      "categoryId": "attributes",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 20
+    },
+    {
+      "id": "priority-attributes-c",
+      "categoryId": "attributes",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 16
+    },
+    {
+      "id": "priority-attributes-d",
+      "categoryId": "attributes",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 14
+    },
+    {
+      "id": "priority-attributes-e",
+      "categoryId": "attributes",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 12
+    },
+    {
+      "id": "priority-magic-resonance-a",
+      "categoryId": "magic-resonance",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "magician",
+          "attributeRating": 6,
+          "skillGrants": [
+            {
+              "domain": "magical",
+              "count": 2,
+              "rating": 5
+            }
+          ],
+          "formulaGrants": 10,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "mystic-adept",
+          "attributeRating": 6,
+          "skillGrants": [
+            {
+              "domain": "magical",
+              "count": 2,
+              "rating": 5
+            }
+          ],
+          "formulaGrants": 10,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "technomancer",
+          "attributeRating": 6,
+          "skillGrants": [
+            {
+              "domain": "resonance",
+              "count": 2,
+              "rating": 5
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 5
+        }
+      ]
+    },
+    {
+      "id": "priority-magic-resonance-b",
+      "categoryId": "magic-resonance",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "magician",
+          "attributeRating": 4,
+          "skillGrants": [
+            {
+              "domain": "magical",
+              "count": 2,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 7,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "mystic-adept",
+          "attributeRating": 4,
+          "skillGrants": [
+            {
+              "domain": "magical",
+              "count": 2,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 7,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "adept",
+          "attributeRating": 6,
+          "skillGrants": [
+            {
+              "domain": "active",
+              "count": 1,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "aspected-magician",
+          "attributeRating": 5,
+          "skillGrants": [
+            {
+              "domain": "magical-group",
+              "count": 1,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "technomancer",
+          "attributeRating": 4,
+          "skillGrants": [
+            {
+              "domain": "resonance",
+              "count": 2,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 2
+        }
+      ]
+    },
+    {
+      "id": "priority-magic-resonance-c",
+      "categoryId": "magic-resonance",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "magician",
+          "attributeRating": 3,
+          "skillGrants": [],
+          "formulaGrants": 5,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "mystic-adept",
+          "attributeRating": 3,
+          "skillGrants": [],
+          "formulaGrants": 5,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "adept",
+          "attributeRating": 4,
+          "skillGrants": [
+            {
+              "domain": "active",
+              "count": 1,
+              "rating": 2
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "aspected-magician",
+          "attributeRating": 3,
+          "skillGrants": [
+            {
+              "domain": "magical-group",
+              "count": 1,
+              "rating": 2
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "technomancer",
+          "attributeRating": 3,
+          "skillGrants": [],
+          "formulaGrants": 0,
+          "complexFormGrants": 1
+        }
+      ]
+    },
+    {
+      "id": "priority-magic-resonance-d",
+      "categoryId": "magic-resonance",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "adept",
+          "attributeRating": 2,
+          "skillGrants": [],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "aspected-magician",
+          "attributeRating": 2,
+          "skillGrants": [],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        }
+      ]
+    },
+    {
+      "id": "priority-magic-resonance-e",
+      "categoryId": "magic-resonance",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "mundane",
+          "attributeRating": 0,
+          "skillGrants": [],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        }
+      ]
+    },
+    {
+      "id": "priority-metatype-a",
+      "categoryId": "metatype",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 9,
+        "elf": 8,
+        "dwarf": 7,
+        "ork": 7,
+        "troll": 5
+      },
+      "availableMetatypeIds": [
+        "human",
+        "elf",
+        "dwarf",
+        "ork",
+        "troll"
+      ]
+    },
+    {
+      "id": "priority-metatype-b",
+      "categoryId": "metatype",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 7,
+        "elf": 6,
+        "dwarf": 4,
+        "ork": 4,
+        "troll": 0
+      },
+      "availableMetatypeIds": [
+        "human",
+        "elf",
+        "dwarf",
+        "ork",
+        "troll"
+      ]
+    },
+    {
+      "id": "priority-metatype-c",
+      "categoryId": "metatype",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 5,
+        "elf": 3,
+        "dwarf": 1,
+        "ork": 0
+      },
+      "availableMetatypeIds": [
+        "human",
+        "elf",
+        "dwarf",
+        "ork"
+      ]
+    },
+    {
+      "id": "priority-metatype-d",
+      "categoryId": "metatype",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 3,
+        "elf": 0
+      },
+      "availableMetatypeIds": [
+        "human",
+        "elf"
+      ]
+    },
+    {
+      "id": "priority-metatype-e",
+      "categoryId": "metatype",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 1
+      },
+      "availableMetatypeIds": [
+        "human"
+      ]
+    },
+    {
+      "id": "priority-resources-a",
+      "categoryId": "resources",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "priority-resources-b",
+      "categoryId": "resources",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "priority-resources-c",
+      "categoryId": "resources",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "priority-resources-d",
+      "categoryId": "resources",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "priority-resources-e",
+      "categoryId": "resources",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "priority-skills-a",
+      "categoryId": "skills",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 46,
+      "skillGroupPoints": 10
+    },
+    {
+      "id": "priority-skills-b",
+      "categoryId": "skills",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 36,
+      "skillGroupPoints": 5
+    },
+    {
+      "id": "priority-skills-c",
+      "categoryId": "skills",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 28,
+      "skillGroupPoints": 2
+    },
+    {
+      "id": "priority-skills-d",
+      "categoryId": "skills",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 22,
+      "skillGroupPoints": 0
+    },
+    {
+      "id": "priority-skills-e",
+      "categoryId": "skills",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 18,
+      "skillGroupPoints": 0
+    }
   ],
   "metatypes": [
-    { "id": "human", "displayName": "Human", "attributes": { "body": { "minimum": 1, "maximum": 6 }, "agility": { "minimum": 1, "maximum": 6 }, "reaction": { "minimum": 1, "maximum": 6 }, "strength": { "minimum": 1, "maximum": 6 }, "willpower": { "minimum": 1, "maximum": 6 }, "logic": { "minimum": 1, "maximum": 6 }, "intuition": { "minimum": 1, "maximum": 6 }, "charisma": { "minimum": 1, "maximum": 6 }, "edge": { "minimum": 2, "maximum": 7 } }, "traits": "None", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "elf", "displayName": "Elf", "attributes": { "body": { "minimum": 1, "maximum": 6 }, "agility": { "minimum": 2, "maximum": 7 }, "reaction": { "minimum": 1, "maximum": 6 }, "strength": { "minimum": 1, "maximum": 6 }, "willpower": { "minimum": 1, "maximum": 6 }, "logic": { "minimum": 1, "maximum": 6 }, "intuition": { "minimum": 1, "maximum": 6 }, "charisma": { "minimum": 3, "maximum": 8 }, "edge": { "minimum": 1, "maximum": 6 } }, "traits": "Low-Light Vision", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "dwarf", "displayName": "Dwarf", "attributes": { "body": { "minimum": 3, "maximum": 8 }, "agility": { "minimum": 1, "maximum": 6 }, "reaction": { "minimum": 1, "maximum": 5 }, "strength": { "minimum": 3, "maximum": 8 }, "willpower": { "minimum": 2, "maximum": 7 }, "logic": { "minimum": 1, "maximum": 6 }, "intuition": { "minimum": 1, "maximum": 6 }, "charisma": { "minimum": 1, "maximum": 6 }, "edge": { "minimum": 1, "maximum": 6 } }, "traits": "Pathogen and toxin resistance", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "ork", "displayName": "Ork", "attributes": { "body": { "minimum": 4, "maximum": 9 }, "agility": { "minimum": 1, "maximum": 6 }, "reaction": { "minimum": 1, "maximum": 6 }, "strength": { "minimum": 3, "maximum": 8 }, "willpower": { "minimum": 1, "maximum": 6 }, "logic": { "minimum": 1, "maximum": 5 }, "intuition": { "minimum": 1, "maximum": 6 }, "charisma": { "minimum": 1, "maximum": 5 }, "edge": { "minimum": 1, "maximum": 6 } }, "traits": "Low-Light Vision", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "troll", "displayName": "Troll", "attributes": { "body": { "minimum": 5, "maximum": 10 }, "agility": { "minimum": 1, "maximum": 5 }, "reaction": { "minimum": 1, "maximum": 6 }, "strength": { "minimum": 5, "maximum": 10 }, "willpower": { "minimum": 1, "maximum": 6 }, "logic": { "minimum": 1, "maximum": 5 }, "intuition": { "minimum": 1, "maximum": 5 }, "charisma": { "minimum": 1, "maximum": 4 }, "edge": { "minimum": 1, "maximum": 6 } }, "traits": "Thermographic Vision, Reach +1, dermal armor +1", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } }
+    {
+      "id": "dwarf",
+      "displayName": "Dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "strength": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "willpower": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Pathogen and toxin resistance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "elf",
+      "displayName": "Elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "human",
+      "displayName": "Human",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 2,
+          "maximum": 7
+        }
+      },
+      "traits": "None",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "ork",
+      "displayName": "Ork",
+      "attributes": {
+        "body": {
+          "minimum": 4,
+          "maximum": 9
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "troll",
+      "displayName": "Troll",
+      "attributes": {
+        "body": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Thermographic Vision, Reach \u002B1, dermal armor \u002B1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    }
   ],
   "attributes": [
-    { "id": "body", "displayName": "Body", "group": "physical", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "agility", "displayName": "Agility", "group": "physical", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "reaction", "displayName": "Reaction", "group": "physical", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "strength", "displayName": "Strength", "group": "physical", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "willpower", "displayName": "Willpower", "group": "mental", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "logic", "displayName": "Logic", "group": "mental", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "intuition", "displayName": "Intuition", "group": "mental", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "charisma", "displayName": "Charisma", "group": "mental", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "edge", "displayName": "Edge", "group": "special", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
-    { "id": "essence", "displayName": "Essence", "group": "special", "source": { "sourceId": "sr5-core", "printedPage": 52, "pdfPage": 54 } },
-    { "id": "magic", "displayName": "Magic", "group": "special", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "resonance", "displayName": "Resonance", "group": "special", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } }
+    {
+      "id": "agility",
+      "displayName": "Agility",
+      "group": "physical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "body",
+      "displayName": "Body",
+      "group": "physical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "charisma",
+      "displayName": "Charisma",
+      "group": "mental",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "edge",
+      "displayName": "Edge",
+      "group": "special",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "essence",
+      "displayName": "Essence",
+      "group": "special",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 52,
+        "pdfPage": 54
+      }
+    },
+    {
+      "id": "intuition",
+      "displayName": "Intuition",
+      "group": "mental",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "logic",
+      "displayName": "Logic",
+      "group": "mental",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "magic",
+      "displayName": "Magic",
+      "group": "special",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "reaction",
+      "displayName": "Reaction",
+      "group": "physical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "resonance",
+      "displayName": "Resonance",
+      "group": "special",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "strength",
+      "displayName": "Strength",
+      "group": "physical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "willpower",
+      "displayName": "Willpower",
+      "group": "mental",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    }
+  ],
+  "qualities": [
+    {
+      "id": "addiction",
+      "displayName": "Addiction",
+      "polarity": "negative",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "allergy",
+      "displayName": "Allergy",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "ambidextrous",
+      "displayName": "Ambidextrous",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "analytical-mind",
+      "displayName": "Analytical Mind",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "aptitude",
+      "displayName": "Aptitude",
+      "polarity": "positive",
+      "cost": 14,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "astral-beacon",
+      "displayName": "Astral Beacon",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "astral-chameleon",
+      "displayName": "Astral Chameleon",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "bad-luck",
+      "displayName": "Bad Luck",
+      "polarity": "negative",
+      "cost": 12,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "bad-rep",
+      "displayName": "Bad Rep",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "bilingual",
+      "displayName": "Bilingual",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "blandness",
+      "displayName": "Blandness",
+      "polarity": "positive",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [
+        "distinctive-style"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "catlike",
+      "displayName": "Catlike",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "code-of-honor",
+      "displayName": "Code Of Honor",
+      "polarity": "negative",
+      "cost": 15,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "codeblock",
+      "displayName": "Codeblock",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "codeslinger",
+      "displayName": "Codeslinger",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "combat-paralysis",
+      "displayName": "Combat Paralysis",
+      "polarity": "negative",
+      "cost": 12,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "dependents",
+      "displayName": "Dependents",
+      "polarity": "negative",
+      "cost": 3,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "distinctive-style",
+      "displayName": "Distinctive Style",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [
+        "blandness"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "double-jointed",
+      "displayName": "Double Jointed",
+      "polarity": "positive",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "elf-poser",
+      "displayName": "Elf Poser",
+      "polarity": "negative",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "exceptional-attribute",
+      "displayName": "Exceptional Attribute",
+      "polarity": "positive",
+      "cost": 14,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [
+        "lucky"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "first-impression",
+      "displayName": "First Impression",
+      "polarity": "positive",
+      "cost": 11,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "focused-concentration",
+      "displayName": "Focused Concentration",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "gearhead",
+      "displayName": "Gearhead",
+      "polarity": "positive",
+      "cost": 11,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "gremlins",
+      "displayName": "Gremlins",
+      "polarity": "negative",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "guts",
+      "displayName": "Guts",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "high-pain-tolerance",
+      "displayName": "High Pain Tolerance",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "home-ground",
+      "displayName": "Home Ground",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "human-looking",
+      "displayName": "Human Looking",
+      "polarity": "positive",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "incompetent",
+      "displayName": "Incompetent",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "indomitable",
+      "displayName": "Indomitable",
+      "polarity": "positive",
+      "cost": 8,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "insomnia",
+      "displayName": "Insomnia",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "juryrigger",
+      "displayName": "Juryrigger",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "loss-of-confidence",
+      "displayName": "Loss Of Confidence",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "low-pain-tolerance",
+      "displayName": "Low Pain Tolerance",
+      "polarity": "negative",
+      "cost": 9,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "lucky",
+      "displayName": "Lucky",
+      "polarity": "positive",
+      "cost": 12,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [
+        "exceptional-attribute"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "magic-resistance",
+      "displayName": "Magic Resistance",
+      "polarity": "positive",
+      "cost": 6,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "mentor-spirit",
+      "displayName": "Mentor Spirit",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "natural-athlete",
+      "displayName": "Natural Athlete",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "natural-hardening",
+      "displayName": "Natural Hardening",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "natural-immunity",
+      "displayName": "Natural Immunity",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [
+        "weak-immune-system"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "ork-poser",
+      "displayName": "Ork Poser",
+      "polarity": "negative",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "photographic-memory",
+      "displayName": "Photographic Memory",
+      "polarity": "positive",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "prejudiced",
+      "displayName": "Prejudiced",
+      "polarity": "negative",
+      "cost": 3,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "quick-healer",
+      "displayName": "Quick Healer",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "resistance-to-pathogens-toxins",
+      "displayName": "Resistance To Pathogens Toxins",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "scorched",
+      "displayName": "Scorched",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "sensitive-system",
+      "displayName": "Sensitive System",
+      "polarity": "negative",
+      "cost": 12,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "simsense-vertigo",
+      "displayName": "Simsense Vertigo",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "sinner-layered",
+      "displayName": "Sinner Layered",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "social-stress",
+      "displayName": "Social Stress",
+      "polarity": "negative",
+      "cost": 8,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "spirit-affinity",
+      "displayName": "Spirit Affinity",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "spirit-bane",
+      "displayName": "Spirit Bane",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "toughness",
+      "displayName": "Toughness",
+      "polarity": "positive",
+      "cost": 9,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    },
+    {
+      "id": "uncouth",
+      "displayName": "Uncouth",
+      "polarity": "negative",
+      "cost": 14,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "uneducated",
+      "displayName": "Uneducated",
+      "polarity": "negative",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "unsteady-hands",
+      "displayName": "Unsteady Hands",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "weak-immune-system",
+      "displayName": "Weak Immune System",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [
+        "natural-immunity",
+        "resistance-to-pathogens-toxins"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 77,
+        "pdfPage": 79
+      }
+    },
+    {
+      "id": "will-to-live",
+      "displayName": "Will To Live",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 71,
+        "pdfPage": 73
+      }
+    }
+  ],
+  "skills": [
+    {
+      "id": "aeronautics-mechanic",
+      "displayName": "Aeronautics Mechanic",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "engineering",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "alchemy",
+      "displayName": "Alchemy",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "enchanting",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "animal-handling",
+      "displayName": "Animal Handling",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "arcana",
+      "displayName": "Arcana",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "archery",
+      "displayName": "Archery",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "armorer",
+      "displayName": "Armorer",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "artificing",
+      "displayName": "Artificing",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "enchanting",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "artisan",
+      "displayName": "Artisan",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "assensing",
+      "displayName": "Assensing",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "astral-combat",
+      "displayName": "Astral Combat",
+      "category": "active",
+      "linkedAttribute": "willpower",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "automatics",
+      "displayName": "Automatics",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "firearms",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "automotive-mechanic",
+      "displayName": "Automotive Mechanic",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "engineering",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "banishing",
+      "displayName": "Banishing",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "conjuring",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "binding",
+      "displayName": "Binding",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "conjuring",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "biotechnology",
+      "displayName": "Biotechnology",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "blades",
+      "displayName": "Blades",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "close-combat",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "chemistry",
+      "displayName": "Chemistry",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "clubs",
+      "displayName": "Clubs",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "close-combat",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "compiling",
+      "displayName": "Compiling",
+      "category": "active",
+      "linkedAttribute": "resonance",
+      "groupId": "tasking",
+      "parameterized": false,
+      "domain": "resonance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "computer",
+      "displayName": "Computer",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "electronics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "con",
+      "displayName": "Con",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "acting",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "counterspelling",
+      "displayName": "Counterspelling",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "sorcery",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "cybercombat",
+      "displayName": "Cybercombat",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "cracking",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "cybertechnology",
+      "displayName": "Cybertechnology",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "biotech",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "decompiling",
+      "displayName": "Decompiling",
+      "category": "active",
+      "linkedAttribute": "resonance",
+      "groupId": "tasking",
+      "parameterized": false,
+      "domain": "resonance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "demolitions",
+      "displayName": "Demolitions",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "disenchanting",
+      "displayName": "Disenchanting",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "enchanting",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "disguise",
+      "displayName": "Disguise",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "groupId": "stealth",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "diving",
+      "displayName": "Diving",
+      "category": "active",
+      "linkedAttribute": "body",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "electronic-warfare",
+      "displayName": "Electronic Warfare",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "cracking",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "escape-artist",
+      "displayName": "Escape Artist",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "etiquette",
+      "displayName": "Etiquette",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "influence",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "exotic-melee-weapon",
+      "displayName": "Exotic Melee Weapon",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": true,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "exotic-ranged-weapon",
+      "displayName": "Exotic Ranged Weapon",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": true,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "first-aid",
+      "displayName": "First Aid",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "biotech",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "forgery",
+      "displayName": "Forgery",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "free-fall",
+      "displayName": "Free Fall",
+      "category": "active",
+      "linkedAttribute": "body",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "gunnery",
+      "displayName": "Gunnery",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "gymnastics",
+      "displayName": "Gymnastics",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "athletics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "hacking",
+      "displayName": "Hacking",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "cracking",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "hardware",
+      "displayName": "Hardware",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "electronics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "heavy-weapons",
+      "displayName": "Heavy Weapons",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "impersonation",
+      "displayName": "Impersonation",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "acting",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "industrial-mechanic",
+      "displayName": "Industrial Mechanic",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "engineering",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "instruction",
+      "displayName": "Instruction",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "intimidation",
+      "displayName": "Intimidation",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "leadership",
+      "displayName": "Leadership",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "influence",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "locksmith",
+      "displayName": "Locksmith",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "longarms",
+      "displayName": "Longarms",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "firearms",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "medicine",
+      "displayName": "Medicine",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "biotech",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "nautical-mechanic",
+      "displayName": "Nautical Mechanic",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "engineering",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "navigation",
+      "displayName": "Navigation",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "groupId": "outdoors",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "negotiation",
+      "displayName": "Negotiation",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "influence",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "palming",
+      "displayName": "Palming",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "stealth",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "perception",
+      "displayName": "Perception",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "performance",
+      "displayName": "Performance",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "acting",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-aerospace",
+      "displayName": "Pilot Aerospace",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-aircraft",
+      "displayName": "Pilot Aircraft",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-exotic-vehicle",
+      "displayName": "Pilot Exotic Vehicle",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": true,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-ground-craft",
+      "displayName": "Pilot Ground Craft",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-walker",
+      "displayName": "Pilot Walker",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-watercraft",
+      "displayName": "Pilot Watercraft",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pistols",
+      "displayName": "Pistols",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "firearms",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "registering",
+      "displayName": "Registering",
+      "category": "active",
+      "linkedAttribute": "resonance",
+      "groupId": "tasking",
+      "parameterized": false,
+      "domain": "resonance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "ritual-spellcasting",
+      "displayName": "Ritual Spellcasting",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "sorcery",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "running",
+      "displayName": "Running",
+      "category": "active",
+      "linkedAttribute": "strength",
+      "groupId": "athletics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "sneaking",
+      "displayName": "Sneaking",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "stealth",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "software",
+      "displayName": "Software",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "electronics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "spellcasting",
+      "displayName": "Spellcasting",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "sorcery",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "summoning",
+      "displayName": "Summoning",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "conjuring",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "survival",
+      "displayName": "Survival",
+      "category": "active",
+      "linkedAttribute": "willpower",
+      "groupId": "outdoors",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "swimming",
+      "displayName": "Swimming",
+      "category": "active",
+      "linkedAttribute": "strength",
+      "groupId": "athletics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "throwing-weapons",
+      "displayName": "Throwing Weapons",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "tracking",
+      "displayName": "Tracking",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "groupId": "outdoors",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "unarmed-combat",
+      "displayName": "Unarmed Combat",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "close-combat",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    }
+  ],
+  "skillGroups": [
+    {
+      "id": "acting",
+      "displayName": "Acting",
+      "skillIds": [
+        "con",
+        "impersonation",
+        "performance"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "athletics",
+      "displayName": "Athletics",
+      "skillIds": [
+        "gymnastics",
+        "running",
+        "swimming"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "biotech",
+      "displayName": "Biotech",
+      "skillIds": [
+        "cybertechnology",
+        "first-aid",
+        "medicine"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "close-combat",
+      "displayName": "Close Combat",
+      "skillIds": [
+        "blades",
+        "clubs",
+        "unarmed-combat"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "conjuring",
+      "displayName": "Conjuring",
+      "skillIds": [
+        "banishing",
+        "binding",
+        "summoning"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "cracking",
+      "displayName": "Cracking",
+      "skillIds": [
+        "cybercombat",
+        "electronic-warfare",
+        "hacking"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "electronics",
+      "displayName": "Electronics",
+      "skillIds": [
+        "computer",
+        "hardware",
+        "software"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "enchanting",
+      "displayName": "Enchanting",
+      "skillIds": [
+        "alchemy",
+        "artificing",
+        "disenchanting"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "engineering",
+      "displayName": "Engineering",
+      "skillIds": [
+        "aeronautics-mechanic",
+        "automotive-mechanic",
+        "industrial-mechanic",
+        "nautical-mechanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "firearms",
+      "displayName": "Firearms",
+      "skillIds": [
+        "automatics",
+        "longarms",
+        "pistols"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "influence",
+      "displayName": "Influence",
+      "skillIds": [
+        "etiquette",
+        "leadership",
+        "negotiation"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "outdoors",
+      "displayName": "Outdoors",
+      "skillIds": [
+        "navigation",
+        "survival",
+        "tracking"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "sorcery",
+      "displayName": "Sorcery",
+      "skillIds": [
+        "counterspelling",
+        "ritual-spellcasting",
+        "spellcasting"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "stealth",
+      "displayName": "Stealth",
+      "skillIds": [
+        "disguise",
+        "palming",
+        "sneaking"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "tasking",
+      "displayName": "Tasking",
+      "skillIds": [
+        "compiling",
+        "decompiling",
+        "registering"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    }
+  ],
+  "knowledgeCategories": [
+    {
+      "id": "academic",
+      "displayName": "Academic",
+      "linkedAttribute": "logic",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "interests",
+      "displayName": "Interests",
+      "linkedAttribute": "intuition",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "professional",
+      "displayName": "Professional",
+      "linkedAttribute": "logic",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "street",
+      "displayName": "Street",
+      "linkedAttribute": "intuition",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    }
+  ],
+  "creationPaths": [
+    {
+      "id": "adept",
+      "displayName": "Adept",
+      "kind": "adept",
+      "attributeId": "magic",
+      "requiresTradition": false,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "aspected-magician",
+      "displayName": "Aspected Magician",
+      "kind": "aspectedMagician",
+      "attributeId": "magic",
+      "requiresTradition": true,
+      "aspectedValueIds": [
+        "sorcery",
+        "conjuring",
+        "enchanting"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    },
+    {
+      "id": "magician",
+      "displayName": "Magician",
+      "kind": "magician",
+      "attributeId": "magic",
+      "requiresTradition": true,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "mundane",
+      "displayName": "Mundane",
+      "kind": "mundane",
+      "requiresTradition": false,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "mystic-adept",
+      "displayName": "Mystic Adept",
+      "kind": "mysticAdept",
+      "attributeId": "magic",
+      "requiresTradition": true,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "technomancer",
+      "displayName": "Technomancer",
+      "kind": "technomancer",
+      "attributeId": "resonance",
+      "requiresTradition": false,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    }
+  ],
+  "aspectedValues": [
+    {
+      "id": "conjuring",
+      "displayName": "Conjuring",
+      "canSelectSpells": false,
+      "canSelectRituals": false,
+      "canSelectPreparations": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    },
+    {
+      "id": "enchanting",
+      "displayName": "Enchanting",
+      "canSelectSpells": false,
+      "canSelectRituals": false,
+      "canSelectPreparations": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    },
+    {
+      "id": "sorcery",
+      "displayName": "Sorcery",
+      "canSelectSpells": true,
+      "canSelectRituals": true,
+      "canSelectPreparations": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    }
+  ],
+  "traditions": [
+    {
+      "id": "hermetic",
+      "displayName": "Hermetic",
+      "drainAttributes": "Logic \u002B Willpower",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 279,
+        "pdfPage": 281
+      }
+    },
+    {
+      "id": "shamanic",
+      "displayName": "Shamanic",
+      "drainAttributes": "Charisma \u002B Willpower",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 279,
+        "pdfPage": 281
+      }
+    }
+  ],
+  "spells": [
+    {
+      "id": "acid-stream",
+      "displayName": "Acid Stream",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 283,
+        "pdfPage": 285
+      }
+    },
+    {
+      "id": "agony",
+      "displayName": "Agony",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "analyze-device",
+      "displayName": "Analyze Device",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "analyze-magic",
+      "displayName": "Analyze Magic",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "analyze-truth",
+      "displayName": "Analyze Truth",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "animate",
+      "displayName": "Animate",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "antidote",
+      "displayName": "Antidote",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "armor",
+      "displayName": "Armor",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "ball-lightning",
+      "displayName": "Ball Lightning",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "blast",
+      "displayName": "Blast",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "bugs",
+      "displayName": "Bugs",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "chaos",
+      "displayName": "Chaos",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "chaotic-world",
+      "displayName": "Chaotic World",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "clairaudience",
+      "displayName": "Clairaudience",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "clairvoyance",
+      "displayName": "Clairvoyance",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "clout",
+      "displayName": "Clout",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "combat-sense",
+      "displayName": "Combat Sense",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "confusion",
+      "displayName": "Confusion",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "control-actions",
+      "displayName": "Control Actions",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "control-thoughts",
+      "displayName": "Control Thoughts",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "cure-disease",
+      "displayName": "Cure Disease",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "death-touch",
+      "displayName": "Death Touch",
+      "category": "combat",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "decrease-attribute",
+      "displayName": "Decrease Attribute",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "detect-enemies",
+      "displayName": "Detect Enemies",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "detect-enemies-extended",
+      "displayName": "Detect Enemies Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "detect-individual",
+      "displayName": "Detect Individual",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "detect-life",
+      "displayName": "Detect Life",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "detect-life-extended",
+      "displayName": "Detect Life Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-life-form",
+      "displayName": "Detect Life Form",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-life-form-extended",
+      "displayName": "Detect Life Form Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-magic",
+      "displayName": "Detect Magic",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-magic-extended",
+      "displayName": "Detect Magic Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-object",
+      "displayName": "Detect Object",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detox",
+      "displayName": "Detox",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "entertainment",
+      "displayName": "Entertainment",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "fireball",
+      "displayName": "Fireball",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "flamethrower",
+      "displayName": "Flamethrower",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "fling",
+      "displayName": "Fling",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "heal",
+      "displayName": "Heal",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "hush",
+      "displayName": "Hush",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "ice-sheet",
+      "displayName": "Ice Sheet",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "ignite",
+      "displayName": "Ignite",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "improved-invisibility",
+      "displayName": "Improved Invisibility",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "increase-attribute",
+      "displayName": "Increase Attribute",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "increase-reflexes",
+      "displayName": "Increase Reflexes",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "influence",
+      "displayName": "Influence",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "invisibility",
+      "displayName": "Invisibility",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "knockout",
+      "displayName": "Knockout",
+      "category": "combat",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 285,
+        "pdfPage": 287
+      }
+    },
+    {
+      "id": "levitate",
+      "displayName": "Levitate",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "light",
+      "displayName": "Light",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "lightning-bolt",
+      "displayName": "Lightning Bolt",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "magic-fingers",
+      "displayName": "Magic Fingers",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "mana-barrier",
+      "displayName": "Mana Barrier",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "manaball",
+      "displayName": "Manaball",
+      "category": "combat",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "manabolt",
+      "displayName": "Manabolt",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "mask",
+      "displayName": "Mask",
+      "category": "illusion",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "mass-agony",
+      "displayName": "Mass Agony",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "mass-animate",
+      "displayName": "Mass Animate",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F \u002B 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "mass-confusion",
+      "displayName": "Mass Confusion",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "mind-probe",
+      "displayName": "Mind Probe",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "mindlink",
+      "displayName": "Mindlink",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "mob-control",
+      "displayName": "Mob Control",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F \u002B 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "mob-mind",
+      "displayName": "Mob Mind",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F \u002B 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "oxygenate",
+      "displayName": "Oxygenate",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 5",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "phantasm",
+      "displayName": "Phantasm",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "physical-barrier",
+      "displayName": "Physical Barrier",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "physical-mask",
+      "displayName": "Physical Mask",
+      "category": "illusion",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "poltergeist",
+      "displayName": "Poltergeist",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "powerball",
+      "displayName": "Powerball",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "powerbolt",
+      "displayName": "Powerbolt",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "prophylaxis",
+      "displayName": "Prophylaxis",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 289,
+        "pdfPage": 291
+      }
+    },
+    {
+      "id": "punch",
+      "displayName": "Punch",
+      "category": "combat",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "resist-pain",
+      "displayName": "Resist Pain",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "DV - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 289,
+        "pdfPage": 291
+      }
+    },
+    {
+      "id": "shadow",
+      "displayName": "Shadow",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "shatter",
+      "displayName": "Shatter",
+      "category": "combat",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "silence",
+      "displayName": "Silence",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "stabilize",
+      "displayName": "Stabilize",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 289,
+        "pdfPage": 291
+      }
+    },
+    {
+      "id": "stealth",
+      "displayName": "Stealth",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "stunball",
+      "displayName": "Stunball",
+      "category": "combat",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 285,
+        "pdfPage": 287
+      }
+    },
+    {
+      "id": "stunbolt",
+      "displayName": "Stunbolt",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 285,
+        "pdfPage": 287
+      }
+    },
+    {
+      "id": "swarm",
+      "displayName": "Swarm",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "toxic-wave",
+      "displayName": "Toxic Wave",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 283,
+        "pdfPage": 285
+      }
+    },
+    {
+      "id": "trid-entertainment",
+      "displayName": "Trid Entertainment",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "trid-phantasm",
+      "displayName": "Trid Phantasm",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    }
+  ],
+  "rituals": [
+    {
+      "id": "circle-of-healing",
+      "displayName": "Circle of Healing",
+      "keywords": [
+        "Anchored",
+        "Spell"
+      ],
+      "incorporatedSpellCategory": "health",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 298,
+        "pdfPage": 300
+      }
+    },
+    {
+      "id": "circle-of-protection",
+      "displayName": "Circle of Protection",
+      "keywords": [
+        "Anchored"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 298,
+        "pdfPage": 300
+      }
+    },
+    {
+      "id": "curse",
+      "displayName": "Curse",
+      "keywords": [
+        "Material Link",
+        "Spell"
+      ],
+      "incorporatedSpellCategory": "illusion",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "homunculus",
+      "displayName": "Homunculus",
+      "keywords": [
+        "Minion"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "prodigal-spell",
+      "displayName": "Prodigal Spell",
+      "keywords": [
+        "Spell",
+        "Spotter"
+      ],
+      "incorporatedSpellCategory": "combat",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "remote-sensing",
+      "displayName": "Remote Sensing",
+      "keywords": [
+        "Spell",
+        "Spotter"
+      ],
+      "incorporatedSpellCategory": "detection",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "renascence",
+      "displayName": "Renascence",
+      "keywords": [
+        "Anchored",
+        "Spell"
+      ],
+      "incorporatedSpellCategory": "manipulation",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 298,
+        "pdfPage": 300
+      }
+    },
+    {
+      "id": "ward",
+      "displayName": "Ward",
+      "keywords": [
+        "Anchored"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "watcher",
+      "displayName": "Watcher",
+      "keywords": [
+        "Minion"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    }
+  ],
+  "adeptPowers": [
+    {
+      "id": "adrenaline-boost",
+      "displayName": "Adrenaline Boost",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "astral-perception",
+      "displayName": "Astral Perception",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "attribute-boost",
+      "displayName": "Attribute Boost",
+      "powerPointCost": 0.25,
+      "parameterized": true,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "combat-sense",
+      "displayName": "Combat Sense",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "critical-strike",
+      "displayName": "Critical Strike",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "danger-sense",
+      "displayName": "Danger Sense",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "enhanced-accuracy",
+      "displayName": "Enhanced Accuracy",
+      "powerPointCost": 0.25,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "enhanced-perception",
+      "displayName": "Enhanced Perception",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-ability",
+      "displayName": "Improved Ability",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-physical-attribute",
+      "displayName": "Improved Physical Attribute",
+      "powerPointCost": 1,
+      "parameterized": true,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-potential",
+      "displayName": "Improved Potential",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-reflexes",
+      "displayName": "Improved Reflexes",
+      "powerPointCost": 1.5,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "powerPointCostByRank": {
+        "1": 1.5,
+        "2": 2.5,
+        "3": 3.5
+      },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-sense",
+      "displayName": "Improved Sense",
+      "powerPointCost": 0.25,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "killing-hands",
+      "displayName": "Killing Hands",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "kinesics",
+      "displayName": "Kinesics",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "light-body",
+      "displayName": "Light Body",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "missile-parry",
+      "displayName": "Missile Parry",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "mystic-armor",
+      "displayName": "Mystic Armor",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "natural-immunity",
+      "displayName": "Natural Immunity",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "pain-resistance",
+      "displayName": "Pain Resistance",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "rapid-healing",
+      "displayName": "Rapid Healing",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "spell-resistance",
+      "displayName": "Spell Resistance",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "traceless-walk",
+      "displayName": "Traceless Walk",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "voice-control",
+      "displayName": "Voice Control",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "wall-running",
+      "displayName": "Wall Running",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    }
+  ],
+  "mentorSpirits": [
+    {
+      "id": "bear",
+      "displayName": "Bear",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 321,
+        "pdfPage": 323
+      }
+    },
+    {
+      "id": "cat",
+      "displayName": "Cat",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 321,
+        "pdfPage": 323
+      }
+    },
+    {
+      "id": "dog",
+      "displayName": "Dog",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 321,
+        "pdfPage": 323
+      }
+    },
+    {
+      "id": "dragonslayer",
+      "displayName": "Dragonslayer",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 321,
+        "pdfPage": 323
+      }
+    },
+    {
+      "id": "eagle",
+      "displayName": "Eagle",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 322,
+        "pdfPage": 324
+      }
+    },
+    {
+      "id": "fire-bringer",
+      "displayName": "Fire-Bringer",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 322,
+        "pdfPage": 324
+      }
+    },
+    {
+      "id": "mountain",
+      "displayName": "Mountain",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 322,
+        "pdfPage": 324
+      }
+    },
+    {
+      "id": "rat",
+      "displayName": "Rat",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "raven",
+      "displayName": "Raven",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "sea",
+      "displayName": "Sea",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "seducer",
+      "displayName": "Seducer",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "shark",
+      "displayName": "Shark",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "snake",
+      "displayName": "Snake",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 324,
+        "pdfPage": 326
+      }
+    },
+    {
+      "id": "thunderbird",
+      "displayName": "Thunderbird",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 324,
+        "pdfPage": 326
+      }
+    },
+    {
+      "id": "wise-warrior",
+      "displayName": "Wise Warrior",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 324,
+        "pdfPage": 326
+      }
+    },
+    {
+      "id": "wolf",
+      "displayName": "Wolf",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 324,
+        "pdfPage": 326
+      }
+    }
+  ],
+  "complexForms": [
+    {
+      "id": "cleaner",
+      "displayName": "Cleaner",
+      "target": "persona",
+      "duration": "permanent",
+      "fade": "L \u002B 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "diffusion-of-attack",
+      "displayName": "Diffusion of Attack",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L \u002B 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "diffusion-of-data-processing",
+      "displayName": "Diffusion of Data Processing",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L \u002B 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "diffusion-of-firewall",
+      "displayName": "Diffusion of Firewall",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L \u002B 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "diffusion-of-sleaze",
+      "displayName": "Diffusion of Sleaze",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L \u002B 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "editor",
+      "displayName": "Editor",
+      "target": "file",
+      "duration": "permanent",
+      "fade": "L \u002B 2",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "infusion-of-attack",
+      "displayName": "Infusion of Attack",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L \u002B 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "infusion-of-data-processing",
+      "displayName": "Infusion of Data Processing",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L \u002B 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "infusion-of-firewall",
+      "displayName": "Infusion of Firewall",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L \u002B 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "infusion-of-sleaze",
+      "displayName": "Infusion of Sleaze",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L \u002B 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "pulse-storm",
+      "displayName": "Pulse Storm",
+      "target": "persona",
+      "duration": "instantaneous",
+      "fade": "L",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "puppeteer",
+      "displayName": "Puppeteer",
+      "target": "device",
+      "duration": "instantaneous",
+      "fade": "L \u002B 4",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "resonance-channel",
+      "displayName": "Resonance Channel",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L - 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "resonance-spike",
+      "displayName": "Resonance Spike",
+      "target": "device",
+      "duration": "instantaneous",
+      "fade": "L",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "resonance-veil",
+      "displayName": "Resonance Veil",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L - 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "static-bomb",
+      "displayName": "Static Bomb",
+      "target": "self",
+      "duration": "instantaneous",
+      "fade": "L \u002B 2",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "static-veil",
+      "displayName": "Static Veil",
+      "target": "persona",
+      "duration": "sustained",
+      "fade": "L - 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "stitches",
+      "displayName": "Stitches",
+      "target": "sprite",
+      "duration": "permanent",
+      "fade": "L - 2",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "tattletale",
+      "displayName": "Tattletale",
+      "target": "persona",
+      "duration": "permanent",
+      "fade": "L - 2",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "transcendent-grid",
+      "displayName": "Transcendent Grid",
+      "target": "self",
+      "duration": "instantaneous",
+      "fade": "L - 3",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    }
+  ],
+  "spiritTypes": [
+    {
+      "id": "air-spirit",
+      "displayName": "Spirit of Air",
+      "traditionIds": [
+        "hermetic",
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 303,
+        "pdfPage": 305
+      }
+    },
+    {
+      "id": "beast-spirit",
+      "displayName": "Spirit of Beasts",
+      "traditionIds": [
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 303,
+        "pdfPage": 305
+      }
+    },
+    {
+      "id": "earth-spirit",
+      "displayName": "Spirit of Earth",
+      "traditionIds": [
+        "hermetic",
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 303,
+        "pdfPage": 305
+      }
+    },
+    {
+      "id": "fire-spirit",
+      "displayName": "Spirit of Fire",
+      "traditionIds": [
+        "hermetic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 303,
+        "pdfPage": 305
+      }
+    },
+    {
+      "id": "man-spirit",
+      "displayName": "Spirit of Man",
+      "traditionIds": [
+        "hermetic",
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 304,
+        "pdfPage": 306
+      }
+    },
+    {
+      "id": "water-spirit",
+      "displayName": "Spirit of Water",
+      "traditionIds": [
+        "hermetic",
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 304,
+        "pdfPage": 306
+      }
+    }
+  ],
+  "spriteTypes": [
+    {
+      "id": "courier-sprite",
+      "displayName": "Courier Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    },
+    {
+      "id": "crack-sprite",
+      "displayName": "Crack Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    },
+    {
+      "id": "data-sprite",
+      "displayName": "Data Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    },
+    {
+      "id": "fault-sprite",
+      "displayName": "Fault Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    },
+    {
+      "id": "machine-sprite",
+      "displayName": "Machine Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    }
+  ],
+  "foci": [
+    {
+      "id": "alchemical-focus",
+      "displayName": "Alchemical Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 318,
+        "pdfPage": 320
+      }
+    },
+    {
+      "id": "banishing-focus",
+      "displayName": "Banishing Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 320,
+        "pdfPage": 322
+      }
+    },
+    {
+      "id": "binding-focus",
+      "displayName": "Binding Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 320,
+        "pdfPage": 322
+      }
+    },
+    {
+      "id": "centering-focus",
+      "displayName": "Centering Focus",
+      "creationUnavailable": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "counterspelling-focus",
+      "displayName": "Counterspelling Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "disenchanting-focus",
+      "displayName": "Disenchanting Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 318,
+        "pdfPage": 320
+      }
+    },
+    {
+      "id": "flexible-signature-focus",
+      "displayName": "Flexible Signature Focus",
+      "creationUnavailable": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "masking-focus",
+      "displayName": "Masking Focus",
+      "creationUnavailable": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "power-focus",
+      "displayName": "Power Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "qi-focus",
+      "displayName": "Qi Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "ritual-spellcasting-focus",
+      "displayName": "Ritual Spellcasting Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "spell-shaping-focus",
+      "displayName": "Spell Shaping Focus",
+      "creationUnavailable": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "spellcasting-focus",
+      "displayName": "Spellcasting Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "summoning-focus",
+      "displayName": "Summoning Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 320,
+        "pdfPage": 322
+      }
+    },
+    {
+      "id": "sustaining-focus",
+      "displayName": "Sustaining Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      }
+    },
+    {
+      "id": "weapon-focus",
+      "displayName": "Weapon Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 320,
+        "pdfPage": 322
+      }
+    }
   ]
 }

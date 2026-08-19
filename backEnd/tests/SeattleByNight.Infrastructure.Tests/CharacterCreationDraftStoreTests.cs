@@ -154,7 +154,13 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
             started.NormalizedName,
             ValidDocument()))).Draft!;
         var catalogProvider = new EmbeddedRulesetCatalogProvider();
-        var evaluator = new CharacterCreationDraftEvaluator(catalogProvider, new PriorityAssignmentEvaluator());
+        var evaluator = new CharacterCreationDraftEvaluator(
+            catalogProvider,
+            new PriorityAssignmentEvaluator(),
+            new MetatypeAndAttributeEvaluator(),
+            new QualitiesSkillsKnowledgeEvaluator(),
+            new MagicResonanceEvaluator(),
+            new KarmaBudgetEvaluator());
         var handler = new FinalizeCharacterCreationDraftCommandHandler(
             store,
             evaluator,

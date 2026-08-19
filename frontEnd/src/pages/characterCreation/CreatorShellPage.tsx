@@ -20,43 +20,12 @@ import { toErrorMessage } from '../../api/client.ts'
 
 import { getCatalog, type CatalogContract } from '../../api/characterCreation.ts'
 
-import { AttributeStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, SkillsStep, KnowledgeStep } from '../../components/characterCreation/CreationSteps.tsx'
+import { AttributeStep, KnowledgeStep, MagicResonanceStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, SkillsStep } from '../../components/characterCreation/CreationSteps.tsx'
+
+import { CREATION_STEPS, FIRST_STEP_INDEX, LAST_STEP_INDEX, diagnosticStepIndex, isStepAvailable, stepIdByIndex, stepLabel } from '../../components/characterCreation/steps.ts'
 
 import '../../styles/characterCreation.css'
 
-
-
-const STEP_LABELS: Record<number, string> = {
-
-  2: 'Identity & Concept',
-
-  3: 'Priority Assignment',
-
-  4: 'Metatype & Special Attributes',
-
-  5: 'Physical & Mental Attributes',
-
-  6: 'Qualities',
-
-  7: 'Augmentations & Essence',
-
-  8: 'Active Skills & Groups',
-
-  9: 'Awakening / Emergence',
-
-  10: 'Knowledge & Languages',
-
-  11: 'Contacts',
-
-  12: 'Resources & Vehicles',
-
-  13: 'Lifestyle & Starting Cash',
-
-  14: 'Karma & Finishing',
-
-  15: 'Review & Finalize',
-
-}
 
 
 
@@ -191,13 +160,13 @@ export default function CreatorShellPage() {
 
       }
 
-      if (event.key === 'ArrowLeft' && currentStep > 2) {
+      if (event.key === 'ArrowLeft' && currentStep > FIRST_STEP_INDEX) {
 
         event.preventDefault()
 
         prevStep()
 
-      } else if (event.key === 'ArrowRight' && currentStep < 15) {
+      } else if (event.key === 'ArrowRight' && currentStep < LAST_STEP_INDEX) {
 
         event.preventDefault()
 
@@ -263,32 +232,24 @@ export default function CreatorShellPage() {
 
 
 
-  const isFinalStep = currentStep === 15
+  const isFinalStep = currentStep === LAST_STEP_INDEX
 
-  const canGoBack = currentStep > 2
+  const canGoBack = currentStep > FIRST_STEP_INDEX
 
-  const canGoForward = currentStep < 15
+  const canGoForward = currentStep < LAST_STEP_INDEX
 
-  const attentionSteps = new Set<number>(draft.diagnostics.map((diagnostic) => {
-    if (diagnostic.step === 'priority') return 3
-    if (diagnostic.step === 'metatype-and-attributes') {
-      return diagnostic.fieldPath.startsWith('attributes') ? 5 : 4
-    }
-    if (diagnostic.step === 'qualities') return 6
-    if (diagnostic.step === 'skills') return 8
-    if (diagnostic.step === 'knowledge') return 10
-    return 0
+  const attentionSteps = new Set<number>(draft.diagnostics.map((diagnostic) =>
+    diagnosticStepIndex(diagnostic.step, diagnostic.fieldPath),
+  ))
+  const steps = CREATION_STEPS.map((step) => ({
+    index: step.index,
+    label: step.label,
+    state: attentionSteps.has(step.index)
+      ? 'attention' as const
+       : step.available ? 'available' as const : 'locked' as const,
   }))
-  const steps = Object.entries(STEP_LABELS).map(([index, label]) => {
-    const stepIndex = Number(index)
-    return {
-      index: stepIndex,
-      label,
-      state: attentionSteps.has(stepIndex)
-        ? 'attention' as const
-         : stepIndex <= 6 || stepIndex === 8 || stepIndex === 10 ? 'available' as const : 'locked' as const,
-    }
-  })
+
+  const currentStepId = stepIdByIndex(currentStep)
 
 
 
@@ -314,21 +275,22 @@ export default function CreatorShellPage() {
 
 
 
-        <main className="creator-shell__workspace" aria-label={STEP_LABELS[currentStep] ?? `Step ${currentStep}`}>
+        <main className="creator-shell__workspace" aria-label={stepLabel(currentStep)}>
 
-          <h2 className="creator-shell__step-title">{STEP_LABELS[currentStep] ?? `Step ${currentStep}`}</h2>
+          <h2 className="creator-shell__step-title">{stepLabel(currentStep)}</h2>
 
 
 
           <div className="creator-shell__step-content">
-            {catalog && currentStep === 3 && <PriorityAssignmentStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
-            {catalog && currentStep === 4 && <MetatypeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
-             {catalog && currentStep === 5 && <AttributeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
-             {catalog && currentStep === 6 && <QualitiesStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
-             {catalog && currentStep === 8 && <SkillsStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
-             {catalog && currentStep === 10 && <KnowledgeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
-             {currentStep === 2 && <p className="creator-shell__placeholder">Identity is set when the draft is created.</p>}
-             {currentStep > 5 && currentStep !== 6 && currentStep !== 8 && currentStep !== 10 && <p className="creator-shell__placeholder">This section will unlock in a later creation milestone.</p>}
+            {catalog && currentStepId === 'priority' && <PriorityAssignmentStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+            {catalog && currentStepId === 'metatype' && <MetatypeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStepId === 'attributes' && <AttributeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStepId === 'qualities' && <QualitiesStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+{catalog && currentStepId === 'skills' && <SkillsStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStepId === 'awakening' && <MagicResonanceStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStepId === 'knowledge' && <KnowledgeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {currentStepId === 'identity' && <p className="creator-shell__placeholder">Identity is set when the draft is created.</p>}
+             {!isStepAvailable(currentStep) && <p className="creator-shell__placeholder">This section will unlock in a later creation milestone.</p>}
 
           </div>
 

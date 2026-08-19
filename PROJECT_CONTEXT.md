@@ -413,31 +413,58 @@ No credentials or chat messages are seeded.
 ## Current Implemented Surface
 
 The Application layer includes the first immutable SR5 catalog foundation for
-`sr5-core` version `1.0.0`, pinned by a semantic SHA-256 digest. It validates the
-approved sources, creation methods, priority levels/categories, and all 25
-priority cells at startup. Its pure evaluator returns structured diagnostics and
+`sr5-core` version `1.0.0`, pinned by a semantic SHA-256 digest. All catalog
+option facts — qualities, skills, skill groups, knowledge categories, creation
+paths, aspected values, traditions, spells, rituals, adept powers, mentor
+spirits, complex forms, spirit/sprite types, foci, and the per-priority skill
+and Magic/Resonance grants — live in the pinned JSON resource, so the semantic
+digest changes whenever any catalog fact changes. The loader validates unique
+IDs, bounded display names, citations, and cross-references, plus all 25
+priority cells, at startup. Its pure evaluator returns structured diagnostics and
 canonical previews for Standard Priority and Sum-to-Ten assignments. The catalog
 also contains the five core metatypes, natural attribute ranges, metatype
 priority availability and special-point grants, normal attribute definitions,
 and normal-attribute priority point grants. Draft documents can carry typed
 metatype, normal-attribute, and special-attribute allocations; server evaluation
 validates priority compatibility, point totals, natural maxima, and metatype
-  ranges. CHAR-807 adds typed immutable catalog surfaces for 31 positive and 28
+ranges. CHAR-807 adds typed immutable catalog surfaces for 31 positive and 28
   negative qualities, 75 active skills, 15 skill groups, and 4 open Knowledge
   categories, plus additive draft selections, bounded text validation, quality
-  caps/conflicts, skill and group budgets, and native-language validation. The
-  creator UI now exposes Qualities, Active Skills & Groups, and Knowledge &
-  Languages; later magic and resource sections remain unavailable until their
-  milestones.
+  caps/conflicts, the Aptitude rating-7 cap, Bilingual's second native language,
+  free Knowledge/Language points derived from natural Intuition and Logic,
+  specialization prerequisites, skill/group budgets and overlap, and
+  native-language `N` semantics. The creator UI now exposes Qualities, Active
+  Skills & Groups, and Knowledge & Languages. CHAR-808 adds typed immutable
+  catalog surfaces for the six creation paths (Mundane, Magician, Mystic Adept,
+  Adept, Aspected Magician, Technomancer), 3 aspected values, 2 traditions, 84
+  spells, 9 rituals, 25 adept powers, 16 mentor spirits, 20 complex forms, 6
+  spirit types, 5 sprite types, and 16 foci, plus per-priority path grants
+  (attribute rating, skill/group grants, formula grants, complex-form grants).
+  Server evaluation enforces path availability, Magic/Resonance mutual
+  exclusivity, natural maxima (7 with Exceptional Attribute), tradition and
+  aspect requirements, skill-grant count/domain/distinctness, formula and
+  complex-form caps, the improved-reflexes irregular Power Point cost, mystic
+  adept Power Point purchases at 2 Karma each, mentor-spirit prerequisites, and
+  the shared 25 Karma creation pool. Priority-granted skill ratings are free and
+  count toward the final natural-rating cap without consuming the skill budget.
+  The creator UI now exposes the Awakening / Emergence step; later resource
+  sections remain unavailable until their milestones.
 
 The persistence layer supports slot-bearing, name-reserving SR5 drafts with JSONB
 typed selections, UUID optimistic concurrency, start/read/update/discard/finalize
-application operations, and immutable evaluated sheets. Existing characters were
-migrated to explicit legacy finalized sheets without invented SR5 statistics.
-Only finalized characters are playable. The authenticated character-creation
-  HTTP surface and the priority, metatype, attribute, quality, skill, and
-  knowledge creator UI are implemented. Later creation sections remain
-  unavailable until their milestones.
+application operations, and immutable evaluated sheets. Finalization now writes a
+complete canonical evaluated sheet (sheet schema version 2) capturing the resolved
+metatype, absolute attribute and special-attribute values, qualities, skills and
+groups, knowledge and languages, native languages, and the Awakening/Emergence
+selection — each retaining its allocation provenance (priority, special points,
+group points, grant, Karma, free points, or native). Version-1 priority-only
+evaluated sheets and legacy sheets remain readable through their schema version
+and kind. Existing characters were migrated to explicit legacy finalized sheets
+without invented SR5 statistics. Only finalized characters are playable. The
+authenticated character-creation
+  HTTP surface and the priority, metatype, attribute, quality, skill, knowledge,
+  and Awakening/Emergence creator UI are implemented. Later creation sections
+  remain unavailable until their milestones.
 
 Backend endpoints:
 

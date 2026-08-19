@@ -14,6 +14,9 @@ public static class DependencyInjection
         services.AddSingleton<IRulesetCatalogProvider>(new EmbeddedRulesetCatalogProvider());
         services.AddSingleton<PriorityAssignmentEvaluator>();
         services.AddSingleton<MetatypeAndAttributeEvaluator>();
+        services.AddSingleton<QualitiesSkillsKnowledgeEvaluator>();
+        services.AddSingleton<MagicResonanceEvaluator>();
+        services.AddSingleton<KarmaBudgetEvaluator>();
         services.AddSingleton<CharacterCreationDraftEvaluator>();
 
         return services;

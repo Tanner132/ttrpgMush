@@ -50,15 +50,24 @@ public static partial class RulesetCatalogLoader
             ToDictionary(document.CreationMethods!, item => item.Id),
             ToDictionary(document.PriorityLevels!, item => item.Id),
             document.PriorityCategories!.ToImmutableArray(),
-            ToDictionary(document.PriorityCells!.Select(item => item.CategoryId == "skills"
-                ? item with { IndividualSkillPoints = item.LevelId switch { "a" => 46, "b" => 36, "c" => 28, "d" => 22, _ => 18 }, SkillGroupPoints = item.LevelId switch { "a" => 10, "b" => 5, "c" => 2, _ => 0 } }
-                : item), item => item.Id),
+            ToDictionary(document.PriorityCells!, item => item.Id),
             ToDictionary(document.Metatypes!, item => item.Id),
             ToDictionary(document.Attributes!, item => item.Id),
-            BuildQualities(document.Sources!.First(item => item.Id == "sr5-core")),
-            BuildSkills(document.Sources!.First(item => item.Id == "sr5-core")),
-            BuildSkillGroups(document.Sources!.First(item => item.Id == "sr5-core")),
-            BuildKnowledgeCategories(document.Sources!.First(item => item.Id == "sr5-core")));
+            ToDictionary(document.Qualities!, item => item.Id),
+            ToDictionary(document.Skills!, item => item.Id),
+            ToDictionary(document.SkillGroups!, item => item.Id),
+            ToDictionary(document.KnowledgeCategories!, item => item.Id),
+            ToDictionary(document.CreationPaths!, item => item.Id),
+            ToDictionary(document.AspectedValues!, item => item.Id),
+            ToDictionary(document.Traditions!, item => item.Id),
+            ToDictionary(document.Spells!, item => item.Id),
+            ToDictionary(document.Rituals!, item => item.Id),
+            ToDictionary(document.AdeptPowers!, item => item.Id),
+            ToDictionary(document.MentorSpirits!, item => item.Id),
+            ToDictionary(document.ComplexForms!, item => item.Id),
+            ToDictionary(document.SpiritTypes!, item => item.Id),
+            ToDictionary(document.SpriteTypes!, item => item.Id),
+            ToDictionary(document.Foci!, item => item.Id));
     }
 
     public static string ComputeSemanticDigest(string json)
@@ -93,7 +102,22 @@ public static partial class RulesetCatalogLoader
             || document.PriorityCategories is null
             || document.PriorityCells is null
             || document.Metatypes is null
-            || document.Attributes is null)
+            || document.Attributes is null
+            || document.Qualities is null
+            || document.Skills is null
+            || document.SkillGroups is null
+            || document.KnowledgeCategories is null
+            || document.CreationPaths is null
+            || document.AspectedValues is null
+            || document.Traditions is null
+            || document.Spells is null
+            || document.Rituals is null
+            || document.AdeptPowers is null
+            || document.MentorSpirits is null
+            || document.ComplexForms is null
+            || document.SpiritTypes is null
+            || document.SpriteTypes is null
+            || document.Foci is null)
         {
             throw new RulesetCatalogException("The catalog is missing a required collection.");
         }
@@ -105,6 +129,21 @@ public static partial class RulesetCatalogLoader
         ValidateUnique(document.PriorityCells, item => item.Id, "priority cell");
         ValidateUnique(document.Metatypes, item => item.Id, "metatype");
         ValidateUnique(document.Attributes, item => item.Id, "attribute");
+        ValidateUnique(document.Qualities, item => item.Id, "quality");
+        ValidateUnique(document.Skills, item => item.Id, "skill");
+        ValidateUnique(document.SkillGroups, item => item.Id, "skill group");
+        ValidateUnique(document.KnowledgeCategories, item => item.Id, "knowledge category");
+        ValidateUnique(document.CreationPaths, item => item.Id, "creation path");
+        ValidateUnique(document.AspectedValues, item => item.Id, "aspected value");
+        ValidateUnique(document.Traditions, item => item.Id, "tradition");
+        ValidateUnique(document.Spells, item => item.Id, "spell");
+        ValidateUnique(document.Rituals, item => item.Id, "ritual");
+        ValidateUnique(document.AdeptPowers, item => item.Id, "adept power");
+        ValidateUnique(document.MentorSpirits, item => item.Id, "mentor spirit");
+        ValidateUnique(document.ComplexForms, item => item.Id, "complex form");
+        ValidateUnique(document.SpiritTypes, item => item.Id, "spirit type");
+        ValidateUnique(document.SpriteTypes, item => item.Id, "sprite type");
+        ValidateUnique(document.Foci, item => item.Id, "focus");
 
         var sourceIds = document.Sources.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (sourceIds.Count == 0)
@@ -124,45 +163,34 @@ public static partial class RulesetCatalogLoader
 
         foreach (var method in document.CreationMethods)
         {
-            RequireId(method.Id, "creationMethods.id");
-            RequireDisplayName(method.DisplayName, method.Id);
-            ValidateCitation(method.Source, sourceIds, method.Id);
+            ValidateCommonEntry(method.Id, method.DisplayName, method.Source, sourceIds, "creation method");
         }
 
         foreach (var level in document.PriorityLevels)
         {
-            RequireId(level.Id, "priorityLevels.id");
-            RequireDisplayName(level.DisplayName, level.Id);
+            ValidateCommonEntry(level.Id, level.DisplayName, level.Source, sourceIds, "priority level");
             if (level.SumToTenCost is < 0 or > 4)
             {
                 throw new RulesetCatalogException($"Priority level '{level.Id}' has an invalid Sum-to-Ten cost.");
             }
-
-            ValidateCitation(level.Source, sourceIds, level.Id);
         }
 
         foreach (var category in document.PriorityCategories)
         {
-            RequireId(category.Id, "priorityCategories.id");
-            RequireDisplayName(category.DisplayName, category.Id);
-            ValidateCitation(category.Source, sourceIds, category.Id);
+            ValidateCommonEntry(category.Id, category.DisplayName, category.Source, sourceIds, "priority category");
         }
 
         var attributeIds = document.Attributes.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var attribute in document.Attributes)
         {
-            RequireId(attribute.Id, "attributes.id");
-            RequireDisplayName(attribute.DisplayName, attribute.Id);
+            ValidateCommonEntry(attribute.Id, attribute.DisplayName, attribute.Source, sourceIds, "attribute");
             if (attribute.Group is not ("physical" or "mental" or "special"))
                 throw new RulesetCatalogException($"Attribute '{attribute.Id}' has an invalid group.");
-            ValidateCitation(attribute.Source, sourceIds, attribute.Id);
         }
 
         foreach (var metatype in document.Metatypes)
         {
-            RequireId(metatype.Id, "metatypes.id");
-            RequireDisplayName(metatype.DisplayName, metatype.Id);
-            ValidateCitation(metatype.Source, sourceIds, metatype.Id);
+            ValidateCommonEntry(metatype.Id, metatype.DisplayName, metatype.Source, sourceIds, "metatype");
             if (metatype.Attributes is null || metatype.Attributes.Count != 9
                 || metatype.Attributes.Keys.Any(id => !attributeIds.Contains(id)))
                 throw new RulesetCatalogException($"Metatype '{metatype.Id}' must define all normal attributes.");
@@ -172,6 +200,129 @@ public static partial class RulesetCatalogLoader
                     throw new RulesetCatalogException($"Metatype '{metatype.Id}' has an invalid range for '{range.Key}'.");
             }
         }
+
+        var skillIds = document.Skills.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var skillGroupIds = document.SkillGroups.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var qualityIds = document.Qualities.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var aspectedValueIds = document.AspectedValues.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var traditionIds = document.Traditions.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var creationPathIds = document.CreationPaths.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+
+        foreach (var quality in document.Qualities)
+        {
+            ValidateCommonEntry(quality.Id, quality.DisplayName, quality.Source, sourceIds, "quality");
+            if (quality.Polarity is not ("positive" or "negative"))
+                throw new RulesetCatalogException($"Quality '{quality.Id}' has an invalid polarity.");
+            if (quality.Cost <= 0)
+                throw new RulesetCatalogException($"Quality '{quality.Id}' must have a positive Karma cost.");
+            if (quality.Conflicts is null || quality.Conflicts.Any(id => !qualityIds.Contains(id)))
+                throw new RulesetCatalogException($"Quality '{quality.Id}' has a dangling conflict reference.");
+        }
+
+        foreach (var skill in document.Skills)
+        {
+            ValidateCommonEntry(skill.Id, skill.DisplayName, skill.Source, sourceIds, "skill");
+            if (skill.Domain is not ("active" or "magical" or "resonance"))
+                throw new RulesetCatalogException($"Skill '{skill.Id}' has an invalid domain.");
+            if (!string.IsNullOrEmpty(skill.LinkedAttribute) && !attributeIds.Contains(skill.LinkedAttribute))
+                throw new RulesetCatalogException($"Skill '{skill.Id}' has a dangling linked attribute.");
+            if (skill.GroupId is not null && !skillGroupIds.Contains(skill.GroupId))
+                throw new RulesetCatalogException($"Skill '{skill.Id}' has a dangling group reference.");
+        }
+
+        foreach (var group in document.SkillGroups)
+        {
+            ValidateCommonEntry(group.Id, group.DisplayName, group.Source, sourceIds, "skill group");
+            if (group.SkillIds is null || group.SkillIds.Count == 0 || group.SkillIds.Any(id => !skillIds.Contains(id)))
+                throw new RulesetCatalogException($"Skill group '{group.Id}' has invalid member skills.");
+        }
+
+        foreach (var category in document.KnowledgeCategories)
+        {
+            ValidateCommonEntry(category.Id, category.DisplayName, category.Source, sourceIds, "knowledge category");
+            if (!attributeIds.Contains(category.LinkedAttribute))
+                throw new RulesetCatalogException($"Knowledge category '{category.Id}' has a dangling linked attribute.");
+        }
+
+        foreach (var path in document.CreationPaths)
+        {
+            ValidateCommonEntry(path.Id, path.DisplayName, path.Source, sourceIds, "creation path");
+            if (path.AttributeId is not null and not ("magic" or "resonance"))
+                throw new RulesetCatalogException($"Creation path '{path.Id}' has an invalid attribute.");
+            if (path.AspectedValueIds is null || path.AspectedValueIds.Any(id => !aspectedValueIds.Contains(id)))
+                throw new RulesetCatalogException($"Creation path '{path.Id}' has a dangling aspected-value reference.");
+        }
+
+        foreach (var value in document.AspectedValues)
+            ValidateCommonEntry(value.Id, value.DisplayName, value.Source, sourceIds, "aspected value");
+
+        foreach (var tradition in document.Traditions)
+        {
+            ValidateCommonEntry(tradition.Id, tradition.DisplayName, tradition.Source, sourceIds, "tradition");
+            if (string.IsNullOrWhiteSpace(tradition.DrainAttributes))
+                throw new RulesetCatalogException($"Tradition '{tradition.Id}' must define its drain attributes.");
+        }
+
+        foreach (var spell in document.Spells)
+        {
+            ValidateCommonEntry(spell.Id, spell.DisplayName, spell.Source, sourceIds, "spell");
+            if (string.IsNullOrWhiteSpace(spell.Category) || string.IsNullOrWhiteSpace(spell.Type)
+                || string.IsNullOrWhiteSpace(spell.Range) || string.IsNullOrWhiteSpace(spell.Duration)
+                || string.IsNullOrWhiteSpace(spell.Drain))
+                throw new RulesetCatalogException($"Spell '{spell.Id}' has an empty descriptor.");
+        }
+
+        foreach (var ritual in document.Rituals)
+        {
+            ValidateCommonEntry(ritual.Id, ritual.DisplayName, ritual.Source, sourceIds, "ritual");
+            if (ritual.Keywords is null || ritual.Keywords.Count == 0)
+                throw new RulesetCatalogException($"Ritual '{ritual.Id}' must define at least one keyword.");
+        }
+
+        foreach (var power in document.AdeptPowers)
+        {
+            ValidateCommonEntry(power.Id, power.DisplayName, power.Source, sourceIds, "adept power");
+            if (power.PowerPointCost <= 0)
+                throw new RulesetCatalogException($"Adept power '{power.Id}' must have a positive Power Point cost.");
+            if (power.MaxRank is <= 0)
+                throw new RulesetCatalogException($"Adept power '{power.Id}' has an invalid maximum rank.");
+            if (power.PowerPointCostByRank is not null)
+            {
+                if (!power.Ranked)
+                    throw new RulesetCatalogException($"Adept power '{power.Id}' declares per-rank costs without being ranked.");
+                if (power.PowerPointCostByRank.Count == 0)
+                    throw new RulesetCatalogException($"Adept power '{power.Id}' declares an empty per-rank cost table.");
+                foreach (var entry in power.PowerPointCostByRank)
+                {
+                    if (entry.Key <= 0 || entry.Value <= 0)
+                        throw new RulesetCatalogException($"Adept power '{power.Id}' has an invalid per-rank cost.");
+                }
+            }
+        }
+
+        foreach (var mentor in document.MentorSpirits)
+            ValidateCommonEntry(mentor.Id, mentor.DisplayName, mentor.Source, sourceIds, "mentor spirit");
+
+        foreach (var form in document.ComplexForms)
+        {
+            ValidateCommonEntry(form.Id, form.DisplayName, form.Source, sourceIds, "complex form");
+            if (string.IsNullOrWhiteSpace(form.Target) || string.IsNullOrWhiteSpace(form.Duration)
+                || string.IsNullOrWhiteSpace(form.Fade))
+                throw new RulesetCatalogException($"Complex form '{form.Id}' has an empty descriptor.");
+        }
+
+        foreach (var spirit in document.SpiritTypes)
+        {
+            ValidateCommonEntry(spirit.Id, spirit.DisplayName, spirit.Source, sourceIds, "spirit type");
+            if (spirit.TraditionIds is null || spirit.TraditionIds.Any(id => !traditionIds.Contains(id)))
+                throw new RulesetCatalogException($"Spirit type '{spirit.Id}' has a dangling tradition reference.");
+        }
+
+        foreach (var sprite in document.SpriteTypes)
+            ValidateCommonEntry(sprite.Id, sprite.DisplayName, sprite.Source, sourceIds, "sprite type");
+
+        foreach (var focus in document.Foci)
+            ValidateCommonEntry(focus.Id, focus.DisplayName, focus.Source, sourceIds, "focus");
 
         var levelIds = document.PriorityLevels.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         var categoryIds = document.PriorityCategories.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
@@ -192,7 +343,7 @@ public static partial class RulesetCatalogLoader
 
             ValidateCitation(cell.Source, sourceIds, cell.Id);
             if (cell.CategoryId == "attributes"
-                && (cell.PhysicalMentalAttributePoints is null or < 0))
+                && cell.PhysicalMentalAttributePoints is null or < 0)
                 throw new RulesetCatalogException($"Attribute cell '{cell.Id}' must define its point grant.");
             if (cell.CategoryId == "metatype")
             {
@@ -201,6 +352,25 @@ public static partial class RulesetCatalogLoader
                     || cell.AvailableMetatypeIds is null
                     || cell.AvailableMetatypeIds.Any(id => !document.Metatypes.Any(m => m.Id == id)))
                     throw new RulesetCatalogException($"Metatype cell '{cell.Id}' has invalid grants.");
+            }
+            if (cell.CategoryId == "skills"
+                && (cell.IndividualSkillPoints is null or < 0 || cell.SkillGroupPoints is null or < 0))
+                throw new RulesetCatalogException($"Skill cell '{cell.Id}' must define its point grants.");
+            if (cell.CategoryId == "magic-resonance")
+            {
+                if (cell.MagicResonancePathGrants is null)
+                    throw new RulesetCatalogException($"Magic/Resonance cell '{cell.Id}' must define its path grants.");
+                foreach (var grant in cell.MagicResonancePathGrants)
+                {
+                    if (!creationPathIds.Contains(grant.PathId))
+                        throw new RulesetCatalogException($"Magic/Resonance grant in '{cell.Id}' has a dangling path reference.");
+                    if (grant.AttributeRating < 0 || grant.FormulaGrants < 0 || grant.ComplexFormGrants < 0)
+                        throw new RulesetCatalogException($"Magic/Resonance grant '{grant.PathId}' has a negative grant.");
+                    if (grant.SkillGrants is null || grant.SkillGrants.Any(item =>
+                        item.Domain is not ("active" or "magical" or "resonance" or "magical-group")
+                        || item.Count < 0 || item.Rating < 0))
+                        throw new RulesetCatalogException($"Magic/Resonance grant '{grant.PathId}' has an invalid skill grant.");
+                }
             }
         }
 
@@ -220,45 +390,17 @@ public static partial class RulesetCatalogLoader
     private static ImmutableDictionary<string, T> ToDictionary<T>(IEnumerable<T> values, Func<T, string> keySelector) =>
         values.ToImmutableDictionary(keySelector, StringComparer.Ordinal);
 
-    private static ImmutableDictionary<string, QualityDefinition> BuildQualities(CatalogSource source)
+    private static void ValidateCommonEntry(
+        string id,
+        string? displayName,
+        SourceCitation? citation,
+        HashSet<string> sourceIds,
+        string description)
     {
-        var positive = new (string Id, int Cost, bool Parameterized, bool Repeatable)[]
-        {
-            ("ambidextrous",4,false,false),("analytical-mind",5,false,false),("aptitude",14,true,false),("astral-chameleon",10,false,false),("bilingual",5,true,false),("blandness",8,false,false),("catlike",7,false,false),("codeslinger",10,true,false),("double-jointed",6,false,false),("exceptional-attribute",14,true,false),("first-impression",11,false,false),("focused-concentration",4,true,false),("gearhead",11,false,false),("guts",10,false,false),("high-pain-tolerance",7,true,false),("home-ground",10,true,true),("human-looking",6,false,false),("indomitable",8,true,false),("juryrigger",10,false,false),("lucky",12,false,false),("magic-resistance",6,true,false),("mentor-spirit",5,true,false),("natural-athlete",7,false,false),("natural-hardening",10,false,false),("natural-immunity",4,true,false),("photographic-memory",6,false,false),("quick-healer",3,false,false),("resistance-to-pathogens-toxins",4,true,false),("spirit-affinity",7,true,false),("toughness",9,false,false),("will-to-live",3,true,false)
-        };
-        var negative = new (string Id, int Cost, bool Parameterized, bool Repeatable)[]
-        {
-            ("addiction",4,true,false),("allergy",5,true,false),("astral-beacon",10,false,false),("bad-luck",12,false,false),("bad-rep",7,false,false),("code-of-honor",15,true,false),("codeblock",10,true,false),("combat-paralysis",12,false,false),("dependents",3,true,false),("distinctive-style",5,true,false),("elf-poser",6,false,false),("gremlins",4,true,false),("incompetent",5,true,false),("insomnia",10,true,false),("loss-of-confidence",10,true,false),("low-pain-tolerance",9,false,false),("ork-poser",6,false,false),("prejudiced",3,true,false),("scorched",10,true,false),("sensitive-system",12,false,false),("simsense-vertigo",5,false,false),("sinner-layered",5,true,false),("social-stress",8,true,false),("spirit-bane",7,true,false),("uncouth",14,false,false),("uneducated",8,false,false),("unsteady-hands",7,false,false),("weak-immune-system",10,false,false)
-        };
-        return positive.Select(item => new QualityDefinition(item.Id, Display(item.Id), "positive", item.Cost, item.Parameterized, item.Repeatable, Conflicts(item.Id), Citation(source, 71)))
-            .Concat(negative.Select(item => new QualityDefinition(item.Id, Display(item.Id), "negative", item.Cost, item.Parameterized, item.Repeatable, Conflicts(item.Id), Citation(source, 77))))
-            .ToImmutableDictionary(item => item.Id, StringComparer.Ordinal);
+        RequireId(id, description + ".id");
+        RequireDisplayName(displayName, id);
+        ValidateCitation(citation, sourceIds, id);
     }
-
-    private static ImmutableDictionary<string, SkillDefinition> BuildSkills(CatalogSource source)
-    {
-        const string ids = "archery automatics blades clubs escape-artist exotic-melee-weapon exotic-ranged-weapon gunnery gymnastics heavy-weapons locksmith longarms palming pistols sneaking throwing-weapons unarmed-combat diving free-fall pilot-aerospace pilot-aircraft pilot-walker pilot-exotic-vehicle pilot-ground-craft pilot-watercraft running swimming animal-handling con etiquette impersonation instruction intimidation leadership negotiation performance artisan assensing disguise navigation perception tracking aeronautics-mechanic arcana armorer automotive-mechanic biotechnology chemistry computer cybercombat cybertechnology demolitions electronic-warfare first-aid forgery hacking hardware industrial-mechanic medicine nautical-mechanic software astral-combat survival alchemy artificing banishing binding counterspelling disenchanting ritual-spellcasting spellcasting summoning compiling decompiling registering";
-        var groups = BuildSkillGroupMemberships();
-        return ids.Split(' ').Select(id => new SkillDefinition(id, Display(id), "active", "", groups.FirstOrDefault(item => item.Value.Contains(id)).Key, id.Contains("exotic") || id.StartsWith("pilot-exotic"), Citation(source, 131)))
-            .ToImmutableDictionary(item => item.Id, StringComparer.Ordinal);
-    }
-
-    private static ImmutableDictionary<string, SkillGroupDefinition> BuildSkillGroups(CatalogSource source) =>
-        BuildSkillGroupMemberships().Select(item => new SkillGroupDefinition(item.Key, Display(item.Key), item.Value, Citation(source, 153)))
-            .ToImmutableDictionary(item => item.Id, StringComparer.Ordinal);
-
-    private static ImmutableDictionary<string, KnowledgeCategoryDefinition> BuildKnowledgeCategories(CatalogSource source) =>
-        new[] { new KnowledgeCategoryDefinition("academic", "Academic", "logic", Citation(source, 148)), new("interests", "Interests", "intuition", Citation(source, 148)), new("professional", "Professional", "logic", Citation(source, 148)), new("street", "Street", "intuition", Citation(source, 148)) }
-            .ToImmutableDictionary(item => item.Id, StringComparer.Ordinal);
-
-    private static Dictionary<string, string[]> BuildSkillGroupMemberships() => new(StringComparer.Ordinal)
-    {
-        ["acting"] = ["con", "impersonation", "performance"], ["athletics"] = ["gymnastics", "running", "swimming"], ["biotech"] = ["cybertechnology", "first-aid", "medicine"], ["close-combat"] = ["blades", "clubs", "unarmed-combat"], ["conjuring"] = ["banishing", "binding", "summoning"], ["cracking"] = ["cybercombat", "electronic-warfare", "hacking"], ["electronics"] = ["computer", "hardware", "software"], ["enchanting"] = ["alchemy", "artificing", "disenchanting"], ["engineering"] = ["aeronautics-mechanic", "automotive-mechanic", "industrial-mechanic", "nautical-mechanic"], ["firearms"] = ["automatics", "longarms", "pistols"], ["influence"] = ["etiquette", "leadership", "negotiation"], ["outdoors"] = ["navigation", "survival", "tracking"], ["sorcery"] = ["counterspelling", "ritual-spellcasting", "spellcasting"], ["stealth"] = ["disguise", "palming", "sneaking"], ["tasking"] = ["compiling", "decompiling", "registering"]
-    };
-
-    private static SourceCitation Citation(CatalogSource source, int page) => new(source.Id, page, page + 2);
-    private static string Display(string id) => string.Join(' ', id.Split('-').Select(item => char.ToUpperInvariant(item[0]) + item[1..]));
-    private static IReadOnlyList<string> Conflicts(string id) => id switch { "blandness" => ["distinctive-style"], "distinctive-style" => ["blandness"], "lucky" => ["exceptional-attribute"], "exceptional-attribute" => ["lucky"], "natural-immunity" => ["weak-immune-system"], "weak-immune-system" => ["natural-immunity", "resistance-to-pathogens-toxins"], _ => [] };
 
     private static void ValidateUnique<T>(IReadOnlyList<T> values, Func<T, string> keySelector, string description)
     {
@@ -345,5 +487,20 @@ public static partial class RulesetCatalogLoader
         PriorityCategoryDefinition[]? PriorityCategories,
         PriorityCellDefinition[]? PriorityCells,
         MetatypeDefinition[]? Metatypes,
-        AttributeDefinition[]? Attributes);
+        AttributeDefinition[]? Attributes,
+        QualityDefinition[]? Qualities,
+        SkillDefinition[]? Skills,
+        SkillGroupDefinition[]? SkillGroups,
+        KnowledgeCategoryDefinition[]? KnowledgeCategories,
+        CreationPathDefinition[]? CreationPaths,
+        AspectedValueDefinition[]? AspectedValues,
+        TraditionDefinition[]? Traditions,
+        SpellDefinition[]? Spells,
+        RitualDefinition[]? Rituals,
+        AdeptPowerDefinition[]? AdeptPowers,
+        MentorSpiritDefinition[]? MentorSpirits,
+        ComplexFormDefinition[]? ComplexForms,
+        SpiritTypeDefinition[]? SpiritTypes,
+        SpriteTypeDefinition[]? SpriteTypes,
+        FocusDefinition[]? Foci);
 }

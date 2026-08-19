@@ -21,6 +21,8 @@ import {
 
 import { toErrorMessage } from '../api/client.ts'
 
+import { FIRST_STEP_INDEX, LAST_STEP_INDEX } from '../components/characterCreation/steps.ts'
+
 
 
 interface UseDraftResult {
@@ -88,8 +90,14 @@ export function useDraft(characterId: string): UseDraftResult {
       metatype: null,
       attributes: null,
       specialAttributes: null,
+      qualities: null,
+      skills: null,
+      skillGroups: null,
+      knowledgeSkills: null,
+      languages: null,
+      nativeLanguages: null,
     })
-    const [currentStep, setCurrentStep] = useState(2)
+    const [currentStep, setCurrentStep] = useState(FIRST_STEP_INDEX)
 
     // Serialization: only one write in flight at a time
     const writeQueue = useRef<Promise<boolean>>(Promise.resolve(true))
@@ -112,7 +120,7 @@ export function useDraft(characterId: string): UseDraftResult {
         localName.current = detail.name
         localDocument.current = detail.document
 
-        setCurrentStep(2)
+        setCurrentStep(FIRST_STEP_INDEX)
         setSaveState('idle')
 
     } catch (error) {
@@ -254,7 +262,7 @@ export function useDraft(characterId: string): UseDraftResult {
   const goToStep = useCallback(
 
     (step: number) => {
-      const clamped = Math.max(2, Math.min(15, step))
+      const clamped = Math.max(FIRST_STEP_INDEX, Math.min(LAST_STEP_INDEX, step))
 
       setCurrentStep(clamped)
 
@@ -269,7 +277,7 @@ export function useDraft(characterId: string): UseDraftResult {
   const nextStep = useCallback(() => {
     setCurrentStep((prev) => {
 
-      const next = Math.min(15, prev + 1)
+      const next = Math.min(LAST_STEP_INDEX, prev + 1)
 
       return next
     })
@@ -281,7 +289,7 @@ export function useDraft(characterId: string): UseDraftResult {
 
     setCurrentStep((prev) => {
 
-      const next = Math.max(2, prev - 1)
+      const next = Math.max(FIRST_STEP_INDEX, prev - 1)
 
       return next
 
