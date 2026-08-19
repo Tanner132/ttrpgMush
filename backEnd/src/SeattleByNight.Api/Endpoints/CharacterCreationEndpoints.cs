@@ -43,7 +43,13 @@ public sealed record CatalogResponse(
     IReadOnlyList<CreationMethodResponse> CreationMethods,
     IReadOnlyList<PriorityLevelDefinition> PriorityLevels,
     IReadOnlyList<PriorityCategoryDefinition> PriorityCategories,
-    IReadOnlyList<PriorityCellDefinition> PriorityCells);
+    IReadOnlyList<PriorityCellDefinition> PriorityCells,
+    IReadOnlyList<MetatypeDefinition> Metatypes,
+    IReadOnlyList<AttributeDefinition> Attributes,
+    IReadOnlyList<QualityDefinition> Qualities,
+    IReadOnlyList<SkillDefinition> Skills,
+    IReadOnlyList<SkillGroupDefinition> SkillGroups,
+    IReadOnlyList<KnowledgeCategoryDefinition> KnowledgeCategories);
 
 public sealed record CharacterCreationDraftResponse(
     Guid CharacterId,
@@ -230,7 +236,13 @@ public static class CharacterCreationEndpoints
             .ToArray(),
         catalog.PriorityLevels.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
         catalog.PriorityCategories,
-        catalog.PriorityCells.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
+        catalog.PriorityCells.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+        catalog.Metatypes.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Attributes.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Qualities.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Skills.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.SkillGroups.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.KnowledgeCategories.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
 
     private static CharacterCreationDraftResponse ToResponse(CharacterCreationDraftDetails details)
     {

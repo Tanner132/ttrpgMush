@@ -40,14 +40,94 @@ export interface BudgetSummary {
 
 export interface Diagnostic {
     code: string
-    severity: 'info' | 'warning' | 'error' | 'blocking'
-    step: number
+    severity: 'Error' | 'Warning'
+    step: string
     fieldPath: string
-    message: string
     relatedOptionIds: string[]
-    sourceRule: string
+    source: SourceCitation
+    messageArguments: Record<string, string>
     suggestedResolution: string
 }
+
+export interface SourceCitation {
+    sourceId: string
+    printedPage: number
+    pdfPage: number
+}
+
+export interface PriorityLevel {
+    id: string
+    displayName: string
+    sumToTenCost: number
+    source: SourceCitation
+}
+
+export interface PriorityCategory {
+    id: string
+    displayName: string
+    source: SourceCitation
+}
+
+export interface PriorityCell {
+    id: string
+    categoryId: string
+    levelId: string
+    source: SourceCitation
+    physicalMentalAttributePoints?: number
+    metatypeSpecialAttributePoints?: Record<string, number>
+    availableMetatypeIds?: string[]
+}
+
+export interface MetatypeAttributeRange {
+    minimum: number
+    maximum: number
+}
+
+export interface Metatype {
+    id: string
+    displayName: string
+    attributes: Record<string, MetatypeAttributeRange>
+    traits: string
+    source: SourceCitation
+}
+
+export interface AttributeDefinition {
+    id: string
+    displayName: string
+    group: 'physical' | 'mental' | 'special'
+    source: SourceCitation
+}
+
+export interface PriorityAssignment {
+    metatype: string
+    attributes: string
+    magicOrResonance: string
+    skills: string
+    resources: string
+}
+
+export interface CharacterCreationDocument {
+    priorityAssignment: PriorityAssignment | null
+    metatype: { metatypeId: string } | null
+    attributes: { values: Record<string, number> } | null
+    specialAttributes: { values: Record<string, number> } | null
+    qualities?: QualitySelection[] | null
+    skills?: SkillAllocation[] | null
+    skillGroups?: SkillGroupAllocation[] | null
+    knowledgeSkills?: KnowledgeSkillAllocation[] | null
+    languages?: LanguageAllocation[] | null
+    nativeLanguage?: { name: string; native: boolean } | null
+}
+
+export interface QualitySelection { qualityId: string; rating?: number; parameters?: Record<string, string> }
+export interface SkillAllocation { skillId: string; rating: number; parameter?: string; specialization?: string }
+export interface SkillGroupAllocation { skillGroupId: string; rating: number }
+export interface KnowledgeSkillAllocation { name: string; categoryId: string; rating: number; specialization?: string }
+export interface LanguageAllocation { name: string; rating: number; specialization?: string }
+export interface QualityDefinition { id: string; displayName: string; polarity: string; cost: number; parameterized: boolean; repeatable: boolean; conflicts: string[]; source: SourceCitation }
+export interface SkillDefinition { id: string; displayName: string; category: string; linkedAttribute: string; groupId?: string; parameterized: boolean; source: SourceCitation }
+export interface SkillGroupDefinition { id: string; displayName: string; skillIds: string[]; source: SourceCitation }
+export interface KnowledgeCategoryDefinition { id: string; displayName: string; linkedAttribute: string; source: SourceCitation }
 
 export interface StepStatus {
     index: number
@@ -59,26 +139,33 @@ export interface DraftDetail {
     characterId: string
     name: string
     creationMethodId: CreationMethodId
-    catalogId: string
+    rulesetId: string
     catalogVersion: string
-    catalogDigest: string
+    catalogSemanticDigest: string
     documentSchemaVersion: number
-    document: Record<string, unknown>
+    document: CharacterCreationDocument
     version: string
-    budgets: BudgetSummary
     diagnostics: Diagnostic[]
-    steps: StepStatus[]
-    readiness: DraftReadiness
+    isReadyToFinalize: boolean
     createdAtUtc: string
     updatedAtUtc: string
 }
 
 export interface CatalogContract {
-    catalogId: string
-    version: string
-    digest: string
     rulesetId: string
-    creationMethods: { id: CreationMethodId; label: string }[]
+    version: string
+    semanticDigest: string
+    sources: { id: string; fileName: string; sha256: string }[]
+    creationMethods: { id: CreationMethodId; displayName: string; kind: string; source: SourceCitation }[]
+    priorityLevels: PriorityLevel[]
+    priorityCategories: PriorityCategory[]
+    priorityCells: PriorityCell[]
+    metatypes: Metatype[]
+    attributes: AttributeDefinition[]
+    qualities: QualityDefinition[]
+    skills: SkillDefinition[]
+    skillGroups: SkillGroupDefinition[]
+    knowledgeCategories: KnowledgeCategoryDefinition[]
 }
 
 // ─── API ─────────────────────────────────────────────────────────────────────
@@ -111,7 +198,7 @@ export async function updateDraft(
     characterId: string,
     expectedVersion: string,
     name: string,
-    document: Record<string, unknown>,
+    document: CharacterCreationDocument,
 ): Promise<DraftDetail> {
     return apiPut<DraftDetail>(`/api/character-creation/drafts/${characterId}`, {
         expectedVersion,

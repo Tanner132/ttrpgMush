@@ -44,8 +44,22 @@ public sealed class PriorityAssignmentEvaluator
                 continue;
             }
 
-            var cell = catalog.PriorityCells.Values.Single(item =>
+            var cell = catalog.PriorityCells.Values.FirstOrDefault(item =>
                 item.CategoryId == value.CategoryId && item.LevelId == level.Id);
+            if (cell is null)
+            {
+                diagnostics.Add(new CharacterCreationDiagnostic(
+                    "catalog.priority-cell.missing",
+                    CharacterCreationDiagnosticSeverity.Error,
+                    PriorityStep,
+                    value.FieldPath,
+                    [level.Id],
+                    level.Source,
+                    new Dictionary<string, string> { ["categoryId"] = value.CategoryId, ["levelId"] = level.Id },
+                    "The pinned catalog is missing a priority grant for this category."));
+                selections.Add(new PriorityAssignmentSelection(value.CategoryId, level.Id, null, null));
+                continue;
+            }
             selections.Add(new PriorityAssignmentSelection(
                 value.CategoryId,
                 level.Id,

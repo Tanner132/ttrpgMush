@@ -18,6 +18,10 @@ import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
 
 import { toErrorMessage } from '../../api/client.ts'
 
+import { getCatalog, type CatalogContract } from '../../api/characterCreation.ts'
+
+import { AttributeStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, SkillsStep, KnowledgeStep } from '../../components/characterCreation/CreationSteps.tsx'
+
 import '../../styles/characterCreation.css'
 
 
@@ -78,11 +82,7 @@ export default function CreatorShellPage() {
 
     currentStep,
 
-    setLocalName,
-
     setLocalDocument,
-
-    saveNow,
 
     goToStep,
 
@@ -100,7 +100,6 @@ export default function CreatorShellPage() {
 
     finalizing,
 
-    discarding,
 
   } = useDraft(characterId ?? '')
 
@@ -109,6 +108,16 @@ export default function CreatorShellPage() {
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
 
   const [discardBusy, setDiscardBusy] = useState(false)
+
+  const [catalog, setCatalog] = useState<CatalogContract | null>(null)
+
+  const [catalogError, setCatalogError] = useState<string | null>(null)
+  const creationMethodId = draft?.creationMethodId
+
+  useEffect(() => {
+    if (!creationMethodId) return
+    void getCatalog(creationMethodId).then(setCatalog).catch((error) => setCatalogError(toErrorMessage(error)))
+  }, [creationMethodId])
 
 
 
@@ -224,7 +233,7 @@ export default function CreatorShellPage() {
 
 
 
-  if (loadError || !draft) {
+  if (loadError || !draft || catalogError) {
 
     return (
 
@@ -232,7 +241,7 @@ export default function CreatorShellPage() {
 
         <StatusBanner tone="danger" role="alert">
 
-          {loadError ?? 'Unable to load this draft.'}
+          {loadError ?? catalogError ?? 'Unable to load this draft.'}
 
         </StatusBanner>
 
@@ -260,6 +269,27 @@ export default function CreatorShellPage() {
 
   const canGoForward = currentStep < 15
 
+  const attentionSteps = new Set<number>(draft.diagnostics.map((diagnostic) => {
+    if (diagnostic.step === 'priority') return 3
+    if (diagnostic.step === 'metatype-and-attributes') {
+      return diagnostic.fieldPath.startsWith('attributes') ? 5 : 4
+    }
+    if (diagnostic.step === 'qualities') return 6
+    if (diagnostic.step === 'skills') return 8
+    if (diagnostic.step === 'knowledge') return 10
+    return 0
+  }))
+  const steps = Object.entries(STEP_LABELS).map(([index, label]) => {
+    const stepIndex = Number(index)
+    return {
+      index: stepIndex,
+      label,
+      state: attentionSteps.has(stepIndex)
+        ? 'attention' as const
+         : stepIndex <= 6 || stepIndex === 8 || stepIndex === 10 ? 'available' as const : 'locked' as const,
+    }
+  })
+
 
 
   return (
@@ -274,7 +304,7 @@ export default function CreatorShellPage() {
 
         <StepRail
 
-          steps={draft.steps}
+          steps={steps}
 
           currentStep={currentStep}
 
@@ -290,46 +320,15 @@ export default function CreatorShellPage() {
 
 
 
-          {/* Budget telemetry immediately below the active heading */}
-
-          {draft.budgets && (
-
-            <div className="creator-shell__budget-telemetry" role="status" aria-label="Current budgets">
-
-              <span>
-
-                Available: <strong>{draft.budgets.totalAvailable}</strong>
-
-              </span>
-
-              <span>
-
-                Spent: <strong>{draft.budgets.totalSpent}</strong>
-
-              </span>
-
-              <span className={draft.budgets.totalRemaining < 0 ? 'creator-shell__budget--negative' : ''}>
-
-                Remaining: <strong>{draft.budgets.totalRemaining}</strong>
-
-              </span>
-
-            </div>
-
-          )}
-
-
-
-          {/* Step content placeholder — CHAR-806+ will replace this with actual step forms */}
-
           <div className="creator-shell__step-content">
-
-            <p className="creator-shell__placeholder">
-
-              {STEP_LABELS[currentStep] ?? `Step ${currentStep}`} — content will be implemented in a subsequent
-milestone.
-
-            </p>
+            {catalog && currentStep === 3 && <PriorityAssignmentStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+            {catalog && currentStep === 4 && <MetatypeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStep === 5 && <AttributeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStep === 6 && <QualitiesStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStep === 8 && <SkillsStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStep === 10 && <KnowledgeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {currentStep === 2 && <p className="creator-shell__placeholder">Identity is set when the draft is created.</p>}
+             {currentStep > 5 && currentStep !== 6 && currentStep !== 8 && currentStep !== 10 && <p className="creator-shell__placeholder">This section will unlock in a later creation milestone.</p>}
 
           </div>
 
@@ -425,8 +424,6 @@ milestone.
 
         <InspectorPanel
 
-          budgets={draft.budgets}
-
           diagnostics={draft.diagnostics}
 
         />
@@ -446,6 +443,8 @@ milestone.
         isFinalStep={isFinalStep}
 
         finalizing={finalizing}
+
+        canFinalize={draft.isReadyToFinalize}
 
         onBack={prevStep}
 

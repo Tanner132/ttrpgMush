@@ -13,6 +13,7 @@ public static class DependencyInjection
             configuration.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
         services.AddSingleton<IRulesetCatalogProvider>(new EmbeddedRulesetCatalogProvider());
         services.AddSingleton<PriorityAssignmentEvaluator>();
+        services.AddSingleton<MetatypeAndAttributeEvaluator>();
         services.AddSingleton<CharacterCreationDraftEvaluator>();
 
         return services;

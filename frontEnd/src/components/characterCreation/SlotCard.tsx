@@ -9,8 +9,6 @@ interface SlotCardProps {
 }
 
 export function SlotCard({ slot, index, selectingId, onEnterWorld }: SlotCardProps) {
-    const slotId = slot.draft?.characterId ?? slot.finalized?.characterId ?? `empty-${index}`
-
     if (slot.kind === 'empty') {
         return (
             <div

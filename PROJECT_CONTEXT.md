@@ -243,6 +243,18 @@ implemented rule and catalog option must cite the approved PDF and page.
 Unclear interpretations must still be recorded as product decisions and
 confirmed before implementation.
 
+Character-creation navigation is non-linear. A player may revisit and change
+any earlier step at any time. Saving an upstream change must not silently delete
+or normalize downstream selections. Instead, the server re-evaluates the full
+typed draft against the new budgets, caps, prerequisites, and provenance, and
+returns field-level diagnostics for every downstream value that is now invalid
+(for example, skill points or nuyen overspent after lowering a priority grant).
+The UI must preserve those selections, mark the affected future steps as
+attention-required, and explain the amount or requirement that must be fixed.
+Finalization is blocked until the complete draft is valid. This applies to all
+budgeted or constrained sections, including attributes, skills, resources,
+nuyen, special points, and future downstream systems.
+
 ## Transactional Gameplay Ordering
 
 PostgreSQL serializes gameplay mutations by locking the active play-session row
@@ -404,14 +416,28 @@ The Application layer includes the first immutable SR5 catalog foundation for
 `sr5-core` version `1.0.0`, pinned by a semantic SHA-256 digest. It validates the
 approved sources, creation methods, priority levels/categories, and all 25
 priority cells at startup. Its pure evaluator returns structured diagnostics and
-canonical previews for Standard Priority and Sum-to-Ten assignments.
+canonical previews for Standard Priority and Sum-to-Ten assignments. The catalog
+also contains the five core metatypes, natural attribute ranges, metatype
+priority availability and special-point grants, normal attribute definitions,
+and normal-attribute priority point grants. Draft documents can carry typed
+metatype, normal-attribute, and special-attribute allocations; server evaluation
+validates priority compatibility, point totals, natural maxima, and metatype
+  ranges. CHAR-807 adds typed immutable catalog surfaces for 31 positive and 28
+  negative qualities, 75 active skills, 15 skill groups, and 4 open Knowledge
+  categories, plus additive draft selections, bounded text validation, quality
+  caps/conflicts, skill and group budgets, and native-language validation. The
+  creator UI now exposes Qualities, Active Skills & Groups, and Knowledge &
+  Languages; later magic and resource sections remain unavailable until their
+  milestones.
 
 The persistence layer supports slot-bearing, name-reserving SR5 drafts with JSONB
 typed selections, UUID optimistic concurrency, start/read/update/discard/finalize
 application operations, and immutable evaluated sheets. Existing characters were
 migrated to explicit legacy finalized sheets without invented SR5 statistics.
 Only finalized characters are playable. The authenticated character-creation
-HTTP surface is implemented; the creator UI is not implemented yet.
+  HTTP surface and the priority, metatype, attribute, quality, skill, and
+  knowledge creator UI are implemented. Later creation sections remain
+  unavailable until their milestones.
 
 Backend endpoints:
 

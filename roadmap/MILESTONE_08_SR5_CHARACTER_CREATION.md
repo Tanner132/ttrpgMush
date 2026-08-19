@@ -182,6 +182,15 @@ preview and explicit confirmation. The server reports the exact selections clear
 budgets refunded, and earliest invalidated step. The client never guesses cascading
 effects.
 
+Earlier-step edits are always allowed. An upstream edit must preserve downstream
+selections in the draft, then re-evaluate the complete aggregate against the new
+rules and budgets. Newly invalid downstream values are never silently cleared;
+the response identifies each affected field, the exceeded amount or unmet
+requirement, and the earliest affected step. Those steps remain editable and are
+marked attention-required, and finalization remains unavailable until every
+diagnostic is resolved. This applies equally to priority grants, attribute and
+skill points, special points, nuyen, and later resource budgets.
+
 Autosave discrete changes immediately and text after blur or a short idle delay.
 Serialize writes per draft, keep the server snapshot canonical, and provide explicit
 Unsaved, Saving, Saved, Failed, and Conflict states. Never use local storage as the
@@ -298,6 +307,8 @@ authoritative draft.
 - Attribute allocation preserves priority, special-point, and Karma provenance.
 - Knowledge, contact, limit, and other dependent previews recalculate authoritatively.
 - Invalid downstream selections are never silently removed.
+- Revisiting any earlier step preserves later selections, surfaces authoritative
+  invalidation diagnostics, and blocks finalization until the draft is repaired.
 
 ## CHAR-807: Implement Qualities, Skills, And Knowledge
 

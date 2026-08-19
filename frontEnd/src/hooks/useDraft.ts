@@ -15,6 +15,7 @@ import {
   type DraftDetail,
 
   type SaveState,
+  type CharacterCreationDocument,
 
 } from '../api/characterCreation.ts'
 
@@ -38,7 +39,7 @@ interface UseDraftResult {
 
   setLocalName: (name: string) => void
 
-  setLocalDocument: (doc: Record<string, unknown>) => void
+  setLocalDocument: (doc: CharacterCreationDocument) => void
 
   saveNow: () => Promise<boolean>
 
@@ -78,16 +79,23 @@ export function useDraft(characterId: string): UseDraftResult {
     const [discardError, setDiscardError] = useState<string | null>(null)
     const [finalizing, setFinalizing] = useState(false)
     const [discarding, setDiscarding] = useState(false)
+    const draftRef = useRef<DraftDetail | null>(null)
 
     // Local mutable state
     const localName = useRef<string>('')
-    const localDocument = useRef<Record<string, unknown>>({})
+    const localDocument = useRef<CharacterCreationDocument>({
+      priorityAssignment: null,
+      metatype: null,
+      attributes: null,
+      specialAttributes: null,
+    })
     const [currentStep, setCurrentStep] = useState(2)
 
     // Serialization: only one write in flight at a time
     const writeQueue = useRef<Promise<boolean>>(Promise.resolve(true))
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     const isDirty = useRef(false)
+    const editGeneration = useRef(0)
 
     const load = useCallback(async () => {
 
@@ -99,13 +107,12 @@ export function useDraft(characterId: string): UseDraftResult {
         const detail = await getDraft(characterId)
     
         setDraft(detail)
+        draftRef.current = detail
 
         localName.current = detail.name
         localDocument.current = detail.document
 
-        const step = (detail.document as { currentStep?: number }).currentStep ?? 2
-
-        setCurrentStep(step)
+        setCurrentStep(2)
         setSaveState('idle')
 
     } catch (error) {
@@ -121,7 +128,7 @@ export function useDraft(characterId: string): UseDraftResult {
     }, [load])
 
     const performSave = useCallback(async (): Promise<boolean> => {
-        if (!draft) return false
+        if (!draftRef.current) return false
 
         setSaveState('saving')
         setSaveError(null)
@@ -130,17 +137,23 @@ export function useDraft(characterId: string): UseDraftResult {
         const next = previous.then(async () => {
 
         try {
+            const requestGeneration = editGeneration.current
 
             const updated = await updateDraft(
                 characterId,
-                draft.version,
+                draftRef.current!.version,
                 localName.current,
                 localDocument.current,
             )
 
-            setDraft(updated)
-            isDirty.current = false
-            setSaveState('saved')
+            const changedDuringRequest = editGeneration.current !== requestGeneration
+            const reconciled = changedDuringRequest
+              ? { ...updated, name: localName.current, document: localDocument.current }
+              : updated
+            setDraft(reconciled)
+            draftRef.current = reconciled
+            isDirty.current = changedDuringRequest
+            setSaveState(changedDuringRequest ? 'unsaved' : 'saved')
             return true
 
         } catch (error) {
@@ -167,7 +180,7 @@ export function useDraft(characterId: string): UseDraftResult {
 
     return next
 
-  }, [characterId, draft])
+  }, [characterId])
 
 
 
@@ -204,6 +217,13 @@ export function useDraft(characterId: string): UseDraftResult {
 
     (name: string) => {
       localName.current = name
+      editGeneration.current += 1
+      setDraft((current) => {
+        if (!current) return current
+        const updated = { ...current, name }
+        draftRef.current = updated
+        return updated
+      })
       scheduleAutosave()
     },
 
@@ -213,8 +233,15 @@ export function useDraft(characterId: string): UseDraftResult {
 
 
   const setLocalDocument = useCallback(
-    (doc: Record<string, unknown>) => {
+    (doc: CharacterCreationDocument) => {
       localDocument.current = doc
+      editGeneration.current += 1
+      setDraft((current) => {
+        if (!current) return current
+        const updated = { ...current, document: doc }
+        draftRef.current = updated
+        return updated
+      })
       scheduleAutosave()
     },
 
@@ -231,12 +258,10 @@ export function useDraft(characterId: string): UseDraftResult {
 
       setCurrentStep(clamped)
 
-      localDocument.current = { ...localDocument.current, currentStep: clamped }
-
-      scheduleAutosave()
+      // The active step is UI state; the backend rejects unknown document fields.
 
     },
-    [scheduleAutosave],
+    [],
   )
 
 
@@ -246,13 +271,9 @@ export function useDraft(characterId: string): UseDraftResult {
 
       const next = Math.min(15, prev + 1)
 
-      localDocument.current = { ...localDocument.current, currentStep: next }
-
-      scheduleAutosave()
-
       return next
     })
-  }, [scheduleAutosave])
+  }, [])
 
 
 
@@ -262,15 +283,11 @@ export function useDraft(characterId: string): UseDraftResult {
 
       const next = Math.max(2, prev - 1)
 
-      localDocument.current = { ...localDocument.current, currentStep: next }
-
-      scheduleAutosave()
-
       return next
 
     })
 
-  }, [scheduleAutosave])
+  }, [])
 
   const discard = useCallback(async () => {
 
@@ -312,9 +329,10 @@ export function useDraft(characterId: string): UseDraftResult {
 
       // Ensure latest state is saved first
 
-      await saveNow()
+      const saved = await saveNow()
+      if (!saved || !draftRef.current) return
 
-      await finalizeDraft(characterId, draft.version)
+      await finalizeDraft(characterId, draftRef.current.version)
 
       // Caller navigates away
 

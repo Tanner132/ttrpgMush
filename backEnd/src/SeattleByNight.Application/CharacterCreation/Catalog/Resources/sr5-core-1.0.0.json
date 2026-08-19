@@ -42,16 +42,16 @@
     { "id": "resources", "displayName": "Resources", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } }
   ],
   "priorityCells": [
-    { "id": "priority-metatype-a", "categoryId": "metatype", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-metatype-b", "categoryId": "metatype", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-metatype-c", "categoryId": "metatype", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-metatype-d", "categoryId": "metatype", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-metatype-e", "categoryId": "metatype", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-attributes-a", "categoryId": "attributes", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-attributes-b", "categoryId": "attributes", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-attributes-c", "categoryId": "attributes", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-attributes-d", "categoryId": "attributes", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
-    { "id": "priority-attributes-e", "categoryId": "attributes", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "priority-metatype-a", "categoryId": "metatype", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 9, "elf": 8, "dwarf": 7, "ork": 7, "troll": 5 }, "availableMetatypeIds": ["human", "elf", "dwarf", "ork", "troll"] },
+    { "id": "priority-metatype-b", "categoryId": "metatype", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 7, "elf": 6, "dwarf": 4, "ork": 4, "troll": 0 }, "availableMetatypeIds": ["human", "elf", "dwarf", "ork", "troll"] },
+    { "id": "priority-metatype-c", "categoryId": "metatype", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 5, "elf": 3, "dwarf": 1, "ork": 0 }, "availableMetatypeIds": ["human", "elf", "dwarf", "ork"] },
+    { "id": "priority-metatype-d", "categoryId": "metatype", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 3, "elf": 0 }, "availableMetatypeIds": ["human", "elf"] },
+    { "id": "priority-metatype-e", "categoryId": "metatype", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "metatypeSpecialAttributePoints": { "human": 1 }, "availableMetatypeIds": ["human"] },
+    { "id": "priority-attributes-a", "categoryId": "attributes", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 24 },
+    { "id": "priority-attributes-b", "categoryId": "attributes", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 20 },
+    { "id": "priority-attributes-c", "categoryId": "attributes", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 16 },
+    { "id": "priority-attributes-d", "categoryId": "attributes", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 14 },
+    { "id": "priority-attributes-e", "categoryId": "attributes", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 }, "physicalMentalAttributePoints": 12 },
     { "id": "priority-magic-resonance-a", "categoryId": "magic-resonance", "levelId": "a", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
     { "id": "priority-magic-resonance-b", "categoryId": "magic-resonance", "levelId": "b", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
     { "id": "priority-magic-resonance-c", "categoryId": "magic-resonance", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
@@ -67,5 +67,26 @@
     { "id": "priority-resources-c", "categoryId": "resources", "levelId": "c", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
     { "id": "priority-resources-d", "categoryId": "resources", "levelId": "d", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
     { "id": "priority-resources-e", "categoryId": "resources", "levelId": "e", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } }
+  ],
+  "metatypes": [
+    { "id": "human", "displayName": "Human", "attributes": { "body": { "minimum": 1, "maximum": 6 }, "agility": { "minimum": 1, "maximum": 6 }, "reaction": { "minimum": 1, "maximum": 6 }, "strength": { "minimum": 1, "maximum": 6 }, "willpower": { "minimum": 1, "maximum": 6 }, "logic": { "minimum": 1, "maximum": 6 }, "intuition": { "minimum": 1, "maximum": 6 }, "charisma": { "minimum": 1, "maximum": 6 }, "edge": { "minimum": 2, "maximum": 7 } }, "traits": "None", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "elf", "displayName": "Elf", "attributes": { "body": { "minimum": 1, "maximum": 6 }, "agility": { "minimum": 2, "maximum": 7 }, "reaction": { "minimum": 1, "maximum": 6 }, "strength": { "minimum": 1, "maximum": 6 }, "willpower": { "minimum": 1, "maximum": 6 }, "logic": { "minimum": 1, "maximum": 6 }, "intuition": { "minimum": 1, "maximum": 6 }, "charisma": { "minimum": 3, "maximum": 8 }, "edge": { "minimum": 1, "maximum": 6 } }, "traits": "Low-Light Vision", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "dwarf", "displayName": "Dwarf", "attributes": { "body": { "minimum": 3, "maximum": 8 }, "agility": { "minimum": 1, "maximum": 6 }, "reaction": { "minimum": 1, "maximum": 5 }, "strength": { "minimum": 3, "maximum": 8 }, "willpower": { "minimum": 2, "maximum": 7 }, "logic": { "minimum": 1, "maximum": 6 }, "intuition": { "minimum": 1, "maximum": 6 }, "charisma": { "minimum": 1, "maximum": 6 }, "edge": { "minimum": 1, "maximum": 6 } }, "traits": "Pathogen and toxin resistance", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "ork", "displayName": "Ork", "attributes": { "body": { "minimum": 4, "maximum": 9 }, "agility": { "minimum": 1, "maximum": 6 }, "reaction": { "minimum": 1, "maximum": 6 }, "strength": { "minimum": 3, "maximum": 8 }, "willpower": { "minimum": 1, "maximum": 6 }, "logic": { "minimum": 1, "maximum": 5 }, "intuition": { "minimum": 1, "maximum": 6 }, "charisma": { "minimum": 1, "maximum": 5 }, "edge": { "minimum": 1, "maximum": 6 } }, "traits": "Low-Light Vision", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "troll", "displayName": "Troll", "attributes": { "body": { "minimum": 5, "maximum": 10 }, "agility": { "minimum": 1, "maximum": 5 }, "reaction": { "minimum": 1, "maximum": 6 }, "strength": { "minimum": 5, "maximum": 10 }, "willpower": { "minimum": 1, "maximum": 6 }, "logic": { "minimum": 1, "maximum": 5 }, "intuition": { "minimum": 1, "maximum": 5 }, "charisma": { "minimum": 1, "maximum": 4 }, "edge": { "minimum": 1, "maximum": 6 } }, "traits": "Thermographic Vision, Reach +1, dermal armor +1", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } }
+  ],
+  "attributes": [
+    { "id": "body", "displayName": "Body", "group": "physical", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "agility", "displayName": "Agility", "group": "physical", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "reaction", "displayName": "Reaction", "group": "physical", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "strength", "displayName": "Strength", "group": "physical", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "willpower", "displayName": "Willpower", "group": "mental", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "logic", "displayName": "Logic", "group": "mental", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "intuition", "displayName": "Intuition", "group": "mental", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "charisma", "displayName": "Charisma", "group": "mental", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "edge", "displayName": "Edge", "group": "special", "source": { "sourceId": "sr5-core", "printedPage": 66, "pdfPage": 68 } },
+    { "id": "essence", "displayName": "Essence", "group": "special", "source": { "sourceId": "sr5-core", "printedPage": 52, "pdfPage": 54 } },
+    { "id": "magic", "displayName": "Magic", "group": "special", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } },
+    { "id": "resonance", "displayName": "Resonance", "group": "special", "source": { "sourceId": "sr5-core", "printedPage": 65, "pdfPage": 67 } }
   ]
 }

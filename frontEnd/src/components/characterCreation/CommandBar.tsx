@@ -16,6 +16,8 @@ interface CommandBarProps {
 
   finalizing: boolean
 
+  canFinalize: boolean
+
   onBack: () => void
 
   onForward: () => void
@@ -55,6 +57,8 @@ export function CommandBar({
   isFinalStep,
 
   finalizing,
+
+  canFinalize,
 
   onBack,
 
@@ -118,7 +122,7 @@ export function CommandBar({
 
             intent="primary"
 
-            disabled={finalizing}
+            disabled={finalizing || !canFinalize}
 
             onClick={onFinalize}
 
@@ -126,7 +130,7 @@ export function CommandBar({
 
           >
 
-            {finalizing ? 'Finalizing…' : 'Finalize'}
+            {finalizing ? 'Finalizing…' : canFinalize ? 'Finalize' : 'Resolve issues to finalize'}
 
           </Button>
 

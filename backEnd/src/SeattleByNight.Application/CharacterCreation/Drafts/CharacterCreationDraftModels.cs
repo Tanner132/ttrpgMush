@@ -18,7 +18,35 @@ public static class LegacyCharacterSheetDefaults
     public const string CanonicalSheetJson = "{\"legacy\":true}";
 }
 
-public sealed record CharacterCreationDraftDocument(PriorityAssignment? PriorityAssignment);
+public sealed record MetatypeSelection(string MetatypeId);
+
+public sealed record AttributeAllocation(IReadOnlyDictionary<string, int> Values);
+
+public sealed record SpecialAttributeAllocation(IReadOnlyDictionary<string, int> Values);
+
+public sealed record QualitySelection(string QualityId, int? Rating = null, IReadOnlyDictionary<string, string>? Parameters = null);
+
+public sealed record SkillAllocation(string SkillId, int Rating, string? Parameter = null, string? Specialization = null);
+
+public sealed record SkillGroupAllocation(string SkillGroupId, int Rating);
+
+public sealed record KnowledgeSkillAllocation(string Name, string CategoryId, int Rating, string? Specialization = null);
+
+public sealed record LanguageAllocation(string Name, int Rating, string? Specialization = null);
+
+public sealed record LanguageSelection(string Name, bool Native = false);
+
+public sealed record CharacterCreationDraftDocument(
+    PriorityAssignment? PriorityAssignment,
+    MetatypeSelection? Metatype = null,
+    AttributeAllocation? Attributes = null,
+    SpecialAttributeAllocation? SpecialAttributes = null,
+    IReadOnlyList<QualitySelection>? Qualities = null,
+    IReadOnlyList<SkillAllocation>? Skills = null,
+    IReadOnlyList<SkillGroupAllocation>? SkillGroups = null,
+    IReadOnlyList<KnowledgeSkillAllocation>? KnowledgeSkills = null,
+    IReadOnlyList<LanguageAllocation>? Languages = null,
+    LanguageSelection? NativeLanguage = null);
 
 public sealed record CharacterCreationChangePreview(
     CharacterCreationDraftDetails Candidate,

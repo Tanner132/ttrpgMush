@@ -46,9 +46,8 @@ const READINESS_LABELS: Record<string, string> = {
 
 export function DossierHeader({ draft, saveState, currentStep }: DossierHeaderProps) {
 
-  const methodLabel =
-
-    draft.creationMethodId === 'standard-priority' ? 'Standard Priority' : 'Sum-to-Ten'
+  const methodLabel = draft.creationMethodId === 'standard-priority' ? 'Standard Priority' : 'Sum-to-Ten'
+  const readiness = draft.isReadyToFinalize ? 'ready' : 'incomplete'
 
 
 
@@ -88,11 +87,11 @@ export function DossierHeader({ draft, saveState, currentStep }: DossierHeaderPr
 
         <span
 
-          className={`dossier-header__readiness dossier-header__readiness--${draft.readiness}`}
+          className={`dossier-header__readiness dossier-header__readiness--${readiness}`}
 
         >
 
-          {READINESS_LABELS[draft.readiness] ?? draft.readiness}
+          {READINESS_LABELS[readiness]}
 
         </span>
 
