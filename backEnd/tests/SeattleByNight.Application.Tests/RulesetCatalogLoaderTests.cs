@@ -130,6 +130,49 @@ public sealed class RulesetCatalogLoaderTests
     }
 
     [Fact]
+    public void Weapon_catalog_matches_the_core_inventory()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        Assert.Equal(74, catalog.Weapons.Count);
+
+        Assert.Equal(8, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "blades"));
+        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "clubs"));
+        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "other-melee"));
+        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "bows"));
+        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "crossbows"));
+        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "throwing-weapons"));
+        Assert.Equal(2, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "tasers"));
+        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "hold-outs"));
+        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "light-pistols"));
+        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "heavy-pistols"));
+        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-pistols"));
+        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "submachine-guns"));
+        Assert.Equal(5, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "assault-rifles"));
+        Assert.Equal(5, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "sniper-rifles"));
+        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "shotguns"));
+        Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "special-weapons"));
+        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-guns"));
+        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "cannons-launchers"));
+
+        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.CreationUnavailable));
+        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.Parameterized));
+
+        var bow = catalog.Weapons["bow"];
+        Assert.Equal(1, bow.RatingRange!.Minimum);
+        Assert.Equal(10, bow.RatingRange.Maximum);
+        Assert.Equal(424, bow.Source.PrintedPage);
+
+        var katana = catalog.Weapons["katana"];
+        Assert.Equal(423, katana.Source.PrintedPage);
+        Assert.Equal("(STR + 3)P", katana.Damage);
+
+        Assert.Equal("Ruger 101", catalog.Weapons["ruger-101"].DisplayName);
+        Assert.Equal(14, catalog.Weapons["yamaha-raiden"].Availability!.Fixed);
+        Assert.Equal(GearClassification.CreationUnavailable, catalog.Weapons["yamaha-raiden"].Classification);
+    }
+
+    [Fact]
     public void Semantic_digest_ignores_object_property_order_and_whitespace()
     {
         const string first = "{\"b\":2,\"a\":1}";
