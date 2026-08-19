@@ -59,6 +59,31 @@ public sealed class RulesetCatalogLoaderTests
     }
 
     [Fact]
+    public void Retained_catalog_digests_match_the_committed_pins()
+    {
+        foreach (var pin in EmbeddedRulesetCatalogProvider.RetainedVersions)
+        {
+            using var stream = typeof(RulesetCatalog).Assembly.GetManifestResourceStream(pin.ResourceName)
+                ?? throw new InvalidOperationException($"Embedded catalog resource '{pin.ResourceName}' was not found.");
+            using var reader = new StreamReader(stream);
+
+            Assert.Equal(pin.SemanticDigest, RulesetCatalogLoader.ComputeSemanticDigest(reader.ReadToEnd()));
+        }
+    }
+
+    [Fact]
+    public void Retained_versions_are_resolvable_and_unknown_versions_throw()
+    {
+        var provider = new EmbeddedRulesetCatalogProvider();
+
+        var current = provider.Get(EmbeddedRulesetCatalogProvider.CurrentRulesetId, EmbeddedRulesetCatalogProvider.CurrentVersion);
+        Assert.Equal(EmbeddedRulesetCatalogProvider.CurrentSemanticDigest, current.SemanticDigest);
+
+        Assert.Throws<KeyNotFoundException>(() => provider.Get("sr5-core", "0.0.0"));
+        Assert.Throws<KeyNotFoundException>(() => provider.Get("other-book", "1.0.0"));
+    }
+
+    [Fact]
     public void Current_catalog_has_complete_priority_foundation()
     {
         var catalog = CatalogTestData.Catalog;
@@ -70,6 +95,38 @@ public sealed class RulesetCatalogLoaderTests
         Assert.Equal(5, catalog.PriorityCategories.Count);
         Assert.Equal(25, catalog.PriorityCells.Count);
         Assert.All(catalog.PriorityCells.Values, cell => Assert.True(cell.Source.PrintedPage > 0));
+    }
+
+    [Fact]
+    public void Armor_catalog_matches_the_core_inventory()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        Assert.Equal(11, catalog.Armor.Count);
+        Assert.Equal(10, catalog.Armor.Values.Count(armor => armor.Classification == GearClassification.Selectable));
+        Assert.Single(catalog.Armor.Values, armor => armor.Classification == GearClassification.CreationUnavailable);
+
+        var jacket = catalog.Armor["armor-jacket"];
+        Assert.Equal(12, jacket.ArmorRating);
+        Assert.Equal(12, jacket.Capacity);
+        Assert.Equal(1000, jacket.Cost!.Fixed);
+        Assert.Equal(Legality.Legal, jacket.Availability!.Legality);
+
+        var suit = catalog.Armor["chameleon-suit"];
+        Assert.Equal(10, suit.Availability!.Fixed);
+        Assert.Equal(Legality.Restricted, suit.Availability.Legality);
+
+        var bodyArmor = catalog.Armor["full-body-armor"];
+        Assert.Equal(GearClassification.CreationUnavailable, bodyArmor.Classification);
+
+        var helmet = catalog.Armor["helmet"];
+        Assert.Equal(2, helmet.ArmorRating);
+        Assert.Equal(6, helmet.Capacity);
+        Assert.Equal(438, helmet.Source.PrintedPage);
+
+        var shield = catalog.Armor["ballistic-shield"];
+        Assert.Equal(6, shield.ArmorRating);
+        Assert.Equal(12, shield.Availability!.Fixed);
     }
 
     [Fact]

@@ -23,7 +23,7 @@ describe('creation steps', () => {
 
   it('marks exactly the implemented steps available', () => {
     expect(CREATION_STEPS.filter((step) => isStepAvailable(step.index)).map((step) => step.index))
-      .toEqual([2, 3, 4, 5, 6, 8, 9, 10])
+      .toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 12])
   })
 
   it('maps diagnostics to their attention step', () => {
@@ -32,6 +32,7 @@ describe('creation steps', () => {
     expect(diagnosticStepIndex('skills', 'skills')).toBe(8)
     expect(diagnosticStepIndex('awakening-emergence', 'magicResonance')).toBe(9)
     expect(diagnosticStepIndex('knowledge', 'knowledge')).toBe(10)
+    expect(diagnosticStepIndex('resources', 'resources[wired-reflexes]')).toBe(7)
     expect(diagnosticStepIndex('unknown', '')).toBe(0)
   })
 

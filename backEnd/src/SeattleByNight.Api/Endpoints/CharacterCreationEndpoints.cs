@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -60,7 +61,13 @@ public sealed record CatalogResponse(
     IReadOnlyList<ComplexFormDefinition> ComplexForms,
     IReadOnlyList<SpiritTypeDefinition> SpiritTypes,
     IReadOnlyList<SpriteTypeDefinition> SpriteTypes,
-    IReadOnlyList<FocusDefinition> Foci);
+    IReadOnlyList<FocusDefinition> Foci,
+    IReadOnlyList<GearDefinition> Gear,
+    IReadOnlyList<WeaponDefinition> Weapons,
+    IReadOnlyList<ArmorDefinition> Armor,
+    IReadOnlyList<AugmentationGradeDefinition> AugmentationGrades,
+    IReadOnlyList<AugmentationDefinition> Augmentations,
+    IReadOnlyList<VehicleDefinition> Vehicles);
 
 public sealed record CharacterCreationDraftResponse(
     Guid CharacterId,
@@ -100,6 +107,11 @@ public sealed record FinalizedCharacterSheetResponse(
 
 public static class CharacterCreationEndpoints
 {
+    private static readonly JsonSerializerOptions CatalogJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() },
+    };
+
     public static IEndpointRouteBuilder MapCharacterCreationEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/character-creation").RequireAuthorization();
@@ -122,14 +134,14 @@ public static class CharacterCreationEndpoints
         var catalog = catalogs.Current;
         return method is not null && !catalog.CreationMethods.ContainsKey(method)
             ? Problem(CharacterCreationDraftError.InvalidCreationMethod)
-            : Results.Ok(ToResponse(catalog));
+            : Results.Json(ToResponse(catalog), CatalogJsonOptions);
     }
 
     private static IResult GetCatalog(string catalogId, string version, IRulesetCatalogProvider catalogs)
     {
         try
         {
-            return Results.Ok(ToResponse(catalogs.Get(catalogId, version)));
+            return Results.Json(ToResponse(catalogs.Get(catalogId, version)), CatalogJsonOptions);
         }
         catch (KeyNotFoundException)
         {
@@ -264,7 +276,13 @@ public static class CharacterCreationEndpoints
          catalog.ComplexForms.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
          catalog.SpiritTypes.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
          catalog.SpriteTypes.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-         catalog.Foci.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
+         catalog.Foci.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Gear.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Weapons.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Armor.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.AugmentationGrades.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Augmentations.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.Vehicles.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
 
     private static CharacterCreationDraftResponse ToResponse(CharacterCreationDraftDetails details)
     {

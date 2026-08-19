@@ -20,7 +20,7 @@ import { toErrorMessage } from '../../api/client.ts'
 
 import { getCatalog, type CatalogContract } from '../../api/characterCreation.ts'
 
-import { AttributeStep, KnowledgeStep, MagicResonanceStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, SkillsStep } from '../../components/characterCreation/CreationSteps.tsx'
+import { AttributeStep, AugmentationsStep, KnowledgeStep, MagicResonanceStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, ResourcesStep, SkillsStep } from '../../components/characterCreation/CreationSteps.tsx'
 
 import { CREATION_STEPS, FIRST_STEP_INDEX, LAST_STEP_INDEX, diagnosticStepIndex, isStepAvailable, stepIdByIndex, stepLabel } from '../../components/characterCreation/steps.ts'
 
@@ -286,9 +286,11 @@ export default function CreatorShellPage() {
             {catalog && currentStepId === 'metatype' && <MetatypeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {catalog && currentStepId === 'attributes' && <AttributeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {catalog && currentStepId === 'qualities' && <QualitiesStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+{catalog && currentStepId === 'augmentations' && <AugmentationsStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
 {catalog && currentStepId === 'skills' && <SkillsStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {catalog && currentStepId === 'awakening' && <MagicResonanceStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {catalog && currentStepId === 'knowledge' && <KnowledgeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStepId === 'resources' && <ResourcesStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {currentStepId === 'identity' && <p className="creator-shell__placeholder">Identity is set when the draft is created.</p>}
              {!isStepAvailable(currentStep) && <p className="creator-shell__placeholder">This section will unlock in a later creation milestone.</p>}
 

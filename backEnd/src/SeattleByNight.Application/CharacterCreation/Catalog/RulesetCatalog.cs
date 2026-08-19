@@ -45,7 +45,8 @@ public sealed record PriorityCellDefinition(
     IReadOnlyList<string>? AvailableMetatypeIds = null,
     int? IndividualSkillPoints = null,
     int? SkillGroupPoints = null,
-    IReadOnlyList<MagicResonancePathGrant>? MagicResonancePathGrants = null);
+    IReadOnlyList<MagicResonancePathGrant>? MagicResonancePathGrants = null,
+    int? ResourceNuyen = null);
 
 public sealed record QualityDefinition(
     string Id,
@@ -186,6 +187,132 @@ public sealed record FocusDefinition(
     bool CreationUnavailable,
     SourceCitation Source);
 
+public enum GearClassification
+{
+    Selectable,
+    Parameterized,
+    IncludedComponent,
+    Generated,
+    Bookkeeping,
+    CreationUnavailable,
+    Excluded,
+}
+
+public enum Legality
+{
+    Legal,
+    Restricted,
+    Forbidden,
+}
+
+public sealed record AvailabilityDefinition(
+    int? Fixed = null,
+    int? PerRating = null,
+    IReadOnlyDictionary<int, int>? ByRating = null,
+    Legality Legality = Legality.Legal);
+
+public sealed record CostDefinition(
+    decimal? Fixed = null,
+    decimal? PerRating = null,
+    IReadOnlyDictionary<int, decimal>? ByRating = null);
+
+public sealed record EssenceDefinition(
+    decimal? Fixed = null,
+    decimal? PerRating = null,
+    IReadOnlyDictionary<int, decimal>? ByRating = null);
+
+public sealed record RatingRangeDefinition(int Minimum, int Maximum);
+
+public sealed record GearDefinition(
+    string Id,
+    string DisplayName,
+    string CategoryId,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    int? Capacity = null,
+    RatingRangeDefinition? RatingRange = null,
+    bool RequiresParameter = false,
+    IReadOnlyList<string>? IncludedComponentIds = null,
+    IReadOnlyList<string>? GeneratedProfileIds = null);
+
+public sealed record WeaponDefinition(
+    string Id,
+    string DisplayName,
+    string WeaponCategoryId,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    string? Accuracy = null,
+    string? Damage = null,
+    string? Ap = null,
+    string? Mode = null,
+    string? Reach = null,
+    string? Rc = null,
+    string? Ammo = null,
+    RatingRangeDefinition? RatingRange = null,
+    bool RequiresParameter = false,
+    IReadOnlyList<string>? IncludedComponentIds = null,
+    IReadOnlyList<string>? GeneratedProfileIds = null);
+
+public sealed record ArmorDefinition(
+    string Id,
+    string DisplayName,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    int? ArmorRating = null,
+    int? Capacity = null,
+    RatingRangeDefinition? RatingRange = null,
+    IReadOnlyList<string>? IncludedComponentIds = null);
+
+public sealed record AugmentationGradeDefinition(
+    string Id,
+    string DisplayName,
+    decimal EssenceMultiplier,
+    int AvailabilityModifier,
+    decimal CostMultiplier,
+    bool CreationEligible,
+    SourceCitation Source);
+
+public sealed record AugmentationDefinition(
+    string Id,
+    string DisplayName,
+    string AugmentationCategoryId,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    EssenceDefinition? Essence = null,
+    RatingRangeDefinition? RatingRange = null,
+    int? Capacity = null,
+    bool RequiresParameter = false,
+    IReadOnlyList<string>? IncludedComponentIds = null,
+    IReadOnlyList<string>? GeneratedProfileIds = null,
+    IReadOnlyList<string>? PrerequisiteIds = null,
+    IReadOnlyList<string>? ExcludedIds = null);
+
+public sealed record VehicleDefinition(
+    string Id,
+    string DisplayName,
+    string VehicleCategoryId,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    string? Handling = null,
+    int? Acceleration = null,
+    string? Speed = null,
+    int? Pilot = null,
+    int? Body = null,
+    int? Armor = null,
+    int? Sensor = null,
+    int? Seats = null,
+    IReadOnlyList<string>? IncludedComponentIds = null);
+
 public sealed record MagicResonanceSkillGrant(
     string Domain,
     int Count,
@@ -227,7 +354,13 @@ public sealed class RulesetCatalog
         ImmutableDictionary<string, ComplexFormDefinition> complexForms,
         ImmutableDictionary<string, SpiritTypeDefinition> spiritTypes,
         ImmutableDictionary<string, SpriteTypeDefinition> spriteTypes,
-        ImmutableDictionary<string, FocusDefinition> foci)
+        ImmutableDictionary<string, FocusDefinition> foci,
+        ImmutableDictionary<string, GearDefinition> gear,
+        ImmutableDictionary<string, WeaponDefinition> weapons,
+        ImmutableDictionary<string, ArmorDefinition> armor,
+        ImmutableDictionary<string, AugmentationGradeDefinition> augmentationGrades,
+        ImmutableDictionary<string, AugmentationDefinition> augmentations,
+        ImmutableDictionary<string, VehicleDefinition> vehicles)
     {
         RulesetId = rulesetId;
         Version = version;
@@ -257,6 +390,12 @@ public sealed class RulesetCatalog
         SpiritTypes = spiritTypes;
         SpriteTypes = spriteTypes;
         Foci = foci;
+        Gear = gear;
+        Weapons = weapons;
+        Armor = armor;
+        AugmentationGrades = augmentationGrades;
+        Augmentations = augmentations;
+        Vehicles = vehicles;
     }
 
     public string RulesetId { get; }
@@ -284,6 +423,12 @@ public sealed class RulesetCatalog
     public IReadOnlyDictionary<string, SpiritTypeDefinition> SpiritTypes { get; }
     public IReadOnlyDictionary<string, SpriteTypeDefinition> SpriteTypes { get; }
     public IReadOnlyDictionary<string, FocusDefinition> Foci { get; }
+    public IReadOnlyDictionary<string, GearDefinition> Gear { get; }
+    public IReadOnlyDictionary<string, WeaponDefinition> Weapons { get; }
+    public IReadOnlyDictionary<string, ArmorDefinition> Armor { get; }
+    public IReadOnlyDictionary<string, AugmentationGradeDefinition> AugmentationGrades { get; }
+    public IReadOnlyDictionary<string, AugmentationDefinition> Augmentations { get; }
+    public IReadOnlyDictionary<string, VehicleDefinition> Vehicles { get; }
 
     public PriorityCellDefinition? GetPriorityCell(string categoryId, string levelId) =>
         priorityCellLookup.TryGetValue((categoryId, levelId), out var cell) ? cell : null;

@@ -71,6 +71,13 @@ public sealed record ComplexFormSelection(string ComplexFormId, bool Granted = f
 
 public sealed record MentorSpiritSelection(string MentorSpiritId, string? Choice = null);
 
+public sealed record ResourceSelection(
+    string ItemId,
+    int Quantity = 1,
+    int? Rating = null,
+    string? GradeId = null,
+    string? Parameter = null);
+
 public sealed record CharacterCreationDraftDocument(
     PriorityAssignment? PriorityAssignment,
     MetatypeSelection? Metatype = null,
@@ -82,7 +89,9 @@ public sealed record CharacterCreationDraftDocument(
     IReadOnlyList<KnowledgeSkillAllocation>? KnowledgeSkills = null,
     IReadOnlyList<LanguageAllocation>? Languages = null,
     IReadOnlyList<LanguageSelection>? NativeLanguages = null,
-    MagicResonanceSelection? MagicResonance = null);
+    MagicResonanceSelection? MagicResonance = null,
+    IReadOnlyList<ResourceSelection>? Resources = null,
+    int? NuyenFromKarma = null);
 
 public sealed record CharacterCreationChangePreview(
     CharacterCreationDraftDetails Candidate,

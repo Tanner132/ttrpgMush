@@ -11,12 +11,12 @@ export const CREATION_STEPS: readonly CreationStep[] = [
   { id: 'metatype', index: 4, label: 'Metatype & Special Attributes', available: true },
   { id: 'attributes', index: 5, label: 'Physical & Mental Attributes', available: true },
   { id: 'qualities', index: 6, label: 'Qualities', available: true },
-  { id: 'augmentations', index: 7, label: 'Augmentations & Essence', available: false },
+  { id: 'augmentations', index: 7, label: 'Augmentations & Essence', available: true },
   { id: 'skills', index: 8, label: 'Active Skills & Groups', available: true },
   { id: 'awakening', index: 9, label: 'Awakening / Emergence', available: true },
   { id: 'knowledge', index: 10, label: 'Knowledge & Languages', available: true },
   { id: 'contacts', index: 11, label: 'Contacts', available: false },
-  { id: 'resources', index: 12, label: 'Resources & Vehicles', available: false },
+  { id: 'resources', index: 12, label: 'Resources & Vehicles', available: true },
   { id: 'lifestyle', index: 13, label: 'Lifestyle & Starting Cash', available: false },
   { id: 'karma', index: 14, label: 'Karma & Finishing', available: false },
   { id: 'review', index: 15, label: 'Review & Finalize', available: false },
@@ -38,6 +38,7 @@ const DIAGNOSTIC_STEP_IDS: Record<string, string> = {
   skills: 'skills',
   'awakening-emergence': 'awakening',
   knowledge: 'knowledge',
+  resources: 'augmentations',
 }
 
 export function stepLabel(index: number): string {

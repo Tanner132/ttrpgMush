@@ -148,13 +148,19 @@ internal static class CharacterCreationDraftDocumentValidator
         var knowledgeSafe = document.KnowledgeSkills is null || (document.KnowledgeSkills.Count <= 100 && document.KnowledgeSkills.All(item => IsBoundedText(item.Name) && IsBounded(item.CategoryId) && item.Rating is >= 0 and <= 6 && IsBoundedText(item.Specialization)));
         var languagesSafe = document.Languages is null || (document.Languages.Count <= 100 && document.Languages.All(item => IsBoundedText(item.Name) && item.Rating is >= 0 and <= 6 && IsBoundedText(item.Specialization)));
         var magicSafe = document.MagicResonance is null || IsMagicResonanceSafe(document.MagicResonance);
+        var resourcesSafe = document.Resources is null || (document.Resources.Count <= 500
+            && document.Resources.All(item => IsBounded(item.ItemId) && item.Quantity is >= 1 and <= 1000
+                && item.Rating is null or >= 0 and <= 1000
+                && (item.GradeId is null || IsBounded(item.GradeId))
+                && IsBoundedText(item.Parameter)));
         return IsBounded(assignment.Metatype)
             && IsBounded(assignment.Attributes)
             && IsBounded(assignment.MagicOrResonance)
             && IsBounded(assignment.Skills)
             && IsBounded(assignment.Resources)
             && (document.Metatype is null || document.Metatype.MetatypeId.Length <= MaxOptionIdLength)
-            && allocationSafe && specialSafe && qualitiesSafe && skillsSafe && groupsSafe && knowledgeSafe && languagesSafe && magicSafe
+            && allocationSafe && specialSafe && qualitiesSafe && skillsSafe && groupsSafe && knowledgeSafe && languagesSafe && magicSafe && resourcesSafe
+            && (document.NuyenFromKarma is null or >= 0 and <= 10)
             && (document.NativeLanguages is null || (document.NativeLanguages.Count <= 2 && document.NativeLanguages.All(item => IsBoundedText(item.Name))));
     }
 

@@ -11,6 +11,7 @@ public enum CanonicalProvenance
     Karma,
     FreePoints,
     Native,
+    Nuyen,
 }
 
 public sealed record CanonicalCharacterSheet(
@@ -24,7 +25,8 @@ public sealed record CanonicalCharacterSheet(
     IReadOnlyList<CanonicalKnowledgeSkill> KnowledgeSkills,
     IReadOnlyList<CanonicalLanguage> Languages,
     IReadOnlyList<CanonicalNativeLanguage> NativeLanguages,
-    CanonicalMagicResonance? MagicResonance);
+    CanonicalMagicResonance? MagicResonance,
+    CanonicalResourcesEssence? Resources);
 
 public sealed record CanonicalMetatype(string Id, CanonicalProvenance Provenance);
 
@@ -118,3 +120,22 @@ public sealed record CanonicalMentorSpirit(
     string Id,
     string? Choice,
     CanonicalProvenance Provenance);
+
+public sealed record CanonicalResource(
+    string Id,
+    int Quantity,
+    int? Rating,
+    string? GradeId,
+    string? Parameter,
+    int NuyenCost,
+    decimal EssenceLoss,
+    CanonicalProvenance Provenance);
+
+public sealed record CanonicalResourcesEssence(
+    IReadOnlyList<CanonicalResource> Resources,
+    int NuyenBudget,
+    int NuyenFromKarma,
+    int TotalNuyenSpent,
+    decimal TotalEssenceLoss,
+    int? MagicLoss,
+    int? ResonanceLoss);

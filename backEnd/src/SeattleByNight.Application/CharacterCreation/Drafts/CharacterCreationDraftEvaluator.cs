@@ -12,6 +12,7 @@ public sealed class CharacterCreationDraftEvaluator
     private readonly QualitiesSkillsKnowledgeEvaluator qualitiesSkillsKnowledgeEvaluator;
     private readonly MagicResonanceEvaluator magicResonanceEvaluator;
     private readonly KarmaBudgetEvaluator karmaBudgetEvaluator;
+    private readonly ResourcesEssenceEvaluator resourcesEssenceEvaluator;
 
     public CharacterCreationDraftEvaluator(
         IRulesetCatalogProvider catalogProvider,
@@ -19,7 +20,8 @@ public sealed class CharacterCreationDraftEvaluator
         MetatypeAndAttributeEvaluator metatypeAndAttributeEvaluator,
         QualitiesSkillsKnowledgeEvaluator qualitiesSkillsKnowledgeEvaluator,
         MagicResonanceEvaluator magicResonanceEvaluator,
-        KarmaBudgetEvaluator karmaBudgetEvaluator)
+        KarmaBudgetEvaluator karmaBudgetEvaluator,
+        ResourcesEssenceEvaluator resourcesEssenceEvaluator)
     {
         this.catalogProvider = catalogProvider;
         this.priorityEvaluator = priorityEvaluator;
@@ -27,6 +29,7 @@ public sealed class CharacterCreationDraftEvaluator
         this.qualitiesSkillsKnowledgeEvaluator = qualitiesSkillsKnowledgeEvaluator;
         this.magicResonanceEvaluator = magicResonanceEvaluator;
         this.karmaBudgetEvaluator = karmaBudgetEvaluator;
+        this.resourcesEssenceEvaluator = resourcesEssenceEvaluator;
     }
 
     public CharacterCreationDraftDetails Evaluate(CharacterCreationDraftSnapshot draft)
@@ -69,6 +72,7 @@ public sealed class CharacterCreationDraftEvaluator
         var metatypeEvaluation = new MetatypeAndAttributeEvaluation([], null, [], []);
         var skillsEvaluation = new QualitiesSkillsKnowledgeEvaluation([], [], [], [], [], [], []);
         var magicEvaluation = new MagicResonanceEvaluation([], [], null);
+        var resourcesEvaluation = new ResourcesEssenceEvaluation([], null);
 
         if (evaluation.IsReady
             && (draft.Document.Metatype is not null || draft.Document.Attributes is not null || draft.Document.SpecialAttributes is not null))
@@ -89,13 +93,18 @@ public sealed class CharacterCreationDraftEvaluator
             magicEvaluation = magicResonanceEvaluator.Evaluate(catalog, draft.Document.PriorityAssignment, draft.Document);
             diagnostics.AddRange(magicEvaluation.Diagnostics);
         }
+        if (evaluation.IsReady && (draft.Document.Resources is not null || draft.Document.NuyenFromKarma is not null))
+        {
+            resourcesEvaluation = resourcesEssenceEvaluator.Evaluate(catalog, draft.Document.PriorityAssignment, draft.Document);
+            diagnostics.AddRange(resourcesEvaluation.Diagnostics);
+        }
         if (evaluation.IsReady)
         {
             diagnostics.AddRange(karmaBudgetEvaluator.Evaluate(catalog, draft.Document));
         }
 
         var canonicalSheet = evaluation.IsReady
-            ? BuildCanonicalSheet(evaluation.Preview, metatypeEvaluation, skillsEvaluation, magicEvaluation)
+            ? BuildCanonicalSheet(evaluation.Preview, metatypeEvaluation, skillsEvaluation, magicEvaluation, resourcesEvaluation)
             : null;
 
         return new CharacterCreationDraftDetails(
@@ -110,7 +119,8 @@ public sealed class CharacterCreationDraftEvaluator
         PriorityAssignmentPreview preview,
         MetatypeAndAttributeEvaluation metatypeEvaluation,
         QualitiesSkillsKnowledgeEvaluation skillsEvaluation,
-        MagicResonanceEvaluation magicEvaluation) =>
+        MagicResonanceEvaluation magicEvaluation,
+        ResourcesEssenceEvaluation resourcesEvaluation) =>
         new(
             preview,
             metatypeEvaluation.Metatype,
@@ -122,7 +132,8 @@ public sealed class CharacterCreationDraftEvaluator
             skillsEvaluation.KnowledgeSkills,
             skillsEvaluation.Languages,
             skillsEvaluation.NativeLanguages,
-            magicEvaluation.MagicResonance);
+            magicEvaluation.MagicResonance,
+            resourcesEvaluation.Resources);
 
     private static IEnumerable<CharacterCreationDiagnostic> DownstreamRevalidationDiagnostics(
         CharacterCreationDraftSnapshot draft,
@@ -160,5 +171,16 @@ public sealed class CharacterCreationDraftEvaluator
                 source,
                 new Dictionary<string, string>(),
                 "Resolve the priority assignment before finalizing Awakening or Emergence selections.");
+
+        if (draft.Document.Resources is not null || draft.Document.NuyenFromKarma is not null)
+            yield return new CharacterCreationDiagnostic(
+                "creation.upstream-change-requires-revalidation",
+                CharacterCreationDiagnosticSeverity.Error,
+                "resources",
+                "resources",
+                [],
+                source,
+                new Dictionary<string, string>(),
+                "Resolve the priority assignment before finalizing resource purchases.");
     }
 }

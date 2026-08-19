@@ -77,6 +77,7 @@ export interface PriorityCell {
     metatypeSpecialAttributePoints?: Record<string, number>
     availableMetatypeIds?: string[]
     magicResonancePathGrants?: MagicResonancePathGrant[]
+    resourceNuyen?: number
 }
 
 export interface MetatypeAttributeRange {
@@ -119,6 +120,16 @@ export interface CharacterCreationDocument {
     languages?: LanguageAllocation[] | null
     nativeLanguages?: { name: string }[] | null
     magicResonance?: MagicResonanceSelection | null
+    resources?: ResourceSelection[] | null
+    nuyenFromKarma?: number | null
+}
+
+export interface ResourceSelection {
+    itemId: string
+    quantity?: number
+    rating?: number | null
+    gradeId?: string | null
+    parameter?: string | null
 }
 
 export interface QualitySelection { qualityId: string; rating?: number; parameters?: Record<string, string> }
@@ -218,6 +229,60 @@ export function effectivePowerPointCost(power: AdeptPowerDefinition, rank: numbe
     return power.powerPointCostByRank?.[rank] ?? power.powerPointCost * rank
 }
 
+export function resolveNumber(
+    fixed: number | null | undefined,
+    perRating: number | null | undefined,
+    byRating: Record<number, number> | null | undefined,
+    rating: number | null | undefined,
+): number {
+    if (byRating && rating != null && byRating[rating] != null) return byRating[rating]
+    if (perRating != null && rating != null) return perRating * rating
+    return fixed ?? 0
+}
+
+export function resolveAvailabilityNumber(
+    availability: AvailabilityDefinition | null | undefined,
+    rating: number | null | undefined,
+): number | null {
+    if (!availability || (availability.fixed == null && availability.perRating == null && !availability.byRating)) {
+        return null
+    }
+    return resolveNumber(availability.fixed, availability.perRating, availability.byRating, rating)
+}
+
+export function augmentationUnitCost(
+    augmentation: AugmentationDefinition,
+    grade: AugmentationGradeDefinition,
+    rating: number | null,
+): number {
+    return resolveNumber(augmentation.cost?.fixed, augmentation.cost?.perRating, augmentation.cost?.byRating, rating)
+        * grade.costMultiplier
+}
+
+export function augmentationUnitEssence(
+    augmentation: AugmentationDefinition,
+    grade: AugmentationGradeDefinition,
+    rating: number | null,
+): number {
+    return resolveNumber(augmentation.essence?.fixed, augmentation.essence?.perRating, augmentation.essence?.byRating, rating)
+        * grade.essenceMultiplier
+}
+
+export function augmentationAvailability(
+    augmentation: AugmentationDefinition,
+    grade: AugmentationGradeDefinition,
+    rating: number | null,
+): number | null {
+    const base = resolveAvailabilityNumber(augmentation.availability, rating)
+    return base === null ? null : base + grade.availabilityModifier
+}
+
+export function metatypeGearMultiplier(metatypeId: string | null | undefined): number {
+    if (metatypeId === 'dwarf') return 1.1
+    if (metatypeId === 'troll') return 1.5
+    return 1
+}
+
 export interface MentorSpiritDefinition {
     id: string
     displayName: string
@@ -252,6 +317,137 @@ export interface FocusDefinition {
     displayName: string
     creationUnavailable: boolean
     source: SourceCitation
+}
+
+export type GearClassification =
+    | 'Selectable'
+    | 'Parameterized'
+    | 'IncludedComponent'
+    | 'Generated'
+    | 'Bookkeeping'
+    | 'CreationUnavailable'
+    | 'Excluded'
+
+export type Legality = 'Legal' | 'Restricted' | 'Forbidden'
+
+export interface AvailabilityDefinition {
+    fixed?: number | null
+    perRating?: number | null
+    byRating?: Record<number, number> | null
+    legality?: Legality
+}
+
+export interface CostDefinition {
+    fixed?: number | null
+    perRating?: number | null
+    byRating?: Record<number, number> | null
+}
+
+export interface EssenceDefinition {
+    fixed?: number | null
+    perRating?: number | null
+    byRating?: Record<number, number> | null
+}
+
+export interface RatingRangeDefinition {
+    minimum: number
+    maximum: number
+}
+
+export interface GearDefinition {
+    id: string
+    displayName: string
+    categoryId: string
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    capacity?: number | null
+    ratingRange?: RatingRangeDefinition | null
+    requiresParameter?: boolean
+    includedComponentIds?: string[] | null
+    generatedProfileIds?: string[] | null
+}
+
+export interface WeaponDefinition {
+    id: string
+    displayName: string
+    weaponCategoryId: string
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    accuracy?: string | null
+    damage?: string | null
+    ap?: string | null
+    mode?: string | null
+    reach?: string | null
+    rc?: string | null
+    ammo?: string | null
+    ratingRange?: RatingRangeDefinition | null
+    requiresParameter?: boolean
+    includedComponentIds?: string[] | null
+    generatedProfileIds?: string[] | null
+}
+
+export interface ArmorDefinition {
+    id: string
+    displayName: string
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    armorRating?: number | null
+    capacity?: number | null
+    ratingRange?: RatingRangeDefinition | null
+    includedComponentIds?: string[] | null
+}
+
+export interface AugmentationGradeDefinition {
+    id: string
+    displayName: string
+    essenceMultiplier: number
+    availabilityModifier: number
+    costMultiplier: number
+    creationEligible: boolean
+    source: SourceCitation
+}
+
+export interface AugmentationDefinition {
+    id: string
+    displayName: string
+    augmentationCategoryId: string
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    essence?: EssenceDefinition | null
+    ratingRange?: RatingRangeDefinition | null
+    capacity?: number | null
+    requiresParameter?: boolean
+    includedComponentIds?: string[] | null
+    generatedProfileIds?: string[] | null
+    prerequisiteIds?: string[] | null
+    excludedIds?: string[] | null
+}
+
+export interface VehicleDefinition {
+    id: string
+    displayName: string
+    vehicleCategoryId: string
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    handling?: string | null
+    acceleration?: number | null
+    speed?: string | null
+    pilot?: number | null
+    body?: number | null
+    armor?: number | null
+    sensor?: number | null
+    seats?: number | null
+    includedComponentIds?: string[] | null
 }
 
 export interface MagicResonancePathGrant {
@@ -310,6 +506,12 @@ export interface CatalogContract {
     spiritTypes: SpiritTypeDefinition[]
     spriteTypes: SpriteTypeDefinition[]
     foci: FocusDefinition[]
+    gear: GearDefinition[]
+    weapons: WeaponDefinition[]
+    armor: ArmorDefinition[]
+    augmentationGrades: AugmentationGradeDefinition[]
+    augmentations: AugmentationDefinition[]
+    vehicles: VehicleDefinition[]
 }
 
 // ─── API ─────────────────────────────────────────────────────────────────────

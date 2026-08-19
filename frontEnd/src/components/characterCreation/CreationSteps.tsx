@@ -1,13 +1,27 @@
 import type {
   AdeptPowerDefinition,
+  AvailabilityDefinition,
+  AugmentationDefinition,
   CatalogContract,
   CharacterCreationDocument,
+  CostDefinition,
+  GearClassification,
   MagicResonanceSelection,
   Metatype,
   PriorityAssignment,
+  RatingRangeDefinition,
+  ResourceSelection,
   SpellDefinition,
 } from '../../api/characterCreation.ts'
-import { effectivePowerPointCost } from '../../api/characterCreation.ts'
+import {
+  augmentationAvailability,
+  augmentationUnitCost,
+  augmentationUnitEssence,
+  effectivePowerPointCost,
+  metatypeGearMultiplier,
+  resolveAvailabilityNumber,
+  resolveNumber,
+} from '../../api/characterCreation.ts'
 
 interface CreationStepProps {
   catalog: CatalogContract
@@ -529,6 +543,294 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
           </div>
         </>
       )}
+    </section>
+  )
+}
+
+const AUGMENTATION_CATEGORY_LABELS: Record<string, string> = {
+  'headware': 'Headware',
+  'eyeware': 'Eyeware',
+  'earware': 'Earware',
+  'bodyware': 'Bodyware',
+  'cyberlimb': 'Cyberlimbs',
+  'implant-weapon': 'Implant Weapons',
+  'basic-bioware': 'Basic Bioware',
+  'cultured-bioware': 'Cultured Bioware',
+}
+
+const PURCHASABLE: string[] = ['Selectable', 'Parameterized']
+
+export function AugmentationsStep({ catalog, document, onChange }: CreationStepProps) {
+  const resources = document.resources ?? []
+  const grades = catalog.augmentationGrades.filter((grade) => grade.creationEligible)
+  const standardGrade = grades.find((grade) => grade.id === 'standard') ?? grades[0]
+
+  const isAugmentation = (itemId: string) => catalog.augmentations.some((aug) => aug.id === itemId)
+  const augSelections = resources.filter((item) => isAugmentation(item.itemId))
+  const otherResources = resources.filter((item) => !isAugmentation(item.itemId))
+
+  const setAugSelections = (next: ResourceSelection[]) =>
+    onChange({ ...document, resources: [...otherResources, ...next] })
+
+  const gradeFor = (selection?: ResourceSelection) =>
+    grades.find((grade) => grade.id === (selection?.gradeId ?? 'standard')) ?? standardGrade
+
+  const cell = catalog.priorityCells.find(
+    (item) => item.categoryId === 'resources' && item.levelId === document.priorityAssignment?.resources,
+  )
+  const nuyenBudget = (cell?.resourceNuyen ?? 0) + (document.nuyenFromKarma ?? 0) * 2000
+
+  let spent = 0
+  let essence = 0
+  for (const selection of augSelections) {
+    const aug = catalog.augmentations.find((item) => item.id === selection.itemId)
+    if (!aug) continue
+    const grade = gradeFor(selection)
+    const rating = selection.rating ?? null
+    spent += augmentationUnitCost(aug, grade, rating) * (selection.quantity ?? 1)
+      * metatypeGearMultiplier(document.metatype?.metatypeId)
+    essence += augmentationUnitEssence(aug, grade, rating) * (selection.quantity ?? 1)
+  }
+
+  const toggle = (aug: AugmentationDefinition) => {
+    const exists = augSelections.some((item) => item.itemId === aug.id)
+    if (exists) {
+      setAugSelections(augSelections.filter((item) => item.itemId !== aug.id))
+    } else {
+      setAugSelections([...augSelections, {
+        itemId: aug.id,
+        quantity: 1,
+        rating: aug.ratingRange ? aug.ratingRange.minimum : undefined,
+      }])
+    }
+  }
+
+  const updateSelection = (itemId: string, patch: Partial<ResourceSelection>) =>
+    setAugSelections(augSelections.map((item) => item.itemId === itemId ? { ...item, ...patch } : item))
+
+  const purchasable = catalog.augmentations.filter((aug) => PURCHASABLE.includes(aug.classification))
+  const categories = [...new Set(purchasable.map((aug) => aug.augmentationCategoryId))]
+
+  return (
+    <section className="creation-step" aria-labelledby="augmentation-step-heading">
+      <p className="creation-step__eyebrow">AUGMENTATIONS / ESSENCE</p>
+      <h3 id="augmentation-step-heading">Buy chrome and burn Essence</h3>
+      <p className="creation-step__intro">Standard and alphaware grades are available at creation. Numeric Availability may not exceed 12 and a purchasable Rating may not exceed 6.</p>
+      <div className="creation-step__allocation-status" role="status">
+        <strong>{essence.toFixed(1)}</strong> / 6 Essence · <strong>{spent.toLocaleString()}</strong> / {nuyenBudget.toLocaleString()} nuyen
+      </div>
+      {categories.map((categoryId) => (
+        <div className="creation-step__attributes" key={categoryId}>
+          <p className="creation-step__eyebrow">{AUGMENTATION_CATEGORY_LABELS[categoryId] ?? categoryId}</p>
+          {purchasable.filter((aug) => aug.augmentationCategoryId === categoryId).map((aug) => {
+            const selection = augSelections.find((item) => item.itemId === aug.id)
+            const grade = gradeFor(selection)
+            const rating = selection?.rating ?? null
+            const cost = augmentationUnitCost(aug, grade, rating)
+            const essenceLoss = augmentationUnitEssence(aug, grade, rating)
+            const availability = augmentationAvailability(aug, grade, rating)
+            return (
+              <label className="creation-attribute" key={aug.id}>
+                <span>
+                  <strong>{aug.displayName}</strong>
+                  <small>{cost.toLocaleString()}¥ · {essenceLoss} Essence · Avail {availability ?? '—'}{aug.ratingRange ? ` · Rating ${aug.ratingRange.minimum}-${aug.ratingRange.maximum}` : ''}</small>
+                </span>
+                <input type="checkbox" checked={selection !== undefined} onChange={() => toggle(aug)} />
+                {selection && aug.ratingRange && (
+                  <input aria-label={`${aug.displayName} rating`} min={aug.ratingRange.minimum} max={Math.min(aug.ratingRange.maximum, 6)} type="number" value={selection.rating ?? aug.ratingRange.minimum} onChange={(event) => updateSelection(aug.id, { rating: Number(event.target.value) })} />
+                )}
+                {selection && aug.requiresParameter && (
+                  <input aria-label={`${aug.displayName} parameter`} placeholder="Required parameter" maxLength={120} value={selection.parameter ?? ''} onChange={(event) => updateSelection(aug.id, { parameter: event.target.value })} />
+                )}
+                {selection && (
+                  <select aria-label={`${aug.displayName} grade`} value={selection.gradeId ?? 'standard'} onChange={(event) => updateSelection(aug.id, { gradeId: event.target.value })}>
+                    {grades.map((grade) => <option key={grade.id} value={grade.id}>{grade.displayName}</option>)}
+                  </select>
+                )}
+                {selection && (
+                  <input aria-label={`${aug.displayName} quantity`} min="1" max="1000" type="number" value={selection.quantity ?? 1} onChange={(event) => updateSelection(aug.id, { quantity: Number(event.target.value) })} />
+                )}
+              </label>
+            )
+          })}
+        </div>
+      ))}
+    </section>
+  )
+}
+
+interface ResourceLine {
+  id: string
+  displayName: string
+  groupKey: string
+  groupLabel: string
+  classification: GearClassification
+  availability?: AvailabilityDefinition | null
+  cost?: CostDefinition | null
+  ratingRange?: RatingRangeDefinition | null
+  requiresParameter: boolean
+}
+
+const RESOURCE_CATEGORY_LABELS: Record<string, string> = {
+  armor: 'Armor',
+  survival: 'Survival',
+  'breaking-and-entering': 'Breaking & Entering',
+  blades: 'Blades',
+  'heavy-pistols': 'Heavy Pistols',
+  'assault-rifles': 'Assault Rifles',
+  bows: 'Bows',
+  bike: 'Bikes',
+  drone: 'Drones',
+}
+
+const humanizeResourceCategory = (id: string): string =>
+  RESOURCE_CATEGORY_LABELS[id]
+  ?? id.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
+
+export function ResourcesStep({ catalog, document, onChange }: CreationStepProps) {
+  const resources = document.resources ?? []
+  const augmentationIds = new Set(catalog.augmentations.map((aug) => aug.id))
+  const augSelections = resources.filter((item) => augmentationIds.has(item.itemId))
+  const itemSelections = resources.filter((item) => !augmentationIds.has(item.itemId))
+  const gearMultiplier = metatypeGearMultiplier(document.metatype?.metatypeId)
+
+  const cell = catalog.priorityCells.find(
+    (item) => item.categoryId === 'resources' && item.levelId === document.priorityAssignment?.resources,
+  )
+  const nuyenFromKarma = document.nuyenFromKarma ?? 0
+  const nuyenBudget = (cell?.resourceNuyen ?? 0) + nuyenFromKarma * 2000
+
+  const lines: ResourceLine[] = [
+    ...catalog.gear.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: item.categoryId,
+      groupLabel: humanizeResourceCategory(item.categoryId),
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: item.ratingRange,
+      requiresParameter: item.requiresParameter ?? false,
+    })),
+    ...catalog.weapons.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: item.weaponCategoryId,
+      groupLabel: humanizeResourceCategory(item.weaponCategoryId),
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: item.ratingRange,
+      requiresParameter: item.requiresParameter ?? false,
+    })),
+    ...catalog.armor.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: 'armor',
+      groupLabel: 'Armor',
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: item.ratingRange,
+      requiresParameter: false,
+    })),
+    ...catalog.vehicles.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: item.vehicleCategoryId,
+      groupLabel: humanizeResourceCategory(item.vehicleCategoryId),
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: undefined,
+      requiresParameter: false,
+    })),
+  ]
+
+  const purchasable = lines.filter((item) => PURCHASABLE.includes(item.classification))
+  const groups = [...new Set(purchasable.map((item) => item.groupKey))]
+  const findLine = (itemId: string) => lines.find((item) => item.id === itemId)
+
+  const setItemSelections = (next: ResourceSelection[]) =>
+    onChange({ ...document, resources: [...augSelections, ...next] })
+
+  const unitCost = (item: ResourceLine, rating: number | null) =>
+    resolveNumber(item.cost?.fixed, item.cost?.perRating, item.cost?.byRating, rating) * gearMultiplier
+
+  let spent = 0
+  for (const selection of itemSelections) {
+    const item = findLine(selection.itemId)
+    if (!item) continue
+    spent += unitCost(item, selection.rating ?? null) * (selection.quantity ?? 1)
+  }
+
+  const toggle = (item: ResourceLine) => {
+    const exists = itemSelections.some((selection) => selection.itemId === item.id)
+    if (exists) {
+      setItemSelections(itemSelections.filter((selection) => selection.itemId !== item.id))
+    } else {
+      setItemSelections([...itemSelections, {
+        itemId: item.id,
+        quantity: 1,
+        rating: item.ratingRange ? item.ratingRange.minimum : undefined,
+      }])
+    }
+  }
+
+  const updateSelection = (itemId: string, patch: Partial<ResourceSelection>) =>
+    setItemSelections(itemSelections.map((selection) =>
+      selection.itemId === itemId ? { ...selection, ...patch } : selection,
+    ))
+
+  const updateNuyenFromKarma = (value: number) =>
+    onChange({ ...document, nuyenFromKarma: value })
+
+  return (
+    <section className="creation-step" aria-labelledby="resources-step-heading">
+      <p className="creation-step__eyebrow">RESOURCES / VEHICLES</p>
+      <h3 id="resources-step-heading">Spend nuyen on gear, weapons, armor, and wheels</h3>
+      <p className="creation-step__intro">Numeric Availability may not exceed 12 and a purchasable Rating may not exceed 6.</p>
+      <div className="creation-step__allocation-status" role="status">
+        <strong>{spent.toLocaleString()}</strong> / {nuyenBudget.toLocaleString()} nuyen
+      </div>
+
+      <label className="creation-attribute">
+        <span><strong>Karma → nuyen</strong><small>Convert up to 10 Karma at 2,000¥ each</small></span>
+        <input aria-label="Karma converted to nuyen" type="number" min="0" max="10" value={nuyenFromKarma}
+          onChange={(event) => updateNuyenFromKarma(Math.min(10, Math.max(0, Number(event.target.value) || 0)))} />
+      </label>
+
+      {groups.map((groupKey) => (
+        <div className="creation-step__attributes" key={groupKey}>
+          <p className="creation-step__eyebrow">
+            {purchasable.find((item) => item.groupKey === groupKey)?.groupLabel ?? groupKey}
+          </p>
+          {purchasable.filter((item) => item.groupKey === groupKey).map((item) => {
+            const selection = itemSelections.find((entry) => entry.itemId === item.id)
+            const rating = selection?.rating ?? null
+            const cost = unitCost(item, rating)
+            const availability = resolveAvailabilityNumber(item.availability, rating)
+            return (
+              <label className="creation-attribute" key={item.id}>
+                <span>
+                  <strong>{item.displayName}</strong>
+                  <small>{cost.toLocaleString()}¥ · Avail {availability ?? '—'}{item.ratingRange ? ` · Rating ${item.ratingRange.minimum}-${item.ratingRange.maximum}` : ''}</small>
+                </span>
+                <input type="checkbox" checked={selection !== undefined} onChange={() => toggle(item)} />
+                {selection && item.ratingRange && (
+                  <input aria-label={`${item.displayName} rating`} min={item.ratingRange.minimum} max={Math.min(item.ratingRange.maximum, 6)} type="number" value={selection.rating ?? item.ratingRange.minimum} onChange={(event) => updateSelection(item.id, { rating: Number(event.target.value) })} />
+                )}
+                {selection && item.requiresParameter && (
+                  <input aria-label={`${item.displayName} parameter`} placeholder="Required parameter" maxLength={120} value={selection.parameter ?? ''} onChange={(event) => updateSelection(item.id, { parameter: event.target.value })} />
+                )}
+                {selection && (
+                  <input aria-label={`${item.displayName} quantity`} min="1" max="1000" type="number" value={selection.quantity ?? 1} onChange={(event) => updateSelection(item.id, { quantity: Number(event.target.value) })} />
+                )}
+              </label>
+            )
+          })}
+        </div>
+      ))}
     </section>
   )
 }

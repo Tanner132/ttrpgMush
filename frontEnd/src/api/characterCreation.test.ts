@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { effectivePowerPointCost, type AdeptPowerDefinition } from './characterCreation.ts'
+import { effectivePowerPointCost, metatypeGearMultiplier, type AdeptPowerDefinition } from './characterCreation.ts'
 
 const source = { sourceId: 'sr5-core', printedPage: 308, pdfPage: 310 }
 
@@ -34,5 +34,18 @@ describe('effectivePowerPointCost', () => {
     expect(effectivePowerPointCost(improvedReflexes, 1)).toBe(1.5)
     expect(effectivePowerPointCost(improvedReflexes, 2)).toBe(2.5)
     expect(effectivePowerPointCost(improvedReflexes, 3)).toBe(3.5)
+  })
+})
+
+describe('metatypeGearMultiplier', () => {
+  it('charges the printed metatype lifestyle/gear surcharges', () => {
+    expect(metatypeGearMultiplier('dwarf')).toBe(1.1)
+    expect(metatypeGearMultiplier('troll')).toBe(1.5)
+  })
+
+  it('defaults other metatypes to a 1x multiplier', () => {
+    expect(metatypeGearMultiplier('human')).toBe(1)
+    expect(metatypeGearMultiplier('elf')).toBe(1)
+    expect(metatypeGearMultiplier(undefined)).toBe(1)
   })
 })

@@ -23,7 +23,8 @@ public sealed class CanonicalCharacterSheetTests
             new MetatypeAndAttributeEvaluator(),
             new QualitiesSkillsKnowledgeEvaluator(),
             new MagicResonanceEvaluator(),
-            new KarmaBudgetEvaluator());
+            new KarmaBudgetEvaluator(),
+            new ResourcesEssenceEvaluator());
 
         var snapshot = new CharacterCreationDraftSnapshot(
             Guid.NewGuid(),
@@ -113,7 +114,8 @@ public sealed class CanonicalCharacterSheetTests
             new MetatypeAndAttributeEvaluator(),
             new QualitiesSkillsKnowledgeEvaluator(),
             new MagicResonanceEvaluator(),
-            new KarmaBudgetEvaluator());
+            new KarmaBudgetEvaluator(),
+            new ResourcesEssenceEvaluator());
         var snapshot = new CharacterCreationDraftSnapshot(
             Guid.NewGuid(),
             Guid.NewGuid(),

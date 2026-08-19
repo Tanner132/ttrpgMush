@@ -67,7 +67,13 @@ public static partial class RulesetCatalogLoader
             ToDictionary(document.ComplexForms!, item => item.Id),
             ToDictionary(document.SpiritTypes!, item => item.Id),
             ToDictionary(document.SpriteTypes!, item => item.Id),
-            ToDictionary(document.Foci!, item => item.Id));
+            ToDictionary(document.Foci!, item => item.Id),
+            ToDictionary(document.Gear!, item => item.Id),
+            ToDictionary(document.Weapons!, item => item.Id),
+            ToDictionary(document.Armor!, item => item.Id),
+            ToDictionary(document.AugmentationGrades!, item => item.Id),
+            ToDictionary(document.Augmentations!, item => item.Id),
+            ToDictionary(document.Vehicles!, item => item.Id));
     }
 
     public static string ComputeSemanticDigest(string json)
@@ -117,7 +123,13 @@ public static partial class RulesetCatalogLoader
             || document.ComplexForms is null
             || document.SpiritTypes is null
             || document.SpriteTypes is null
-            || document.Foci is null)
+            || document.Foci is null
+            || document.Gear is null
+            || document.Weapons is null
+            || document.Armor is null
+            || document.AugmentationGrades is null
+            || document.Augmentations is null
+            || document.Vehicles is null)
         {
             throw new RulesetCatalogException("The catalog is missing a required collection.");
         }
@@ -144,6 +156,12 @@ public static partial class RulesetCatalogLoader
         ValidateUnique(document.SpiritTypes, item => item.Id, "spirit type");
         ValidateUnique(document.SpriteTypes, item => item.Id, "sprite type");
         ValidateUnique(document.Foci, item => item.Id, "focus");
+        ValidateUnique(document.Gear, item => item.Id, "gear");
+        ValidateUnique(document.Weapons, item => item.Id, "weapon");
+        ValidateUnique(document.Armor, item => item.Id, "armor");
+        ValidateUnique(document.AugmentationGrades, item => item.Id, "augmentation grade");
+        ValidateUnique(document.Augmentations, item => item.Id, "augmentation");
+        ValidateUnique(document.Vehicles, item => item.Id, "vehicle");
 
         var sourceIds = document.Sources.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (sourceIds.Count == 0)
@@ -324,6 +342,55 @@ public static partial class RulesetCatalogLoader
         foreach (var focus in document.Foci)
             ValidateCommonEntry(focus.Id, focus.DisplayName, focus.Source, sourceIds, "focus");
 
+        foreach (var grade in document.AugmentationGrades)
+        {
+            ValidateCommonEntry(grade.Id, grade.DisplayName, grade.Source, sourceIds, "augmentation grade");
+            if (grade.EssenceMultiplier <= 0 || grade.CostMultiplier <= 0)
+                throw new RulesetCatalogException($"Augmentation grade '{grade.Id}' must declare positive multipliers.");
+        }
+
+        foreach (var gear in document.Gear)
+        {
+            ValidateCommonEntry(gear.Id, gear.DisplayName, gear.Source, sourceIds, "gear");
+            ValidateResourceEntry(gear.Availability, gear.Cost, null, gear.Capacity, gear.RatingRange,
+                gear.IncludedComponentIds, gear.GeneratedProfileIds, $"gear '{gear.Id}'");
+        }
+
+        foreach (var weapon in document.Weapons)
+        {
+            ValidateCommonEntry(weapon.Id, weapon.DisplayName, weapon.Source, sourceIds, "weapon");
+            if (string.IsNullOrWhiteSpace(weapon.WeaponCategoryId))
+                throw new RulesetCatalogException($"Weapon '{weapon.Id}' must declare a weapon category.");
+            ValidateResourceEntry(weapon.Availability, weapon.Cost, null, null, weapon.RatingRange,
+                weapon.IncludedComponentIds, weapon.GeneratedProfileIds, $"weapon '{weapon.Id}'");
+        }
+
+        foreach (var armor in document.Armor)
+        {
+            ValidateCommonEntry(armor.Id, armor.DisplayName, armor.Source, sourceIds, "armor");
+            ValidateResourceEntry(armor.Availability, armor.Cost, null, armor.Capacity, armor.RatingRange,
+                armor.IncludedComponentIds, null, $"armor '{armor.Id}'");
+        }
+
+        foreach (var augmentation in document.Augmentations)
+        {
+            ValidateCommonEntry(augmentation.Id, augmentation.DisplayName, augmentation.Source, sourceIds, "augmentation");
+            if (string.IsNullOrWhiteSpace(augmentation.AugmentationCategoryId))
+                throw new RulesetCatalogException($"Augmentation '{augmentation.Id}' must declare an augmentation category.");
+            ValidateResourceEntry(augmentation.Availability, augmentation.Cost, augmentation.Essence,
+                augmentation.Capacity, augmentation.RatingRange, augmentation.IncludedComponentIds,
+                augmentation.GeneratedProfileIds, $"augmentation '{augmentation.Id}'");
+        }
+
+        foreach (var vehicle in document.Vehicles)
+        {
+            ValidateCommonEntry(vehicle.Id, vehicle.DisplayName, vehicle.Source, sourceIds, "vehicle");
+            if (string.IsNullOrWhiteSpace(vehicle.VehicleCategoryId))
+                throw new RulesetCatalogException($"Vehicle '{vehicle.Id}' must declare a vehicle category.");
+            ValidateResourceEntry(vehicle.Availability, vehicle.Cost, null, null, null,
+                vehicle.IncludedComponentIds, null, $"vehicle '{vehicle.Id}'");
+        }
+
         var levelIds = document.PriorityLevels.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         var categoryIds = document.PriorityCategories.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         var combinations = new HashSet<(string CategoryId, string LevelId)>();
@@ -356,6 +423,8 @@ public static partial class RulesetCatalogLoader
             if (cell.CategoryId == "skills"
                 && (cell.IndividualSkillPoints is null or < 0 || cell.SkillGroupPoints is null or < 0))
                 throw new RulesetCatalogException($"Skill cell '{cell.Id}' must define its point grants.");
+            if (cell.CategoryId == "resources" && cell.ResourceNuyen is null or < 0)
+                throw new RulesetCatalogException($"Resource cell '{cell.Id}' must define its nuyen grant.");
             if (cell.CategoryId == "magic-resonance")
             {
                 if (cell.MagicResonancePathGrants is null)
@@ -442,6 +511,58 @@ public static partial class RulesetCatalogLoader
         }
     }
 
+    private static void ValidateResourceEntry(
+        AvailabilityDefinition? availability,
+        CostDefinition? cost,
+        EssenceDefinition? essence,
+        int? capacity,
+        RatingRangeDefinition? ratingRange,
+        IReadOnlyList<string>? includedComponentIds,
+        IReadOnlyList<string>? generatedProfileIds,
+        string description)
+    {
+        if (availability is not null)
+        {
+            if (availability.Fixed is < 0 || availability.PerRating is < 0
+                || availability.ByRating?.Values.Any(value => value < 0) == true)
+                throw new RulesetCatalogException($"{description} has a negative availability.");
+        }
+
+        if (cost is not null)
+        {
+            if (cost.Fixed is < 0 || cost.PerRating is < 0
+                || cost.ByRating?.Values.Any(value => value < 0) == true)
+                throw new RulesetCatalogException($"{description} has a negative cost.");
+        }
+
+        if (essence is not null)
+        {
+            if (essence.Fixed is < 0 || essence.PerRating is < 0
+                || essence.ByRating?.Values.Any(value => value < 0) == true)
+                throw new RulesetCatalogException($"{description} has a negative Essence value.");
+        }
+
+        if (capacity is < 0)
+            throw new RulesetCatalogException($"{description} has a negative capacity.");
+
+        if (ratingRange is not null && (ratingRange.Minimum < 1 || ratingRange.Maximum < ratingRange.Minimum))
+            throw new RulesetCatalogException($"{description} has an invalid rating range.");
+
+        ValidateReferenceIds(includedComponentIds, description, "included component");
+        ValidateReferenceIds(generatedProfileIds, description, "generated profile");
+    }
+
+    private static void ValidateReferenceIds(IReadOnlyList<string>? references, string description, string kind)
+    {
+        if (references is null)
+        {
+            return;
+        }
+
+        if (references.Count > 100 || references.Any(reference => !IdPattern().IsMatch(reference)))
+            throw new RulesetCatalogException($"{description} has an invalid {kind} reference.");
+    }
+
     private static void WriteCanonical(JsonElement element, Utf8JsonWriter writer)
     {
         if (element.ValueKind == JsonValueKind.Object)
@@ -502,5 +623,11 @@ public static partial class RulesetCatalogLoader
         ComplexFormDefinition[]? ComplexForms,
         SpiritTypeDefinition[]? SpiritTypes,
         SpriteTypeDefinition[]? SpriteTypes,
-        FocusDefinition[]? Foci);
+        FocusDefinition[]? Foci,
+        GearDefinition[]? Gear,
+        WeaponDefinition[]? Weapons,
+        ArmorDefinition[]? Armor,
+        AugmentationGradeDefinition[]? AugmentationGrades,
+        AugmentationDefinition[]? Augmentations,
+        VehicleDefinition[]? Vehicles);
 }

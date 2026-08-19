@@ -1,0 +1,189 @@
+using SeattleByNight.Application.CharacterCreation.Catalog;
+using SeattleByNight.Application.CharacterCreation.Drafts;
+using SeattleByNight.Application.CharacterCreation.Evaluation;
+
+namespace SeattleByNight.Application.Tests;
+
+public sealed class ResourcesEssenceEvaluatorTests
+{
+    private static readonly PriorityAssignment ResourcesA = new("b", "c", "e", "c", "a");
+    private static readonly PriorityAssignment ResourcesB = new("b", "c", "e", "c", "b");
+
+    [Fact]
+    public void Current_catalog_contains_the_resource_foundation()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        Assert.Equal(2, catalog.Gear.Count);
+        Assert.Equal(5, catalog.Weapons.Count);
+        Assert.Equal(11, catalog.Armor.Count);
+        Assert.Equal(5, catalog.AugmentationGrades.Count);
+        Assert.Equal(91, catalog.Augmentations.Count);
+        Assert.Equal(2, catalog.Vehicles.Count);
+
+        Assert.Equal(450000, catalog.GetPriorityCell("resources", "a")!.ResourceNuyen);
+        Assert.Equal(275000, catalog.GetPriorityCell("resources", "b")!.ResourceNuyen);
+        Assert.Equal(140000, catalog.GetPriorityCell("resources", "c")!.ResourceNuyen);
+        Assert.Equal(50000, catalog.GetPriorityCell("resources", "d")!.ResourceNuyen);
+        Assert.Equal(6000, catalog.GetPriorityCell("resources", "e")!.ResourceNuyen);
+    }
+
+    [Fact]
+    public void Street_samurai_loadout_fits_the_resources_budget()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources:
+            [
+                new ResourceSelection("wired-reflexes", Rating: 2),
+                new ResourceSelection("muscle-toner", Rating: 2),
+                new ResourceSelection("datajack"),
+                new ResourceSelection("ares-predator-v"),
+                new ResourceSelection("ak-97"),
+                new ResourceSelection("armor-jacket"),
+                new ResourceSelection("katana"),
+            ]));
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.NotNull(evaluation.Resources);
+        Assert.Equal(450000, evaluation.Resources!.NuyenBudget);
+        Assert.Equal(7, evaluation.Resources.Resources.Count);
+        Assert.Equal(217675, evaluation.Resources.TotalNuyenSpent);
+        Assert.Equal(3.5m, evaluation.Resources.TotalEssenceLoss);
+        Assert.Null(evaluation.Resources.MagicLoss);
+        Assert.Null(evaluation.Resources.ResonanceLoss);
+    }
+
+    [Fact]
+    public void Overspending_resources_is_flagged()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesB, new CharacterCreationDraftDocument(
+            ResourcesB,
+            Resources: [new ResourceSelection("wired-reflexes", Rating: 2, Quantity: 2)]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.nuyen.exceeded");
+    }
+
+    [Fact]
+    public void Alphaware_grade_applies_availability_cost_and_essence_modifiers()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("datajack", GradeId: "alphaware")]));
+
+        Assert.Empty(evaluation.Diagnostics);
+        var resource = Assert.Single(evaluation.Resources!.Resources);
+        Assert.Equal(1200, resource.NuyenCost);
+        Assert.Equal(0.08m, resource.EssenceLoss);
+    }
+
+    [Fact]
+    public void Alphaware_grade_pushing_availability_over_twelve_is_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("wired-reflexes", Rating: 2, GradeId: "alphaware")]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.availability.exceeded");
+    }
+
+    [Fact]
+    public void Rating_over_the_creation_cap_is_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("bow", Rating: 7)]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.rating.creation-cap");
+    }
+
+    [Fact]
+    public void Creation_unavailable_items_are_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("full-body-armor")]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.not-purchasable");
+    }
+
+    [Fact]
+    public void Essence_loss_reduces_the_awakened_attribute()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            MagicResonance: new MagicResonanceSelection("magician"),
+            Resources:
+            [
+                new ResourceSelection("datajack"),
+                new ResourceSelection("wired-reflexes", Rating: 1),
+            ]));
+
+        Assert.Equal(2.1m, evaluation.Resources!.TotalEssenceLoss);
+        Assert.Equal(3, evaluation.Resources.MagicLoss);
+        Assert.Null(evaluation.Resources.ResonanceLoss);
+    }
+
+    [Fact]
+    public void Troll_metatype_raises_gear_cost_by_fifty_percent()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Metatype: new MetatypeSelection("troll"),
+            Resources: [new ResourceSelection("katana")]));
+
+        var resource = Assert.Single(evaluation.Resources!.Resources);
+        Assert.Equal(1500, resource.NuyenCost);
+    }
+
+    [Fact]
+    public void Karma_to_nuyen_conversion_is_bounded_at_ten()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            NuyenFromKarma: 11));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.karma-conversion.range");
+        Assert.Equal(20000, evaluation.Resources!.NuyenFromKarma);
+    }
+
+    [Fact]
+    public void Unknown_item_is_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("not-a-real-item")]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "catalog.option.unknown");
+    }
+}
