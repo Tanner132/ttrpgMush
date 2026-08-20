@@ -73,7 +73,10 @@ public static partial class RulesetCatalogLoader
             ToDictionary(document.Armor!, item => item.Id),
             ToDictionary(document.AugmentationGrades!, item => item.Id),
             ToDictionary(document.Augmentations!, item => item.Id),
-            ToDictionary(document.Vehicles!, item => item.Id));
+            ToDictionary(document.Vehicles!, item => item.Id),
+            ToDictionary(document.Cyberdecks!, item => item.Id),
+            ToDictionary(document.WeaponAccessories!, item => item.Id),
+            ToDictionary(document.ArmorModifications!, item => item.Id));
     }
 
     public static string ComputeSemanticDigest(string json)
@@ -129,7 +132,10 @@ public static partial class RulesetCatalogLoader
             || document.Armor is null
             || document.AugmentationGrades is null
             || document.Augmentations is null
-            || document.Vehicles is null)
+            || document.Vehicles is null
+            || document.Cyberdecks is null
+            || document.WeaponAccessories is null
+            || document.ArmorModifications is null)
         {
             throw new RulesetCatalogException("The catalog is missing a required collection.");
         }
@@ -162,6 +168,9 @@ public static partial class RulesetCatalogLoader
         ValidateUnique(document.AugmentationGrades, item => item.Id, "augmentation grade");
         ValidateUnique(document.Augmentations, item => item.Id, "augmentation");
         ValidateUnique(document.Vehicles, item => item.Id, "vehicle");
+        ValidateUnique(document.Cyberdecks, item => item.Id, "cyberdeck");
+        ValidateUnique(document.WeaponAccessories, item => item.Id, "weapon accessory");
+        ValidateUnique(document.ArmorModifications, item => item.Id, "armor modification");
 
         var sourceIds = document.Sources.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (sourceIds.Count == 0)
@@ -389,6 +398,39 @@ public static partial class RulesetCatalogLoader
                 throw new RulesetCatalogException($"Vehicle '{vehicle.Id}' must declare a vehicle category.");
             ValidateResourceEntry(vehicle.Availability, vehicle.Cost, null, null, null,
                 vehicle.IncludedComponentIds, null, $"vehicle '{vehicle.Id}'");
+        }
+
+        foreach (var accessory in document.WeaponAccessories)
+        {
+            ValidateCommonEntry(accessory.Id, accessory.DisplayName, accessory.Source, sourceIds, "weapon accessory");
+            ValidateResourceEntry(accessory.Availability, accessory.Cost, null, accessory.Capacity, accessory.RatingRange,
+                null, null, $"weapon accessory '{accessory.Id}'");
+        }
+
+        foreach (var modification in document.ArmorModifications)
+        {
+            ValidateCommonEntry(modification.Id, modification.DisplayName, modification.Source, sourceIds, "armor modification");
+            ValidateResourceEntry(modification.Availability, modification.Cost, null, null, modification.RatingRange,
+                null, null, $"armor modification '{modification.Id}'");
+            if (modification.CapacityCost is null
+                || (modification.CapacityCost.Fixed is null && modification.CapacityCost.PerRating is null)
+                || modification.CapacityCost.Fixed is < 0
+                || modification.CapacityCost.PerRating is < 0)
+            {
+                throw new RulesetCatalogException($"Armor modification '{modification.Id}' has an invalid Capacity cost.");
+            }
+        }
+
+        foreach (var deck in document.Cyberdecks)
+        {
+            ValidateCommonEntry(deck.Id, deck.DisplayName, deck.Source, sourceIds, "cyberdeck");
+            ValidateResourceEntry(deck.Availability, deck.Cost, null, null, null, null, null, $"cyberdeck '{deck.Id}'");
+            if (deck.DeviceRating is null or <= 0)
+                throw new RulesetCatalogException($"Cyberdeck '{deck.Id}' must declare a positive Device Rating.");
+            if (deck.AttributeArray is null || deck.AttributeArray.Count != 4 || deck.AttributeArray.Any(value => value <= 0))
+                throw new RulesetCatalogException($"Cyberdeck '{deck.Id}' must declare a 4-value attribute array.");
+            if (deck.Programs is null or <= 0)
+                throw new RulesetCatalogException($"Cyberdeck '{deck.Id}' must declare a positive program count.");
         }
 
         var levelIds = document.PriorityLevels.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
@@ -629,5 +671,8 @@ public static partial class RulesetCatalogLoader
         ArmorDefinition[]? Armor,
         AugmentationGradeDefinition[]? AugmentationGrades,
         AugmentationDefinition[]? Augmentations,
-        VehicleDefinition[]? Vehicles);
+        VehicleDefinition[]? Vehicles,
+        CyberdeckDefinition[]? Cyberdecks,
+        WeaponAccessoryDefinition[]? WeaponAccessories,
+        ArmorModificationDefinition[]? ArmorModifications);
 }

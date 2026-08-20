@@ -26,7 +26,8 @@ public sealed record CanonicalCharacterSheet(
     IReadOnlyList<CanonicalLanguage> Languages,
     IReadOnlyList<CanonicalNativeLanguage> NativeLanguages,
     CanonicalMagicResonance? MagicResonance,
-    CanonicalResourcesEssence? Resources);
+    CanonicalResourcesEssence? Resources,
+    CanonicalGearAttachments? GearAttachments = null);
 
 public sealed record CanonicalMetatype(string Id, CanonicalProvenance Provenance);
 
@@ -129,7 +130,8 @@ public sealed record CanonicalResource(
     string? Parameter,
     int NuyenCost,
     decimal EssenceLoss,
-    CanonicalProvenance Provenance);
+    CanonicalProvenance Provenance,
+    string? InstanceId = null);
 
 public sealed record CanonicalResourcesEssence(
     IReadOnlyList<CanonicalResource> Resources,
@@ -139,3 +141,18 @@ public sealed record CanonicalResourcesEssence(
     decimal TotalEssenceLoss,
     int? MagicLoss,
     int? ResonanceLoss);
+
+// An attachment is recorded against the host line it was purchased for
+// (HostInstanceId, matching a CanonicalResource.InstanceId) with its own
+// allocation provenance, independent of the host's own provenance.
+public sealed record CanonicalAttachment(
+    string HostInstanceId,
+    string AccessoryId,
+    string? Mount,
+    int? Rating,
+    int NuyenCost,
+    CanonicalProvenance Provenance);
+
+public sealed record CanonicalGearAttachments(
+    IReadOnlyList<CanonicalAttachment> Attachments,
+    int TotalNuyenSpent);

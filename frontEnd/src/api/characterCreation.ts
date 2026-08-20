@@ -122,6 +122,7 @@ export interface CharacterCreationDocument {
     magicResonance?: MagicResonanceSelection | null
     resources?: ResourceSelection[] | null
     nuyenFromKarma?: number | null
+    attachments?: AttachmentSelection[] | null
 }
 
 export interface ResourceSelection {
@@ -130,6 +131,23 @@ export interface ResourceSelection {
     rating?: number | null
     gradeId?: string | null
     parameter?: string | null
+    instanceId?: string | null
+}
+
+// Matches the catalog's wire enum convention (CatalogJsonOptions: bare
+// JsonStringEnumConverter, C# member names verbatim), NOT the embedded
+// resource file's internal camelCase. AttachmentSelection.mount is sent back
+// as a plain string (the draft document has no enum converter on the wire),
+// so any of these literal values works as that string.
+export type WeaponMount = 'None' | 'Top' | 'Barrel' | 'Underbarrel' | 'TopOrUnderbarrel'
+
+// References the specific purchased line it attaches to (ResourceSelection.instanceId),
+// not a bare item ID, so two copies of the same host carry independent attachments.
+export interface AttachmentSelection {
+    hostInstanceId: string
+    accessoryId: string
+    mount?: WeaponMount | null
+    rating?: number | null
 }
 
 export interface QualitySelection { qualityId: string; rating?: number; parameters?: Record<string, string> }
@@ -450,6 +468,46 @@ export interface VehicleDefinition {
     includedComponentIds?: string[] | null
 }
 
+export interface CapacityCostDefinition {
+    fixed?: number | null
+    perRating?: number | null
+}
+
+export interface WeaponAccessoryDefinition {
+    id: string
+    displayName: string
+    mount: WeaponMount
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    ratingRange?: RatingRangeDefinition | null
+    capacity?: number | null
+}
+
+export interface ArmorModificationDefinition {
+    id: string
+    displayName: string
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    capacityCost?: CapacityCostDefinition | null
+    ratingRange?: RatingRangeDefinition | null
+}
+
+export interface CyberdeckDefinition {
+    id: string
+    displayName: string
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    deviceRating?: number | null
+    attributeArray?: number[] | null
+    programs?: number | null
+}
+
 export interface MagicResonancePathGrant {
     pathId: string
     attributeRating: number
@@ -512,6 +570,9 @@ export interface CatalogContract {
     augmentationGrades: AugmentationGradeDefinition[]
     augmentations: AugmentationDefinition[]
     vehicles: VehicleDefinition[]
+    cyberdecks: CyberdeckDefinition[]
+    weaponAccessories: WeaponAccessoryDefinition[]
+    armorModifications: ArmorModificationDefinition[]
 }
 
 // ─── API ─────────────────────────────────────────────────────────────────────

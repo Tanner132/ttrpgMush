@@ -76,7 +76,22 @@ public sealed record ResourceSelection(
     int Quantity = 1,
     int? Rating = null,
     string? GradeId = null,
-    string? Parameter = null);
+    string? Parameter = null,
+    string? InstanceId = null);
+
+// An attachment references the specific purchased line instance it is mounted
+// to or installed in (ResourceSelection.InstanceId), not a bare item ID, so two
+// copies of the same host carry independent attachments. `Mount` is required
+// only for weapon accessories whose catalog mount is `TopOrUnderbarrel`, and
+// (like every other catalog-referencing draft field) is a plain string parsed
+// against WeaponMount at evaluation time rather than a C# enum, because the
+// draft document round-trips through the API's default JSON options, which
+// have no enum-to-string converter (catalog responses use their own).
+public sealed record AttachmentSelection(
+    string HostInstanceId,
+    string AccessoryId,
+    string? Mount = null,
+    int? Rating = null);
 
 public sealed record CharacterCreationDraftDocument(
     PriorityAssignment? PriorityAssignment,
@@ -91,7 +106,8 @@ public sealed record CharacterCreationDraftDocument(
     IReadOnlyList<LanguageSelection>? NativeLanguages = null,
     MagicResonanceSelection? MagicResonance = null,
     IReadOnlyList<ResourceSelection>? Resources = null,
-    int? NuyenFromKarma = null);
+    int? NuyenFromKarma = null,
+    IReadOnlyList<AttachmentSelection>? Attachments = null);
 
 public sealed record CharacterCreationChangePreview(
     CharacterCreationDraftDetails Candidate,

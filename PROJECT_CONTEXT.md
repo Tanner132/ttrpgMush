@@ -447,8 +447,70 @@ ranges. CHAR-807 adds typed immutable catalog surfaces for 31 positive and 28
   adept Power Point purchases at 2 Karma each, mentor-spirit prerequisites, and
   the shared 25 Karma creation pool. Priority-granted skill ratings are free and
   count toward the final natural-rating cap without consuming the skill budget.
-  The creator UI now exposes the Awakening / Emergence step; later resource
-  sections remain unavailable until their milestones.
+  The creator UI now exposes the Awakening / Emergence step.
+
+CHAR-809 (Resources and Essence) is substantially complete. The
+`ResourcesEssenceEvaluator` generically resolves and prices any purchasable
+catalog item — gear, weapons, armor, augmentations, vehicles, and cyberdecks —
+against the priority-derived nuyen budget plus an optional Karma-to-nuyen
+conversion (up to 10 Karma at 2,000 nuyen each), tracks cumulative Essence
+loss against the starting 6 Essence, applies per-item availability and
+creation-availability-12 limits, and resolves augmentation grade
+cost/Essence/availability multipliers. The catalog contains 77 weapons and 11
+armor entries (substantially reconciled against the core inventory), 91
+augmentations across 5 grades (standard, alphaware, betaware, deltaware,
+used), 114 general-gear/electronics/magical-supplies entries spanning
+commlinks, electronics accessories, RFID tags, communications and
+countermeasures, software and skillsofts, credsticks, tools, fixed-capacity
+optical devices, security devices and restraints, breaking-and-entering gear,
+industrial chemicals, survival gear, biotech, DocWagon contracts, slap
+patches, and magical supplies (reagents and lodge materials), a new typed
+`cyberdecks` catalog (9 named decks with device rating, attribute array, and
+program slots), and 40 vehicles/drones covering the full core
+groundcraft/watercraft/aircraft/drone tables. Capacity-scaled host devices
+(optical/audio/sensor hosts and their vision/audio enhancements), spell
+formulae's linkage to a specific known spell, and vehicle modifications
+(rigger interface, weapon mounts) remain out of scope for CHAR-809 and are
+deferred to CHAR-809A alongside armor/weapon attachments. The creator UI
+exposes both the Augmentations & Essence and Resources & Vehicles steps
+across all new categories. Street samurai, decker, rigger, and
+magical-equipment golden builds all pass; a full CHAR-812-style line-by-line
+reconciliation against the core PDF has not yet been run.
+
+CHAR-809A (Gear Capacity, Mounts, And Attachments) is in progress: firearm
+mounts and armor Capacity are implemented, covering the two clearest host
+shapes (named mount slots vs. a single Capacity pool). Draft resource
+selections (`ResourceSelection`) carry a client-generated, stable per-line
+`instanceId` so two purchased copies of the same host track their attachments
+independently; a new typed `AttachmentSelection` (`hostInstanceId`,
+`accessoryId`, optional `mount`/`rating`) is evaluated by a new, deliberately
+independent `GearAttachmentEvaluator` that never shares code with
+`ResourcesEssenceEvaluator` — it re-derives remaining nuyen budget from that
+evaluator's canonical output, the same pattern `KarmaBudgetEvaluator` already
+uses. It enforces firearm mount slots (17 cataloged accessories against a new
+`weaponAccessories` catalog; top/barrel/underbarrel availability by weapon
+category, `TopOrUnderbarrel` accessories requiring an explicit mount choice,
+one accessory per mount, and per-attachment Availability-12/Rating-6 checks)
+and armor Capacity pools (7 cataloged modifications against a new
+`armorModifications` catalog; fixed or per-Rating Capacity cost against the
+host's `ArmorRating`-derived Capacity). The canonical sheet gained
+`CanonicalAttachment`/`CanonicalGearAttachments` records. The creator UI
+renders attachments as sub-items nested under their host resource line; a
+small square "+" control on a purchased host opens a modal (the shared `Modal`
+primitive, closed only by its own control or an outside click) that shows the
+host's mount slots or Capacity count at the top and a list of eligible,
+not-yet-attached options below — selecting one adds it and the modal stays
+open. Augmentation and cyberlimb Capacity, device Capacity for
+optical/audio/sensor hosts, and vehicle weapon mounts/modifications remain
+unimplemented. `AttachmentSelection.Mount` is a plain string, not a C# enum,
+because the draft document round-trips through the API's default JSON options
+(which have no enum-to-string converter — other domain enums like
+`RoomAccessType` already serialize as raw integers); only catalog responses
+use `CatalogJsonOptions`' `JsonStringEnumConverter`.
+
+Contacts, identities, lifestyles, starting cash, remaining Karma, and final
+review/finalization sections (CHAR-810 through CHAR-812) remain unavailable
+until their milestones.
 
 The persistence layer supports slot-bearing, name-reserving SR5 drafts with JSONB
 typed selections, UUID optimistic concurrency, start/read/update/discard/finalize
@@ -463,7 +525,8 @@ and kind. Existing characters were migrated to explicit legacy finalized sheets
 without invented SR5 statistics. Only finalized characters are playable. The
 authenticated character-creation
   HTTP surface and the priority, metatype, attribute, quality, skill, knowledge,
-  and Awakening/Emergence creator UI are implemented. Later creation sections
+  Awakening/Emergence, and (partial) resources/essence creator UI are
+  implemented. Contacts, lifestyle, remaining Karma, and final review sections
   remain unavailable until their milestones.
 
 Backend endpoints:

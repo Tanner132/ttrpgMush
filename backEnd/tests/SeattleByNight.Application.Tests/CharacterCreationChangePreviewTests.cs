@@ -20,7 +20,8 @@ public sealed class CharacterCreationChangePreviewTests
         new QualitiesSkillsKnowledgeEvaluator(),
         new MagicResonanceEvaluator(),
         new KarmaBudgetEvaluator(),
-        new ResourcesEssenceEvaluator());
+        new ResourcesEssenceEvaluator(),
+        new GearAttachmentEvaluator());
 
     [Fact]
     public async Task Priority_change_clears_skills_and_magic_and_refunds_skill_budgets()

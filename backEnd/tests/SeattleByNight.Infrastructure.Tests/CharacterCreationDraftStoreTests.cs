@@ -161,7 +161,8 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
             new QualitiesSkillsKnowledgeEvaluator(),
             new MagicResonanceEvaluator(),
             new KarmaBudgetEvaluator(),
-            new ResourcesEssenceEvaluator());
+            new ResourcesEssenceEvaluator(),
+            new GearAttachmentEvaluator());
         var handler = new FinalizeCharacterCreationDraftCommandHandler(
             store,
             evaluator,

@@ -14,12 +14,13 @@ public sealed class ResourcesEssenceEvaluatorTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(2, catalog.Gear.Count);
-        Assert.Equal(74, catalog.Weapons.Count);
+        Assert.Equal(114, catalog.Gear.Count);
+        Assert.Equal(77, catalog.Weapons.Count);
         Assert.Equal(11, catalog.Armor.Count);
         Assert.Equal(5, catalog.AugmentationGrades.Count);
         Assert.Equal(91, catalog.Augmentations.Count);
-        Assert.Equal(2, catalog.Vehicles.Count);
+        Assert.Equal(40, catalog.Vehicles.Count);
+        Assert.Equal(9, catalog.Cyberdecks.Count);
 
         Assert.Equal(450000, catalog.GetPriorityCell("resources", "a")!.ResourceNuyen);
         Assert.Equal(275000, catalog.GetPriorityCell("resources", "b")!.ResourceNuyen);
@@ -172,6 +173,71 @@ public sealed class ResourcesEssenceEvaluatorTests
 
         Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.karma-conversion.range");
         Assert.Equal(20000, evaluation.Resources!.NuyenFromKarma);
+    }
+
+    [Fact]
+    public void Decker_loadout_fits_the_resources_budget()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources:
+            [
+                new ResourceSelection("erika-mcd-1"),
+                new ResourceSelection("commlink-meta-link"),
+                new ResourceSelection("agent-basic", Rating: 3),
+                new ResourceSelection("cyberprogram-hacking"),
+            ]));
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.NotNull(evaluation.Resources);
+        Assert.Equal(4, evaluation.Resources!.Resources.Count);
+        Assert.Equal(52850, evaluation.Resources.TotalNuyenSpent);
+        Assert.Equal(0, evaluation.Resources.TotalEssenceLoss);
+    }
+
+    [Fact]
+    public void Rigger_loadout_fits_the_resources_budget()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources:
+            [
+                new ResourceSelection("harley-davidson-scorpion"),
+                new ResourceSelection("control-rig", Rating: 1),
+            ]));
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.NotNull(evaluation.Resources);
+        Assert.Equal(2, evaluation.Resources!.Resources.Count);
+        Assert.Equal(55000, evaluation.Resources.TotalNuyenSpent);
+        Assert.Equal(1m, evaluation.Resources.TotalEssenceLoss);
+    }
+
+    [Fact]
+    public void Magical_equipment_loadout_fits_the_resources_budget()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources:
+            [
+                new ResourceSelection("reagents", Quantity: 10),
+                new ResourceSelection("magical-lodge-materials", Rating: 2),
+            ]));
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.NotNull(evaluation.Resources);
+        Assert.Equal(2, evaluation.Resources!.Resources.Count);
+        Assert.Equal(1200, evaluation.Resources.TotalNuyenSpent);
+        Assert.Equal(0, evaluation.Resources.TotalEssenceLoss);
     }
 
     [Fact]

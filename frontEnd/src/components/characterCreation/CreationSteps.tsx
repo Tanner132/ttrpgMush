@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import type {
   AdeptPowerDefinition,
+  ArmorModificationDefinition,
+  AttachmentSelection,
   AvailabilityDefinition,
   AugmentationDefinition,
   CatalogContract,
@@ -12,6 +15,7 @@ import type {
   RatingRangeDefinition,
   ResourceSelection,
   SpellDefinition,
+  WeaponMount,
 } from '../../api/characterCreation.ts'
 import {
   augmentationAvailability,
@@ -22,6 +26,8 @@ import {
   resolveAvailabilityNumber,
   resolveNumber,
 } from '../../api/characterCreation.ts'
+import { Button } from '../ui/Button.tsx'
+import { Modal } from '../ui/Modal.tsx'
 
 interface CreationStepProps {
   catalog: CatalogContract
@@ -669,6 +675,34 @@ interface ResourceLine {
   cost?: CostDefinition | null
   ratingRange?: RatingRangeDefinition | null
   requiresParameter: boolean
+  hostKind?: 'weapon' | 'armor'
+  weaponCategoryId?: string
+  capacity?: number | null
+}
+
+// Mirrors GearAttachmentEvaluator's category-to-mount mapping (sr5-core p. 417,
+// PDF 419): hold-outs, melee, bows, crossbows, throwing weapons, and the
+// exotic categories have no firearm mount system.
+const MOUNTS_BY_WEAPON_CATEGORY: Record<string, WeaponMount[]> = {
+  tasers: ['Top'],
+  'light-pistols': ['Top', 'Barrel'],
+  'heavy-pistols': ['Top', 'Barrel'],
+  'machine-pistols': ['Top', 'Barrel'],
+  'submachine-guns': ['Top', 'Barrel'],
+  'assault-rifles': ['Top', 'Barrel', 'Underbarrel'],
+  'sniper-rifles': ['Top', 'Barrel', 'Underbarrel'],
+  shotguns: ['Top', 'Barrel', 'Underbarrel'],
+  'special-weapons': ['Top', 'Barrel', 'Underbarrel'],
+  'machine-guns': ['Top', 'Barrel', 'Underbarrel'],
+  'cannons-launchers': ['Top', 'Barrel', 'Underbarrel'],
+}
+
+const MOUNT_LABELS: Record<WeaponMount, string> = {
+  None: 'None',
+  Top: 'Top',
+  Barrel: 'Barrel',
+  Underbarrel: 'Underbarrel',
+  TopOrUnderbarrel: 'Top or Underbarrel',
 }
 
 const RESOURCE_CATEGORY_LABELS: Record<string, string> = {
@@ -694,7 +728,31 @@ const RESOURCE_CATEGORY_LABELS: Record<string, string> = {
   'machine-guns': 'Machine Guns',
   'cannons-launchers': 'Cannons & Launchers',
   bike: 'Bikes',
+  car: 'Cars',
+  'truck-van': 'Trucks & Vans',
+  boat: 'Boats',
+  submarine: 'Submarines',
+  aircraft: 'Aircraft',
   drone: 'Drones',
+  cyberdeck: 'Cyberdecks',
+  commlink: 'Commlinks',
+  'electronics-accessory': 'Electronics Accessories',
+  'rfid-tag': 'RFID Tags',
+  communications: 'Communications & Countermeasures',
+  software: 'Software',
+  skillsoft: 'Skillsofts',
+  credstick: 'Credsticks',
+  tools: 'Tools',
+  'optical-imaging': 'Optical & Imaging Devices',
+  'security-device': 'Security Devices',
+  restraint: 'Restraints',
+  'industrial-chemical': 'Industrial Chemicals',
+  'grapple-gun-gear': 'Grapple Gun Gear',
+  biotech: 'Biotech',
+  'docwagon-contract': 'DocWagon Contracts',
+  'slap-patch': 'Slap Patches',
+  'magical-supplies': 'Magical Supplies',
+  formula: 'Spell Formulae',
 }
 
 const humanizeResourceCategory = (id: string): string =>
@@ -736,6 +794,8 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
       cost: item.cost,
       ratingRange: item.ratingRange,
       requiresParameter: item.requiresParameter ?? false,
+      hostKind: 'weapon' as const,
+      weaponCategoryId: item.weaponCategoryId,
     })),
     ...catalog.armor.map((item) => ({
       id: item.id,
@@ -747,6 +807,8 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
       cost: item.cost,
       ratingRange: item.ratingRange,
       requiresParameter: false,
+      hostKind: item.capacity ? ('armor' as const) : undefined,
+      capacity: item.capacity,
     })),
     ...catalog.vehicles.map((item) => ({
       id: item.id,
@@ -759,14 +821,28 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
       ratingRange: undefined,
       requiresParameter: false,
     })),
+    ...catalog.cyberdecks.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: 'cyberdeck',
+      groupLabel: humanizeResourceCategory('cyberdeck'),
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: undefined,
+      requiresParameter: false,
+    })),
   ]
 
   const purchasable = lines.filter((item) => PURCHASABLE.includes(item.classification))
   const groups = [...new Set(purchasable.map((item) => item.groupKey))]
   const findLine = (itemId: string) => lines.find((item) => item.id === itemId)
 
-  const setItemSelections = (next: ResourceSelection[]) =>
-    onChange({ ...document, resources: [...augSelections, ...next] })
+  const attachments = document.attachments ?? []
+  const [openHostInstanceId, setOpenHostInstanceId] = useState<string | null>(null)
+
+  const setItemSelections = (next: ResourceSelection[], nextAttachments: AttachmentSelection[] = attachments) =>
+    onChange({ ...document, resources: [...augSelections, ...next], attachments: nextAttachments })
 
   const unitCost = (item: ResourceLine, rating: number | null) =>
     resolveNumber(item.cost?.fixed, item.cost?.perRating, item.cost?.byRating, rating) * gearMultiplier
@@ -777,16 +853,23 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
     if (!item) continue
     spent += unitCost(item, selection.rating ?? null) * (selection.quantity ?? 1)
   }
+  for (const attachment of attachments) {
+    spent += attachmentUnitCost(catalog, attachment)
+  }
 
   const toggle = (item: ResourceLine) => {
-    const exists = itemSelections.some((selection) => selection.itemId === item.id)
-    if (exists) {
-      setItemSelections(itemSelections.filter((selection) => selection.itemId !== item.id))
+    const existing = itemSelections.find((selection) => selection.itemId === item.id)
+    if (existing) {
+      setItemSelections(
+        itemSelections.filter((selection) => selection.itemId !== item.id),
+        attachments.filter((attachment) => attachment.hostInstanceId !== existing.instanceId),
+      )
     } else {
       setItemSelections([...itemSelections, {
         itemId: item.id,
         quantity: 1,
         rating: item.ratingRange ? item.ratingRange.minimum : undefined,
+        instanceId: crypto.randomUUID(),
       }])
     }
   }
@@ -796,8 +879,20 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
       selection.itemId === itemId ? { ...selection, ...patch } : selection,
     ))
 
+  const addAttachment = (attachment: AttachmentSelection) =>
+    setItemSelections(itemSelections, [...attachments, attachment])
+
+  const removeAttachment = (hostInstanceId: string, accessoryId: string) =>
+    setItemSelections(itemSelections, attachments.filter((item) =>
+      !(item.hostInstanceId === hostInstanceId && item.accessoryId === accessoryId)))
+
   const updateNuyenFromKarma = (value: number) =>
     onChange({ ...document, nuyenFromKarma: value })
+
+  const openHost = openHostInstanceId
+    ? itemSelections.find((selection) => selection.instanceId === openHostInstanceId)
+    : undefined
+  const openHostLine = openHost ? findLine(openHost.itemId) : undefined
 
   return (
     <section className="creation-step" aria-labelledby="resources-step-heading">
@@ -824,27 +919,262 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
             const rating = selection?.rating ?? null
             const cost = unitCost(item, rating)
             const availability = resolveAvailabilityNumber(item.availability, rating)
+            const hostAttachments = selection?.instanceId
+              ? attachments.filter((entry) => entry.hostInstanceId === selection.instanceId)
+              : []
             return (
-              <label className="creation-attribute" key={item.id}>
-                <span>
-                  <strong>{item.displayName}</strong>
-                  <small>{cost.toLocaleString()}¥ · Avail {availability ?? '—'}{item.ratingRange ? ` · Rating ${item.ratingRange.minimum}-${item.ratingRange.maximum}` : ''}</small>
-                </span>
-                <input type="checkbox" checked={selection !== undefined} onChange={() => toggle(item)} />
-                {selection && item.ratingRange && (
-                  <input aria-label={`${item.displayName} rating`} min={item.ratingRange.minimum} max={Math.min(item.ratingRange.maximum, 6)} type="number" value={selection.rating ?? item.ratingRange.minimum} onChange={(event) => updateSelection(item.id, { rating: Number(event.target.value) })} />
+              <div className="creation-resource-line" key={item.id}>
+                <label className="creation-attribute">
+                  <span>
+                    <strong>{item.displayName}</strong>
+                    <small>{cost.toLocaleString()}¥ · Avail {availability ?? '—'}{item.ratingRange ? ` · Rating ${item.ratingRange.minimum}-${item.ratingRange.maximum}` : ''}</small>
+                  </span>
+                  <input type="checkbox" checked={selection !== undefined} onChange={() => toggle(item)} />
+                  {selection && item.ratingRange && (
+                    <input aria-label={`${item.displayName} rating`} min={item.ratingRange.minimum} max={Math.min(item.ratingRange.maximum, 6)} type="number" value={selection.rating ?? item.ratingRange.minimum} onChange={(event) => updateSelection(item.id, { rating: Number(event.target.value) })} />
+                  )}
+                  {selection && item.requiresParameter && (
+                    <input aria-label={`${item.displayName} parameter`} placeholder="Required parameter" maxLength={120} value={selection.parameter ?? ''} onChange={(event) => updateSelection(item.id, { parameter: event.target.value })} />
+                  )}
+                  {selection && (
+                    <input aria-label={`${item.displayName} quantity`} min="1" max="1000" type="number" value={selection.quantity ?? 1} onChange={(event) => updateSelection(item.id, { quantity: Number(event.target.value) })} />
+                  )}
+                  {selection && item.hostKind && (
+                    <button type="button" className="creation-attachment__add"
+                      aria-label={`Manage attachments for ${item.displayName}`}
+                      onClick={() => setOpenHostInstanceId(selection.instanceId ?? null)}>+</button>
+                  )}
+                </label>
+                {hostAttachments.length > 0 && (
+                  <ul className="creation-resource-line__attachments">
+                    {hostAttachments.map((attachment) => {
+                      const accessory = resolveAccessory(catalog, item.hostKind, attachment.accessoryId)
+                      return (
+                        <li key={attachment.accessoryId}>
+                          <span>{accessory?.displayName ?? attachment.accessoryId}</span>
+                          <small>
+                            {attachmentUnitCost(catalog, attachment).toLocaleString()}¥
+                            {(() => {
+                              const mount = effectiveWeaponMount(catalog, attachment)
+                              return mount ? ` · ${MOUNT_LABELS[mount]}` : ''
+                            })()}
+                          </small>
+                        </li>
+                      )
+                    })}
+                  </ul>
                 )}
-                {selection && item.requiresParameter && (
-                  <input aria-label={`${item.displayName} parameter`} placeholder="Required parameter" maxLength={120} value={selection.parameter ?? ''} onChange={(event) => updateSelection(item.id, { parameter: event.target.value })} />
-                )}
-                {selection && (
-                  <input aria-label={`${item.displayName} quantity`} min="1" max="1000" type="number" value={selection.quantity ?? 1} onChange={(event) => updateSelection(item.id, { quantity: Number(event.target.value) })} />
-                )}
-              </label>
+              </div>
             )
           })}
         </div>
       ))}
+
+      {openHost?.instanceId && openHostLine?.hostKind && (
+        <GearAttachmentModal
+          catalog={catalog}
+          hostKind={openHostLine.hostKind}
+          hostItemId={openHost.itemId}
+          hostInstanceId={openHost.instanceId}
+          hostDisplayName={openHostLine.displayName}
+          weaponCategoryId={openHostLine.weaponCategoryId}
+          armorCapacity={openHostLine.capacity ?? null}
+          attachments={attachments.filter((entry) => entry.hostInstanceId === openHost.instanceId)}
+          onAdd={addAttachment}
+          onRemove={(accessoryId) => removeAttachment(openHost.instanceId!, accessoryId)}
+          onClose={() => setOpenHostInstanceId(null)}
+        />
+      )}
     </section>
+  )
+}
+
+function resolveAccessory(catalog: CatalogContract, hostKind: 'weapon' | 'armor' | undefined, accessoryId: string):
+  { displayName: string } | undefined {
+  if (hostKind === 'weapon') return catalog.weaponAccessories.find((item) => item.id === accessoryId)
+  if (hostKind === 'armor') return catalog.armorModifications.find((item) => item.id === accessoryId)
+  return undefined
+}
+
+// The mount an attachment actually occupies. Fixed-mount accessories (e.g.
+// Bipod, always Underbarrel) ignore attachment.mount entirely — only
+// TopOrUnderbarrel accessories need the player's explicit choice — so this
+// must resolve from the catalog rather than trust attachment.mount alone.
+function effectiveWeaponMount(catalog: CatalogContract, attachment: AttachmentSelection): WeaponMount | undefined {
+  const accessory = catalog.weaponAccessories.find((item) => item.id === attachment.accessoryId)
+  if (!accessory || accessory.mount === 'None') return undefined
+  if (accessory.mount === 'TopOrUnderbarrel') {
+    return attachment.mount === 'Top' || attachment.mount === 'Underbarrel' ? attachment.mount : undefined
+  }
+  return accessory.mount
+}
+
+function attachmentUnitCost(catalog: CatalogContract, attachment: AttachmentSelection): number {
+  const weaponAccessory = catalog.weaponAccessories.find((item) => item.id === attachment.accessoryId)
+  if (weaponAccessory) {
+    return resolveNumber(weaponAccessory.cost?.fixed, weaponAccessory.cost?.perRating, null, attachment.rating)
+  }
+  const armorModification = catalog.armorModifications.find((item) => item.id === attachment.accessoryId)
+  if (armorModification) {
+    return resolveNumber(armorModification.cost?.fixed, armorModification.cost?.perRating, null, attachment.rating)
+  }
+  return 0
+}
+
+function attachmentCapacityCost(modification: ArmorModificationDefinition, rating: number | null): number {
+  if (modification.capacityCost?.fixed != null) return modification.capacityCost.fixed
+  if (modification.capacityCost?.perRating != null && rating != null) return modification.capacityCost.perRating * rating
+  return 0
+}
+
+interface GearAttachmentModalProps {
+  catalog: CatalogContract
+  hostKind: 'weapon' | 'armor'
+  hostItemId: string
+  hostInstanceId: string
+  hostDisplayName: string
+  weaponCategoryId?: string
+  armorCapacity: number | null
+  attachments: AttachmentSelection[]
+  onAdd: (attachment: AttachmentSelection) => void
+  onRemove: (accessoryId: string) => void
+  onClose: () => void
+}
+
+function GearAttachmentModal({
+  catalog, hostKind, hostInstanceId, hostDisplayName, weaponCategoryId, armorCapacity, attachments, onAdd, onRemove, onClose,
+}: GearAttachmentModalProps) {
+  const [pendingRatings, setPendingRatings] = useState<Record<string, number>>({})
+  const [pendingMounts, setPendingMounts] = useState<Record<string, WeaponMount>>({})
+
+  if (hostKind === 'weapon') {
+    const availableMounts = MOUNTS_BY_WEAPON_CATEGORY[weaponCategoryId ?? ''] ?? []
+    const occupied = new Map<WeaponMount, AttachmentSelection>()
+    for (const item of attachments) {
+      const mount = effectiveWeaponMount(catalog, item)
+      if (mount) occupied.set(mount, item)
+    }
+
+    const options = catalog.weaponAccessories.filter((accessory) => {
+      if (attachments.some((item) => item.accessoryId === accessory.id)) return false
+      if (accessory.mount === 'None') return true
+      if (accessory.mount === 'TopOrUnderbarrel') {
+        return (availableMounts.includes('Top') && !occupied.has('Top'))
+          || (availableMounts.includes('Underbarrel') && !occupied.has('Underbarrel'))
+      }
+      return availableMounts.includes(accessory.mount) && !occupied.has(accessory.mount)
+    })
+
+    return (
+      <Modal title={`Attachments — ${hostDisplayName}`} onClose={onClose}>
+        <div className="creation-attachment-modal">
+          {availableMounts.length > 0 && (
+            <div className="creation-attachment-modal__capacity">
+              {availableMounts.map((mount) => {
+                const attachment = occupied.get(mount)
+                const accessory = attachment ? catalog.weaponAccessories.find((item) => item.id === attachment.accessoryId) : undefined
+                return (
+                  <div className="creation-attachment-modal__slot" key={mount}>
+                    <strong>{MOUNT_LABELS[mount]}</strong>
+                    {attachment ? (
+                      <span>
+                        {accessory?.displayName ?? attachment.accessoryId}
+                        <Button intent="danger" onClick={() => onRemove(attachment.accessoryId)}>Remove</Button>
+                      </span>
+                    ) : <span className="creation-attachment-modal__empty">Empty</span>}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          <ul className="creation-attachment-modal__options">
+            {options.length === 0 && <li className="creation-attachment-modal__empty">No mounts available for more accessories.</li>}
+            {options.map((accessory) => {
+              const rating = pendingRatings[accessory.id] ?? accessory.ratingRange?.minimum ?? undefined
+              const cost = resolveNumber(accessory.cost?.fixed, accessory.cost?.perRating, null, rating ?? null)
+              const chosenMount = pendingMounts[accessory.id]
+                ?? (accessory.mount === 'TopOrUnderbarrel'
+                  ? (availableMounts.includes('Top') && !occupied.has('Top') ? 'Top' : 'Underbarrel')
+                  : accessory.mount)
+              return (
+                <li key={accessory.id} className="creation-attachment-modal__option">
+                  <span>
+                    <strong>{accessory.displayName}</strong>
+                    <small>{cost.toLocaleString()}¥ · {MOUNT_LABELS[accessory.mount]}</small>
+                  </span>
+                  {accessory.ratingRange && (
+                    <input aria-label={`${accessory.displayName} rating`} type="number"
+                      min={accessory.ratingRange.minimum} max={Math.min(accessory.ratingRange.maximum, 6)}
+                      value={rating} onChange={(event) => setPendingRatings((prev) => ({ ...prev, [accessory.id]: Number(event.target.value) }))} />
+                  )}
+                  {accessory.mount === 'TopOrUnderbarrel' && (
+                    <select aria-label={`${accessory.displayName} mount`} value={chosenMount}
+                      onChange={(event) => setPendingMounts((prev) => ({ ...prev, [accessory.id]: event.target.value as WeaponMount }))}>
+                      {availableMounts.includes('Top') && !occupied.has('Top') && <option value="Top">Top</option>}
+                      {availableMounts.includes('Underbarrel') && !occupied.has('Underbarrel') && <option value="Underbarrel">Underbarrel</option>}
+                    </select>
+                  )}
+                  <Button intent="primary" onClick={() => onAdd({
+                    hostInstanceId, accessoryId: accessory.id,
+                    mount: accessory.mount === 'None' ? undefined : chosenMount,
+                    rating: rating ?? undefined,
+                  })}>Add</Button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </Modal>
+    )
+  }
+
+  const used = attachments.reduce((total, item) => {
+    const modification = catalog.armorModifications.find((entry) => entry.id === item.accessoryId)
+    return modification ? total + attachmentCapacityCost(modification, item.rating ?? null) : total
+  }, 0)
+  const capacity = armorCapacity ?? 0
+  const remaining = capacity - used
+
+  const options = catalog.armorModifications.filter((modification) => {
+    if (attachments.some((item) => item.accessoryId === modification.id)) return false
+    const minimumCost = attachmentCapacityCost(modification, modification.ratingRange?.minimum ?? null)
+    return minimumCost <= remaining
+  })
+
+  return (
+    <Modal title={`Modifications — ${hostDisplayName}`} onClose={onClose}>
+      <div className="creation-attachment-modal">
+        <div className="creation-attachment-modal__capacity">
+          <div className="creation-attachment-modal__slot">
+            <strong>Capacity</strong>
+            <span>{used} / {capacity} used</span>
+          </div>
+        </div>
+        <ul className="creation-attachment-modal__options">
+          {options.length === 0 && <li className="creation-attachment-modal__empty">No Capacity remains for more modifications.</li>}
+          {options.map((modification) => {
+            const rating = pendingRatings[modification.id] ?? modification.ratingRange?.minimum ?? undefined
+            const cost = resolveNumber(modification.cost?.fixed, modification.cost?.perRating, null, rating ?? null)
+            const capacityCost = attachmentCapacityCost(modification, rating ?? null)
+            return (
+              <li key={modification.id} className="creation-attachment-modal__option">
+                <span>
+                  <strong>{modification.displayName}</strong>
+                  <small>{cost.toLocaleString()}¥ · {capacityCost} Capacity</small>
+                </span>
+                {modification.ratingRange && (
+                  <input aria-label={`${modification.displayName} rating`} type="number"
+                    min={modification.ratingRange.minimum} max={Math.min(modification.ratingRange.maximum, 6)}
+                    value={rating} onChange={(event) => setPendingRatings((prev) => ({ ...prev, [modification.id]: Number(event.target.value) }))} />
+                )}
+                <Button intent="primary" disabled={capacityCost > remaining} onClick={() => onAdd({
+                  hostInstanceId, accessoryId: modification.id, rating: rating ?? undefined,
+                })}>Add</Button>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    </Modal>
   )
 }

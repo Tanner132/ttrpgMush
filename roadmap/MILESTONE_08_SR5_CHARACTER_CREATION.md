@@ -167,12 +167,13 @@ Stable steps:
 4. Metatype and special attributes.
 5. Physical and mental attributes.
 6. Qualities.
-7. Augmentations and Essence preview.
+7. Augmentations, Essence preview, and implant capacity attachments.
 8. Active skills, groups, and specializations.
 9. Awakening or Emergence, conditionally.
 10. Knowledge skills and languages.
 11. Contacts.
-12. Resources, identities, licenses, vehicles, and drones.
+12. Resources, accessories and modifications, identities, licenses, vehicles,
+    and drones.
 13. Lifestyle and starting-cash selection.
 14. Remaining Karma and finishing choices.
 15. Review and finalization.
@@ -361,9 +362,102 @@ authoritative draft.
 - Resource, availability, capacity, and Essence boundary/property tests pass.
 - Street samurai, decker, rigger, and magical-equipment golden builds pass.
 
+## CHAR-809A: Implement Gear Capacity, Mounts, And Attachments
+
+**Depends on:** CHAR-809.
+
+Purchased gear is not a flat list. Weapons, armor, worn electronics,
+augmentations, and vehicles all host other purchases, and each host constrains
+what it can carry. CHAR-809 prices independent items only; this slice adds the
+host/attachment relationship the catalog contract already anticipates under
+`Parent-child relationships for equipment and generated selections`.
+
+**Scope:**
+
+- Add a typed host/attachment relationship to draft resource selections. An
+  attachment references a specific purchased line instance, not a bare item ID,
+  so two copies of the same host carry independent attachments. This requires
+  stable per-line instance identifiers in the draft document.
+- Implement firearm mounts. Accessories occupy one of `top`, `barrel`, or
+  `underbarrel`; each mount holds at most one accessory; accessories listed with
+  no mount occupy none; `Top or Under` accessories require an explicit chosen
+  mount. Hold-outs have no mounts. Pistols, machine pistols, and SMGs have top
+  and barrel mounts only. All rifles and heavy weapons have all three. Projectile
+  weapons accept only accessories designed for them.
+  Sources: `sr5-core` p. 417 (PDF 419), p. 431 (PDF 433).
+- Implement integral/included accessories. Accessories that come with a weapon do
+  not consume a mount location and are never separately purchasable or charged in
+  that instance.
+  Source: `sr5-core` p. 417 (PDF 419).
+- Implement armor Capacity. A worn armor piece has Capacity equal to its Armor
+  Rating; each modification has a fixed or `[Rating]` Capacity cost; modification
+  ratings run 1-6 except as noted; each worn piece carries its own Capacity pool.
+  Catalog the seven core armor modifications with their Capacity, Availability,
+  and cost.
+  Source: `sr5-core` p. 437 (PDF 439).
+- Implement device Capacity for optical, audio, and sensor hosts. Host devices are
+  purchased at a chosen Capacity within their printed range, their cost is derived
+  from that chosen Capacity, and each vision/audio/sensor enhancement consumes its
+  own Capacity cost from the host.
+  Source: `sr5-core` p. 444 (PDF 446).
+- Implement augmentation Capacity. Cybereyes, cyberears, and cyberlimbs carry
+  Capacity for modifications. An item with a bracketed Capacity cost may be
+  installed in a cyberlimb, consuming Capacity instead of Essence. Bodyware
+  without a bracketed Capacity cost cannot be installed in a cyberlimb.
+  Cyberlimbs hold no bioware and no implant that costs Essence rather than
+  Capacity. Cyberlimb enhancements consume the limb's Capacity, are limited to the
+  Agility, Armor, and Strength types, and permit at most one enhancement of each
+  type per limb.
+  Sources: `sr5-core` p. 451 (PDF 453), p. 454 (PDF 456), p. 456 (PDF 458).
+- Implement vehicle weapon mounts and modifications. A vehicle may carry weapon
+  mounts equal to its unaugmented Body divided by three, rounded down. A standard
+  mount holds an assault rifle or smaller weapon; a heavy mount counts as two
+  mounts and holds any weapon. Catalog the core vehicle modifications with their
+  Availability and cost.
+  Source: `sr5-core` p. 461 (PDF 463).
+- Apply existing purchase rules to every attachment individually: the creation
+  Availability ceiling of 12, rating-derived Availability and cost, metatype gear
+  cost modifiers, and augmentation grade multipliers. Per `gear.rating-cap-force`,
+  the creation Rating 6 ceiling applies to purchasable Rating and Force only and
+  does not cap Capacity.
+  Sources: `sr5-core` p. 94 (PDF 96); `SR5_RULE_DECISIONS.md`.
+- Add capacity, mount, and attachment diagnostics with the established structured
+  shape, including the host line, the exceeded pool, and the amount over.
+- Extend the canonical evaluated sheet so a finalized sheet records each
+  attachment against its host line with allocation provenance preserved.
+
+**Open rule questions (record before implementing):**
+
+- Whether ballistic and riot shields are modifiable worn armor. The core text
+  grants a Capacity of 6 to the full-body-armor helmet but does not state a shield
+  Capacity, while the runtime catalog currently assigns shields Capacity 6 by
+  inference. Resolve against `sr5-core` p. 437 (PDF 439) or record an owner
+  decision.
+- Whether a host purchased at a chosen Capacity may later be re-rated while
+  attachments remain, and what diagnostic that produces.
+
+**Acceptance criteria:**
+
+- A weapon cannot carry two accessories on one mount, an accessory cannot occupy a
+  mount its host lacks, and integral accessories consume no mount.
+- Armor, device, and augmentation Capacity pools are enforced per host instance,
+  and two copies of the same host track their attachments independently.
+- Attachment purchases are charged against the nuyen budget and, where applicable,
+  Essence, with provenance retained.
+- Every attachment is independently checked against the Availability 12 ceiling.
+- Cyberlimb enhancement type limits and the bioware/Essence-implant exclusion are
+  tested at their boundaries.
+- Vehicle weapon mounts are limited by unaugmented Body divided by three, and a
+  heavy mount consumes two.
+- Removing or re-rating a host surfaces authoritative diagnostics for the
+  attachments it can no longer carry, and never silently deletes them.
+- Golden builds covering a modified firearm, modified armor, a cyberlimb loadout,
+  and an armed vehicle pass.
+
 ## CHAR-810: Implement Contacts, Identities, And Lifestyles
 
-**Depends on:** CHAR-807 and CHAR-809.
+**Depends on:** CHAR-807 and CHAR-809. Licenses covering attached accessories
+also depend on CHAR-809A.
 
 **Scope:**
 
@@ -380,7 +474,7 @@ authoritative draft.
 
 ## CHAR-811: Final Review And Atomic Finalization
 
-**Depends on:** CHAR-806 through CHAR-810.
+**Depends on:** CHAR-806 through CHAR-810, including CHAR-809A.
 
 **Scope:**
 

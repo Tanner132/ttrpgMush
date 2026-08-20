@@ -134,7 +134,7 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(74, catalog.Weapons.Count);
+        Assert.Equal(77, catalog.Weapons.Count);
 
         Assert.Equal(8, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "blades"));
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "clubs"));
@@ -154,6 +154,8 @@ public sealed class RulesetCatalogLoaderTests
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "special-weapons"));
         Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-guns"));
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "cannons-launchers"));
+        Assert.Equal(2, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-ranged"));
+        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-melee"));
 
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.CreationUnavailable));
         Assert.Equal(1, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.Parameterized));
@@ -170,6 +172,131 @@ public sealed class RulesetCatalogLoaderTests
         Assert.Equal("Ruger 101", catalog.Weapons["ruger-101"].DisplayName);
         Assert.Equal(14, catalog.Weapons["yamaha-raiden"].Availability!.Fixed);
         Assert.Equal(GearClassification.CreationUnavailable, catalog.Weapons["yamaha-raiden"].Classification);
+    }
+
+    [Fact]
+    public void Gear_catalog_covers_general_gear_electronics_and_magical_supplies()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        Assert.Equal(114, catalog.Gear.Count);
+        Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "commlink"));
+        Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "breaking-and-entering"));
+        Assert.Equal(13, catalog.Gear.Values.Count(item => item.CategoryId == "survival"));
+        Assert.Equal(5, catalog.Gear.Values.Count(item => item.CategoryId == "formula"));
+
+        var deck = catalog.Gear["commlink-fairlight-caliban"];
+        Assert.Equal(14, deck.Availability!.Fixed);
+        Assert.Equal(8000, deck.Cost!.Fixed);
+
+        var reagents = catalog.Gear["reagents"];
+        Assert.Equal(20, reagents.Cost!.Fixed);
+        Assert.Equal(461, reagents.Source.PrintedPage);
+
+        var lodge = catalog.Gear["magical-lodge-materials"];
+        Assert.Equal(500, lodge.Cost!.PerRating);
+        Assert.Equal(2, lodge.Availability!.PerRating);
+
+        var autopicker = catalog.Gear["autopicker"];
+        Assert.Equal(1, autopicker.RatingRange!.Minimum);
+        Assert.Equal(6, autopicker.RatingRange.Maximum);
+        Assert.Equal(Legality.Restricted, autopicker.Availability!.Legality);
+    }
+
+    [Fact]
+    public void Cyberdeck_catalog_matches_the_core_inventory()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        Assert.Equal(9, catalog.Cyberdecks.Count);
+
+        var entry = catalog.Cyberdecks["erika-mcd-1"];
+        Assert.Equal(1, entry.DeviceRating);
+        Assert.Equal(new[] { 4, 3, 2, 1 }, entry.AttributeArray);
+        Assert.Equal(1, entry.Programs);
+        Assert.Equal(49500, entry.Cost!.Fixed);
+        Assert.Equal(3, entry.Availability!.Fixed);
+        Assert.Equal(Legality.Restricted, entry.Availability.Legality);
+
+        var flagship = catalog.Cyberdecks["fairlight-excalibur"];
+        Assert.Equal(6, flagship.DeviceRating);
+        Assert.Equal(new[] { 9, 8, 7, 6 }, flagship.AttributeArray);
+        Assert.Equal(823250, flagship.Cost!.Fixed);
+    }
+
+    [Fact]
+    public void Vehicle_catalog_covers_groundcraft_watercraft_aircraft_and_drones()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        Assert.Equal(40, catalog.Vehicles.Count);
+        Assert.Equal(4, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "bike"));
+        Assert.Equal(7, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "car"));
+        Assert.Equal(4, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "truck-van"));
+        Assert.Equal(3, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "boat"));
+        Assert.Equal(2, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "submarine"));
+        Assert.Equal(9, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "aircraft"));
+        Assert.Equal(11, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "drone"));
+
+        var bike = catalog.Vehicles["suzuki-mirage"];
+        Assert.Equal("5/3", bike.Handling);
+        Assert.Equal("6", bike.Speed);
+        Assert.Equal(8500, bike.Cost!.Fixed);
+
+        var drone = catalog.Vehicles["steel-lynx"];
+        Assert.Equal(12, drone.Armor);
+        Assert.Equal(10, drone.Availability!.Fixed);
+        Assert.Equal(Legality.Restricted, drone.Availability.Legality);
+        Assert.Null(drone.Seats);
+    }
+
+    [Fact]
+    public void Weapon_accessory_catalog_matches_the_core_inventory()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        Assert.Equal(17, catalog.WeaponAccessories.Count);
+        Assert.Equal(7, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.None));
+        Assert.Equal(2, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Top));
+        Assert.Equal(2, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Barrel));
+        Assert.Equal(4, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Underbarrel));
+        Assert.Equal(2, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.TopOrUnderbarrel));
+
+        var bipod = catalog.WeaponAccessories["accessory-bipod"];
+        Assert.Equal(WeaponMount.Underbarrel, bipod.Mount);
+        Assert.Equal(200, bipod.Cost!.Fixed);
+
+        var laserSight = catalog.WeaponAccessories["accessory-laser-sight"];
+        Assert.Equal(WeaponMount.TopOrUnderbarrel, laserSight.Mount);
+
+        var gasVent = catalog.WeaponAccessories["accessory-gas-vent-system"];
+        Assert.Equal(1, gasVent.RatingRange!.Minimum);
+        Assert.Equal(3, gasVent.RatingRange.Maximum);
+        Assert.Equal(200, gasVent.Cost!.PerRating);
+    }
+
+    [Fact]
+    public void Armor_modification_catalog_matches_the_core_inventory()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        Assert.Equal(7, catalog.ArmorModifications.Count);
+
+        var chemicalProtection = catalog.ArmorModifications["armor-mod-chemical-protection"];
+        Assert.Equal(1, chemicalProtection.CapacityCost!.PerRating);
+        Assert.Null(chemicalProtection.CapacityCost.Fixed);
+        Assert.Equal(1, chemicalProtection.RatingRange!.Minimum);
+        Assert.Equal(6, chemicalProtection.RatingRange.Maximum);
+
+        var chemicalSeal = catalog.ArmorModifications["armor-mod-chemical-seal"];
+        Assert.Equal(6, chemicalSeal.CapacityCost!.Fixed);
+        Assert.Null(chemicalSeal.CapacityCost.PerRating);
+        Assert.Equal(3000, chemicalSeal.Cost!.Fixed);
+        Assert.Equal(12, chemicalSeal.Availability!.Fixed);
+        Assert.Equal(Legality.Restricted, chemicalSeal.Availability.Legality);
+
+        var shockFrills = catalog.ArmorModifications["armor-mod-shock-frills"];
+        Assert.Equal(2, shockFrills.CapacityCost!.Fixed);
     }
 
     [Fact]

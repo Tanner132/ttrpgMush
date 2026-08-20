@@ -1566,3 +1566,118 @@
     grid-template-columns: 1fr 76px 38px;
   }
 }
+
+.creation-resource-line {
+  display: grid;
+  gap: var(--sb-space-1);
+}
+
+.creation-attachment__add {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--sb-border-strong);
+  background: var(--sb-surface);
+  color: var(--sb-accent);
+  font-family: var(--sb-font-heading);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.creation-attachment__add:hover {
+  border-color: var(--sb-accent);
+}
+
+.creation-resource-line__attachments {
+  display: grid;
+  gap: var(--sb-space-1);
+  margin: 0 0 0 var(--sb-space-5);
+  padding: 0 0 0 var(--sb-space-3);
+  border-left: 2px solid var(--sb-border);
+  list-style: none;
+}
+
+.creation-resource-line__attachments li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sb-space-2);
+  padding: var(--sb-space-1) 0;
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+}
+
+.creation-resource-line__attachments small {
+  color: var(--sb-text-faint);
+}
+
+.creation-attachment-modal {
+  display: grid;
+  gap: var(--sb-space-4);
+}
+
+.creation-attachment-modal__capacity {
+  display: grid;
+  gap: var(--sb-space-2);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.creation-attachment-modal__slot {
+  display: grid;
+  gap: var(--sb-space-1);
+  padding: var(--sb-space-3);
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.creation-attachment-modal__slot span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-2);
+  color: var(--sb-text);
+  text-transform: none;
+}
+
+.creation-attachment-modal__empty {
+  color: var(--sb-text-faint);
+}
+
+.creation-attachment-modal__options {
+  display: grid;
+  gap: var(--sb-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.creation-attachment-modal__option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sb-space-2);
+  padding: var(--sb-space-3);
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+}
+
+.creation-attachment-modal__option span {
+  display: grid;
+  gap: 0.15rem;
+  flex: 1 1 12rem;
+}
+
+.creation-attachment-modal__option small {
+  color: var(--sb-text-faint);
+  font-size: 0.7rem;
+}
+
+.creation-attachment-modal__option input,
+.creation-attachment-modal__option select {
+  width: 5rem;
+}

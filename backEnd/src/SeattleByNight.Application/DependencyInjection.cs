@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddSingleton<MagicResonanceEvaluator>();
         services.AddSingleton<KarmaBudgetEvaluator>();
         services.AddSingleton<ResourcesEssenceEvaluator>();
+        services.AddSingleton<GearAttachmentEvaluator>();
         services.AddSingleton<CharacterCreationDraftEvaluator>();
 
         return services;

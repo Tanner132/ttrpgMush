@@ -313,6 +313,51 @@ public sealed record VehicleDefinition(
     int? Seats = null,
     IReadOnlyList<string>? IncludedComponentIds = null);
 
+public enum WeaponMount
+{
+    None,
+    Top,
+    Barrel,
+    Underbarrel,
+    TopOrUnderbarrel,
+}
+
+public sealed record CapacityCostDefinition(
+    int? Fixed = null,
+    int? PerRating = null);
+
+public sealed record WeaponAccessoryDefinition(
+    string Id,
+    string DisplayName,
+    WeaponMount Mount,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    RatingRangeDefinition? RatingRange = null,
+    int? Capacity = null);
+
+public sealed record ArmorModificationDefinition(
+    string Id,
+    string DisplayName,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    CapacityCostDefinition? CapacityCost = null,
+    RatingRangeDefinition? RatingRange = null);
+
+public sealed record CyberdeckDefinition(
+    string Id,
+    string DisplayName,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    int? DeviceRating = null,
+    IReadOnlyList<int>? AttributeArray = null,
+    int? Programs = null);
+
 public sealed record MagicResonanceSkillGrant(
     string Domain,
     int Count,
@@ -360,7 +405,10 @@ public sealed class RulesetCatalog
         ImmutableDictionary<string, ArmorDefinition> armor,
         ImmutableDictionary<string, AugmentationGradeDefinition> augmentationGrades,
         ImmutableDictionary<string, AugmentationDefinition> augmentations,
-        ImmutableDictionary<string, VehicleDefinition> vehicles)
+        ImmutableDictionary<string, VehicleDefinition> vehicles,
+        ImmutableDictionary<string, CyberdeckDefinition> cyberdecks,
+        ImmutableDictionary<string, WeaponAccessoryDefinition> weaponAccessories,
+        ImmutableDictionary<string, ArmorModificationDefinition> armorModifications)
     {
         RulesetId = rulesetId;
         Version = version;
@@ -396,6 +444,9 @@ public sealed class RulesetCatalog
         AugmentationGrades = augmentationGrades;
         Augmentations = augmentations;
         Vehicles = vehicles;
+        Cyberdecks = cyberdecks;
+        WeaponAccessories = weaponAccessories;
+        ArmorModifications = armorModifications;
     }
 
     public string RulesetId { get; }
@@ -429,6 +480,9 @@ public sealed class RulesetCatalog
     public IReadOnlyDictionary<string, AugmentationGradeDefinition> AugmentationGrades { get; }
     public IReadOnlyDictionary<string, AugmentationDefinition> Augmentations { get; }
     public IReadOnlyDictionary<string, VehicleDefinition> Vehicles { get; }
+    public IReadOnlyDictionary<string, CyberdeckDefinition> Cyberdecks { get; }
+    public IReadOnlyDictionary<string, WeaponAccessoryDefinition> WeaponAccessories { get; }
+    public IReadOnlyDictionary<string, ArmorModificationDefinition> ArmorModifications { get; }
 
     public PriorityCellDefinition? GetPriorityCell(string categoryId, string levelId) =>
         priorityCellLookup.TryGetValue((categoryId, levelId), out var cell) ? cell : null;

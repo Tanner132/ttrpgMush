@@ -54,6 +54,32 @@ npm --prefix frontEnd run build
 
 ## Next Build Ticket
 
-Continue the accepted character-creation feature with **CHAR-805: Build Slot
-Dashboard And Creator Shell** in the Milestone 8 file. CHAR-801 through CHAR-804
-are complete.
+Continue the accepted character-creation feature with **CHAR-809: Implement
+Resources And Essence** in the Milestone 8 file. CHAR-801 through CHAR-808 are
+complete. CHAR-809 is substantially complete: weapons, armor, and
+augmentations are substantially cataloged; general gear, electronics/software,
+and magical supplies (reagents and lodge materials) are now populated using
+the existing gear catalog schema; vehicles/drones now cover the full core
+groundcraft/watercraft/aircraft/drone tables; and cyberdecks are a new typed
+catalog category with their own evaluator wiring. Street samurai, decker,
+rigger, and magical-equipment golden builds all pass. Still open before
+CHAR-809 can be called complete: a full CHAR-812-style reconciliation pass
+(the current catalog is "substantially populated," not exhaustively
+cross-checked line-by-line against the core PDF), spell-formula-to-known-spell
+linkage, and Capacity-scaled host devices (optical/audio/sensor hosts and
+their enhancements), which are explicitly deferred to CHAR-809A along with
+armor/weapon attachments.
+
+CHAR-809A (Gear Capacity, Mounts, And Attachments) is in progress: firearm
+mounts and armor Capacity are implemented. Draft resource selections now carry
+a stable per-line instance ID; a new independent `GearAttachmentEvaluator`
+(deliberately separate from `ResourcesEssenceEvaluator`) enforces mount
+slots (17 cataloged accessories; top/barrel/underbarrel by weapon category,
+with integral/no-mount accessories) and armor Capacity pools (7 cataloged
+modifications); and the creator UI shows attachments as sub-items under their
+host, with a modal (opened from a small "+" control on the host line) that
+lists remaining Capacity/mount slots and available options. Augmentation and
+cyberlimb Capacity, device Capacity for optical/audio/sensor hosts, and
+vehicle weapon mounts/modifications remain unimplemented. CHAR-810 (Contacts,
+Identities, and Lifestyles) through CHAR-812 (release gate) have not been
+started.

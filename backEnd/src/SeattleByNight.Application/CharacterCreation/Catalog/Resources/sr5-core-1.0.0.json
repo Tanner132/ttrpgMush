@@ -876,7 +876,7 @@
           "maximum": 6
         }
       },
-      "traits": "Thermographic Vision, Reach \u002B1, dermal armor \u002B1",
+      "traits": "Thermographic Vision, Reach +1, dermal armor +1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 66,
@@ -3250,7 +3250,7 @@
     {
       "id": "hermetic",
       "displayName": "Hermetic",
-      "drainAttributes": "Logic \u002B Willpower",
+      "drainAttributes": "Logic + Willpower",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 279,
@@ -3260,7 +3260,7 @@
     {
       "id": "shamanic",
       "displayName": "Shamanic",
-      "drainAttributes": "Charisma \u002B Willpower",
+      "drainAttributes": "Charisma + Willpower",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 279,
@@ -4131,7 +4131,7 @@
       "type": "physical",
       "range": "los-area",
       "duration": "sustained",
-      "drain": "F \u002B 1",
+      "drain": "F + 1",
       "parameterized": false,
       "source": {
         "sourceId": "sr5-core",
@@ -4191,7 +4191,7 @@
       "type": "mana",
       "range": "los-area",
       "duration": "sustained",
-      "drain": "F \u002B 1",
+      "drain": "F + 1",
       "parameterized": false,
       "source": {
         "sourceId": "sr5-core",
@@ -4206,7 +4206,7 @@
       "type": "mana",
       "range": "los-area",
       "duration": "sustained",
-      "drain": "F \u002B 1",
+      "drain": "F + 1",
       "parameterized": false,
       "source": {
         "sourceId": "sr5-core",
@@ -5126,7 +5126,7 @@
       "displayName": "Cleaner",
       "target": "persona",
       "duration": "permanent",
-      "fade": "L \u002B 1",
+      "fade": "L + 1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5138,7 +5138,7 @@
       "displayName": "Diffusion of Attack",
       "target": "device",
       "duration": "sustained",
-      "fade": "L \u002B 1",
+      "fade": "L + 1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5150,7 +5150,7 @@
       "displayName": "Diffusion of Data Processing",
       "target": "device",
       "duration": "sustained",
-      "fade": "L \u002B 1",
+      "fade": "L + 1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5162,7 +5162,7 @@
       "displayName": "Diffusion of Firewall",
       "target": "device",
       "duration": "sustained",
-      "fade": "L \u002B 1",
+      "fade": "L + 1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5174,7 +5174,7 @@
       "displayName": "Diffusion of Sleaze",
       "target": "device",
       "duration": "sustained",
-      "fade": "L \u002B 1",
+      "fade": "L + 1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5186,7 +5186,7 @@
       "displayName": "Editor",
       "target": "file",
       "duration": "permanent",
-      "fade": "L \u002B 2",
+      "fade": "L + 2",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5198,7 +5198,7 @@
       "displayName": "Infusion of Attack",
       "target": "device",
       "duration": "sustained",
-      "fade": "L \u002B 1",
+      "fade": "L + 1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5210,7 +5210,7 @@
       "displayName": "Infusion of Data Processing",
       "target": "device",
       "duration": "sustained",
-      "fade": "L \u002B 1",
+      "fade": "L + 1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5222,7 +5222,7 @@
       "displayName": "Infusion of Firewall",
       "target": "device",
       "duration": "sustained",
-      "fade": "L \u002B 1",
+      "fade": "L + 1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5234,7 +5234,7 @@
       "displayName": "Infusion of Sleaze",
       "target": "device",
       "duration": "sustained",
-      "fade": "L \u002B 1",
+      "fade": "L + 1",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5258,7 +5258,7 @@
       "displayName": "Puppeteer",
       "target": "device",
       "duration": "instantaneous",
-      "fade": "L \u002B 4",
+      "fade": "L + 4",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 252,
@@ -5306,7 +5306,7 @@
       "displayName": "Static Bomb",
       "target": "self",
       "duration": "instantaneous",
-      "fade": "L \u002B 2",
+      "fade": "L + 2",
       "source": {
         "sourceId": "sr5-core",
         "printedPage": 253,
@@ -5689,6 +5689,2099 @@
         "minimum": 1,
         "maximum": 4
       }
+    },
+    {
+      "id": "commlink-meta-link",
+      "displayName": "Meta Link",
+      "categoryId": "commlink",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "commlink-sony-emperor",
+      "displayName": "Sony Emperor",
+      "categoryId": "commlink",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 700
+      }
+    },
+    {
+      "id": "commlink-renraku-sensei",
+      "displayName": "Renraku Sensei",
+      "categoryId": "commlink",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      }
+    },
+    {
+      "id": "commlink-erika-elite",
+      "displayName": "Erika Elite",
+      "categoryId": "commlink",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2500
+      }
+    },
+    {
+      "id": "commlink-hermes-ikon",
+      "displayName": "Hermes Ikon",
+      "categoryId": "commlink",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3000
+      }
+    },
+    {
+      "id": "commlink-transys-avalon",
+      "displayName": "Transys Avalon",
+      "categoryId": "commlink",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      }
+    },
+    {
+      "id": "commlink-fairlight-caliban",
+      "displayName": "Fairlight Caliban",
+      "categoryId": "commlink",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8000
+      }
+    },
+    {
+      "id": "commlink-sim-module",
+      "displayName": "Sim Module",
+      "categoryId": "commlink",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "commlink-hot-sim-upgrade",
+      "displayName": "Sim Module with Hot-Sim",
+      "categoryId": "commlink",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "ar-gloves",
+      "displayName": "AR Gloves",
+      "categoryId": "electronics-accessory",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 150
+      }
+    },
+    {
+      "id": "biometric-reader",
+      "displayName": "Biometric Reader",
+      "categoryId": "electronics-accessory",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "electronic-paper",
+      "displayName": "Electronic Paper",
+      "categoryId": "electronics-accessory",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "printer",
+      "displayName": "Printer",
+      "categoryId": "electronics-accessory",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "satellite-link",
+      "displayName": "Satellite Link",
+      "categoryId": "electronics-accessory",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "simrig",
+      "displayName": "Simrig",
+      "categoryId": "electronics-accessory",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      }
+    },
+    {
+      "id": "subvocal-mic",
+      "displayName": "Subvocal Microphone",
+      "categoryId": "electronics-accessory",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "trid-projector",
+      "displayName": "Trid Projector",
+      "categoryId": "electronics-accessory",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "trodes",
+      "displayName": "Trodes",
+      "categoryId": "electronics-accessory",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 70
+      }
+    },
+    {
+      "id": "rfid-standard-tags",
+      "displayName": "Standard Tags (per 10)",
+      "categoryId": "rfid-tag",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "rfid-datachip",
+      "displayName": "Datachip (per 10)",
+      "categoryId": "rfid-tag",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "rfid-security-tags",
+      "displayName": "Security Tags (per 10)",
+      "categoryId": "rfid-tag",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "rfid-sensor-tags",
+      "displayName": "Sensor Tags (per 10)",
+      "categoryId": "rfid-tag",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 40
+      }
+    },
+    {
+      "id": "rfid-stealth-tags",
+      "displayName": "Stealth Tags (per 10)",
+      "categoryId": "rfid-tag",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 440,
+        "pdfPage": 442
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "bug-scanner",
+      "displayName": "Bug Scanner",
+      "categoryId": "communications",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 441,
+        "pdfPage": 443
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 100
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "data-tap",
+      "displayName": "Data Tap",
+      "categoryId": "communications",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 441,
+        "pdfPage": 443
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      }
+    },
+    {
+      "id": "headjammer",
+      "displayName": "Headjammer",
+      "categoryId": "communications",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 441,
+        "pdfPage": 443
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 150
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "jammer-area",
+      "displayName": "Area Jammer",
+      "categoryId": "communications",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 441,
+        "pdfPage": 443
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 200
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "jammer-directional",
+      "displayName": "Directional Jammer",
+      "categoryId": "communications",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 441,
+        "pdfPage": 443
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 200
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "micro-transceiver",
+      "displayName": "Micro-Transceiver",
+      "categoryId": "communications",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 441,
+        "pdfPage": 443
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "tag-eraser",
+      "displayName": "Tag Eraser",
+      "categoryId": "communications",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 441,
+        "pdfPage": 443
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 450
+      }
+    },
+    {
+      "id": "white-noise-generator",
+      "displayName": "White Noise Generator",
+      "categoryId": "communications",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 441,
+        "pdfPage": 443
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 50
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "agent-basic",
+      "displayName": "Agent (Rating 1-3)",
+      "categoryId": "software",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 1000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "agent-advanced",
+      "displayName": "Agent (Rating 4-6)",
+      "categoryId": "software",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 2000
+      },
+      "ratingRange": {
+        "minimum": 4,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "cyberprogram-common",
+      "displayName": "Cyberprogram, Common Use",
+      "categoryId": "software",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 80
+      }
+    },
+    {
+      "id": "cyberprogram-hacking",
+      "displayName": "Cyberprogram, Hacking",
+      "categoryId": "software",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "datasoft",
+      "displayName": "Datasoft",
+      "categoryId": "software",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 120
+      }
+    },
+    {
+      "id": "mapsoft",
+      "displayName": "Mapsoft",
+      "categoryId": "software",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "shopsoft",
+      "displayName": "Shopsoft",
+      "categoryId": "software",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 150
+      }
+    },
+    {
+      "id": "tutorsoft",
+      "displayName": "Tutorsoft",
+      "categoryId": "software",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 400
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "activesoft",
+      "displayName": "Activesoft",
+      "categoryId": "skillsoft",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 5000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "knowsoft",
+      "displayName": "Knowsoft",
+      "categoryId": "skillsoft",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 2000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "linguasoft",
+      "displayName": "Linguasoft",
+      "categoryId": "skillsoft",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 442,
+        "pdfPage": 444
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 1000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "credstick-standard",
+      "displayName": "Certified Credstick, Standard",
+      "categoryId": "credstick",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 443,
+        "pdfPage": 445
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "credstick-silver",
+      "displayName": "Certified Credstick, Silver",
+      "categoryId": "credstick",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 443,
+        "pdfPage": 445
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "credstick-gold",
+      "displayName": "Certified Credstick, Gold",
+      "categoryId": "credstick",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 443,
+        "pdfPage": 445
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "credstick-platinum",
+      "displayName": "Certified Credstick, Platinum",
+      "categoryId": "credstick",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 443,
+        "pdfPage": 445
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "credstick-ebony",
+      "displayName": "Certified Credstick, Ebony",
+      "categoryId": "credstick",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 443,
+        "pdfPage": 445
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      }
+    },
+    {
+      "id": "tool-kit",
+      "displayName": "Tool Kit",
+      "categoryId": "tools",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 443,
+        "pdfPage": 445
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "requiresParameter": true
+    },
+    {
+      "id": "tool-shop",
+      "displayName": "Tool Shop",
+      "categoryId": "tools",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 443,
+        "pdfPage": 445
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "requiresParameter": true
+    },
+    {
+      "id": "tool-facility",
+      "displayName": "Tool Facility",
+      "categoryId": "tools",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 443,
+        "pdfPage": 445
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50000
+      },
+      "requiresParameter": true
+    },
+    {
+      "id": "binoculars-optical",
+      "displayName": "Binoculars, Optical",
+      "categoryId": "optical-imaging",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 444,
+        "pdfPage": 446
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "micro-camera",
+      "displayName": "Micro-Camera",
+      "categoryId": "optical-imaging",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 444,
+        "pdfPage": 446
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "capacity": 1
+    },
+    {
+      "id": "endoscope",
+      "displayName": "Endoscope",
+      "categoryId": "optical-imaging",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 444,
+        "pdfPage": 446
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "imaging-scope",
+      "displayName": "Imaging Scope",
+      "categoryId": "optical-imaging",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 444,
+        "pdfPage": 446
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "capacity": 3
+    },
+    {
+      "id": "periscope",
+      "displayName": "Periscope",
+      "categoryId": "optical-imaging",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 444,
+        "pdfPage": 446
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "mage-sight-goggles",
+      "displayName": "Mage Sight Goggles",
+      "categoryId": "optical-imaging",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 444,
+        "pdfPage": 446
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 3000
+      }
+    },
+    {
+      "id": "key-combination-lock",
+      "displayName": "Key/Combination Lock",
+      "categoryId": "security-device",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 447,
+        "pdfPage": 449
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 10
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "maglock",
+      "displayName": "Maglock",
+      "categoryId": "security-device",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 447,
+        "pdfPage": 449
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 100
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "keypad-card-reader",
+      "displayName": "Keypad or Card Reader",
+      "categoryId": "security-device",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 447,
+        "pdfPage": 449
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "anti-tamper-circuits",
+      "displayName": "Anti-Tamper Circuits",
+      "categoryId": "security-device",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 447,
+        "pdfPage": 449
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "restraint-metal",
+      "displayName": "Metal Restraints",
+      "categoryId": "restraint",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 447,
+        "pdfPage": 449
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "restraint-plasteel",
+      "displayName": "Plasteel Restraints",
+      "categoryId": "restraint",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 447,
+        "pdfPage": 449
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "restraint-plastic",
+      "displayName": "Plastic Restraints (per 10)",
+      "categoryId": "restraint",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 447,
+        "pdfPage": 449
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "restraint-containment-manacles",
+      "displayName": "Containment Manacles",
+      "categoryId": "restraint",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 447,
+        "pdfPage": 449
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "autopicker",
+      "displayName": "Autopicker",
+      "categoryId": "breaking-and-entering",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 500
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "cellular-glove-molder",
+      "displayName": "Cellular Glove Molder",
+      "categoryId": "breaking-and-entering",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 500
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "chisel-crowbar",
+      "displayName": "Chisel/Crowbar",
+      "categoryId": "breaking-and-entering",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "keycard-copier",
+      "displayName": "Keycard Copier",
+      "categoryId": "breaking-and-entering",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 600
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "lockpick-set",
+      "displayName": "Lockpick Set",
+      "categoryId": "breaking-and-entering",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "miniwelder",
+      "displayName": "Miniwelder",
+      "categoryId": "breaking-and-entering",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "miniwelder-fuel-canister",
+      "displayName": "Miniwelder Fuel Canister",
+      "categoryId": "breaking-and-entering",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 80
+      }
+    },
+    {
+      "id": "sequencer",
+      "displayName": "Sequencer",
+      "categoryId": "breaking-and-entering",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "glue-solvent",
+      "displayName": "Glue Solvent",
+      "categoryId": "industrial-chemical",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 90
+      }
+    },
+    {
+      "id": "glue-sprayer",
+      "displayName": "Glue Sprayer",
+      "categoryId": "industrial-chemical",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 150
+      }
+    },
+    {
+      "id": "thermite-burning-bar",
+      "displayName": "Thermite Burning Bar",
+      "categoryId": "industrial-chemical",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "chemsuit",
+      "displayName": "Chemsuit",
+      "categoryId": "survival",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 150
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "climbing-gear",
+      "displayName": "Climbing Gear",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "flashlight",
+      "displayName": "Flashlight",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "gas-mask",
+      "displayName": "Gas Mask",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "gecko-tape-gloves",
+      "displayName": "Gecko Tape Gloves",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "hazmat-suit",
+      "displayName": "Hazmat Suit",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3000
+      }
+    },
+    {
+      "id": "light-stick",
+      "displayName": "Light Stick",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "magnesium-torch",
+      "displayName": "Magnesium Torch",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "micro-flares",
+      "displayName": "Micro Flares",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "rappelling-gloves",
+      "displayName": "Rappelling Gloves",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "respirator",
+      "displayName": "Respirator",
+      "categoryId": "survival",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 50
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "survival-kit",
+      "displayName": "Survival Kit",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "catalyst-stick",
+      "displayName": "Catalyst Stick",
+      "categoryId": "grapple-gun-gear",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 120
+      }
+    },
+    {
+      "id": "microwire",
+      "displayName": "Microwire (per 100 m)",
+      "categoryId": "grapple-gun-gear",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "myomeric-rope",
+      "displayName": "Myomeric Rope (per 10 m)",
+      "categoryId": "grapple-gun-gear",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "standard-rope",
+      "displayName": "Standard Rope (per 100 m)",
+      "categoryId": "grapple-gun-gear",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "stealth-rope",
+      "displayName": "Stealth Rope (per 100 m)",
+      "categoryId": "grapple-gun-gear",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 85
+      }
+    },
+    {
+      "id": "biomonitor",
+      "displayName": "Biomonitor",
+      "categoryId": "biotech",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      }
+    },
+    {
+      "id": "disposable-syringe",
+      "displayName": "Disposable Syringe",
+      "categoryId": "biotech",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "medkit",
+      "displayName": "Medkit",
+      "categoryId": "biotech",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "medkit-supplies",
+      "displayName": "Medkit Supplies",
+      "categoryId": "biotech",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "docwagon-basic",
+      "displayName": "DocWagon Contract, Basic",
+      "categoryId": "docwagon-contract",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      }
+    },
+    {
+      "id": "docwagon-gold",
+      "displayName": "DocWagon Contract, Gold",
+      "categoryId": "docwagon-contract",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25000
+      }
+    },
+    {
+      "id": "docwagon-platinum",
+      "displayName": "DocWagon Contract, Platinum",
+      "categoryId": "docwagon-contract",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50000
+      }
+    },
+    {
+      "id": "docwagon-super-platinum",
+      "displayName": "DocWagon Contract, Super-Platinum",
+      "categoryId": "docwagon-contract",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100000
+      }
+    },
+    {
+      "id": "antidote-patch",
+      "displayName": "Antidote Patch",
+      "categoryId": "slap-patch",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 451,
+        "pdfPage": 453
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 50
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "chem-patch",
+      "displayName": "Chem Patch",
+      "categoryId": "slap-patch",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 451,
+        "pdfPage": 453
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "stim-patch",
+      "displayName": "Stim Patch",
+      "categoryId": "slap-patch",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 451,
+        "pdfPage": 453
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 25
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "tranq-patch",
+      "displayName": "Tranq Patch",
+      "categoryId": "slap-patch",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 451,
+        "pdfPage": 453
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 20
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 10
+      }
+    },
+    {
+      "id": "trauma-patch",
+      "displayName": "Trauma Patch",
+      "categoryId": "slap-patch",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 451,
+        "pdfPage": 453
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "magical-lodge-materials",
+      "displayName": "Magical Lodge Materials",
+      "categoryId": "magical-supplies",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 461,
+        "pdfPage": 463
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 500
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "reagents",
+      "displayName": "Reagents (per dram)",
+      "categoryId": "magical-supplies",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 461,
+        "pdfPage": 463
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "spell-formula-combat",
+      "displayName": "Spell Formula, Combat",
+      "categoryId": "formula",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 461,
+        "pdfPage": 463
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "requiresParameter": true
+    },
+    {
+      "id": "spell-formula-detection",
+      "displayName": "Spell Formula, Detection",
+      "categoryId": "formula",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 461,
+        "pdfPage": 463
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "requiresParameter": true
+    },
+    {
+      "id": "spell-formula-health",
+      "displayName": "Spell Formula, Health",
+      "categoryId": "formula",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 461,
+        "pdfPage": 463
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "requiresParameter": true
+    },
+    {
+      "id": "spell-formula-illusion",
+      "displayName": "Spell Formula, Illusion",
+      "categoryId": "formula",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 461,
+        "pdfPage": 463
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "requiresParameter": true
+    },
+    {
+      "id": "spell-formula-manipulation",
+      "displayName": "Spell Formula, Manipulation",
+      "categoryId": "formula",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 461,
+        "pdfPage": 463
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "requiresParameter": true
     }
   ],
   "weapons": [
@@ -5697,9 +7790,18 @@
       "displayName": "Combat Axe",
       "weaponCategoryId": "blades",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 12, "legality": "restricted" },
-      "cost": { "fixed": 4000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4000
+      },
       "accuracy": "4",
       "reach": "2",
       "damage": "(STR + 5)P",
@@ -5710,9 +7812,18 @@
       "displayName": "Combat Knife",
       "weaponCategoryId": "blades",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 4, "legality": "legal" },
-      "cost": { "fixed": 300 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      },
       "accuracy": "6",
       "damage": "(STR + 2)P",
       "ap": "-3"
@@ -5722,9 +7833,18 @@
       "displayName": "Forearm Snap-blades",
       "weaponCategoryId": "blades",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 7, "legality": "restricted" },
-      "cost": { "fixed": 200 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      },
       "accuracy": "4",
       "damage": "(STR + 2)P",
       "ap": "-2"
@@ -5734,9 +7854,18 @@
       "displayName": "Katana",
       "weaponCategoryId": "blades",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 9, "legality": "restricted" },
-      "cost": { "fixed": 1000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
       "accuracy": "7",
       "reach": "1",
       "damage": "(STR + 3)P",
@@ -5747,8 +7876,14 @@
       "displayName": "Knife",
       "weaponCategoryId": "blades",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "cost": { "fixed": 10 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "cost": {
+        "fixed": 10
+      },
       "accuracy": "5",
       "damage": "(STR + 1)P",
       "ap": "-1"
@@ -5758,9 +7893,18 @@
       "displayName": "Pole Arm",
       "weaponCategoryId": "blades",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 6, "legality": "restricted" },
-      "cost": { "fixed": 1000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
       "accuracy": "5",
       "reach": "3",
       "damage": "(STR + 3)P",
@@ -5771,8 +7915,14 @@
       "displayName": "Survival Knife",
       "weaponCategoryId": "blades",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "cost": { "fixed": 100 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "cost": {
+        "fixed": 100
+      },
       "accuracy": "5",
       "damage": "(STR + 2)P",
       "ap": "-1"
@@ -5782,9 +7932,18 @@
       "displayName": "Sword",
       "weaponCategoryId": "blades",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 5, "legality": "restricted" },
-      "cost": { "fixed": 500 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
       "accuracy": "6",
       "reach": "1",
       "damage": "(STR + 3)P",
@@ -5795,8 +7954,14 @@
       "displayName": "Club",
       "weaponCategoryId": "clubs",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "cost": { "fixed": 30 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "cost": {
+        "fixed": 30
+      },
       "accuracy": "4",
       "reach": "1",
       "damage": "(STR + 3)P"
@@ -5806,9 +7971,18 @@
       "displayName": "Extendable Baton",
       "weaponCategoryId": "clubs",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 4, "legality": "legal" },
-      "cost": { "fixed": 100 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
       "accuracy": "5",
       "reach": "1",
       "damage": "(STR + 2)P"
@@ -5818,9 +7992,18 @@
       "displayName": "Sap",
       "weaponCategoryId": "clubs",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 2, "legality": "legal" },
-      "cost": { "fixed": 30 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30
+      },
       "accuracy": "5",
       "damage": "(STR + 2)P"
     },
@@ -5829,9 +8012,18 @@
       "displayName": "Staff",
       "weaponCategoryId": "clubs",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 3, "legality": "legal" },
-      "cost": { "fixed": 100 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
       "accuracy": "6",
       "reach": "2",
       "damage": "(STR + 3)P"
@@ -5841,9 +8033,18 @@
       "displayName": "Stun Baton",
       "weaponCategoryId": "clubs",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 6, "legality": "restricted" },
-      "cost": { "fixed": 750 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
       "accuracy": "4",
       "reach": "1",
       "damage": "9S(e)",
@@ -5854,9 +8055,18 @@
       "displayName": "Telescoping Staff",
       "weaponCategoryId": "clubs",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 4, "legality": "legal" },
-      "cost": { "fixed": 350 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 350
+      },
       "accuracy": "4",
       "reach": "2",
       "damage": "(STR + 2)P"
@@ -5866,9 +8076,18 @@
       "displayName": "Knucks",
       "weaponCategoryId": "other-melee",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 2, "legality": "restricted" },
-      "cost": { "fixed": 100 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 100
+      },
       "accuracy": "Physical",
       "damage": "(STR + 1)P"
     },
@@ -5877,9 +8096,18 @@
       "displayName": "Monofilament Whip",
       "weaponCategoryId": "other-melee",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 12, "legality": "forbidden" },
-      "cost": { "fixed": 10000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      },
       "accuracy": "5 (7)",
       "reach": "2",
       "damage": "12P",
@@ -5890,9 +8118,18 @@
       "displayName": "Shock Gloves",
       "weaponCategoryId": "other-melee",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 423, "pdfPage": 425 },
-      "availability": { "fixed": 6, "legality": "restricted" },
-      "cost": { "fixed": 550 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 550
+      },
       "accuracy": "Physical",
       "damage": "8S(e)",
       "ap": "-5"
@@ -5902,23 +8139,44 @@
       "displayName": "Bow",
       "weaponCategoryId": "bows",
       "classification": "parameterized",
-      "source": { "sourceId": "sr5-core", "printedPage": 424, "pdfPage": 426 },
-      "availability": { "perRating": 1, "legality": "legal" },
-      "cost": { "perRating": 100 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 100
+      },
       "accuracy": "6",
       "damage": "(Rating + 2)P",
       "ap": "-(Rating / 4)",
       "ammo": "1 arrow",
-      "ratingRange": { "minimum": 1, "maximum": 10 }
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 10
+      }
     },
     {
       "id": "crossbow-light",
       "displayName": "Light Crossbow",
       "weaponCategoryId": "crossbows",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 424, "pdfPage": 426 },
-      "availability": { "fixed": 2, "legality": "legal" },
-      "cost": { "fixed": 300 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      },
       "accuracy": "7",
       "damage": "5P",
       "ap": "-1"
@@ -5928,9 +8186,18 @@
       "displayName": "Medium Crossbow",
       "weaponCategoryId": "crossbows",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 424, "pdfPage": 426 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 500 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
       "accuracy": "6",
       "damage": "7P",
       "ap": "-2"
@@ -5940,9 +8207,18 @@
       "displayName": "Heavy Crossbow",
       "weaponCategoryId": "crossbows",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 424, "pdfPage": 426 },
-      "availability": { "fixed": 8, "legality": "restricted" },
-      "cost": { "fixed": 1000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
       "accuracy": "5",
       "damage": "10P",
       "ap": "-3"
@@ -5952,9 +8228,18 @@
       "displayName": "Throwing Knife/Shuriken",
       "weaponCategoryId": "throwing-weapons",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 424, "pdfPage": 426 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 25 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 25
+      },
       "accuracy": "Physical",
       "damage": "(STR + 1)P",
       "ap": "-1"
@@ -5964,8 +8249,14 @@
       "displayName": "Defiance EX Shocker",
       "weaponCategoryId": "tasers",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 425, "pdfPage": 427 },
-      "cost": { "fixed": 250 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "cost": {
+        "fixed": 250
+      },
       "accuracy": "4",
       "damage": "9S(e)",
       "ap": "-5",
@@ -5977,8 +8268,14 @@
       "displayName": "Yamaha Pulsar",
       "weaponCategoryId": "tasers",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 425, "pdfPage": 427 },
-      "cost": { "fixed": 180 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "cost": {
+        "fixed": 180
+      },
       "accuracy": "5",
       "damage": "7S(e)",
       "ap": "-5",
@@ -5990,9 +8287,18 @@
       "displayName": "Fichetti Tiffani Needler",
       "weaponCategoryId": "hold-outs",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 425, "pdfPage": 427 },
-      "availability": { "fixed": 5, "legality": "restricted" },
-      "cost": { "fixed": 1000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
       "accuracy": "5",
       "damage": "8P(f)",
       "ap": "+5",
@@ -6004,9 +8310,18 @@
       "displayName": "Streetline Special",
       "weaponCategoryId": "hold-outs",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 425, "pdfPage": 427 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 120 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 120
+      },
       "accuracy": "4",
       "damage": "6P",
       "mode": "SA",
@@ -6017,9 +8332,18 @@
       "displayName": "Walther Palm Pistol",
       "weaponCategoryId": "hold-outs",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 425, "pdfPage": 427 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 180 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 180
+      },
       "accuracy": "4",
       "damage": "7P",
       "mode": "SS/BF",
@@ -6030,9 +8354,18 @@
       "displayName": "Ares Light Fire 75",
       "weaponCategoryId": "light-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 6, "legality": "forbidden" },
-      "cost": { "fixed": 1250 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1250
+      },
       "accuracy": "6 (8)",
       "damage": "6P",
       "mode": "SA",
@@ -6043,9 +8376,18 @@
       "displayName": "Ares Light Fire 70",
       "weaponCategoryId": "light-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 3, "legality": "restricted" },
-      "cost": { "fixed": 200 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      },
       "accuracy": "7",
       "damage": "6P",
       "mode": "SA",
@@ -6056,9 +8398,18 @@
       "displayName": "Beretta 201T",
       "weaponCategoryId": "light-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 7, "legality": "restricted" },
-      "cost": { "fixed": 210 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 210
+      },
       "accuracy": "6",
       "damage": "6P",
       "mode": "SA/BF",
@@ -6070,9 +8421,18 @@
       "displayName": "Colt America L36",
       "weaponCategoryId": "light-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 320 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 320
+      },
       "accuracy": "7",
       "damage": "7P",
       "mode": "SA",
@@ -6083,9 +8443,18 @@
       "displayName": "Fichetti Security 600",
       "weaponCategoryId": "light-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 6, "legality": "restricted" },
-      "cost": { "fixed": 350 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      },
       "accuracy": "6 (7)",
       "damage": "7P",
       "mode": "SA",
@@ -6097,9 +8466,18 @@
       "displayName": "Taurus Omni-6",
       "weaponCategoryId": "light-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 3, "legality": "restricted" },
-      "cost": { "fixed": 300 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
       "accuracy": "5 (6)",
       "damage": "6P / 7P",
       "ap": "0 / -1",
@@ -6111,9 +8489,18 @@
       "displayName": "Ares Predator V",
       "weaponCategoryId": "heavy-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 5, "legality": "restricted" },
-      "cost": { "fixed": 725 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 725
+      },
       "accuracy": "5 (7)",
       "damage": "8P",
       "ap": "-1",
@@ -6125,9 +8512,18 @@
       "displayName": "Ares Viper Slivergun",
       "weaponCategoryId": "heavy-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 8, "legality": "forbidden" },
-      "cost": { "fixed": 380 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 380
+      },
       "accuracy": "4",
       "damage": "9P(f)",
       "ap": "+4",
@@ -6139,9 +8535,18 @@
       "displayName": "Browning Ultra-Power",
       "weaponCategoryId": "heavy-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 640 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 640
+      },
       "accuracy": "5 (6)",
       "damage": "8P",
       "ap": "-1",
@@ -6153,9 +8558,18 @@
       "displayName": "Colt Government 2066",
       "weaponCategoryId": "heavy-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 7, "legality": "restricted" },
-      "cost": { "fixed": 425 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 425
+      },
       "accuracy": "6",
       "damage": "7P",
       "ap": "-1",
@@ -6167,9 +8581,18 @@
       "displayName": "Remington Roomsweeper",
       "weaponCategoryId": "heavy-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 6, "legality": "restricted" },
-      "cost": { "fixed": 250 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      },
       "accuracy": "4",
       "damage": "7P",
       "ap": "-1",
@@ -6181,9 +8604,18 @@
       "displayName": "Ruger Super Warhawk",
       "weaponCategoryId": "heavy-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 426, "pdfPage": 428 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 400 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 400
+      },
       "accuracy": "5",
       "damage": "9P",
       "ap": "-2",
@@ -6195,9 +8627,18 @@
       "displayName": "Ares Crusader II",
       "weaponCategoryId": "machine-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 427, "pdfPage": 429 },
-      "availability": { "fixed": 9, "legality": "restricted" },
-      "cost": { "fixed": 830 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 830
+      },
       "accuracy": "5 (7)",
       "damage": "7P",
       "mode": "SA/BF",
@@ -6209,9 +8650,18 @@
       "displayName": "Ceska Black Scorpion",
       "weaponCategoryId": "machine-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 427, "pdfPage": 429 },
-      "availability": { "fixed": 6, "legality": "restricted" },
-      "cost": { "fixed": 270 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 270
+      },
       "accuracy": "5",
       "damage": "6P",
       "mode": "SA/BF",
@@ -6223,9 +8673,18 @@
       "displayName": "Steyr TMP",
       "weaponCategoryId": "machine-pistols",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 427, "pdfPage": 429 },
-      "availability": { "fixed": 8, "legality": "restricted" },
-      "cost": { "fixed": 350 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      },
       "accuracy": "4",
       "damage": "7P",
       "mode": "SA/BF/FA",
@@ -6236,9 +8695,18 @@
       "displayName": "Colt Cobra TZ-120",
       "weaponCategoryId": "submachine-guns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 427, "pdfPage": 429 },
-      "availability": { "fixed": 5, "legality": "restricted" },
-      "cost": { "fixed": 660 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 660
+      },
       "accuracy": "4 (5)",
       "damage": "7P",
       "mode": "SA/BF/FA",
@@ -6250,9 +8718,18 @@
       "displayName": "FN P93 Praetor",
       "weaponCategoryId": "submachine-guns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 427, "pdfPage": 429 },
-      "availability": { "fixed": 11, "legality": "forbidden" },
-      "cost": { "fixed": 900 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 900
+      },
       "accuracy": "6",
       "damage": "8P",
       "mode": "SA/BF/FA",
@@ -6264,9 +8741,18 @@
       "displayName": "HK-227",
       "weaponCategoryId": "submachine-guns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 427, "pdfPage": 429 },
-      "availability": { "fixed": 8, "legality": "restricted" },
-      "cost": { "fixed": 730 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 730
+      },
       "accuracy": "5 (7)",
       "damage": "7P",
       "mode": "SA/BF/FA",
@@ -6278,9 +8764,18 @@
       "displayName": "Ingram Smartgun X",
       "weaponCategoryId": "submachine-guns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 427, "pdfPage": 429 },
-      "availability": { "fixed": 6, "legality": "restricted" },
-      "cost": { "fixed": 800 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 800
+      },
       "accuracy": "4 (6)",
       "damage": "8P",
       "mode": "BF/FA",
@@ -6292,9 +8787,18 @@
       "displayName": "SCK Model 100",
       "weaponCategoryId": "submachine-guns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 427, "pdfPage": 429 },
-      "availability": { "fixed": 6, "legality": "restricted" },
-      "cost": { "fixed": 875 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 875
+      },
       "accuracy": "5 (7)",
       "damage": "8P",
       "mode": "SA/BF",
@@ -6306,9 +8810,18 @@
       "displayName": "Uzi IV",
       "weaponCategoryId": "submachine-guns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 427, "pdfPage": 429 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 450 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 450
+      },
       "accuracy": "4 (5)",
       "damage": "7P",
       "mode": "BF",
@@ -6320,9 +8833,18 @@
       "displayName": "AK-97",
       "weaponCategoryId": "assault-rifles",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 950 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 950
+      },
       "accuracy": "5",
       "damage": "10P",
       "ap": "-2",
@@ -6334,9 +8856,18 @@
       "displayName": "Ares Alpha",
       "weaponCategoryId": "assault-rifles",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 11, "legality": "forbidden" },
-      "cost": { "fixed": 2650 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2650
+      },
       "accuracy": "5 (7)",
       "damage": "11P",
       "ap": "-2",
@@ -6349,9 +8880,18 @@
       "displayName": "Colt M23",
       "weaponCategoryId": "assault-rifles",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 550 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 550
+      },
       "accuracy": "4",
       "damage": "9P",
       "ap": "-2",
@@ -6363,9 +8903,18 @@
       "displayName": "FN HAR",
       "weaponCategoryId": "assault-rifles",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 8, "legality": "restricted" },
-      "cost": { "fixed": 1500 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
       "accuracy": "5 (6)",
       "damage": "10P",
       "ap": "-2",
@@ -6378,9 +8927,18 @@
       "displayName": "Yamaha Raiden",
       "weaponCategoryId": "assault-rifles",
       "classification": "creationUnavailable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 14, "legality": "forbidden" },
-      "cost": { "fixed": 2600 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2600
+      },
       "accuracy": "6 (8)",
       "damage": "11P",
       "ap": "-2",
@@ -6393,9 +8951,18 @@
       "displayName": "Ares Desert Strike",
       "weaponCategoryId": "sniper-rifles",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 10, "legality": "forbidden" },
-      "cost": { "fixed": 17500 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 17500
+      },
       "accuracy": "7",
       "damage": "13P",
       "ap": "-4",
@@ -6408,9 +8975,18 @@
       "displayName": "Cavalier Arms Crockett EBR",
       "weaponCategoryId": "sniper-rifles",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 12, "legality": "forbidden" },
-      "cost": { "fixed": 10300 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10300
+      },
       "accuracy": "6",
       "damage": "12P",
       "ap": "-3",
@@ -6423,9 +8999,18 @@
       "displayName": "Ranger Arms SM-5",
       "weaponCategoryId": "sniper-rifles",
       "classification": "creationUnavailable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 16, "legality": "forbidden" },
-      "cost": { "fixed": 28000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 28000
+      },
       "accuracy": "8",
       "damage": "14P",
       "ap": "-5",
@@ -6438,9 +9023,18 @@
       "displayName": "Remington 950",
       "weaponCategoryId": "sniper-rifles",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 2100 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2100
+      },
       "accuracy": "7",
       "damage": "12P",
       "ap": "-4",
@@ -6452,9 +9046,18 @@
       "displayName": "Ruger 101",
       "weaponCategoryId": "sniper-rifles",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 428, "pdfPage": 430 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 1300 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1300
+      },
       "accuracy": "6",
       "damage": "11P",
       "ap": "-3",
@@ -6467,9 +9070,18 @@
       "displayName": "Defiance T-250",
       "weaponCategoryId": "shotguns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 429, "pdfPage": 431 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 450 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 450
+      },
       "accuracy": "4",
       "damage": "10P",
       "ap": "-1",
@@ -6481,9 +9093,18 @@
       "displayName": "Enfield AS-7",
       "weaponCategoryId": "shotguns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 429, "pdfPage": 431 },
-      "availability": { "fixed": 12, "legality": "forbidden" },
-      "cost": { "fixed": 1100 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1100
+      },
       "accuracy": "4 (5)",
       "damage": "13P",
       "ap": "-1",
@@ -6495,9 +9116,18 @@
       "displayName": "PJSS Model 55",
       "weaponCategoryId": "shotguns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 429, "pdfPage": 431 },
-      "availability": { "fixed": 9, "legality": "restricted" },
-      "cost": { "fixed": 1000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
       "accuracy": "6",
       "damage": "11P",
       "ap": "-1",
@@ -6510,9 +9140,18 @@
       "displayName": "Ares S-III Super Squirt",
       "weaponCategoryId": "special-weapons",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 429, "pdfPage": 431 },
-      "availability": { "fixed": 7, "legality": "restricted" },
-      "cost": { "fixed": 950 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 950
+      },
       "accuracy": "3",
       "damage": "Chemical",
       "mode": "SA",
@@ -6523,9 +9162,18 @@
       "displayName": "Fichetti Pain Inducer",
       "weaponCategoryId": "special-weapons",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 429, "pdfPage": 431 },
-      "availability": { "fixed": 11, "legality": "restricted" },
-      "cost": { "fixed": 5000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 5000
+      },
       "accuracy": "3",
       "damage": "Special",
       "mode": "SS",
@@ -6536,9 +9184,18 @@
       "displayName": "Parashield Dart Pistol",
       "weaponCategoryId": "special-weapons",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 429, "pdfPage": 431 },
-      "availability": { "fixed": 4, "legality": "restricted" },
-      "cost": { "fixed": 600 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      },
       "accuracy": "5",
       "damage": "as Drug/Toxin",
       "mode": "SA",
@@ -6549,9 +9206,18 @@
       "displayName": "Parashield Dart Rifle",
       "weaponCategoryId": "special-weapons",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 429, "pdfPage": 431 },
-      "availability": { "fixed": 6, "legality": "restricted" },
-      "cost": { "fixed": 1200 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1200
+      },
       "accuracy": "6",
       "damage": "as Drug/Toxin",
       "mode": "SA",
@@ -6562,9 +9228,18 @@
       "displayName": "Ingram Valiant",
       "weaponCategoryId": "machine-guns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 430, "pdfPage": 432 },
-      "availability": { "fixed": 12, "legality": "forbidden" },
-      "cost": { "fixed": 5800 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 430,
+        "pdfPage": 432
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 5800
+      },
       "accuracy": "5 (6)",
       "damage": "9P",
       "ap": "-2",
@@ -6577,9 +9252,18 @@
       "displayName": "Stoner-Ares M202",
       "weaponCategoryId": "machine-guns",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 430, "pdfPage": 432 },
-      "availability": { "fixed": 12, "legality": "forbidden" },
-      "cost": { "fixed": 7000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 430,
+        "pdfPage": 432
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 7000
+      },
       "accuracy": "5",
       "damage": "10P",
       "ap": "-3",
@@ -6591,9 +9275,18 @@
       "displayName": "RPK HMG",
       "weaponCategoryId": "machine-guns",
       "classification": "creationUnavailable",
-      "source": { "sourceId": "sr5-core", "printedPage": 430, "pdfPage": 432 },
-      "availability": { "fixed": 16, "legality": "forbidden" },
-      "cost": { "fixed": 16300 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 430,
+        "pdfPage": 432
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 16300
+      },
       "accuracy": "5",
       "damage": "12P",
       "ap": "-4",
@@ -6606,9 +9299,18 @@
       "displayName": "Ares Antioch-2",
       "weaponCategoryId": "cannons-launchers",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 431, "pdfPage": 433 },
-      "availability": { "fixed": 8, "legality": "forbidden" },
-      "cost": { "fixed": 3200 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 3200
+      },
       "accuracy": "4 (6)",
       "damage": "Grenade",
       "mode": "SS",
@@ -6619,9 +9321,18 @@
       "displayName": "ArmTech MGL-12",
       "weaponCategoryId": "cannons-launchers",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 431, "pdfPage": 433 },
-      "availability": { "fixed": 10, "legality": "forbidden" },
-      "cost": { "fixed": 5000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 5000
+      },
       "accuracy": "4",
       "damage": "Grenade",
       "mode": "SA",
@@ -6632,9 +9343,18 @@
       "displayName": "Aztechnology Striker",
       "weaponCategoryId": "cannons-launchers",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 431, "pdfPage": 433 },
-      "availability": { "fixed": 10, "legality": "forbidden" },
-      "cost": { "fixed": 1200 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1200
+      },
       "accuracy": "5",
       "damage": "Missile",
       "mode": "SS",
@@ -6645,9 +9365,18 @@
       "displayName": "Krime Cannon",
       "weaponCategoryId": "cannons-launchers",
       "classification": "creationUnavailable",
-      "source": { "sourceId": "sr5-core", "printedPage": 431, "pdfPage": 433 },
-      "availability": { "fixed": 20, "legality": "forbidden" },
-      "cost": { "fixed": 21000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 21000
+      },
       "accuracy": "4",
       "damage": "16P",
       "ap": "-6",
@@ -6660,9 +9389,18 @@
       "displayName": "Onotari Interceptor",
       "weaponCategoryId": "cannons-launchers",
       "classification": "creationUnavailable",
-      "source": { "sourceId": "sr5-core", "printedPage": 431, "pdfPage": 433 },
-      "availability": { "fixed": 18, "legality": "forbidden" },
-      "cost": { "fixed": 14000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 14000
+      },
       "accuracy": "4 (6)",
       "damage": "Missile",
       "mode": "SS",
@@ -6673,14 +9411,90 @@
       "displayName": "Panther XXL",
       "weaponCategoryId": "cannons-launchers",
       "classification": "creationUnavailable",
-      "source": { "sourceId": "sr5-core", "printedPage": 431, "pdfPage": 433 },
-      "availability": { "fixed": 20, "legality": "forbidden" },
-      "cost": { "fixed": 43000 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 43000
+      },
       "accuracy": "5 (7)",
       "damage": "17P",
       "ap": "-6",
       "mode": "SS",
       "ammo": "15 (c)"
+    },
+    {
+      "id": "grapple-gun",
+      "displayName": "Grapple Gun",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "3",
+      "damage": "7S",
+      "ap": "-2",
+      "mode": "SS",
+      "ammo": "1 (ml)"
+    },
+    {
+      "id": "micro-flare-launcher",
+      "displayName": "Micro Flare Launcher",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 175
+      },
+      "accuracy": "3",
+      "damage": "5P (Fire)",
+      "ap": "-5",
+      "mode": "SS",
+      "ammo": "1 (ml)"
+    },
+    {
+      "id": "monofilament-chainsaw",
+      "displayName": "Monofilament Chainsaw",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "3",
+      "reach": "1",
+      "damage": "8P",
+      "ap": "-6"
     }
   ],
   "armor": [
@@ -6898,9 +9712,9 @@
     {
       "id": "standard",
       "displayName": "Standard",
-      "essenceMultiplier": 1.0,
+      "essenceMultiplier": 1,
       "availabilityModifier": 0,
-      "costMultiplier": 1.0,
+      "costMultiplier": 1,
       "creationEligible": true,
       "source": {
         "sourceId": "sr5-core",
@@ -7010,9 +9824,9 @@
       },
       "essence": {
         "byRating": {
-          "1": 1.0,
-          "2": 2.0,
-          "3": 3.0
+          "1": 1,
+          "2": 2,
+          "3": 3
         }
       },
       "ratingRange": {
@@ -7745,7 +10559,7 @@
         "fixed": 18000
       },
       "essence": {
-        "fixed": 1.0
+        "fixed": 1
       }
     },
     {
@@ -7879,7 +10693,7 @@
         "perRating": 25000
       },
       "essence": {
-        "perRating": 1.0
+        "perRating": 1
       },
       "ratingRange": {
         "minimum": 1,
@@ -7984,9 +10798,9 @@
       },
       "essence": {
         "byRating": {
-          "1": 2.0,
-          "2": 3.0,
-          "3": 5.0
+          "1": 2,
+          "2": 3,
+          "3": 5
         }
       },
       "ratingRange": {
@@ -8012,7 +10826,7 @@
         "fixed": 15000
       },
       "essence": {
-        "fixed": 1.0
+        "fixed": 1
       }
     },
     {
@@ -8033,7 +10847,7 @@
         "fixed": 15000
       },
       "essence": {
-        "fixed": 1.0
+        "fixed": 1
       }
     },
     {
@@ -8160,7 +10974,7 @@
         "fixed": 20000
       },
       "essence": {
-        "fixed": 1.0
+        "fixed": 1
       }
     },
     {
@@ -8181,7 +10995,7 @@
         "fixed": 20000
       },
       "essence": {
-        "fixed": 1.0
+        "fixed": 1
       }
     },
     {
@@ -8392,7 +11206,7 @@
         "fixed": 4800
       },
       "essence": {
-        "fixed": 1.0
+        "fixed": 1
       }
     },
     {
@@ -9116,6 +11930,1675 @@
       "armor": 0,
       "pilot": 3,
       "sensor": 3
+    },
+    {
+      "id": "dodge-scoot",
+      "displayName": "Dodge Scoot",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3000
+      },
+      "handling": "4/3",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 4,
+      "armor": 4,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 1
+    },
+    {
+      "id": "yamaha-growler",
+      "displayName": "Yamaha Growler",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "handling": "4/5",
+      "speed": "3/4",
+      "acceleration": 1,
+      "body": 5,
+      "armor": 5,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 1
+    },
+    {
+      "id": "suzuki-mirage",
+      "displayName": "Suzuki Mirage",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8500
+      },
+      "handling": "5/3",
+      "speed": "6",
+      "acceleration": 3,
+      "body": 5,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 1
+    },
+    {
+      "id": "chrysler-nissan-jackrabbit",
+      "displayName": "Chrysler-Nissan Jackrabbit",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "handling": "4/3",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 8,
+      "armor": 4,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 2
+    },
+    {
+      "id": "honda-spirit",
+      "displayName": "Honda Spirit",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 12000
+      },
+      "handling": "3/2",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 8,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 2
+    },
+    {
+      "id": "hyundai-shin-hyung",
+      "displayName": "Hyundai Shin-Hyung",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 28500
+      },
+      "handling": "5/4",
+      "speed": "6",
+      "acceleration": 3,
+      "body": 10,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 4
+    },
+    {
+      "id": "eurocar-westwind-3000",
+      "displayName": "Eurocar Westwind 3000",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "fixed": 13,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 110000
+      },
+      "handling": "6/4",
+      "speed": "7",
+      "acceleration": 3,
+      "body": 10,
+      "armor": 8,
+      "pilot": 3,
+      "sensor": 5,
+      "seats": 2
+    },
+    {
+      "id": "ford-americar",
+      "displayName": "Ford Americar",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 16000
+      },
+      "handling": "4/3",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 11,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 4
+    },
+    {
+      "id": "sk-bentley-concordat",
+      "displayName": "Saeder-Krupp-Bentley Concordat",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 65000
+      },
+      "handling": "5/4",
+      "speed": "5",
+      "acceleration": 2,
+      "body": 12,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 4,
+      "seats": 4
+    },
+    {
+      "id": "mitsubishi-nightsky",
+      "displayName": "Mitsubishi Nightsky",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 320000
+      },
+      "handling": "4/3",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 15,
+      "armor": 15,
+      "pilot": 3,
+      "sensor": 5,
+      "seats": 8
+    },
+    {
+      "id": "toyota-gopher",
+      "displayName": "Toyota Gopher",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25000
+      },
+      "handling": "5/5",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 14,
+      "armor": 10,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 3
+    },
+    {
+      "id": "gmc-bulldog-step-van",
+      "displayName": "GMC Bulldog Step-Van",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 35000
+      },
+      "handling": "3/3",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 16,
+      "armor": 12,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 6
+    },
+    {
+      "id": "rover-model-2072",
+      "displayName": "Rover Model 2072",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 68000
+      },
+      "handling": "5/5",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 15,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 4,
+      "seats": 6
+    },
+    {
+      "id": "ares-roadmaster",
+      "displayName": "Ares Roadmaster",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 463,
+        "pdfPage": 465
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 52000
+      },
+      "handling": "3/3",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 18,
+      "armor": 18,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 8
+    },
+    {
+      "id": "samuvani-criscraft-otter",
+      "displayName": "Samuvani-Criscraft Otter",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 21000
+      },
+      "handling": "4",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 12,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 8
+    },
+    {
+      "id": "yongkang-gala-trinity",
+      "displayName": "Yongkang-Gala Trinity",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 37000
+      },
+      "handling": "5",
+      "speed": "6",
+      "acceleration": 3,
+      "body": 10,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 3
+    },
+    {
+      "id": "morgan-cutlass",
+      "displayName": "Morgan Cutlass",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 96000
+      },
+      "handling": "5",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 16,
+      "armor": 10,
+      "pilot": 3,
+      "sensor": 5,
+      "seats": 6
+    },
+    {
+      "id": "proteus-lamprey",
+      "displayName": "Proteus Lamprey",
+      "vehicleCategoryId": "submarine",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 14000
+      },
+      "handling": "3",
+      "speed": "2",
+      "acceleration": 1,
+      "body": 6,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 3,
+      "seats": 4
+    },
+    {
+      "id": "vulkan-electronaut",
+      "displayName": "Vulkan Electronaut",
+      "vehicleCategoryId": "submarine",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 108000
+      },
+      "handling": "3",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 12,
+      "armor": 10,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 2
+    },
+    {
+      "id": "artemis-nightwing",
+      "displayName": "Artemis Industries Nightwing",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "handling": "6",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 4,
+      "armor": 0,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 1
+    },
+    {
+      "id": "cessna-c750",
+      "displayName": "Cessna C750",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 146000
+      },
+      "handling": "3",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 18,
+      "armor": 4,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 4
+    },
+    {
+      "id": "renault-fiat-fokker-tundra-9",
+      "displayName": "Renault-Fiat Fokker Tundra-9",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300000
+      },
+      "handling": "3",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 20,
+      "armor": 10,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 24
+    },
+    {
+      "id": "ares-dragon",
+      "displayName": "Ares Dragon",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 355000
+      },
+      "handling": "4",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 22,
+      "armor": 8,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 18
+    },
+    {
+      "id": "nissan-hound",
+      "displayName": "Nissan Hound",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 13,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 425000
+      },
+      "handling": "5",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 16,
+      "pilot": 2,
+      "sensor": 4,
+      "seats": 12
+    },
+    {
+      "id": "northrup-wasp",
+      "displayName": "Northrup Wasp",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 86000
+      },
+      "handling": "5",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 10,
+      "armor": 8,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 1
+    },
+    {
+      "id": "ares-venture",
+      "displayName": "Ares Venture",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 400000
+      },
+      "handling": "5",
+      "speed": "7",
+      "acceleration": 4,
+      "body": 16,
+      "armor": 14,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 6
+    },
+    {
+      "id": "gmc-banshee",
+      "displayName": "GMC Banshee",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 24,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2500000
+      },
+      "handling": "6",
+      "speed": "8",
+      "acceleration": 4,
+      "body": 20,
+      "armor": 18,
+      "pilot": 4,
+      "sensor": 6,
+      "seats": 12
+    },
+    {
+      "id": "federated-boeing-commuter",
+      "displayName": "Federated Boeing Commuter",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 465,
+        "pdfPage": 467
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 350000
+      },
+      "handling": "3",
+      "speed": "3",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 8,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 30
+    },
+    {
+      "id": "shiawase-kanmushi",
+      "displayName": "Shiawase Kanmushi",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "handling": "4",
+      "speed": "2",
+      "acceleration": 1,
+      "body": 0,
+      "armor": 0,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "sikorsky-bell-microskimmer",
+      "displayName": "Sikorsky-Bell Microskimmer",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "handling": "3",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 0,
+      "armor": 0,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "mct-fly-spy",
+      "displayName": "MCT Fly-Spy",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "handling": "4",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 1,
+      "armor": 0,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "aztechnology-crawler",
+      "displayName": "Aztechnology Crawler",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "handling": "4",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 3,
+      "armor": 3,
+      "pilot": 4,
+      "sensor": 3
+    },
+    {
+      "id": "lockheed-optic-x2",
+      "displayName": "Lockheed Optic-X2",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 21000
+      },
+      "handling": "4",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 2,
+      "armor": 2,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "ares-duelist",
+      "displayName": "Ares Duelist",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4500
+      },
+      "handling": "3",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 4,
+      "armor": 4,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "gm-nissan-doberman",
+      "displayName": "GM-Nissan Doberman",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "handling": "5",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 4,
+      "armor": 4,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "mct-nissan-roto-drone",
+      "displayName": "MCT-Nissan Roto-Drone",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "handling": "4",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 4,
+      "armor": 4,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "cyberspace-designs-dalmatian",
+      "displayName": "Cyberspace Designs Dalmatian",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "handling": "5",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 5,
+      "armor": 5,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "steel-lynx",
+      "displayName": "Steel Lynx Combat Drone",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 466,
+        "pdfPage": 468
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 25000
+      },
+      "handling": "5",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 6,
+      "armor": 12,
+      "pilot": 3,
+      "sensor": 3
+    }
+  ],
+  "cyberdecks": [
+    {
+      "id": "erika-mcd-1",
+      "displayName": "Erika MCD-1",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 49500
+      },
+      "deviceRating": 1,
+      "attributeArray": [
+        4,
+        3,
+        2,
+        1
+      ],
+      "programs": 1
+    },
+    {
+      "id": "microdeck-summit",
+      "displayName": "Microdeck Summit",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 58000
+      },
+      "deviceRating": 1,
+      "attributeArray": [
+        4,
+        3,
+        3,
+        1
+      ],
+      "programs": 1
+    },
+    {
+      "id": "microtronica-azteca-200",
+      "displayName": "Microtrônica Azteca 200",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 110250
+      },
+      "deviceRating": 2,
+      "attributeArray": [
+        5,
+        4,
+        3,
+        2
+      ],
+      "programs": 2
+    },
+    {
+      "id": "hermes-chariot",
+      "displayName": "Hermes Chariot",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 123000
+      },
+      "deviceRating": 2,
+      "attributeArray": [
+        5,
+        4,
+        4,
+        2
+      ],
+      "programs": 2
+    },
+    {
+      "id": "novatech-navigator",
+      "displayName": "Novatech Navigator",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 205750
+      },
+      "deviceRating": 3,
+      "attributeArray": [
+        6,
+        5,
+        4,
+        3
+      ],
+      "programs": 3
+    },
+    {
+      "id": "renraku-tsurugi",
+      "displayName": "Renraku Tsurugi",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 214125
+      },
+      "deviceRating": 3,
+      "attributeArray": [
+        6,
+        5,
+        5,
+        3
+      ],
+      "programs": 3
+    },
+    {
+      "id": "sony-ciy-720",
+      "displayName": "Sony CIY-720",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 345000
+      },
+      "deviceRating": 4,
+      "attributeArray": [
+        7,
+        6,
+        5,
+        4
+      ],
+      "programs": 4
+    },
+    {
+      "id": "shiawase-cyber-5",
+      "displayName": "Shiawase Cyber-5",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 15,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 549375
+      },
+      "deviceRating": 5,
+      "attributeArray": [
+        8,
+        7,
+        6,
+        5
+      ],
+      "programs": 5
+    },
+    {
+      "id": "fairlight-excalibur",
+      "displayName": "Fairlight Excalibur",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 823250
+      },
+      "deviceRating": 6,
+      "attributeArray": [
+        9,
+        8,
+        7,
+        6
+      ],
+      "programs": 6
+    }
+  ],
+  "weaponAccessories": [
+    {
+      "id": "accessory-airburst-link",
+      "displayName": "Airburst Link",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      }
+    },
+    {
+      "id": "accessory-bipod",
+      "displayName": "Bipod",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "accessory-concealable-holster",
+      "displayName": "Concealable Holster",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 150
+      }
+    },
+    {
+      "id": "accessory-gas-vent-system",
+      "displayName": "Gas-Vent System",
+      "mount": "barrel",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 200
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "accessory-gyro-mount",
+      "displayName": "Gyro Mount",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1400
+      }
+    },
+    {
+      "id": "accessory-hidden-arm-slide",
+      "displayName": "Hidden Arm Slide",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      }
+    },
+    {
+      "id": "accessory-imaging-scope",
+      "displayName": "Imaging Scope",
+      "mount": "top",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "capacity": 3
+    },
+    {
+      "id": "accessory-laser-sight",
+      "displayName": "Laser Sight",
+      "mount": "topOrUnderbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 125
+      }
+    },
+    {
+      "id": "accessory-periscope",
+      "displayName": "Periscope (Weapon-Mounted)",
+      "mount": "top",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 70
+      }
+    },
+    {
+      "id": "accessory-quick-draw-holster",
+      "displayName": "Quick-Draw Holster",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 175
+      }
+    },
+    {
+      "id": "accessory-shock-pad",
+      "displayName": "Shock Pad",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "accessory-silencer",
+      "displayName": "Silencer/Suppressor",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "accessory-smart-firing-platform",
+      "displayName": "Smart Firing Platform",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2500
+      }
+    },
+    {
+      "id": "accessory-smartgun-external",
+      "displayName": "Smartgun System, External",
+      "mount": "topOrUnderbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "accessory-spare-clip",
+      "displayName": "Spare Clip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "accessory-speed-loader",
+      "displayName": "Speed Loader",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "accessory-tripod",
+      "displayName": "Tripod",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    }
+  ],
+  "armorModifications": [
+    {
+      "id": "armor-mod-chemical-protection",
+      "displayName": "Chemical Protection",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-chemical-seal",
+      "displayName": "Chemical Seal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 3000
+      },
+      "capacityCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "armor-mod-fire-resistance",
+      "displayName": "Fire Resistance",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-insulation",
+      "displayName": "Insulation",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-nonconductivity",
+      "displayName": "Nonconductivity",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-shock-frills",
+      "displayName": "Shock Frills",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "armor-mod-thermal-damping",
+      "displayName": "Thermal Damping",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 500
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
     }
   ]
 }

@@ -113,7 +113,8 @@ public sealed class ResourcesEssenceEvaluator
                 selection.Parameter,
                 RoundNuyen(lineCost),
                 lineEssence,
-                CanonicalProvenance.Nuyen));
+                CanonicalProvenance.Nuyen,
+                selection.InstanceId));
         }
 
         if (spent > totalBudget)
@@ -365,6 +366,13 @@ public sealed class ResourcesEssenceEvaluator
         {
             item = new ResolvedItem(vehicle.Id, vehicle.Classification, vehicle.Source, vehicle.Availability,
                 vehicle.Cost, null, null, false, false);
+            return true;
+        }
+
+        if (catalog.Cyberdecks.TryGetValue(itemId, out var cyberdeck))
+        {
+            item = new ResolvedItem(cyberdeck.Id, cyberdeck.Classification, cyberdeck.Source, cyberdeck.Availability,
+                cyberdeck.Cost, null, null, false, false);
             return true;
         }
 
