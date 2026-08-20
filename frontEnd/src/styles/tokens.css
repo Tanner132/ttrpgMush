@@ -7,28 +7,39 @@
 
 :root {
   /* Surfaces — deep obsidian backdrop, true black only for inset displays. */
-  --sb-bg: #0b0c10;
-  --sb-bg-inset: #000000;
-  --sb-surface: #12141b;
-  --sb-surface-raised: #191c25;
-  --sb-border: #232836;
-  --sb-border-strong: #303748;
+  --sb-bg: #050609;
+  --sb-bg-inset: #04060a;
+  --sb-surface: #0a0d13;
+  --sb-surface-raised: #0e1219;
+  /* Recessed panel background — topbar, side rail, and other chrome that sits
+     a shade darker than card surfaces but lighter than the true-black inset. */
+  --sb-surface-sunken: #080a0e;
+  --sb-border: #1e2430;
+  --sb-border-strong: #2b3340;
+  /* Meter track background — progress bars, budget rails, boot sequence. */
+  --sb-track: #131820;
 
   /* Text — softened green-tinted off-white for prose, subdued secondary. */
   --sb-text: #d7e4e0;
   --sb-text-muted: #93a6a2;
   --sb-text-faint: #64746f;
+  /* Barely-visible tier — timestamps and other chrome that should read as
+     texture, not content. */
+  --sb-text-dim: #39444c;
 
   /* Semantic accents — emerald (positive), amber (caution), magenta (danger),
      cyan (informational / future Matrix). */
   --sb-accent: #00ffcc;
-  --sb-accent-ink: #06251f;
+  /* Ink for text/icons sitting on a solid accent fill (buttons, active chips).
+     Selection ink stays a separate, slightly lighter value — see base.css. */
+  --sb-accent-ink: #04140f;
+  --sb-accent-wash: rgba(0, 255, 204, 0.14);
   --sb-info: #00d2ff;
   --sb-warning: #ffb000;
   --sb-danger: #ff0055;
 
   /* Glow (box-shadow / text-shadow) derived from accents. */
-  --sb-glow-accent: 0 0 10px rgba(0, 255, 204, 0.28);
+  --sb-glow-accent: 0 0 10px rgba(0, 255, 204, 0.3);
   --sb-glow-info: 0 0 10px rgba(0, 210, 255, 0.24);
   --sb-glow-warning: 0 0 10px rgba(255, 176, 0, 0.24);
   --sb-glow-danger: 0 0 10px rgba(255, 0, 85, 0.26);

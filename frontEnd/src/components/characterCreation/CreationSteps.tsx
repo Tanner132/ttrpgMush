@@ -204,12 +204,124 @@ export function QualitiesStep({ catalog, document, onChange }: CreationStepProps
 
 export function SkillsStep({ catalog, document, onChange }: CreationStepProps) {
   const selected = document.skills ?? []
-  const update = (skillId: string, rating: number) => onChange({ ...document, skills: rating > 0 ? [...selected.filter(item => item.skillId !== skillId), { skillId, rating }] : selected.filter(item => item.skillId !== skillId) })
-  return <section className="creation-step" aria-labelledby="skills-step-heading">
-    <p className="creation-step__eyebrow">ACTIVE SKILLS / GROUPS</p><h3 id="skills-step-heading">Build the capability spread</h3>
-    <p className="creation-step__intro">Priority individual and group points are separate. Group members cannot be raised independently until the group is broken under the approved rules.</p>
-    <div className="creation-step__attributes">{catalog.skills.map(skill => <label className="creation-attribute" key={skill.id}><span><strong>{skill.displayName}</strong><small>{skill.groupId ? `Group: ${skill.groupId}` : skill.category}</small></span><input aria-label={`${skill.displayName} rating`} min="0" max="6" type="number" value={selected.find(item => item.skillId === skill.id)?.rating ?? 0} onChange={event => update(skill.id, Number(event.target.value))} /></label>)}</div>
-  </section>
+  const ratingOf = (skillId: string) => selected.find((item) => item.skillId === skillId)?.rating ?? 0
+  const setRating = (skillId: string, rating: number) => {
+    const clamped = Math.max(0, Math.min(6, rating))
+    onChange({
+      ...document,
+      skills: clamped > 0
+        ? [...selected.filter((item) => item.skillId !== skillId), { skillId, rating: clamped }]
+        : selected.filter((item) => item.skillId !== skillId),
+    })
+  }
+
+  const categories = Array.from(new Set(catalog.skills.map((skill) => skill.category))).sort()
+  const taken = selected.flatMap((item) => {
+    const skill = catalog.skills.find((entry) => entry.id === item.skillId)
+    return skill ? [{ item, skill }] : []
+  })
+  const totalSpent = selected.reduce((sum, item) => sum + item.rating, 0)
+
+  return (
+    <section className="creation-step" aria-labelledby="skills-step-heading">
+      <p className="creation-step__eyebrow">Active Skills / Groups</p>
+      <h3 id="skills-step-heading">Build the capability spread</h3>
+      <p className="creation-step__intro">
+        Priority individual and group points are separate. Group members cannot be raised independently until the group is broken under the approved rules.
+      </p>
+
+      <div className="skills-console">
+        <aside className="skills-console__rail">
+          <div className="skills-console__rail-heading">Filters</div>
+          {categories.map((category) => (
+            <div className="skills-console__category" key={category}>
+              <span>{category}</span>
+              <span className="skills-console__category-count">{catalog.skills.filter((skill) => skill.category === category).length}</span>
+            </div>
+          ))}
+
+          <div className="skills-console__budget">
+            <div className="skills-console__budget-row">
+              <span>Skills taken</span>
+              <span className="skills-console__budget-value">{taken.length}</span>
+            </div>
+            <div className="skills-console__budget-row">
+              <span>Points spent</span>
+              <span className="skills-console__budget-value">{totalSpent}</span>
+            </div>
+          </div>
+
+          <div className="skills-console__taken-heading">Taken · {taken.length}</div>
+          <ul className="skills-console__taken-list">
+            {taken.map(({ item, skill }) => (
+              <li className="skills-console__taken-row" key={item.skillId}>
+                <span>{skill.displayName}</span>
+                <span>{item.rating}</span>
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        <div className="skills-console__main">
+          <div className="skills-console__search">
+            <span className="skills-console__search-prompt" aria-hidden="true">
+              catalog:skills&gt;
+            </span>
+            <input className="skills-console__search-input" placeholder="type to filter · try hack · agi · cracking" aria-label="Filter skills" />
+            <span className="skills-console__search-count">{catalog.skills.length} skills</span>
+          </div>
+
+          <div className="skills-console__flags" aria-hidden="true">
+            <span>Flags</span>
+            <span className="skills-console__flag">Groups only</span>
+            <span className="skills-console__flag">Taken only</span>
+            <span className="skills-console__flag">Untrained</span>
+          </div>
+
+          <div className="skills-console__table-head" aria-hidden="true">
+            <span>Skill</span>
+            <span>Group</span>
+            <span>Attr</span>
+            <span>Rating</span>
+          </div>
+
+          <div className="skills-console__list">
+            {catalog.skills.map((skill) => {
+              const rating = ratingOf(skill.id)
+              return (
+                <div className={`skills-console__row${rating > 0 ? ' skills-console__row--active' : ''}`} key={skill.id}>
+                  <span className="skills-console__row-name">{skill.displayName}</span>
+                  <span className="skills-console__row-group">{skill.groupId ?? skill.category}</span>
+                  <span className="skills-console__row-attr">{skill.linkedAttribute}</span>
+                  <span className="skills-console__stepper">
+                    <button
+                      type="button"
+                      className="skills-console__stepper-btn"
+                      aria-label={`Decrease ${skill.displayName}`}
+                      disabled={rating <= 0}
+                      onClick={() => setRating(skill.id, rating - 1)}
+                    >
+                      −
+                    </button>
+                    <span className={`skills-console__stepper-value${rating > 0 ? ' skills-console__stepper-value--active' : ''}`}>{rating}</span>
+                    <button
+                      type="button"
+                      className="skills-console__stepper-btn"
+                      aria-label={`Increase ${skill.displayName}`}
+                      disabled={rating >= 6}
+                      onClick={() => setRating(skill.id, rating + 1)}
+                    >
+                      +
+                    </button>
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 export function KnowledgeStep({ catalog, document, onChange }: CreationStepProps) {

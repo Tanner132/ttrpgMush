@@ -107,7 +107,7 @@ describe('route guards', () => {
 
     renderWithProviders(<App />, ['/'])
 
-    expect(await screen.findByText('Downtown Street')).toBeInTheDocument()
+    expect(await screen.findByText('Downtown Street', { selector: '.room-plate__name' })).toBeInTheDocument()
   })
 
   it('redirects an authenticated play route without a session to characters', async () => {
@@ -152,7 +152,7 @@ describe('route guards', () => {
 
     renderWithProviders(<App />, ['/'])
 
-    await screen.findByText('Downtown Street')
+    await screen.findByText('Downtown Street', { selector: '.room-plate__name' })
     expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument()
   })
 
@@ -203,6 +203,6 @@ describe('account shell', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not log out.')
     expect(screen.getByText('devuser')).toBeInTheDocument()
-    expect(screen.getByText('Downtown Street')).toBeInTheDocument()
+    expect(screen.getByText('Downtown Street', { selector: '.room-plate__name' })).toBeInTheDocument()
   })
 })

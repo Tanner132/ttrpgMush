@@ -113,7 +113,7 @@ async function renderPlaying(session: RoomSession = emptySession) {
     </MemoryRouter>,
   )
 
-  await screen.findByText(session.room.name)
+  await screen.findByText(session.room.name, { selector: '.room-plate__name' })
   return view
 }
 
@@ -257,7 +257,7 @@ describe('room movement', () => {
 
     act(() => realtime.handlers?.onRoomChanged(coffeeShopSession))
 
-    expect(await screen.findByText('Coffee Shop')).toBeInTheDocument()
+    expect(await screen.findByText('Coffee Shop', { selector: '.room-plate__name' })).toBeInTheDocument()
     expect(screen.queryByText('Downtown Street')).not.toBeInTheDocument()
   })
 
@@ -280,7 +280,7 @@ describe('room movement', () => {
     await renderPlaying()
 
     expect(await screen.findByText('That exit is locked.')).toBeInTheDocument()
-    expect(screen.getByText('Downtown Street')).toBeInTheDocument()
+    expect(screen.getByText('Downtown Street', { selector: '.room-plate__name' })).toBeInTheDocument()
   })
 
   it('disables exits while a move is in flight', async () => {

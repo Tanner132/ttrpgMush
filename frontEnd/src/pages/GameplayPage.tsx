@@ -147,8 +147,8 @@ export default function GameplayPage() {
   const canMove = composerEnabled && !moving
 
   return (
-    <div className="app__body">
-      <main className="app__main">
+    <div className="grid-screen">
+      <div className="grid-screen__status">
         <p className="app__status">
           Playing as <strong>{session?.character.name}</strong>
         </p>
@@ -156,29 +156,40 @@ export default function GameplayPage() {
         <ConnectionStatus state={chatState} reconnected={reconnected} />
 
         {idleWarning && <IdleWarning onRemainSignedIn={() => void handleRemainSignedIn()} />}
+      </div>
 
-        <Transcript
-          roomId={room?.id ?? null}
-          entries={entries}
-          loadingOlder={loadingOlder}
-          paginationError={paginationError}
-          hasOlder={olderCursor !== null}
-          onLoadOlder={loadOlder}
-        />
+      <div className="grid-screen__body">
+        <section className="grid-transcript">
+          <Transcript
+            roomId={room?.id ?? null}
+            roomName={room?.name ?? null}
+            entries={entries}
+            loadingOlder={loadingOlder}
+            paginationError={paginationError}
+            hasOlder={olderCursor !== null}
+            onLoadOlder={loadOlder}
+          />
+          <Composer
+            enabled={composerEnabled}
+            sending={sending || rolling}
+            sendError={sendError}
+            characterName={session?.character.name ?? null}
+            roomName={room?.name ?? null}
+            onSend={handleSend}
+          />
+        </section>
 
-        <Composer enabled={composerEnabled} sending={sending || rolling} sendError={sendError} onSend={handleSend} />
-      </main>
-
-      <aside className="app__sidebar">
-        <RoomDetails
-          room={room ?? null}
-          exits={session?.exits ?? []}
-          disabled={!canMove}
-          moveError={moveError}
-          onMove={handleMove}
-        />
-        <OccupantList occupants={occupants} onlineCharacters={onlineCharacters} />
-      </aside>
+        <aside className="grid-room">
+          <RoomDetails
+            room={room ?? null}
+            exits={session?.exits ?? []}
+            disabled={!canMove}
+            moveError={moveError}
+            onMove={handleMove}
+          />
+          <OccupantList occupants={occupants} onlineCharacters={onlineCharacters} />
+        </aside>
+      </div>
     </div>
   )
 }

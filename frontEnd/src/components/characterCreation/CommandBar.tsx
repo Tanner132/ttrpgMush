@@ -18,6 +18,10 @@ interface CommandBarProps {
 
   canFinalize: boolean
 
+  prevStepLabel: string | null
+
+  nextStepLabel: string | null
+
   onBack: () => void
 
   onForward: () => void
@@ -60,6 +64,10 @@ export function CommandBar({
 
   canFinalize,
 
+  prevStepLabel,
+
+  nextStepLabel,
+
   onBack,
 
   onForward,
@@ -94,7 +102,7 @@ export function CommandBar({
 
         >
 
-          ← Back
+          ◂ {prevStepLabel ?? 'Back'}
 
         </Button>
 
@@ -148,7 +156,7 @@ export function CommandBar({
 
           >
 
-            Continue →
+            {nextStepLabel ?? 'Continue'} ▸
 
           </Button>
 

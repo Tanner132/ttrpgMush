@@ -69,7 +69,7 @@ export function StepRail({ steps, currentStep, onNavigate }: StepRailProps) {
 
                 <span className="step-rail__number" aria-hidden="true">
 
-                  {step.state === 'complete' ? '✓' : step.index}
+                  {step.state === 'complete' ? '✓' : String(step.index).padStart(2, '0')}
 
                 </span>
 

@@ -1,22 +1,29 @@
-import { useState, type FormEvent } from 'react'
-import { Panel } from './ui/Panel.tsx'
+import { useState, type FormEvent, type KeyboardEvent } from 'react'
 import { TextArea } from './ui/TextArea.tsx'
 import { Button } from './ui/Button.tsx'
 
 const MAX_MESSAGE_LENGTH = 4000
+const SLASH_HINTS = ['/say', '/emote', '/roll', '/look', '/go', '/who', '/help']
+
+function slugify(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, '-') || 'grid'
+}
 
 interface ComposerProps {
   enabled: boolean
   sending: boolean
   sendError: string | null
+  characterName: string | null
+  roomName: string | null
   onSend: (content: string) => Promise<boolean>
 }
 
-export function Composer({ enabled, sending, sendError, onSend }: ComposerProps) {
+export function Composer({ enabled, sending, sendError, characterName, roomName, onSend }: ComposerProps) {
   const [draft, setDraft] = useState('')
 
   const trimmedDraft = draft.trim()
   const canSend = enabled && !sending && trimmedDraft.length > 0 && trimmedDraft.length <= MAX_MESSAGE_LENGTH
+  const prompt = `${slugify(characterName ?? 'runner')}@${slugify(roomName ?? 'grid')}:~$`
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -25,30 +32,47 @@ export function Composer({ enabled, sending, sendError, onSend }: ComposerProps)
     if (ok) setDraft('')
   }
 
+  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      event.currentTarget.form?.requestSubmit()
+    }
+  }
+
   return (
-    <Panel title="Compose message" headingHidden>
-      <div className="ui-panel__body">
+    <div className="grid-composer">
+      <div className="grid-composer__row">
+        <span className="grid-composer__prompt" aria-hidden="true">
+          {prompt}
+        </span>
         <form className="composer" onSubmit={handleSubmit}>
           <TextArea
             label="Message"
             labelHidden
+            className="composer__input"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder={enabled ? 'Say something… (/help for commands)' : 'Reconnecting…'}
-            rows={3}
+            onKeyDown={handleKeyDown}
+            placeholder={enabled ? 'speak, or /emote /roll 2d6+3 /go north /who' : 'Reconnecting…'}
+            rows={1}
             maxLength={MAX_MESSAGE_LENGTH}
             disabled={!enabled}
           />
           <Button type="submit" intent="primary" className="composer__send" disabled={!canSend}>
-            {sending ? 'Sending…' : 'Send'}
+            {sending ? 'Sending…' : 'Send ⏎'}
           </Button>
         </form>
-        {sendError && (
-          <p className="form__error" role="alert">
-            {sendError}
-          </p>
-        )}
       </div>
-    </Panel>
+      <div className="grid-composer__hints" aria-hidden="true">
+        {SLASH_HINTS.map((hint) => (
+          <span key={hint}>{hint}</span>
+        ))}
+      </div>
+      {sendError && (
+        <p className="form__error grid-composer__error" role="alert">
+          {sendError}
+        </p>
+      )}
+    </div>
   )
 }

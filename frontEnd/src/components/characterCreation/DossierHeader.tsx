@@ -48,6 +48,7 @@ export function DossierHeader({ draft, saveState, currentStep }: DossierHeaderPr
 
   const methodLabel = draft.creationMethodId === 'standard-priority' ? 'Standard Priority' : 'Sum-to-Ten'
   const readiness = draft.isReadyToFinalize ? 'ready' : 'incomplete'
+  const blockingCount = draft.diagnostics.filter((diagnostic) => diagnostic.severity === 'Error').length
 
 
 
@@ -59,13 +60,12 @@ export function DossierHeader({ draft, saveState, currentStep }: DossierHeaderPr
 
         <h1 className="dossier-header__name">{draft.name}</h1>
 
-        <span className="dossier-header__method">{methodLabel}</span>
-
         <span className="dossier-header__draft-id" aria-label="Draft identifier">
 
           #{draft.characterId.slice(0, 8)}
-
         </span>
+
+        <span className="dossier-header__method">{methodLabel}</span>
 
       </div>
 
@@ -81,6 +81,7 @@ export function DossierHeader({ draft, saveState, currentStep }: DossierHeaderPr
 
         >
 
+          <span className="dossier-header__save-dot" aria-hidden="true" />
           {SAVE_LABELS[saveState]}
 
         </span>
@@ -94,6 +95,12 @@ export function DossierHeader({ draft, saveState, currentStep }: DossierHeaderPr
           {READINESS_LABELS[readiness]}
 
         </span>
+
+        {blockingCount > 0 && (
+          <span className="dossier-header__blocking" role="status">
+            {blockingCount} blocking
+          </span>
+        )}
 
         <span className="dossier-header__step" aria-label={`Step ${currentStep} of 15`}>
 

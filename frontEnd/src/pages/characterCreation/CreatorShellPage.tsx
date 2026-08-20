@@ -24,6 +24,11 @@ import { AttributeStep, AugmentationsStep, KnowledgeStep, MagicResonanceStep, Me
 
 import { CREATION_STEPS, FIRST_STEP_INDEX, LAST_STEP_INDEX, diagnosticStepIndex, isStepAvailable, stepIdByIndex, stepLabel } from '../../components/characterCreation/steps.ts'
 
+function shortStepLabel(index: number): string {
+  const id = stepIdByIndex(index)
+  return id ? id.toUpperCase() : stepLabel(index)
+}
+
 import '../../styles/characterCreation.css'
 
 
@@ -261,19 +266,19 @@ export default function CreatorShellPage() {
 
 
 
+      <StepRail
+
+        steps={steps}
+
+        currentStep={currentStep}
+
+        onNavigate={goToStep}
+
+      />
+
+
+
       <div className="creator-shell__body">
-
-        <StepRail
-
-          steps={steps}
-
-          currentStep={currentStep}
-
-          onNavigate={goToStep}
-
-        />
-
-
 
         <main className="creator-shell__workspace" aria-label={stepLabel(currentStep)}>
 
@@ -409,6 +414,10 @@ export default function CreatorShellPage() {
         finalizing={finalizing}
 
         canFinalize={draft.isReadyToFinalize}
+
+        prevStepLabel={canGoBack ? shortStepLabel(currentStep - 1) : null}
+
+        nextStepLabel={canGoForward ? shortStepLabel(currentStep + 1) : null}
 
         onBack={prevStep}
 
