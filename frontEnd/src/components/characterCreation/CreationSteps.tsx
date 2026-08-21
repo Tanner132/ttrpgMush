@@ -224,12 +224,6 @@ export function SkillsStep({ catalog, document, onChange }: CreationStepProps) {
 
   return (
     <section className="creation-step" aria-labelledby="skills-step-heading">
-      <p className="creation-step__eyebrow">Active Skills / Groups</p>
-      <h3 id="skills-step-heading">Build the capability spread</h3>
-      <p className="creation-step__intro">
-        Priority individual and group points are separate. Group members cannot be raised independently until the group is broken under the approved rules.
-      </p>
-
       <div className="skills-console">
         <aside className="skills-console__rail">
           <div className="skills-console__rail-heading">Filters</div>

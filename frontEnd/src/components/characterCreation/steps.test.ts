@@ -1,12 +1,28 @@
 import { describe, expect, it } from 'vitest'
+import type { Diagnostic } from '../../api/characterCreation.ts'
 import {
   CREATION_STEPS,
   FIRST_STEP_INDEX,
   LAST_STEP_INDEX,
+  computeDraftProgress,
   diagnosticStepIndex,
   isStepAvailable,
   stepLabel,
 } from './steps.ts'
+
+function diagnostic(overrides: Partial<Diagnostic>): Diagnostic {
+  return {
+    code: 'test.code',
+    severity: 'Warning',
+    step: 'priority',
+    fieldPath: 'priority',
+    relatedOptionIds: [],
+    source: { sourceId: 'core', printedPage: 1, pdfPage: 1 },
+    messageArguments: {},
+    suggestedResolution: '',
+    ...overrides,
+  }
+}
 
 describe('creation steps', () => {
   it('bounds navigation to the first and last steps', () => {
@@ -39,5 +55,26 @@ describe('creation steps', () => {
   it('splits the shared metatype-and-attributes step by field path', () => {
     expect(diagnosticStepIndex('metatype-and-attributes', 'metatype.metatypeId')).toBe(4)
     expect(diagnosticStepIndex('metatype-and-attributes', 'attributes.values.agility')).toBe(5)
+  })
+})
+
+describe('computeDraftProgress', () => {
+  it('reports every available step clean when there are no diagnostics', () => {
+    const progress = computeDraftProgress([])
+    expect(progress).toEqual({ cleanSteps: 10, totalSteps: 10, blockingCount: 0, firstBlocking: null })
+  })
+
+  it('counts each flagged available step once regardless of diagnostic count', () => {
+    const diagnostics = [
+      diagnostic({ step: 'priority', fieldPath: 'priority', severity: 'Error' }),
+      diagnostic({ step: 'priority', fieldPath: 'priority', severity: 'Warning' }),
+      diagnostic({ step: 'qualities', fieldPath: 'qualities', severity: 'Warning' }),
+    ]
+
+    const progress = computeDraftProgress(diagnostics)
+    expect(progress.cleanSteps).toBe(8)
+    expect(progress.totalSteps).toBe(10)
+    expect(progress.blockingCount).toBe(1)
+    expect(progress.firstBlocking).toBe(diagnostics[0])
   })
 })

@@ -1,14 +1,15 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
+  getDraft,
   listDrafts,
   listFinalizedCharacters,
+  type DraftDetail,
   type DraftSummary,
   type FinalizedCharacter,
 } from '../api/characterCreation.ts'
 import { startPlaySession } from '../api/playSession.ts'
 import { toErrorMessage } from '../api/client.ts'
-import { Panel } from '../components/ui/Panel.tsx'
 import { SlotCard } from '../components/characterCreation/SlotCard.tsx'
 
 export interface SlotData {
@@ -17,6 +18,8 @@ export interface SlotData {
   finalized?: FinalizedCharacter
 }
 
+const SLOT_COUNT = 2
+
 export default function CharactersPage() {
   const navigate = useNavigate()
 
@@ -24,6 +27,7 @@ export default function CharactersPage() {
     { kind: 'empty' },
     { kind: 'empty' },
   ])
+  const [draftDetails, setDraftDetails] = useState<Record<string, DraftDetail>>({})
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [selectingId, setSelectingId] = useState<string | null>(null)
@@ -39,27 +43,37 @@ export default function CharactersPage() {
       ])
 
       const nextSlots: SlotData[] = []
-      const usedDrafts = new Set<string>()
-      const usedFinalized = new Set<string>()
 
       // Fill slots: drafts first, then finalized
       for (const d of drafts) {
-        if (nextSlots.length < 2) {
+        if (nextSlots.length < SLOT_COUNT) {
           nextSlots.push({ kind: 'draft', draft: d })
-          usedDrafts.add(d.characterId)
         }
       }
       for (const f of finalized) {
-        if (nextSlots.length < 2) {
+        if (nextSlots.length < SLOT_COUNT) {
           nextSlots.push({ kind: 'finalized', finalized: f })
-          usedFinalized.add(f.characterId)
         }
       }
-      while (nextSlots.length < 2) {
+      while (nextSlots.length < SLOT_COUNT) {
         nextSlots.push({ kind: 'empty' })
       }
 
       setSlots(nextSlots)
+
+      // Dossier completion/blocking data lives on the full draft, not the
+      // list summary, so fetch it per slot once the summaries are in.
+      const draftsInSlots = nextSlots.filter((s): s is SlotData & { draft: DraftSummary } => s.kind === 'draft')
+      const details = await Promise.all(
+        draftsInSlots.map((s) => getDraft(s.draft.characterId).catch(() => null)),
+      )
+      setDraftDetails(
+        Object.fromEntries(
+          draftsInSlots
+            .map((s, i) => [s.draft.characterId, details[i]] as const)
+            .filter((entry): entry is [string, DraftDetail] => entry[1] !== null),
+        ),
+      )
     } catch (error) {
       setLoadError(toErrorMessage(error))
     } finally {
@@ -87,46 +101,51 @@ export default function CharactersPage() {
   const hasEmptySlot = slots.some((s) => s.kind === 'empty')
 
   return (
-    <div className="character-view">
-      <Panel title="Your characters">
-        <div className="ui-panel__body">
-          {loading ? (
-            <p className="app__status" role="status">
-              Loading…
-            </p>
-          ) : loadError ? (
-            <p className="form__error" role="alert">
-              {loadError}
-            </p>
-          ) : (
-            <div className="slot-dashboard" role="list" aria-label="Character slots">
-              {slots.map((slot, index) => (
-                <SlotCard
-                  key={slot.draft?.characterId ?? slot.finalized?.characterId ?? `empty-${index}`}
-                  slot={slot}
-                  index={index}
-                  selectingId={selectingId}
-                  onEnterWorld={handleEnterWorld}
-                />
-              ))}
-            </div>
-          )}
+    <div className="persona-registry">
+      <div className="persona-registry__header">
+        <h1 className="persona-registry__title">Persona Registry</h1>
+        <span className="persona-registry__slots">{SLOT_COUNT} slots licensed</span>
+      </div>
+      <p className="persona-registry__note">
+        Deck licence permits {SLOT_COUNT} concurrent identities. Finalized sheets are immutable.
+      </p>
 
-          {selectError && (
-            <p className="form__error" role="alert">
-              {selectError}
-            </p>
-          )}
-
-          {hasEmptySlot && !loading && !loadError && (
-            <div className="slot-dashboard__cta">
-              <Link to="/characters/create" className="ui-button ui-button--primary">
-                Create a new character
-              </Link>
-            </div>
-          )}
+      {loading ? (
+        <p className="app__status" role="status">
+          Loading…
+        </p>
+      ) : loadError ? (
+        <p className="form__error" role="alert">
+          {loadError}
+        </p>
+      ) : (
+        <div className="slot-dashboard" role="list" aria-label="Character slots">
+          {slots.map((slot, index) => (
+            <SlotCard
+              key={slot.draft?.characterId ?? slot.finalized?.characterId ?? `empty-${index}`}
+              slot={slot}
+              index={index}
+              selectingId={selectingId}
+              onEnterWorld={handleEnterWorld}
+              draftDetail={slot.draft ? draftDetails[slot.draft.characterId] : null}
+            />
+          ))}
         </div>
-      </Panel>
+      )}
+
+      {selectError && (
+        <p className="form__error" role="alert">
+          {selectError}
+        </p>
+      )}
+
+      {hasEmptySlot && !loading && !loadError && (
+        <div className="slot-dashboard__cta">
+          <Link to="/characters/create" className="ui-button ui-button--primary">
+            Create a new character
+          </Link>
+        </div>
+      )}
     </div>
   )
 }

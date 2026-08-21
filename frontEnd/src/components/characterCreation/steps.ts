@@ -1,3 +1,5 @@
+import type { Diagnostic } from '../../api/characterCreation.ts'
+
 export interface CreationStep {
   id: string
   index: number
@@ -62,4 +64,28 @@ export function diagnosticStepIndex(diagnosticStep: string, fieldPath: string): 
 
   const stepId = DIAGNOSTIC_STEP_IDS[diagnosticStep]
   return stepId ? stepIndexById(stepId) : 0
+}
+
+export interface DraftProgress {
+  cleanSteps: number
+  totalSteps: number
+  blockingCount: number
+  firstBlocking: Diagnostic | null
+}
+
+// "Clean" steps are available steps with no diagnostic attached to them —
+// a rough completion measure since drafts don't persist which step the
+// author last visited.
+export function computeDraftProgress(diagnostics: Diagnostic[]): DraftProgress {
+  const availableSteps = CREATION_STEPS.filter((step) => step.available)
+  const attentionIndexes = new Set(diagnostics.map((d) => diagnosticStepIndex(d.step, d.fieldPath)))
+  const dirtySteps = availableSteps.filter((step) => attentionIndexes.has(step.index)).length
+  const blocking = diagnostics.filter((d) => d.severity === 'Error')
+
+  return {
+    cleanSteps: availableSteps.length - dirtySteps,
+    totalSteps: availableSteps.length,
+    blockingCount: blocking.length,
+    firstBlocking: blocking[0] ?? null,
+  }
 }

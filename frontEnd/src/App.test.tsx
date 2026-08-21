@@ -117,7 +117,7 @@ describe('route guards', () => {
 
     renderWithProviders(<App />, ['/play'])
 
-    expect(await screen.findByText('Your characters')).toBeInTheDocument()
+    expect(await screen.findByText('Persona Registry')).toBeInTheDocument()
   })
 
   it('renders the not-found fallback for unknown routes', async () => {
@@ -134,7 +134,7 @@ describe('route guards', () => {
     renderWithProviders(<App />, ['/characters'])
 
     expect(screen.getByText('Loading…')).toBeInTheDocument()
-    expect(screen.queryByText('Your characters')).not.toBeInTheDocument()
+    expect(screen.queryByText('Persona Registry')).not.toBeInTheDocument()
   })
 
   it('shows admin navigation to administrators', async () => {

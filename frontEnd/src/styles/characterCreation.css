@@ -532,7 +532,7 @@
 
 .slot-dashboard {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--sb-space-4);
   margin-bottom: var(--sb-space-4);
 }
@@ -543,23 +543,11 @@
 }
 
 .slot-card {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--sb-space-2);
-  padding: var(--sb-space-5) var(--sb-space-4) var(--sb-space-4);
   background: var(--sb-surface);
   border: 1px solid var(--sb-border-strong);
   min-height: 180px;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
-.slot-card--empty {
-  border-style: dashed;
-  border-color: var(--sb-border);
-  opacity: 0.75;
 }
 
 .slot-card--draft {
@@ -568,6 +556,60 @@
 
 .slot-card--finalized {
   box-shadow: inset 3px 0 0 var(--sb-accent);
+}
+
+.slot-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-2) var(--sb-space-3);
+  background: var(--sb-surface-sunken);
+  border-bottom: 1px solid var(--sb-border);
+}
+
+.slot-card__header-label {
+  font-family: var(--sb-font-data);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sb-text-faint);
+}
+
+.slot-card__header-label--draft {
+  color: var(--sb-warning);
+}
+
+.slot-card__header-label--finalized {
+  color: var(--sb-accent);
+}
+
+.slot-card__header-status {
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sb-text-dim);
+}
+
+.slot-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sb-space-4);
+}
+
+.slot-card__body--empty {
+  align-items: center;
+  justify-content: center;
+  gap: var(--sb-space-2);
+  text-align: center;
+}
+
+.slot-card--empty {
+  border-style: dashed;
+  border-color: var(--sb-border);
+  opacity: 0.75;
 }
 
 .slot-card__icon {
@@ -581,29 +623,6 @@
   font-family: var(--sb-font-data);
   font-size: 0.85rem;
   margin: 0;
-}
-
-.slot-card__badge {
-  align-self: flex-start;
-  font-family: var(--sb-font-data);
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  padding: 3px 9px;
-  border: 1px solid;
-}
-
-.slot-card__badge--draft {
-  color: var(--sb-warning);
-  border-color: var(--sb-warning);
-  background: color-mix(in srgb, var(--sb-warning) 12%, transparent);
-}
-
-.slot-card__badge--finalized {
-  color: var(--sb-accent);
-  border-color: var(--sb-accent);
-  background: var(--sb-accent-wash);
 }
 
 .slot-card__name {
@@ -621,20 +640,57 @@
   font-size: 0.78rem;
   letter-spacing: 0.06em;
   color: var(--sb-text-muted);
-  margin: 0;
+  margin: 4px 0 0;
 }
 
 .slot-card__meta--faint {
   color: var(--sb-text-faint);
 }
 
+.slot-card__progress {
+  margin: var(--sb-space-4) 0;
+}
+
+.slot-card__progress-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sb-text-muted);
+  margin-bottom: 6px;
+}
+
+.slot-card__progress-track {
+  height: 5px;
+  background: var(--sb-track);
+  border: 1px solid var(--sb-border);
+}
+
+.slot-card__progress-fill {
+  height: 100%;
+  background: var(--sb-warning);
+  box-shadow: var(--sb-glow-warning);
+}
+
+.slot-card__blocking {
+  margin: var(--sb-space-2) 0 0;
+  font-family: var(--sb-font-data);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--sb-danger);
+}
+
 .slot-card__actions {
-  margin-top: var(--sb-space-2);
+  margin-top: auto;
+  padding-top: var(--sb-space-4);
   width: 100%;
 }
 
 .slot-card__actions .ui-button {
   width: 100%;
+  height: 44px;
+  letter-spacing: 0.2em;
 }
 
 /* ─── Method selection ──────────────────────────────────────────────────── */

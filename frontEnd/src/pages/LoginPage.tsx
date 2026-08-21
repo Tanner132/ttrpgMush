@@ -67,85 +67,109 @@ export default function LoginPage() {
 
   return (
     <div className="auth">
-      <Tabs
-        label="Authentication"
-        tabs={[
-          {
-            id: 'login',
-            label: 'Sign in',
-            panel: (
-              <Panel title="Sign in">
-                <form className="form" onSubmit={handleLogin}>
-                  <TextField
-                    label="Email or username"
-                    autoComplete="username"
-                    value={loginName}
-                    onChange={(event) => setLoginName(event.target.value)}
-                    required
-                  />
-                  <TextField
-                    label="Password"
-                    type="password"
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                  />
-                  <Button type="submit" intent="primary" disabled={busy}>
-                    {busy ? 'Signing in…' : 'Sign in'}
-                  </Button>
-                  {error && (
-                    <p className="form__error" role="alert">
-                      {error}
-                    </p>
-                  )}
-                </form>
-              </Panel>
-            ),
-          },
-          {
-            id: 'register',
-            label: 'Register',
-            panel: (
-              <Panel title="Register">
-                <form className="form" onSubmit={handleRegister}>
-                  <TextField
-                    label="Email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    required
-                  />
-                  <TextField
-                    label="Username"
-                    autoComplete="username"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                    required
-                  />
-                  <TextField
-                    label="Password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                  />
-                  <Button type="submit" intent="primary" disabled={busy}>
-                    {busy ? 'Creating account…' : 'Register'}
-                  </Button>
-                  {error && (
-                    <p className="form__error" role="alert">
-                      {error}
-                    </p>
-                  )}
-                </form>
-              </Panel>
-            ),
-          },
-        ]}
-      />
+      <div className="auth__frame">
+        <div className="auth__topline">
+          <span className="auth__topline-label">SIN Verification · Seattle Metroplex</span>
+          <span className="auth__topline-node">Node 0x1A4F</span>
+        </div>
+
+        <div className="auth__body">
+          <div className="auth__log" aria-hidden="true">
+            <p>
+              &gt; handshake .............. <span className="auth__log-ok">OK</span>
+            </p>
+            <p>
+              &gt; antiforgery token ...... <span className="auth__log-ok">ISSUED</span>
+            </p>
+            <p>&gt; awaiting credentials</p>
+          </div>
+
+          <Tabs
+            label="Authentication"
+            tabs={[
+              {
+                id: 'login',
+                label: 'Sign in',
+                panel: (
+                  <Panel title="Sign in" headingHidden className="auth__panel">
+                    <form className="form" onSubmit={handleLogin}>
+                      <TextField
+                        label="Email or username"
+                        autoComplete="username"
+                        value={loginName}
+                        onChange={(event) => setLoginName(event.target.value)}
+                        required
+                      />
+                      <TextField
+                        label="Password"
+                        type="password"
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        required
+                      />
+                      <Button type="submit" intent="primary" disabled={busy} className="auth__submit">
+                        {busy ? 'Signing in…' : 'Sign in'}
+                      </Button>
+                      {error && (
+                        <p className="form__error" role="alert">
+                          {error}
+                        </p>
+                      )}
+                    </form>
+                  </Panel>
+                ),
+              },
+              {
+                id: 'register',
+                label: 'Register',
+                panel: (
+                  <Panel title="Register" headingHidden className="auth__panel">
+                    <form className="form" onSubmit={handleRegister}>
+                      <TextField
+                        label="Username"
+                        autoComplete="username"
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
+                        required
+                      />
+                      <TextField
+                        label="Password"
+                        type="password"
+                        autoComplete="new-password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        required
+                      />
+                      <TextField
+                        label="Email"
+                        type="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        required
+                      />
+                      <Button type="submit" intent="primary" disabled={busy} className="auth__submit">
+                        {busy ? 'Creating account…' : 'Register'}
+                      </Button>
+                      {error && (
+                        <p className="form__error" role="alert">
+                          {error}
+                        </p>
+                      )}
+                    </form>
+                  </Panel>
+                ),
+              },
+            ]}
+          />
+
+          <div className="auth__meta">
+            <span>Session cookie · HTTP-only · SameSite</span>
+            <span>ICE: Passive</span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
