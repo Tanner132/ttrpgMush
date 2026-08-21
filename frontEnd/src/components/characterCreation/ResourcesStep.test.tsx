@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { ResourcesStep } from './CreationSteps.tsx'
+import { ResourcesStep } from './steps/ResourcesStep.tsx'
 import type { CatalogContract, CharacterCreationDocument } from '../../api/characterCreation.ts'
 
 const source = { sourceId: 'sr5-core', printedPage: 1, pdfPage: 3 }

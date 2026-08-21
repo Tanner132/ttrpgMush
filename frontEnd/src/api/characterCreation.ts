@@ -76,6 +76,8 @@ export interface PriorityCell {
     physicalMentalAttributePoints?: number
     metatypeSpecialAttributePoints?: Record<string, number>
     availableMetatypeIds?: string[]
+    individualSkillPoints?: number
+    skillGroupPoints?: number
     magicResonancePathGrants?: MagicResonancePathGrant[]
     resourceNuyen?: number
 }
@@ -123,6 +125,21 @@ export interface CharacterCreationDocument {
     resources?: ResourceSelection[] | null
     nuyenFromKarma?: number | null
     attachments?: AttachmentSelection[] | null
+    identity?: CharacterIdentity | null
+}
+
+export interface CharacterIdentity {
+    gender?: string | null
+    age?: string | null
+    eyeColor?: string | null
+    hairColor?: string | null
+    height?: string | null
+    weight?: string | null
+    skinTone?: string | null
+    handedness?: string | null
+    concept?: string | null
+    shortDescription?: string | null
+    description?: string | null
 }
 
 export interface ResourceSelection {

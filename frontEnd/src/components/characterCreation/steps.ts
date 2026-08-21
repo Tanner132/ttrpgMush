@@ -1,4 +1,4 @@
-import type { Diagnostic } from '../../api/characterCreation.ts'
+import type { Diagnostic, PriorityAssignment } from '../../api/characterCreation.ts'
 
 export interface CreationStep {
   id: string
@@ -53,6 +53,12 @@ export function stepIdByIndex(index: number): string {
 
 export function isStepAvailable(index: number): boolean {
   return CREATION_STEPS.find((step) => step.index === index)?.available ?? false
+}
+
+export function isPriorityAssignmentComplete(assignment: PriorityAssignment | null): boolean {
+  if (!assignment) return false
+  return Boolean(assignment.metatype && assignment.attributes && assignment.magicOrResonance
+    && assignment.skills && assignment.resources)
 }
 
 export function diagnosticStepIndex(diagnosticStep: string, fieldPath: string): number {

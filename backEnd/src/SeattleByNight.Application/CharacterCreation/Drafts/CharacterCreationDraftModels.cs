@@ -41,6 +41,19 @@ public sealed record LanguageAllocation(string Name, int Rating, string? Special
 
 public sealed record LanguageSelection(string Name);
 
+public sealed record CharacterIdentity(
+    string? Gender = null,
+    string? Age = null,
+    string? EyeColor = null,
+    string? HairColor = null,
+    string? Height = null,
+    string? Weight = null,
+    string? SkinTone = null,
+    string? Handedness = null,
+    string? Concept = null,
+    string? ShortDescription = null,
+    string? Description = null);
+
 public sealed record MagicResonanceSelection(
     string PathId,
     string? TraditionId = null,
@@ -107,7 +120,8 @@ public sealed record CharacterCreationDraftDocument(
     MagicResonanceSelection? MagicResonance = null,
     IReadOnlyList<ResourceSelection>? Resources = null,
     int? NuyenFromKarma = null,
-    IReadOnlyList<AttachmentSelection>? Attachments = null);
+    IReadOnlyList<AttachmentSelection>? Attachments = null,
+    CharacterIdentity? Identity = null);
 
 public sealed record CharacterCreationChangePreview(
     CharacterCreationDraftDetails Candidate,

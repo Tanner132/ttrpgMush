@@ -20,9 +20,9 @@ import { toErrorMessage } from '../../api/client.ts'
 
 import { getCatalog, type CatalogContract } from '../../api/characterCreation.ts'
 
-import { AttributeStep, AugmentationsStep, KnowledgeStep, MagicResonanceStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, ResourcesStep, SkillsStep } from '../../components/characterCreation/CreationSteps.tsx'
+import { AttributeStep, AugmentationsStep, IdentityStep, KnowledgeStep, MagicResonanceStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, ResourcesStep, SkillsStep } from '../../components/characterCreation/steps/index.ts'
 
-import { CREATION_STEPS, FIRST_STEP_INDEX, LAST_STEP_INDEX, diagnosticStepIndex, isStepAvailable, stepIdByIndex, stepLabel } from '../../components/characterCreation/steps.ts'
+import { CREATION_STEPS, FIRST_STEP_INDEX, LAST_STEP_INDEX, diagnosticStepIndex, isPriorityAssignmentComplete, isStepAvailable, stepIdByIndex, stepLabel } from '../../components/characterCreation/steps.ts'
 
 function shortStepLabel(index: number): string {
   const id = stepIdByIndex(index)
@@ -58,6 +58,8 @@ export default function CreatorShellPage() {
 
     setLocalDocument,
 
+    setLocalName,
+
     goToStep,
 
     nextStep,
@@ -86,12 +88,20 @@ export default function CreatorShellPage() {
   const [catalog, setCatalog] = useState<CatalogContract | null>(null)
 
   const [catalogError, setCatalogError] = useState<string | null>(null)
+  const [priorityAttemptedAdvance, setPriorityAttemptedAdvance] = useState(false)
   const creationMethodId = draft?.creationMethodId
+  const currentStepId = stepIdByIndex(currentStep)
 
   useEffect(() => {
     if (!creationMethodId) return
     void getCatalog(creationMethodId).then(setCatalog).catch((error) => setCatalogError(toErrorMessage(error)))
   }, [creationMethodId])
+
+  // Only reveal the "assign all five priorities" errors once the user has
+  // actually tried to leave the step incomplete — not on every edit.
+  useEffect(() => {
+    setPriorityAttemptedAdvance(false)
+  }, [currentStepId])
 
 
 
@@ -130,6 +140,26 @@ export default function CreatorShellPage() {
     }
 
   }, [discard, navigate])
+
+
+
+  // Guarded forward navigation: blocks leaving the priority step until all
+
+  // five priorities are assigned, and only then reveals why.
+
+  const handleForward = useCallback(() => {
+
+    if (currentStepId === 'priority' && !isPriorityAssignmentComplete(draft?.document.priorityAssignment ?? null)) {
+
+      setPriorityAttemptedAdvance(true)
+
+      return
+
+    }
+
+    nextStep()
+
+  }, [currentStepId, draft, nextStep])
 
 
 
@@ -175,7 +205,7 @@ export default function CreatorShellPage() {
 
         event.preventDefault()
 
-        nextStep()
+        handleForward()
 
       }
 
@@ -187,7 +217,7 @@ export default function CreatorShellPage() {
 
     return () => window.removeEventListener('keydown', handleKeyDown)
 
-  }, [currentStep, prevStep, nextStep])
+  }, [currentStep, prevStep, handleForward])
 
 
 
@@ -254,9 +284,13 @@ export default function CreatorShellPage() {
        : step.available ? 'available' as const : 'locked' as const,
   }))
 
-  const currentStepId = stepIdByIndex(currentStep)
-
-
+  // The priority step's "assign every category" errors are the backend's
+  // per-category "unknown option" diagnostics — they fire the instant any of
+  // the five is still blank, so autosave would otherwise surface them after
+  // every single edit. Hide them until the user actually tries to advance.
+  const visibleDiagnostics = currentStepId === 'priority' && !priorityAttemptedAdvance
+    ? draft.diagnostics.filter((diagnostic) => diagnostic.step !== 'priority')
+    : draft.diagnostics
 
   return (
 
@@ -296,7 +330,7 @@ export default function CreatorShellPage() {
              {catalog && currentStepId === 'awakening' && <MagicResonanceStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {catalog && currentStepId === 'knowledge' && <KnowledgeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {catalog && currentStepId === 'resources' && <ResourcesStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
-             {currentStepId === 'identity' && <p className="creator-shell__placeholder">Identity is set when the draft is created.</p>}
+             {currentStepId === 'identity' && <IdentityStep name={draft.name} onNameChange={setLocalName} document={draft.document} onChange={setLocalDocument} />}
              {!isStepAvailable(currentStep) && <p className="creator-shell__placeholder">This section will unlock in a later creation milestone.</p>}
 
           </div>
@@ -333,67 +367,13 @@ export default function CreatorShellPage() {
 
 
 
-          {/* Discard section */}
-
-          <div className="creator-shell__discard">
-
-            {showDiscardConfirm ? (
-
-              <div className="creator-shell__discard-confirm" role="alertdialog" aria-label="Confirm discard">
-
-                <p>Are you sure you want to discard this draft? This cannot be undone.</p>
-
-                <div className="creator-shell__discard-actions">
-
-                  <Button
-
-                    intent="danger"
-
-                    disabled={discardBusy}
-
-                    onClick={handleDiscard}
-
-                  >
-
-                    {discardBusy ? 'Discarding…' : 'Yes, discard'}
-
-                  </Button>
-
-                  <Button intent="neutral" onClick={() => setShowDiscardConfirm(false)}>
-
-                    Cancel
-
-                  </Button>
-
-                </div>
-
-                {discardError && (
-
-                  <p className="form__error" role="alert">{discardError}</p>
-
-                )}
-
-              </div>
-
-            ) : (
-
-              <Button intent="danger" onClick={() => setShowDiscardConfirm(true)}>
-
-                Discard draft
-
-              </Button>
-
-            )}
-
-          </div>
-
         </main>
 
 
 
         <InspectorPanel
 
-          diagnostics={draft.diagnostics}
+          diagnostics={visibleDiagnostics}
 
         />
 
@@ -421,9 +401,21 @@ export default function CreatorShellPage() {
 
         onBack={prevStep}
 
-        onForward={nextStep}
+        onForward={handleForward}
 
         onFinalize={handleFinalize}
+
+        showDiscardConfirm={showDiscardConfirm}
+
+        discardBusy={discardBusy}
+
+        discardError={discardError}
+
+        onDiscardClick={() => setShowDiscardConfirm(true)}
+
+        onDiscardConfirm={handleDiscard}
+
+        onDiscardCancel={() => setShowDiscardConfirm(false)}
 
       />
 

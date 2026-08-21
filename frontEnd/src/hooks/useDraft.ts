@@ -96,6 +96,7 @@ export function useDraft(characterId: string): UseDraftResult {
       knowledgeSkills: null,
       languages: null,
       nativeLanguages: null,
+      identity: null,
     })
     const [currentStep, setCurrentStep] = useState(FIRST_STEP_INDEX)
 
