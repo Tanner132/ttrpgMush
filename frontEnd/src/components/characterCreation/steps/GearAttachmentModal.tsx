@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import type { AttachmentSelection, CatalogContract, WeaponMount } from '../../../api/characterCreation.ts'
+import type {
+  ArmorModificationDefinition,
+  AttachmentSelection,
+  AugmentationDefinition,
+  CatalogContract,
+  CyberlimbEnhancementDefinition,
+  GearDefinition,
+  WeaponMount,
+} from '../../../api/characterCreation.ts'
 import { resolveNumber } from '../../../api/characterCreation.ts'
 import { Button } from '../../ui/Button.tsx'
 import { Modal } from '../../ui/Modal.tsx'
@@ -12,12 +20,12 @@ import {
 
 interface GearAttachmentModalProps {
   catalog: CatalogContract
-  hostKind: 'weapon' | 'armor'
+  hostKind: 'weapon' | 'armor' | 'gear' | 'augmentation' | 'vehicle'
   hostItemId: string
   hostInstanceId: string
   hostDisplayName: string
   weaponCategoryId?: string
-  armorCapacity: number | null
+  capacityPool: number | null
   attachments: AttachmentSelection[]
   onAdd: (attachment: AttachmentSelection) => void
   onRemove: (accessoryId: string) => void
@@ -25,7 +33,7 @@ interface GearAttachmentModalProps {
 }
 
 export function GearAttachmentModal({
-  catalog, hostKind, hostInstanceId, hostDisplayName, weaponCategoryId, armorCapacity, attachments, onAdd, onRemove, onClose,
+  catalog, hostKind, hostItemId, hostInstanceId, hostDisplayName, weaponCategoryId, capacityPool, attachments, onAdd, onRemove, onClose,
 }: GearAttachmentModalProps) {
   const [pendingRatings, setPendingRatings] = useState<Record<string, number>>({})
   const [pendingMounts, setPendingMounts] = useState<Record<string, WeaponMount>>({})
@@ -111,21 +119,106 @@ export function GearAttachmentModal({
     )
   }
 
+  if (hostKind === 'vehicle') {
+    const usedSlots = attachments.reduce((total, item) => {
+      const modification = catalog.vehicleModifications.find((entry) => entry.id === item.accessoryId)
+      return modification ? total + modification.mountSlotCost : total
+    }, 0)
+    const mountPool = capacityPool ?? 0
+    const remainingSlots = mountPool - usedSlots
+    const hasWeaponMount = attachments.some((item) => {
+      const modification = catalog.vehicleModifications.find((entry) => entry.id === item.accessoryId)
+      return modification && modification.mountSlotCost > 0
+    })
+
+    // Unlike other host kinds, a vehicle may carry more than one of the same
+    // modification (e.g. several Standard Weapon Mounts), so options are not
+    // excluded once attached — only once mount-slot capacity runs out.
+    const options = catalog.vehicleModifications.filter((modification) => {
+      if (modification.requiresExistingMount && !hasWeaponMount) return false
+      return modification.mountSlotCost <= remainingSlots
+    })
+
+    return (
+      <Modal title={`Modifications — ${hostDisplayName}`} onClose={onClose}>
+        <div className="creation-attachment-modal">
+          <div className="creation-attachment-modal__capacity">
+            <div className="creation-attachment-modal__slot">
+              <strong>Mount Slots</strong>
+              <span>{usedSlots} / {mountPool} used</span>
+            </div>
+          </div>
+          <ul className="creation-attachment-modal__options">
+            {options.length === 0 && <li className="creation-attachment-modal__empty">No mount slots remain for more modifications.</li>}
+            {options.map((modification) => {
+              const cost = resolveNumber(modification.cost?.fixed, modification.cost?.perRating, null, null)
+              return (
+                <li key={modification.id} className="creation-attachment-modal__option">
+                  <span>
+                    <strong>{modification.displayName}</strong>
+                    <small>{cost.toLocaleString()}¥ · {modification.mountSlotCost} slot{modification.mountSlotCost === 1 ? '' : 's'}</small>
+                  </span>
+                  <Button intent="primary" onClick={() => onAdd({ hostInstanceId, accessoryId: modification.id })}>Add</Button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </Modal>
+    )
+  }
+
+  const hostGearCategory = hostKind === 'gear'
+    ? catalog.gear.find((item) => item.id === hostItemId)?.categoryId
+    : undefined
+  const hostAugmentation = hostKind === 'augmentation'
+    ? catalog.augmentations.find((item) => item.id === hostItemId)
+    : undefined
+  const isCyberlimbHost = hostAugmentation?.augmentationCategoryId === 'cyberlimb'
+
+  type CapacityItem = ArmorModificationDefinition | GearDefinition | CyberlimbEnhancementDefinition | AugmentationDefinition
+  let capacityCatalog: CapacityItem[]
+  if (hostKind === 'gear') {
+    capacityCatalog = catalog.gear.filter((item) => item.capacityCost && item.categoryId === hostGearCategory)
+  } else if (hostKind === 'augmentation') {
+    capacityCatalog = isCyberlimbHost
+      ? [
+          ...catalog.cyberlimbEnhancements,
+          ...catalog.augmentations.filter((item) =>
+            item.capacityCost && (item.augmentationCategoryId === 'bodyware' || item.augmentationCategoryId === 'implant-weapon')),
+        ]
+      : catalog.augmentations.filter((item) => item.capacityCost && item.augmentationCategoryId === hostAugmentation?.augmentationCategoryId)
+  } else {
+    capacityCatalog = catalog.armorModifications
+  }
+
+  const usedEnhancementTypes = new Set(
+    attachments
+      .map((item) => catalog.cyberlimbEnhancements.find((entry) => entry.id === item.accessoryId)?.enhancementType)
+      .filter((type): type is NonNullable<typeof type> => type != null),
+  )
+
   const used = attachments.reduce((total, item) => {
-    const modification = catalog.armorModifications.find((entry) => entry.id === item.accessoryId)
+    const modification = capacityCatalog.find((entry) => entry.id === item.accessoryId)
     return modification ? total + attachmentCapacityCost(modification, item.rating ?? null) : total
   }, 0)
-  const capacity = armorCapacity ?? 0
+  const capacity = capacityPool ?? 0
   const remaining = capacity - used
 
-  const options = catalog.armorModifications.filter((modification) => {
+  const options = capacityCatalog.filter((modification) => {
     if (attachments.some((item) => item.accessoryId === modification.id)) return false
+    if ('enhancementType' in modification && usedEnhancementTypes.has(modification.enhancementType)) return false
     const minimumCost = attachmentCapacityCost(modification, modification.ratingRange?.minimum ?? null)
     return minimumCost <= remaining
   })
 
+  const title = hostKind === 'gear' || hostKind === 'augmentation' ? 'Enhancements' : 'Modifications'
+  const emptyMessage = hostKind === 'gear' || hostKind === 'augmentation'
+    ? 'No Capacity remains for more enhancements.'
+    : 'No Capacity remains for more modifications.'
+
   return (
-    <Modal title={`Modifications — ${hostDisplayName}`} onClose={onClose}>
+    <Modal title={`${title} — ${hostDisplayName}`} onClose={onClose}>
       <div className="creation-attachment-modal">
         <div className="creation-attachment-modal__capacity">
           <div className="creation-attachment-modal__slot">
@@ -134,7 +227,7 @@ export function GearAttachmentModal({
           </div>
         </div>
         <ul className="creation-attachment-modal__options">
-          {options.length === 0 && <li className="creation-attachment-modal__empty">No Capacity remains for more modifications.</li>}
+          {options.length === 0 && <li className="creation-attachment-modal__empty">{emptyMessage}</li>}
           {options.map((modification) => {
             const rating = pendingRatings[modification.id] ?? modification.ratingRange?.minimum ?? undefined
             const cost = resolveNumber(modification.cost?.fixed, modification.cost?.perRating, null, rating ?? null)

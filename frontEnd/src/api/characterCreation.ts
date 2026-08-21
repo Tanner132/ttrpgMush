@@ -225,7 +225,7 @@ export interface AspectedValueDefinition {
 export interface TraditionDefinition {
     id: string
     displayName: string
-    drainAttribute: string
+    drainAttributes: string
     source: SourceCitation
 }
 
@@ -244,8 +244,8 @@ export interface SpellDefinition {
 export interface RitualDefinition {
     id: string
     displayName: string
-    requiredMaterials: string[]
-    category?: string | null
+    keywords: string[]
+    incorporatedSpellCategory?: string | null
     source: SourceCitation
 }
 
@@ -384,6 +384,11 @@ export interface EssenceDefinition {
     byRating?: Record<number, number> | null
 }
 
+export interface CapacityDefinition {
+    fixed?: number | null
+    perRating?: number | null
+}
+
 export interface RatingRangeDefinition {
     minimum: number
     maximum: number
@@ -402,6 +407,8 @@ export interface GearDefinition {
     requiresParameter?: boolean
     includedComponentIds?: string[] | null
     generatedProfileIds?: string[] | null
+    isCapacityHost?: boolean
+    capacityCost?: CapacityCostDefinition | null
 }
 
 export interface WeaponDefinition {
@@ -458,12 +465,27 @@ export interface AugmentationDefinition {
     cost?: CostDefinition | null
     essence?: EssenceDefinition | null
     ratingRange?: RatingRangeDefinition | null
-    capacity?: number | null
+    capacity?: CapacityDefinition | null
     requiresParameter?: boolean
     includedComponentIds?: string[] | null
     generatedProfileIds?: string[] | null
     prerequisiteIds?: string[] | null
     excludedIds?: string[] | null
+    capacityCost?: CapacityCostDefinition | null
+}
+
+export type CyberlimbEnhancementType = 'Agility' | 'Armor' | 'Strength'
+
+export interface CyberlimbEnhancementDefinition {
+    id: string
+    displayName: string
+    enhancementType: CyberlimbEnhancementType
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    capacityCost?: CapacityCostDefinition | null
+    ratingRange?: RatingRangeDefinition | null
 }
 
 export interface VehicleDefinition {
@@ -483,6 +505,17 @@ export interface VehicleDefinition {
     sensor?: number | null
     seats?: number | null
     includedComponentIds?: string[] | null
+}
+
+export interface VehicleModificationDefinition {
+    id: string
+    displayName: string
+    classification: GearClassification
+    source: SourceCitation
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    mountSlotCost: number
+    requiresExistingMount?: boolean
 }
 
 export interface CapacityCostDefinition {
@@ -590,6 +623,8 @@ export interface CatalogContract {
     cyberdecks: CyberdeckDefinition[]
     weaponAccessories: WeaponAccessoryDefinition[]
     armorModifications: ArmorModificationDefinition[]
+    cyberlimbEnhancements: CyberlimbEnhancementDefinition[]
+    vehicleModifications: VehicleModificationDefinition[]
 }
 
 // ─── API ─────────────────────────────────────────────────────────────────────

@@ -145,7 +145,7 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
               <select value={selection?.traditionId ?? ''} onChange={event => update({ traditionId: event.target.value || null })}>
                 <option value="">Select tradition</option>
                 {catalog.traditions.map(tradition => (
-                  <option key={tradition.id} value={tradition.id}>{tradition.displayName} ({tradition.drainAttribute})</option>
+                  <option key={tradition.id} value={tradition.id}>{tradition.displayName} ({tradition.drainAttributes})</option>
                 ))}
               </select>
             </label>
@@ -233,7 +233,7 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
                   const selected = rituals.some(item => item.ritualId === ritual.id)
                   return (
                     <label className="creation-attribute" key={ritual.id}>
-                      <span><strong>{ritual.displayName}</strong><small>{ritual.requiredMaterials.join(', ')}{selected ? ' · granted' : ' · 5 Karma'}</small></span>
+                      <span><strong>{ritual.displayName}</strong><small>{ritual.keywords.join(', ')}{selected ? ' · granted' : ' · 5 Karma'}</small></span>
                       <input type="checkbox" checked={selected} onChange={() => toggleRitual(ritual.id)} />
                     </label>
                   )

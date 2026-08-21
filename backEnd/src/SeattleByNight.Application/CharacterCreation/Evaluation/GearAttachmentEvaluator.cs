@@ -18,6 +18,7 @@ public sealed class GearAttachmentEvaluator
     private const string Step = "resources";
     private const int MaxCreationAvailability = 12;
     private const int MaxCreationRating = 6;
+    private const decimal StartingEssence = 6m;
 
     private static readonly IReadOnlyDictionary<string, IReadOnlySet<WeaponMount>> MountsByWeaponCategory =
         new Dictionary<string, IReadOnlySet<WeaponMount>>(StringComparer.Ordinal)
@@ -54,8 +55,10 @@ public sealed class GearAttachmentEvaluator
 
         var mountsUsedByHost = new Dictionary<string, HashSet<WeaponMount>>(StringComparer.Ordinal);
         var capacityUsedByHost = new Dictionary<string, int>(StringComparer.Ordinal);
+        var enhancementTypesUsedByHost = new Dictionary<string, HashSet<CyberlimbEnhancementType>>(StringComparer.Ordinal);
         var canonical = new List<CanonicalAttachment>();
         var spent = 0m;
+        var essenceSpent = 0m;
 
         foreach (var selection in attachments)
         {
@@ -83,10 +86,26 @@ public sealed class GearAttachmentEvaluator
             {
                 EvaluateArmorModification(catalog, armor, selection, path, capacityUsedByHost, canonical, diagnostics, ref spent);
             }
+            else if (catalog.Gear.TryGetValue(host.ItemId, out var gearHost)
+                && (gearHost.IsCapacityHost || gearHost.Capacity is not null))
+            {
+                EvaluateDeviceEnhancement(catalog, gearHost, host, selection, path, capacityUsedByHost, canonical, diagnostics, ref spent);
+            }
+            else if (catalog.Augmentations.TryGetValue(host.ItemId, out var augmentationHost)
+                && augmentationHost.Capacity is not null)
+            {
+                EvaluateAugmentationInstall(catalog, augmentationHost, host, selection, path, capacityUsedByHost,
+                    enhancementTypesUsedByHost, canonical, diagnostics, ref spent, ref essenceSpent);
+            }
+            else if (catalog.Vehicles.TryGetValue(host.ItemId, out var vehicle))
+            {
+                EvaluateVehicleModification(catalog, vehicle, selection, path, capacityUsedByHost, canonical, diagnostics, ref spent);
+            }
             else
             {
                 diagnostics.Add(Error("attachment.host.unsupported", path, [host.ItemId],
-                    FallbackSource(catalog), "Attachments are only supported on weapon and armor hosts."));
+                    FallbackSource(catalog),
+                    "Attachments are only supported on weapon, armor, Capacity-host gear, Capacity-host augmentation, and vehicle hosts."));
             }
         }
 
@@ -104,6 +123,22 @@ public sealed class GearAttachmentEvaluator
                         ["remaining"] = remaining.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     },
                     "Reduce attachment purchases to fit the remaining Resources nuyen budget."));
+            }
+
+            if (essenceSpent > 0)
+            {
+                var remainingEssence = StartingEssence - resourcesEvaluation.Resources.TotalEssenceLoss - essenceSpent;
+                if (remainingEssence < 0)
+                {
+                    diagnostics.Add(Error("attachment.essence.exceeded", "attachments", [], FallbackSource(catalog),
+                        new Dictionary<string, string>
+                        {
+                            ["actual"] = (resourcesEvaluation.Resources.TotalEssenceLoss + essenceSpent)
+                                .ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            ["maximum"] = StartingEssence.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        },
+                        "Reduce Essence-costing attachments so total Essence loss does not exceed the starting 6 Essence."));
+                }
             }
         }
 
@@ -257,6 +292,269 @@ public sealed class GearAttachmentEvaluator
         canonical.Add(new CanonicalAttachment(
             selection.HostInstanceId, selection.AccessoryId, null, rating,
             RoundNuyen(cost), CanonicalProvenance.Nuyen));
+    }
+
+    private void EvaluateDeviceEnhancement(
+        RulesetCatalog catalog,
+        GearDefinition gearHost,
+        ResourceSelection host,
+        AttachmentSelection selection,
+        string path,
+        Dictionary<string, int> capacityUsedByHost,
+        List<CanonicalAttachment> canonical,
+        List<CharacterCreationDiagnostic> diagnostics,
+        ref decimal spent)
+    {
+        if (!catalog.Gear.TryGetValue(selection.AccessoryId, out var enhancement) || enhancement.CapacityCost is null)
+        {
+            diagnostics.Add(Unknown(selection.AccessoryId, catalog));
+            return;
+        }
+
+        var rating = EvaluateRating(enhancement.RatingRange, selection.Rating, selection.AccessoryId, enhancement.Source, diagnostics);
+        var capacityCost = enhancement.CapacityCost.Fixed
+            ?? (enhancement.CapacityCost.PerRating * rating)
+            ?? 0;
+
+        var hostCapacity = gearHost.IsCapacityHost ? host.Rating ?? 0 : gearHost.Capacity ?? 0;
+        var used = capacityUsedByHost.GetValueOrDefault(selection.HostInstanceId);
+        var totalUsed = used + capacityCost;
+        if (totalUsed > hostCapacity)
+        {
+            diagnostics.Add(Error("attachment.capacity.exceeded", path, [selection.AccessoryId], enhancement.Source,
+                new Dictionary<string, string>
+                {
+                    ["host"] = selection.HostInstanceId,
+                    ["actual"] = totalUsed.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["maximum"] = hostCapacity.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                },
+                "Reduce this device's enhancements so total Capacity used does not exceed the host's Capacity."));
+        }
+        else
+        {
+            capacityUsedByHost[selection.HostInstanceId] = totalUsed;
+        }
+
+        var availability = Resolve(enhancement.Availability?.Fixed, enhancement.Availability?.PerRating, rating);
+        if (availability is not null && availability > MaxCreationAvailability)
+        {
+            diagnostics.Add(Error("attachment.availability.exceeded", path, [selection.AccessoryId], enhancement.Source,
+                new Dictionary<string, string>
+                {
+                    ["actual"] = availability.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["maximum"] = MaxCreationAvailability.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                },
+                "Choose an enhancement whose numeric Availability is 12 or lower at creation."));
+        }
+
+        var cost = Resolve(enhancement.Cost?.Fixed, enhancement.Cost?.PerRating, rating);
+        spent += cost;
+
+        canonical.Add(new CanonicalAttachment(
+            selection.HostInstanceId, selection.AccessoryId, null, rating,
+            RoundNuyen(cost), CanonicalProvenance.Nuyen));
+    }
+
+    // Cyberlimbs, cybereyes, and cyberears all carry a Capacity pool
+    // (sr5-core p. 456, PDF 458). Cyberlimb enhancements (Agility/Armor/
+    // Strength) are attachment-only items limited to one of each type per
+    // limb and never cost Essence. Other bodyware/headware/cybergun items
+    // with a bracketed Capacity cost may instead be installed for Capacity:
+    // installed in a cyberlimb they charge no Essence ("instead of Essence",
+    // p. 451/454, PDF 453/456); installed in a cybereye/cyberear they remain
+    // an additional implanted component and still charge their own Essence
+    // cost alongside Capacity (e.g. implanted Smartlink is Essence 0.2 and
+    // [3] Capacity).
+    private void EvaluateAugmentationInstall(
+        RulesetCatalog catalog,
+        AugmentationDefinition augmentationHost,
+        ResourceSelection host,
+        AttachmentSelection selection,
+        string path,
+        Dictionary<string, int> capacityUsedByHost,
+        Dictionary<string, HashSet<CyberlimbEnhancementType>> enhancementTypesUsedByHost,
+        List<CanonicalAttachment> canonical,
+        List<CharacterCreationDiagnostic> diagnostics,
+        ref decimal spent,
+        ref decimal essenceSpent)
+    {
+        var isCyberlimb = augmentationHost.AugmentationCategoryId == "cyberlimb";
+        var hostCapacity = ResolveAugmentationCapacity(augmentationHost, host.Rating);
+
+        if (isCyberlimb && catalog.CyberlimbEnhancements.TryGetValue(selection.AccessoryId, out var enhancement))
+        {
+            var usedTypes = enhancementTypesUsedByHost.GetValueOrDefault(selection.HostInstanceId) ?? [];
+            if (!usedTypes.Add(enhancement.EnhancementType))
+            {
+                diagnostics.Add(Error("attachment.enhancement.type-occupied", path, [selection.AccessoryId], enhancement.Source,
+                    new Dictionary<string, string>
+                    {
+                        ["host"] = selection.HostInstanceId,
+                        ["type"] = enhancement.EnhancementType.ToString(),
+                    },
+                    "Each cyberlimb can hold only one enhancement of a given type; remove the existing one first."));
+                return;
+            }
+
+            enhancementTypesUsedByHost[selection.HostInstanceId] = usedTypes;
+
+            var rating = EvaluateRating(enhancement.RatingRange, selection.Rating, selection.AccessoryId, enhancement.Source, diagnostics);
+            var capacityCost = enhancement.CapacityCost?.Fixed ?? (enhancement.CapacityCost?.PerRating * rating) ?? 0;
+            ApplyCapacity(selection.HostInstanceId, capacityCost, hostCapacity, path, enhancement.Source, capacityUsedByHost, diagnostics);
+
+            var availability = Resolve(enhancement.Availability?.Fixed, enhancement.Availability?.PerRating, rating);
+            if (availability is not null && availability > MaxCreationAvailability)
+            {
+                diagnostics.Add(Error("attachment.availability.exceeded", path, [selection.AccessoryId], enhancement.Source,
+                    new Dictionary<string, string>
+                    {
+                        ["actual"] = availability.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        ["maximum"] = MaxCreationAvailability.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    },
+                    "Choose an enhancement whose numeric Availability is 12 or lower at creation."));
+            }
+
+            var cost = Resolve(enhancement.Cost?.Fixed, enhancement.Cost?.PerRating, rating);
+            spent += cost;
+
+            canonical.Add(new CanonicalAttachment(
+                selection.HostInstanceId, selection.AccessoryId, null, rating, RoundNuyen(cost), CanonicalProvenance.Nuyen));
+            return;
+        }
+
+        if (!catalog.Augmentations.TryGetValue(selection.AccessoryId, out var accessory) || accessory.CapacityCost is null)
+        {
+            diagnostics.Add(Unknown(selection.AccessoryId, catalog));
+            return;
+        }
+
+        // Cyberlimbs accept bodyware/implant-weapon items with a bracketed
+        // Capacity cost (p. 451/454, PDF 453/456); eyeware/earware hosts only
+        // accept their own matching bilateral enhancement category.
+        var categoryEligible = isCyberlimb
+            ? accessory.AugmentationCategoryId is "bodyware" or "implant-weapon"
+            : accessory.AugmentationCategoryId == augmentationHost.AugmentationCategoryId;
+        if (!categoryEligible)
+        {
+            diagnostics.Add(Error("attachment.host.category-mismatch", path, [selection.AccessoryId], accessory.Source,
+                "Choose an item whose category matches this host."));
+            return;
+        }
+
+        var accessoryRating = EvaluateRating(accessory.RatingRange, selection.Rating, selection.AccessoryId, accessory.Source, diagnostics);
+        var accessoryCapacityCost = accessory.CapacityCost.Fixed ?? (accessory.CapacityCost.PerRating * accessoryRating) ?? 0;
+        ApplyCapacity(selection.HostInstanceId, accessoryCapacityCost, hostCapacity, path, accessory.Source, capacityUsedByHost, diagnostics);
+
+        var accessoryAvailability = Resolve(accessory.Availability?.Fixed, accessory.Availability?.PerRating, accessoryRating);
+        if (accessoryAvailability is not null && accessoryAvailability > MaxCreationAvailability)
+        {
+            diagnostics.Add(Error("attachment.availability.exceeded", path, [selection.AccessoryId], accessory.Source,
+                new Dictionary<string, string>
+                {
+                    ["actual"] = accessoryAvailability.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["maximum"] = MaxCreationAvailability.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                },
+                "Choose an item whose numeric Availability is 12 or lower at creation."));
+        }
+
+        var accessoryCost = Resolve(accessory.Cost?.Fixed, accessory.Cost?.PerRating, accessoryRating);
+        spent += accessoryCost;
+
+        if (!isCyberlimb)
+        {
+            essenceSpent += Resolve(accessory.Essence?.Fixed, accessory.Essence?.PerRating, accessoryRating);
+        }
+
+        canonical.Add(new CanonicalAttachment(
+            selection.HostInstanceId, selection.AccessoryId, null, accessoryRating, RoundNuyen(accessoryCost), CanonicalProvenance.Nuyen));
+    }
+
+    private static int ResolveAugmentationCapacity(AugmentationDefinition augmentation, int? hostRating) =>
+        augmentation.Capacity is null
+            ? 0
+            : augmentation.Capacity.Fixed ?? (augmentation.Capacity.PerRating * hostRating) ?? 0;
+
+    private void ApplyCapacity(
+        string hostInstanceId,
+        int capacityCost,
+        int hostCapacity,
+        string path,
+        SourceCitation source,
+        Dictionary<string, int> capacityUsedByHost,
+        List<CharacterCreationDiagnostic> diagnostics)
+    {
+        var used = capacityUsedByHost.GetValueOrDefault(hostInstanceId);
+        var totalUsed = used + capacityCost;
+        if (totalUsed > hostCapacity)
+        {
+            diagnostics.Add(Error("attachment.capacity.exceeded", path, [], source,
+                new Dictionary<string, string>
+                {
+                    ["host"] = hostInstanceId,
+                    ["actual"] = totalUsed.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["maximum"] = hostCapacity.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                },
+                "Reduce this host's installed items so total Capacity used does not exceed its Capacity."));
+        }
+        else
+        {
+            capacityUsedByHost[hostInstanceId] = totalUsed;
+        }
+    }
+
+    // Vehicle mount capacity is unaugmented Body / 3, rounded down; a standard
+    // mount uses one slot and a heavy mount counts as two (sr5-core p. 461,
+    // PDF 463). Manual operation is a child of an already-installed weapon
+    // mount and consumes no additional slot; prerequisite order follows the
+    // draft's attachment list rather than a full dependency graph, matching
+    // how a player builds up a vehicle's loadout one attachment at a time.
+    private void EvaluateVehicleModification(
+        RulesetCatalog catalog,
+        VehicleDefinition vehicle,
+        AttachmentSelection selection,
+        string path,
+        Dictionary<string, int> mountSlotsUsedByHost,
+        List<CanonicalAttachment> canonical,
+        List<CharacterCreationDiagnostic> diagnostics,
+        ref decimal spent)
+    {
+        if (!catalog.VehicleModifications.TryGetValue(selection.AccessoryId, out var modification))
+        {
+            diagnostics.Add(Unknown(selection.AccessoryId, catalog));
+            return;
+        }
+
+        if (modification.RequiresExistingMount && !canonical.Any(item =>
+            item.HostInstanceId == selection.HostInstanceId
+            && catalog.VehicleModifications.TryGetValue(item.AccessoryId, out var installed)
+            && installed.MountSlotCost > 0))
+        {
+            diagnostics.Add(Error("attachment.host.prerequisite-missing", path, [selection.AccessoryId], modification.Source,
+                "Install a weapon mount on this vehicle before adding manual operation."));
+            return;
+        }
+
+        var mountPool = vehicle.Body is null ? 0 : vehicle.Body.Value / 3;
+        ApplyCapacity(selection.HostInstanceId, modification.MountSlotCost, mountPool, path, modification.Source,
+            mountSlotsUsedByHost, diagnostics);
+
+        var availability = Resolve(modification.Availability?.Fixed, modification.Availability?.PerRating, null);
+        if (availability is not null && availability > MaxCreationAvailability)
+        {
+            diagnostics.Add(Error("attachment.availability.exceeded", path, [selection.AccessoryId], modification.Source,
+                new Dictionary<string, string>
+                {
+                    ["actual"] = availability.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["maximum"] = MaxCreationAvailability.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                },
+                "Choose a modification whose numeric Availability is 12 or lower at creation."));
+        }
+
+        var cost = Resolve(modification.Cost?.Fixed, modification.Cost?.PerRating, null);
+        spent += cost;
+
+        canonical.Add(new CanonicalAttachment(
+            selection.HostInstanceId, selection.AccessoryId, null, null, RoundNuyen(cost), CanonicalProvenance.Nuyen));
     }
 
     private static int? EvaluateRating(

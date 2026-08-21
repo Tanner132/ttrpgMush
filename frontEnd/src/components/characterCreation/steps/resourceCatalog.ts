@@ -1,11 +1,15 @@
 import type {
   ArmorModificationDefinition,
   AttachmentSelection,
+  AugmentationDefinition,
   AvailabilityDefinition,
   CatalogContract,
   CostDefinition,
+  CyberlimbEnhancementDefinition,
   GearClassification,
+  GearDefinition,
   RatingRangeDefinition,
+  VehicleDefinition,
   WeaponMount,
 } from '../../../api/characterCreation.ts'
 import { resolveNumber } from '../../../api/characterCreation.ts'
@@ -20,9 +24,11 @@ export interface ResourceLine {
   cost?: CostDefinition | null
   ratingRange?: RatingRangeDefinition | null
   requiresParameter: boolean
-  hostKind?: 'weapon' | 'armor'
+  hostKind?: 'weapon' | 'armor' | 'gear' | 'augmentation' | 'vehicle'
   weaponCategoryId?: string
   capacity?: number | null
+  isCapacityHost?: boolean
+  body?: number | null
 }
 
 // Mirrors GearAttachmentEvaluator's category-to-mount mapping (sr5-core p. 417,
@@ -104,10 +110,16 @@ export const humanizeResourceCategory = (id: string): string =>
   RESOURCE_CATEGORY_LABELS[id]
   ?? id.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
 
-export function resolveAccessory(catalog: CatalogContract, hostKind: 'weapon' | 'armor' | undefined, accessoryId: string):
+export function resolveAccessory(catalog: CatalogContract, hostKind: 'weapon' | 'armor' | 'gear' | 'augmentation' | 'vehicle' | undefined, accessoryId: string):
   { displayName: string } | undefined {
   if (hostKind === 'weapon') return catalog.weaponAccessories.find((item) => item.id === accessoryId)
   if (hostKind === 'armor') return catalog.armorModifications.find((item) => item.id === accessoryId)
+  if (hostKind === 'gear') return catalog.gear.find((item) => item.id === accessoryId)
+  if (hostKind === 'augmentation') {
+    return catalog.cyberlimbEnhancements.find((item) => item.id === accessoryId)
+      ?? catalog.augmentations.find((item) => item.id === accessoryId)
+  }
+  if (hostKind === 'vehicle') return catalog.vehicleModifications.find((item) => item.id === accessoryId)
   return undefined
 }
 
@@ -133,11 +145,57 @@ export function attachmentUnitCost(catalog: CatalogContract, attachment: Attachm
   if (armorModification) {
     return resolveNumber(armorModification.cost?.fixed, armorModification.cost?.perRating, null, attachment.rating)
   }
+  const gearEnhancement = catalog.gear.find((item) => item.id === attachment.accessoryId && item.capacityCost)
+  if (gearEnhancement) {
+    return resolveNumber(gearEnhancement.cost?.fixed, gearEnhancement.cost?.perRating, null, attachment.rating)
+  }
+  const cyberlimbEnhancement = catalog.cyberlimbEnhancements.find((item) => item.id === attachment.accessoryId)
+  if (cyberlimbEnhancement) {
+    return resolveNumber(cyberlimbEnhancement.cost?.fixed, cyberlimbEnhancement.cost?.perRating, null, attachment.rating)
+  }
+  const augmentationEnhancement = catalog.augmentations.find((item) => item.id === attachment.accessoryId && item.capacityCost)
+  if (augmentationEnhancement) {
+    return resolveNumber(augmentationEnhancement.cost?.fixed, augmentationEnhancement.cost?.perRating, null, attachment.rating)
+  }
+  const vehicleModification = catalog.vehicleModifications.find((item) => item.id === attachment.accessoryId)
+  if (vehicleModification) {
+    return resolveNumber(vehicleModification.cost?.fixed, vehicleModification.cost?.perRating, null, attachment.rating)
+  }
   return 0
 }
 
-export function attachmentCapacityCost(modification: ArmorModificationDefinition, rating: number | null): number {
+export function attachmentCapacityCost(
+  modification: ArmorModificationDefinition | GearDefinition | CyberlimbEnhancementDefinition | AugmentationDefinition,
+  rating: number | null,
+): number {
   if (modification.capacityCost?.fixed != null) return modification.capacityCost.fixed
   if (modification.capacityCost?.perRating != null && rating != null) return modification.capacityCost.perRating * rating
   return 0
+}
+
+// A gear item's own Capacity pool: a variable-Capacity host's chosen Rating
+// IS its Capacity, while a fixed-Capacity host uses its printed Capacity.
+export function gearHostCapacity(
+  item: Pick<GearDefinition, 'isCapacityHost' | 'capacity'>,
+  hostRating: number | null,
+): number {
+  if (item.isCapacityHost) return hostRating ?? 0
+  return item.capacity ?? 0
+}
+
+// An augmentation host's Capacity pool (cyberlimbs are fixed per variant;
+// cybereyes/cyberears scale with their purchased Rating).
+export function augmentationHostCapacity(
+  item: Pick<AugmentationDefinition, 'capacity'>,
+  hostRating: number | null,
+): number {
+  if (item.capacity?.fixed != null) return item.capacity.fixed
+  if (item.capacity?.perRating != null && hostRating != null) return item.capacity.perRating * hostRating
+  return 0
+}
+
+// A vehicle's weapon mount pool: unaugmented Body / 3, rounded down
+// (sr5-core p. 461, PDF 463).
+export function vehicleMountCapacity(item: Pick<VehicleDefinition, 'body'>): number {
+  return item.body != null ? Math.floor(item.body / 3) : 0
 }

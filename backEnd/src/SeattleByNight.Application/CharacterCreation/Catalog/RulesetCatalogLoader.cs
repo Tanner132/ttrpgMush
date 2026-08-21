@@ -76,7 +76,9 @@ public static partial class RulesetCatalogLoader
             ToDictionary(document.Vehicles!, item => item.Id),
             ToDictionary(document.Cyberdecks!, item => item.Id),
             ToDictionary(document.WeaponAccessories!, item => item.Id),
-            ToDictionary(document.ArmorModifications!, item => item.Id));
+            ToDictionary(document.ArmorModifications!, item => item.Id),
+            ToDictionary(document.CyberlimbEnhancements!, item => item.Id),
+            ToDictionary(document.VehicleModifications!, item => item.Id));
     }
 
     public static string ComputeSemanticDigest(string json)
@@ -135,7 +137,9 @@ public static partial class RulesetCatalogLoader
             || document.Vehicles is null
             || document.Cyberdecks is null
             || document.WeaponAccessories is null
-            || document.ArmorModifications is null)
+            || document.ArmorModifications is null
+            || document.CyberlimbEnhancements is null
+            || document.VehicleModifications is null)
         {
             throw new RulesetCatalogException("The catalog is missing a required collection.");
         }
@@ -171,6 +175,8 @@ public static partial class RulesetCatalogLoader
         ValidateUnique(document.Cyberdecks, item => item.Id, "cyberdeck");
         ValidateUnique(document.WeaponAccessories, item => item.Id, "weapon accessory");
         ValidateUnique(document.ArmorModifications, item => item.Id, "armor modification");
+        ValidateUnique(document.CyberlimbEnhancements, item => item.Id, "cyberlimb enhancement");
+        ValidateUnique(document.VehicleModifications, item => item.Id, "vehicle modification");
 
         var sourceIds = document.Sources.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (sourceIds.Count == 0)
@@ -363,6 +369,23 @@ public static partial class RulesetCatalogLoader
             ValidateCommonEntry(gear.Id, gear.DisplayName, gear.Source, sourceIds, "gear");
             ValidateResourceEntry(gear.Availability, gear.Cost, null, gear.Capacity, gear.RatingRange,
                 gear.IncludedComponentIds, gear.GeneratedProfileIds, $"gear '{gear.Id}'");
+            if (gear.CapacityCost is not null
+                && (gear.CapacityCost.Fixed is < 0 || gear.CapacityCost.PerRating is < 0
+                    || (gear.CapacityCost.Fixed is null && gear.CapacityCost.PerRating is null)))
+            {
+                throw new RulesetCatalogException($"Gear '{gear.Id}' has an invalid Capacity cost.");
+            }
+
+            if (gear.CapacityCost is not null && (gear.IsCapacityHost || gear.Capacity is not null))
+            {
+                throw new RulesetCatalogException(
+                    $"Gear '{gear.Id}' cannot be both a Capacity host and a Capacity-consuming item.");
+            }
+
+            if (gear.IsCapacityHost && gear.RatingRange is null)
+            {
+                throw new RulesetCatalogException($"Gear '{gear.Id}' is a Capacity host but declares no rating range.");
+            }
         }
 
         foreach (var weapon in document.Weapons)
@@ -387,8 +410,26 @@ public static partial class RulesetCatalogLoader
             if (string.IsNullOrWhiteSpace(augmentation.AugmentationCategoryId))
                 throw new RulesetCatalogException($"Augmentation '{augmentation.Id}' must declare an augmentation category.");
             ValidateResourceEntry(augmentation.Availability, augmentation.Cost, augmentation.Essence,
-                augmentation.Capacity, augmentation.RatingRange, augmentation.IncludedComponentIds,
+                null, augmentation.RatingRange, augmentation.IncludedComponentIds,
                 augmentation.GeneratedProfileIds, $"augmentation '{augmentation.Id}'");
+            if (augmentation.Capacity is not null
+                && (augmentation.Capacity.Fixed is < 0 || augmentation.Capacity.PerRating is < 0))
+            {
+                throw new RulesetCatalogException($"Augmentation '{augmentation.Id}' has an invalid Capacity.");
+            }
+
+            if (augmentation.CapacityCost is not null
+                && (augmentation.CapacityCost.Fixed is < 0 || augmentation.CapacityCost.PerRating is < 0
+                    || (augmentation.CapacityCost.Fixed is null && augmentation.CapacityCost.PerRating is null)))
+            {
+                throw new RulesetCatalogException($"Augmentation '{augmentation.Id}' has an invalid Capacity cost.");
+            }
+
+            if (augmentation.Capacity is not null && augmentation.CapacityCost is not null)
+            {
+                throw new RulesetCatalogException(
+                    $"Augmentation '{augmentation.Id}' cannot be both a Capacity host and a Capacity-consuming item.");
+            }
         }
 
         foreach (var vehicle in document.Vehicles)
@@ -418,6 +459,31 @@ public static partial class RulesetCatalogLoader
                 || modification.CapacityCost.PerRating is < 0)
             {
                 throw new RulesetCatalogException($"Armor modification '{modification.Id}' has an invalid Capacity cost.");
+            }
+        }
+
+        foreach (var enhancement in document.CyberlimbEnhancements)
+        {
+            ValidateCommonEntry(enhancement.Id, enhancement.DisplayName, enhancement.Source, sourceIds, "cyberlimb enhancement");
+            ValidateResourceEntry(enhancement.Availability, enhancement.Cost, null, null, enhancement.RatingRange,
+                null, null, $"cyberlimb enhancement '{enhancement.Id}'");
+            if (enhancement.CapacityCost is null
+                || (enhancement.CapacityCost.Fixed is null && enhancement.CapacityCost.PerRating is null)
+                || enhancement.CapacityCost.Fixed is < 0
+                || enhancement.CapacityCost.PerRating is < 0)
+            {
+                throw new RulesetCatalogException($"Cyberlimb enhancement '{enhancement.Id}' has an invalid Capacity cost.");
+            }
+        }
+
+        foreach (var modification in document.VehicleModifications)
+        {
+            ValidateCommonEntry(modification.Id, modification.DisplayName, modification.Source, sourceIds, "vehicle modification");
+            ValidateResourceEntry(modification.Availability, modification.Cost, null, null, null,
+                null, null, $"vehicle modification '{modification.Id}'");
+            if (modification.MountSlotCost < 0)
+            {
+                throw new RulesetCatalogException($"Vehicle modification '{modification.Id}' has a negative mount slot cost.");
             }
         }
 
@@ -674,5 +740,7 @@ public static partial class RulesetCatalogLoader
         VehicleDefinition[]? Vehicles,
         CyberdeckDefinition[]? Cyberdecks,
         WeaponAccessoryDefinition[]? WeaponAccessories,
-        ArmorModificationDefinition[]? ArmorModifications);
+        ArmorModificationDefinition[]? ArmorModifications,
+        CyberlimbEnhancementDefinition[]? CyberlimbEnhancements,
+        VehicleModificationDefinition[]? VehicleModifications);
 }

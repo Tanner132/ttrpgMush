@@ -33,7 +33,39 @@ const catalog: CatalogContract = {
   spiritTypes: [],
   spriteTypes: [],
   foci: [],
-  gear: [],
+  gear: [
+    {
+      id: 'goggles',
+      displayName: 'Goggles',
+      categoryId: 'optical-imaging',
+      classification: 'Parameterized',
+      source,
+      availability: { legality: 'Legal' },
+      cost: { perRating: 50 },
+      ratingRange: { minimum: 1, maximum: 6 },
+      isCapacityHost: true,
+    },
+    {
+      id: 'low-light-vision-enhancement',
+      displayName: 'Low-Light Vision',
+      categoryId: 'optical-imaging',
+      classification: 'Selectable',
+      source,
+      availability: { fixed: 4, legality: 'Legal' },
+      cost: { fixed: 500 },
+      capacityCost: { fixed: 1 },
+    },
+    {
+      id: 'image-link-enhancement',
+      displayName: 'Image Link',
+      categoryId: 'optical-imaging',
+      classification: 'Selectable',
+      source,
+      availability: { legality: 'Legal' },
+      cost: { fixed: 25 },
+      capacityCost: { fixed: 1 },
+    },
+  ],
   weapons: [
     {
       id: 'ak-97',
@@ -59,7 +91,18 @@ const catalog: CatalogContract = {
   ],
   augmentationGrades: [],
   augmentations: [],
-  vehicles: [],
+  vehicles: [
+    {
+      id: 'ares-roadmaster',
+      displayName: 'Ares Roadmaster',
+      vehicleCategoryId: 'truck-van',
+      classification: 'Selectable',
+      source,
+      availability: { fixed: 8, legality: 'Legal' },
+      cost: { fixed: 52000 },
+      body: 6,
+    },
+  ],
   cyberdecks: [],
   weaponAccessories: [
     {
@@ -109,6 +152,28 @@ const catalog: CatalogContract = {
       availability: { fixed: 12, legality: 'Restricted' },
       cost: { fixed: 3000 },
       capacityCost: { fixed: 6 },
+    },
+  ],
+  cyberlimbEnhancements: [],
+  vehicleModifications: [
+    {
+      id: 'standard-weapon-mount',
+      displayName: 'Standard Weapon Mount',
+      classification: 'Parameterized',
+      source,
+      availability: { fixed: 8, legality: 'Forbidden' },
+      cost: { fixed: 2500 },
+      mountSlotCost: 1,
+    },
+    {
+      id: 'manual-operation',
+      displayName: 'Manual Operation',
+      classification: 'Parameterized',
+      source,
+      availability: { fixed: 9, legality: 'Forbidden' },
+      cost: { fixed: 500 },
+      mountSlotCost: 0,
+      requiresExistingMount: true,
     },
   ],
 }
@@ -202,6 +267,88 @@ describe('ResourcesStep attachments', () => {
     expect(within(dialog.querySelector('.creation-attachment-modal__capacity')!).getByText('Bipod')).toBeInTheDocument()
     // ...so Tripod must no longer be offered as an addable option.
     expect(within(dialog.querySelector('.creation-attachment-modal__options')!).queryByText('Tripod')).not.toBeInTheDocument()
+  })
+
+  it('shows the plus button once a Capacity-host gear item is purchased and opens the enhancement modal', () => {
+    let document = baseDocument
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    const { rerender } = renderResourcesStep(document, onChange)
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /goggles/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    const addButton = screen.getByRole('button', { name: /manage attachments for goggles/i })
+    fireEvent.click(addButton)
+
+    const dialog = screen.getByRole('dialog', { name: /enhancements — goggles/i })
+    expect(within(dialog).getByText('Low-Light Vision')).toBeInTheDocument()
+    expect(within(dialog).getByText('Image Link')).toBeInTheDocument()
+  })
+
+  it('a device enhancement consumes Capacity so a second one no longer fits', () => {
+    // Goggles default to Rating 1 on purchase, giving a Capacity pool of 1;
+    // each enhancement here costs 1, so only one may be added.
+    let document = baseDocument
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    const { rerender } = renderResourcesStep(document, onChange)
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /goggles/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+    fireEvent.click(screen.getByRole('button', { name: /manage attachments for goggles/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    let dialog = screen.getByRole('dialog')
+    const lowLightOption = within(dialog).getByText('Low-Light Vision').closest('li')!
+    fireEvent.click(within(lowLightOption).getByRole('button', { name: 'Add' }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    expect(document.attachments).toHaveLength(1)
+    expect(document.attachments![0]).toMatchObject({ accessoryId: 'low-light-vision-enhancement' })
+
+    dialog = screen.getByRole('dialog')
+    expect(within(dialog.querySelector('.creation-attachment-modal__options')!).queryByText('Image Link')).not.toBeInTheDocument()
+  })
+
+  it('shows the plus button once a vehicle is purchased and opens the mount modal', () => {
+    let document = baseDocument
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    const { rerender } = renderResourcesStep(document, onChange)
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /ares roadmaster/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    const addButton = screen.getByRole('button', { name: /manage attachments for ares roadmaster/i })
+    fireEvent.click(addButton)
+
+    const dialog = screen.getByRole('dialog', { name: /modifications — ares roadmaster/i })
+    expect(within(dialog).getByText('Standard Weapon Mount')).toBeInTheDocument()
+    // Manual Operation requires an existing weapon mount first.
+    expect(within(dialog).queryByText('Manual Operation')).not.toBeInTheDocument()
+  })
+
+  it('a vehicle mount fills mount-slot capacity and unlocks manual operation', () => {
+    let document = baseDocument
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    const { rerender } = renderResourcesStep(document, onChange)
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /ares roadmaster/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ares roadmaster/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    let dialog = screen.getByRole('dialog')
+    const mountOption = within(dialog).getByText('Standard Weapon Mount').closest('li')!
+    fireEvent.click(within(mountOption).getByRole('button', { name: 'Add' }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    expect(document.attachments).toHaveLength(1)
+
+    // Ares Roadmaster has Body 6 (mount pool 2); one mount used leaves one
+    // slot, so a second Standard Weapon Mount is still offered and Manual
+    // Operation is now unlocked.
+    dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Standard Weapon Mount')).toBeInTheDocument()
+    expect(within(dialog).getByText('Manual Operation')).toBeInTheDocument()
   })
 
   it('removing the host cascades and removes its attachments', () => {

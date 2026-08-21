@@ -7,8 +7,10 @@ import {
   MOUNT_LABELS,
   attachmentUnitCost,
   effectiveWeaponMount,
+  gearHostCapacity,
   humanizeResourceCategory,
   resolveAccessory,
+  vehicleMountCapacity,
   type ResourceLine,
 } from './resourceCatalog.ts'
 
@@ -38,6 +40,9 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
       cost: item.cost,
       ratingRange: item.ratingRange,
       requiresParameter: item.requiresParameter ?? false,
+      hostKind: (item.isCapacityHost || item.capacity) ? ('gear' as const) : undefined,
+      capacity: item.capacity,
+      isCapacityHost: item.isCapacityHost,
     })),
     ...catalog.weapons.map((item) => ({
       id: item.id,
@@ -75,6 +80,8 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
       cost: item.cost,
       ratingRange: undefined,
       requiresParameter: false,
+      hostKind: item.body ? ('vehicle' as const) : undefined,
+      body: item.body,
     })),
     ...catalog.cyberdecks.map((item) => ({
       id: item.id,
@@ -233,7 +240,11 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
           hostInstanceId={openHost.instanceId}
           hostDisplayName={openHostLine.displayName}
           weaponCategoryId={openHostLine.weaponCategoryId}
-          armorCapacity={openHostLine.capacity ?? null}
+          capacityPool={openHostLine.hostKind === 'gear'
+            ? gearHostCapacity(openHostLine, openHost.rating ?? null)
+            : openHostLine.hostKind === 'vehicle'
+              ? vehicleMountCapacity(openHostLine)
+              : (openHostLine.capacity ?? null)}
           attachments={attachments.filter((entry) => entry.hostInstanceId === openHost.instanceId)}
           onAdd={addAttachment}
           onRemove={(accessoryId) => removeAttachment(openHost.instanceId!, accessoryId)}

@@ -235,7 +235,9 @@ public sealed record GearDefinition(
     RatingRangeDefinition? RatingRange = null,
     bool RequiresParameter = false,
     IReadOnlyList<string>? IncludedComponentIds = null,
-    IReadOnlyList<string>? GeneratedProfileIds = null);
+    IReadOnlyList<string>? GeneratedProfileIds = null,
+    bool IsCapacityHost = false,
+    CapacityCostDefinition? CapacityCost = null);
 
 public sealed record WeaponDefinition(
     string Id,
@@ -278,6 +280,10 @@ public sealed record AugmentationGradeDefinition(
     bool CreationEligible,
     SourceCitation Source);
 
+public sealed record CapacityDefinition(
+    int? Fixed = null,
+    int? PerRating = null);
+
 public sealed record AugmentationDefinition(
     string Id,
     string DisplayName,
@@ -288,12 +294,13 @@ public sealed record AugmentationDefinition(
     CostDefinition? Cost = null,
     EssenceDefinition? Essence = null,
     RatingRangeDefinition? RatingRange = null,
-    int? Capacity = null,
+    CapacityDefinition? Capacity = null,
     bool RequiresParameter = false,
     IReadOnlyList<string>? IncludedComponentIds = null,
     IReadOnlyList<string>? GeneratedProfileIds = null,
     IReadOnlyList<string>? PrerequisiteIds = null,
-    IReadOnlyList<string>? ExcludedIds = null);
+    IReadOnlyList<string>? ExcludedIds = null,
+    CapacityCostDefinition? CapacityCost = null);
 
 public sealed record VehicleDefinition(
     string Id,
@@ -346,6 +353,34 @@ public sealed record ArmorModificationDefinition(
     CostDefinition? Cost = null,
     CapacityCostDefinition? CapacityCost = null,
     RatingRangeDefinition? RatingRange = null);
+
+public enum CyberlimbEnhancementType
+{
+    Agility,
+    Armor,
+    Strength,
+}
+
+public sealed record CyberlimbEnhancementDefinition(
+    string Id,
+    string DisplayName,
+    CyberlimbEnhancementType EnhancementType,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    CapacityCostDefinition? CapacityCost = null,
+    RatingRangeDefinition? RatingRange = null);
+
+public sealed record VehicleModificationDefinition(
+    string Id,
+    string DisplayName,
+    GearClassification Classification,
+    SourceCitation Source,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    int MountSlotCost = 0,
+    bool RequiresExistingMount = false);
 
 public sealed record CyberdeckDefinition(
     string Id,
@@ -408,7 +443,9 @@ public sealed class RulesetCatalog
         ImmutableDictionary<string, VehicleDefinition> vehicles,
         ImmutableDictionary<string, CyberdeckDefinition> cyberdecks,
         ImmutableDictionary<string, WeaponAccessoryDefinition> weaponAccessories,
-        ImmutableDictionary<string, ArmorModificationDefinition> armorModifications)
+        ImmutableDictionary<string, ArmorModificationDefinition> armorModifications,
+        ImmutableDictionary<string, CyberlimbEnhancementDefinition> cyberlimbEnhancements,
+        ImmutableDictionary<string, VehicleModificationDefinition> vehicleModifications)
     {
         RulesetId = rulesetId;
         Version = version;
@@ -447,6 +484,8 @@ public sealed class RulesetCatalog
         Cyberdecks = cyberdecks;
         WeaponAccessories = weaponAccessories;
         ArmorModifications = armorModifications;
+        CyberlimbEnhancements = cyberlimbEnhancements;
+        VehicleModifications = vehicleModifications;
     }
 
     public string RulesetId { get; }
@@ -483,6 +522,8 @@ public sealed class RulesetCatalog
     public IReadOnlyDictionary<string, CyberdeckDefinition> Cyberdecks { get; }
     public IReadOnlyDictionary<string, WeaponAccessoryDefinition> WeaponAccessories { get; }
     public IReadOnlyDictionary<string, ArmorModificationDefinition> ArmorModifications { get; }
+    public IReadOnlyDictionary<string, CyberlimbEnhancementDefinition> CyberlimbEnhancements { get; }
+    public IReadOnlyDictionary<string, VehicleModificationDefinition> VehicleModifications { get; }
 
     public PriorityCellDefinition? GetPriorityCell(string categoryId, string levelId) =>
         priorityCellLookup.TryGetValue((categoryId, levelId), out var cell) ? cell : null;

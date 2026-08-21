@@ -19,7 +19,7 @@ public sealed class EmbeddedRulesetCatalogProvider : IRulesetCatalogProvider
 {
     public const string CurrentRulesetId = "sr5-core";
     public const string CurrentVersion = "1.0.0";
-    public const string CurrentSemanticDigest = "056AC01E9C7F4E67D5CBD387D2624E4BD52F2F5EFFB3D09CF67C226C9F12A912";
+    public const string CurrentSemanticDigest = "8F5B3D26F6A626C50880B16178D3716116ED5997D909D357FDD8D381D51522F4";
 
     private const string ResourcePrefix = "SeattleByNight.Application.CharacterCreation.Catalog.Resources.";
 

@@ -27,6 +27,10 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         Assert.Equal(64, body.RootElement.GetProperty("semanticDigest").GetString()!.Length);
         Assert.Equal(2, body.RootElement.GetProperty("creationMethods").GetArrayLength());
         Assert.Equal(25, body.RootElement.GetProperty("priorityCells").GetArrayLength());
+        Assert.Equal(17, body.RootElement.GetProperty("weaponAccessories").GetArrayLength());
+        Assert.Equal(7, body.RootElement.GetProperty("armorModifications").GetArrayLength());
+        Assert.Equal(3, body.RootElement.GetProperty("cyberlimbEnhancements").GetArrayLength());
+        Assert.Equal(4, body.RootElement.GetProperty("vehicleModifications").GetArrayLength());
 
         Assert.Equal(HttpStatusCode.BadRequest,
             (await client.GetAsync("/api/character-creation/catalogs/current?method=external-method")).StatusCode);

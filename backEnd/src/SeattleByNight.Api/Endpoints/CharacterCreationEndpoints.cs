@@ -70,7 +70,9 @@ public sealed record CatalogResponse(
     IReadOnlyList<VehicleDefinition> Vehicles,
     IReadOnlyList<CyberdeckDefinition> Cyberdecks,
     IReadOnlyList<WeaponAccessoryDefinition> WeaponAccessories,
-    IReadOnlyList<ArmorModificationDefinition> ArmorModifications);
+    IReadOnlyList<ArmorModificationDefinition> ArmorModifications,
+    IReadOnlyList<CyberlimbEnhancementDefinition> CyberlimbEnhancements,
+    IReadOnlyList<VehicleModificationDefinition> VehicleModifications);
 
 public sealed record CharacterCreationDraftResponse(
     Guid CharacterId,
@@ -288,7 +290,9 @@ public static class CharacterCreationEndpoints
          catalog.Vehicles.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
          catalog.Cyberdecks.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
          catalog.WeaponAccessories.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-         catalog.ArmorModifications.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
+         catalog.ArmorModifications.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.CyberlimbEnhancements.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.VehicleModifications.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
 
     private static CharacterCreationDraftResponse ToResponse(CharacterCreationDraftDetails details)
     {
