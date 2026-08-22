@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { AttachmentSelection, ResourceSelection } from '../../../api/characterCreation.ts'
+import type { AttachmentSelection, IdentitySelection, LicenseSelection, ResourceSelection } from '../../../api/characterCreation.ts'
 import { metatypeGearMultiplier, resolveAvailabilityNumber, resolveNumber } from '../../../api/characterCreation.ts'
 import type { CreationStepProps } from './types.ts'
 import { GearAttachmentModal } from './GearAttachmentModal.tsx'
@@ -15,6 +15,13 @@ import {
 } from './resourceCatalog.ts'
 
 const PURCHASABLE: string[] = ['Selectable', 'Parameterized']
+
+// Fake SIN and fake license are catalog.gear items, but they're purchased
+// through document.identities/document.licenses (bounded-text + SIN-linkage
+// fields ResourceSelection has no room for), not the generic resources list.
+const IDENTITY_GEAR_IDS = new Set(['fake-sin', 'fake-license'])
+const MIN_RATING = 1
+const MAX_RATING = 6
 
 export function ResourcesStep({ catalog, document, onChange }: CreationStepProps) {
   const resources = document.resources ?? []
@@ -96,7 +103,7 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
     })),
   ]
 
-  const purchasable = lines.filter((item) => PURCHASABLE.includes(item.classification))
+  const purchasable = lines.filter((item) => PURCHASABLE.includes(item.classification) && !IDENTITY_GEAR_IDS.has(item.id))
   const groups = [...new Set(purchasable.map((item) => item.groupKey))]
   const findLine = (itemId: string) => lines.find((item) => item.id === itemId)
 
@@ -109,6 +116,11 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
   const unitCost = (item: ResourceLine, rating: number | null) =>
     resolveNumber(item.cost?.fixed, item.cost?.perRating, item.cost?.byRating, rating) * gearMultiplier
 
+  const identities = document.identities ?? []
+  const licenses = document.licenses ?? []
+  const sinLine = findLine('fake-sin')
+  const licenseLine = findLine('fake-license')
+
   let spent = 0
   for (const selection of itemSelections) {
     const item = findLine(selection.itemId)
@@ -117,6 +129,12 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
   }
   for (const attachment of attachments) {
     spent += attachmentUnitCost(catalog, attachment)
+  }
+  if (sinLine) {
+    for (const identity of identities) spent += unitCost(sinLine, identity.rating)
+  }
+  if (licenseLine) {
+    for (const license of licenses) spent += unitCost(licenseLine, license.rating)
   }
 
   const toggle = (item: ResourceLine) => {
@@ -150,6 +168,26 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
 
   const updateNuyenFromKarma = (value: number) =>
     onChange({ ...document, nuyenFromKarma: value })
+
+  const setIdentities = (next: IdentitySelection[]) => onChange({ ...document, identities: next })
+  const addIdentity = () => setIdentities([...identities, { instanceId: crypto.randomUUID(), rating: MIN_RATING, details: '' }])
+  const updateIdentity = (instanceId: string, patch: Partial<IdentitySelection>) =>
+    setIdentities(identities.map((item) => item.instanceId === instanceId ? { ...item, ...patch } : item))
+  // Cascades: a license left pointing at a removed SIN is meaningless (mirrors
+  // the attachment cascade-cleanup pattern in toggle()).
+  const removeIdentity = (instanceId: string) => onChange({
+    ...document,
+    identities: identities.filter((item) => item.instanceId !== instanceId),
+    licenses: licenses.filter((license) => license.sinInstanceId !== instanceId),
+  })
+
+  const setLicenses = (next: LicenseSelection[]) => onChange({ ...document, licenses: next })
+  const addLicense = () => setLicenses([...licenses, {
+    instanceId: crypto.randomUUID(), sinInstanceId: identities[0]?.instanceId ?? '', rating: MIN_RATING, subject: '',
+  }])
+  const updateLicense = (instanceId: string, patch: Partial<LicenseSelection>) =>
+    setLicenses(licenses.map((item) => item.instanceId === instanceId ? { ...item, ...patch } : item))
+  const removeLicense = (instanceId: string) => setLicenses(licenses.filter((item) => item.instanceId !== instanceId))
 
   const openHost = openHostInstanceId
     ? itemSelections.find((selection) => selection.instanceId === openHostInstanceId)
@@ -231,6 +269,66 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
           })}
         </div>
       ))}
+
+      {sinLine && (
+        <div className="creation-step__attributes">
+          <p className="creation-step__eyebrow">Fake SINs</p>
+          <ul className="creation-contacts">
+            {identities.map((identity) => (
+              <li className="creation-resource-line" key={identity.instanceId}>
+                <label className="creation-attribute">
+                  <span><strong>Rating</strong></span>
+                  <input aria-label="Fake SIN rating" type="number" min={MIN_RATING} max={MAX_RATING} value={identity.rating}
+                    onChange={(event) => updateIdentity(identity.instanceId, { rating: Number(event.target.value) })} />
+                </label>
+                <label className="creation-attribute">
+                  <span><strong>Details</strong><small>{unitCost(sinLine, identity.rating).toLocaleString()}¥</small></span>
+                  <input aria-label="Fake SIN details" maxLength={120} value={identity.details}
+                    onChange={(event) => updateIdentity(identity.instanceId, { details: event.target.value })} />
+                </label>
+                <button type="button" onClick={() => removeIdentity(identity.instanceId)}>Remove</button>
+              </li>
+            ))}
+          </ul>
+          <button type="button" onClick={addIdentity}>Add fake SIN</button>
+        </div>
+      )}
+
+      {licenseLine && (
+        <div className="creation-step__attributes">
+          <p className="creation-step__eyebrow">Licenses</p>
+          <ul className="creation-contacts">
+            {licenses.map((license) => (
+              <li className="creation-resource-line" key={license.instanceId}>
+                <label className="creation-attribute">
+                  <span><strong>Fake SIN</strong></span>
+                  <select aria-label="License SIN" value={license.sinInstanceId}
+                    onChange={(event) => updateLicense(license.instanceId, { sinInstanceId: event.target.value })}>
+                    <option value="">Select a fake SIN</option>
+                    {identities.map((identity) => (
+                      <option key={identity.instanceId} value={identity.instanceId}>
+                        {identity.details || identity.instanceId}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="creation-attribute">
+                  <span><strong>Rating</strong></span>
+                  <input aria-label="License rating" type="number" min={MIN_RATING} max={MAX_RATING} value={license.rating}
+                    onChange={(event) => updateLicense(license.instanceId, { rating: Number(event.target.value) })} />
+                </label>
+                <label className="creation-attribute">
+                  <span><strong>Subject</strong><small>{unitCost(licenseLine, license.rating).toLocaleString()}¥</small></span>
+                  <input aria-label="License subject" maxLength={120} value={license.subject}
+                    onChange={(event) => updateLicense(license.instanceId, { subject: event.target.value })} />
+                </label>
+                <button type="button" onClick={() => removeLicense(license.instanceId)}>Remove</button>
+              </li>
+            ))}
+          </ul>
+          <button type="button" onClick={addLicense} disabled={identities.length === 0}>Add license</button>
+        </div>
+      )}
 
       {openHost?.instanceId && openHostLine?.hostKind && (
         <GearAttachmentModal

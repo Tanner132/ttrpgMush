@@ -39,7 +39,7 @@ describe('creation steps', () => {
 
   it('marks exactly the implemented steps available', () => {
     expect(CREATION_STEPS.filter((step) => isStepAvailable(step.index)).map((step) => step.index))
-      .toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 12])
+      .toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
   })
 
   it('maps diagnostics to their attention step', () => {
@@ -49,6 +49,9 @@ describe('creation steps', () => {
     expect(diagnosticStepIndex('awakening-emergence', 'magicResonance')).toBe(9)
     expect(diagnosticStepIndex('knowledge', 'knowledge')).toBe(10)
     expect(diagnosticStepIndex('resources', 'resources[wired-reflexes]')).toBe(7)
+    expect(diagnosticStepIndex('contacts', 'contacts')).toBe(11)
+    expect(diagnosticStepIndex('identities', 'identities[sin-1]')).toBe(12)
+    expect(diagnosticStepIndex('lifestyle', 'lifestyle')).toBe(13)
     expect(diagnosticStepIndex('unknown', '')).toBe(0)
   })
 
@@ -61,7 +64,7 @@ describe('creation steps', () => {
 describe('computeDraftProgress', () => {
   it('reports every available step clean when there are no diagnostics', () => {
     const progress = computeDraftProgress([])
-    expect(progress).toEqual({ cleanSteps: 10, totalSteps: 10, blockingCount: 0, firstBlocking: null })
+    expect(progress).toEqual({ cleanSteps: 12, totalSteps: 12, blockingCount: 0, firstBlocking: null })
   })
 
   it('counts each flagged available step once regardless of diagnostic count', () => {
@@ -72,8 +75,8 @@ describe('computeDraftProgress', () => {
     ]
 
     const progress = computeDraftProgress(diagnostics)
-    expect(progress.cleanSteps).toBe(8)
-    expect(progress.totalSteps).toBe(10)
+    expect(progress.cleanSteps).toBe(10)
+    expect(progress.totalSteps).toBe(12)
     expect(progress.blockingCount).toBe(1)
     expect(progress.firstBlocking).toBe(diagnostics[0])
   })

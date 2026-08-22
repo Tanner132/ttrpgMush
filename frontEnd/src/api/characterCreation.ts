@@ -126,6 +126,10 @@ export interface CharacterCreationDocument {
     nuyenFromKarma?: number | null
     attachments?: AttachmentSelection[] | null
     identity?: CharacterIdentity | null
+    contacts?: ContactSelection[] | null
+    identities?: IdentitySelection[] | null
+    licenses?: LicenseSelection[] | null
+    lifestyles?: LifestyleSelection[] | null
 }
 
 export interface CharacterIdentity {
@@ -165,6 +169,40 @@ export interface AttachmentSelection {
     accessoryId: string
     mount?: WeaponMount | null
     rating?: number | null
+}
+
+export interface ContactSelection {
+    instanceId: string
+    name: string
+    role?: string | null
+    connection: number
+    loyalty: number
+}
+
+// A fake SIN. Priced from catalog.gear['fake-sin'] like any other rated gear item.
+export interface IdentitySelection {
+    instanceId: string
+    rating: number
+    details: string
+}
+
+// References an IdentitySelection.instanceId, not a bare catalog id — a
+// license is meaningless without its parent fake SIN.
+export interface LicenseSelection {
+    instanceId: string
+    sinInstanceId: string
+    rating: number
+    subject: string
+}
+
+export interface LifestyleSelection {
+    instanceId: string
+    tierId: string
+    isPrimary: boolean
+    prepaidMonths: number
+    optionIds?: string[] | null
+    paymentFormId?: string | null
+    additionalPersons?: number | null
 }
 
 export interface QualitySelection { qualityId: string; rating?: number; parameters?: Record<string, string> }
@@ -315,6 +353,14 @@ export function augmentationAvailability(
 export function metatypeGearMultiplier(metatypeId: string | null | undefined): number {
     if (metatypeId === 'dwarf') return 1.1
     if (metatypeId === 'troll') return 1.5
+    return 1
+}
+
+// Mirrors LifestyleEvaluator.LifestyleCostMultiplier — a different table from
+// metatypeGearMultiplier, so don't conflate the two.
+export function lifestyleCostMultiplier(metatypeId: string | null | undefined): number {
+    if (metatypeId === 'dwarf') return 1.2
+    if (metatypeId === 'troll') return 2.0
     return 1
 }
 
@@ -518,6 +564,32 @@ export interface VehicleModificationDefinition {
     requiresExistingMount?: boolean
 }
 
+export interface LifestyleStartingCashDice {
+    count: number
+    sides: number
+    multiplier: number
+}
+
+export interface LifestyleTierDefinition {
+    id: string
+    displayName: string
+    classification: GearClassification
+    source: SourceCitation
+    baseCostPerMonth: number
+    startingCashDice: LifestyleStartingCashDice
+}
+
+// Adjustment is exactly one of adjustmentPercent (a percentage of the host
+// lifestyle's monthly cost) or fixedMonthlyAmount.
+export interface LifestyleOptionDefinition {
+    id: string
+    displayName: string
+    classification: GearClassification
+    source: SourceCitation
+    adjustmentPercent?: number | null
+    fixedMonthlyAmount?: number | null
+}
+
 export interface CapacityCostDefinition {
     fixed?: number | null
     perRating?: number | null
@@ -625,6 +697,8 @@ export interface CatalogContract {
     armorModifications: ArmorModificationDefinition[]
     cyberlimbEnhancements: CyberlimbEnhancementDefinition[]
     vehicleModifications: VehicleModificationDefinition[]
+    lifestyleTiers: LifestyleTierDefinition[]
+    lifestyleOptions: LifestyleOptionDefinition[]
 }
 
 // ─── API ─────────────────────────────────────────────────────────────────────

@@ -54,32 +54,44 @@ npm --prefix frontEnd run build
 
 ## Next Build Ticket
 
-Continue the accepted character-creation feature with **CHAR-809: Implement
-Resources And Essence** in the Milestone 8 file. CHAR-801 through CHAR-808 are
-complete. CHAR-809 is substantially complete: weapons, armor, and
-augmentations are substantially cataloged; general gear, electronics/software,
-and magical supplies (reagents and lodge materials) are now populated using
-the existing gear catalog schema; vehicles/drones now cover the full core
-groundcraft/watercraft/aircraft/drone tables; and cyberdecks are a new typed
+Continue the accepted character-creation feature with **CHAR-810: Implement
+Contacts, Identities, And Lifestyles** in the Milestone 8 file. CHAR-801
+through CHAR-809A are complete.
+
+CHAR-809 is substantially complete: weapons, armor, and augmentations are
+substantially cataloged; general gear, electronics/software, and magical
+supplies (reagents and lodge materials) are populated using the existing gear
+catalog schema; vehicles/drones cover the full core
+groundcraft/watercraft/aircraft/drone tables; and cyberdecks are a typed
 catalog category with their own evaluator wiring. Street samurai, decker,
 rigger, and magical-equipment golden builds all pass. Still open before
-CHAR-809 can be called complete: a full CHAR-812-style reconciliation pass
-(the current catalog is "substantially populated," not exhaustively
+CHAR-809 can be called fully reconciled: a full CHAR-812-style reconciliation
+pass (the current catalog is "substantially populated," not exhaustively
 cross-checked line-by-line against the core PDF), spell-formula-to-known-spell
-linkage, and Capacity-scaled host devices (optical/audio/sensor hosts and
-their enhancements), which are explicitly deferred to CHAR-809A along with
-armor/weapon attachments.
+linkage, and focus formulae.
 
-CHAR-809A (Gear Capacity, Mounts, And Attachments) is in progress: firearm
-mounts and armor Capacity are implemented. Draft resource selections now carry
-a stable per-line instance ID; a new independent `GearAttachmentEvaluator`
-(deliberately separate from `ResourcesEssenceEvaluator`) enforces mount
-slots (17 cataloged accessories; top/barrel/underbarrel by weapon category,
-with integral/no-mount accessories) and armor Capacity pools (7 cataloged
-modifications); and the creator UI shows attachments as sub-items under their
-host, with a modal (opened from a small "+" control on the host line) that
-lists remaining Capacity/mount slots and available options. Augmentation and
-cyberlimb Capacity, device Capacity for optical/audio/sensor hosts, and
-vehicle weapon mounts/modifications remain unimplemented. CHAR-810 (Contacts,
-Identities, and Lifestyles) through CHAR-812 (release gate) have not been
-started.
+CHAR-809A (Gear Capacity, Mounts, And Attachments) is **complete**: firearm
+mounts, armor Capacity, device Capacity, augmentation/cyberlimb Capacity, and
+vehicle weapon mounts are all implemented. Draft resource selections carry a
+stable per-line instance ID; an independent `GearAttachmentEvaluator`
+(deliberately separate from `ResourcesEssenceEvaluator`) enforces mount slots
+(17 cataloged accessories; top/barrel/underbarrel by weapon category, with
+integral/no-mount accessories), armor Capacity pools (7 cataloged
+modifications), device Capacity (optical/audio/sensor hosts bought at a
+chosen Rating-as-Capacity, with vision/audio/sensor enhancements consuming
+it), augmentation/cyberlimb Capacity (cybereyes/cyberears/cyberlimbs; 3
+cataloged cyberlimb enhancements capped at one per type per limb; bracketed-
+Capacity-cost bodyware/cyberguns install in a cyberlimb instead of costing
+Essence), and vehicle weapon mounts (4 cataloged modifications; `floor(Body /
+3)` mount slots; heavy mounts cost 2 slots and are creation-unavailable;
+Manual Operation requires an existing mount). The creator UI shows
+attachments as sub-items under their host, with a modal (opened from a small
+"+" control on the host line) that lists remaining Capacity/mount slots and
+available options, across all five host kinds (weapon, armor, gear,
+augmentation, vehicle). Verified via 241 Domain/Application/Api backend tests,
+210 frontend tests, and live manual exercise of every attachment flow through
+the creator UI. Cyberdeck program slots remain a separately tracked gap
+outside CHAR-809A's written scope — not implemented here.
+
+CHAR-810 (Contacts, Identities, and Lifestyles) through CHAR-812 (release
+gate) have not been started.

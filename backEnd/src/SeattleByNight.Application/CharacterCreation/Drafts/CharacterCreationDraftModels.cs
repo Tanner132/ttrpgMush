@@ -106,6 +106,45 @@ public sealed record AttachmentSelection(
     string? Mount = null,
     int? Rating = null);
 
+// Free-form Karma-priced contact. Name/Role are bounded plain text (validated
+// at evaluation time, not looked up in the catalog), matching the
+// quality.open-parameters convention. Connection/Loyalty combined cost draws
+// first from the Charisma x3 free pool and then from general Karma.
+public sealed record ContactSelection(
+    string InstanceId,
+    string Name,
+    string? Role,
+    int Connection,
+    int Loyalty);
+
+// A fake SIN. Details is bounded authored identity/issuer text. Priced from
+// catalog.Gear["fake-sin"] the same way device-Capacity hosts are priced from
+// catalog.Gear by GearAttachmentEvaluator.
+public sealed record IdentitySelection(
+    string InstanceId,
+    int Rating,
+    string Details);
+
+// A fake license is a typed child of exactly one fake SIN
+// (SinInstanceId references an IdentitySelection.InstanceId, not a bare
+// catalog id) plus one bounded item/activity Subject. License Rating is
+// independent of its parent SIN's Rating. Priced from
+// catalog.Gear["fake-license"].
+public sealed record LicenseSelection(
+    string InstanceId,
+    string SinInstanceId,
+    int Rating,
+    string Subject);
+
+public sealed record LifestyleSelection(
+    string InstanceId,
+    string TierId,
+    bool IsPrimary,
+    int PrepaidMonths,
+    IReadOnlyList<string>? OptionIds = null,
+    string? PaymentFormId = null,
+    int? AdditionalPersons = null);
+
 public sealed record CharacterCreationDraftDocument(
     PriorityAssignment? PriorityAssignment,
     MetatypeSelection? Metatype = null,
@@ -121,7 +160,11 @@ public sealed record CharacterCreationDraftDocument(
     IReadOnlyList<ResourceSelection>? Resources = null,
     int? NuyenFromKarma = null,
     IReadOnlyList<AttachmentSelection>? Attachments = null,
-    CharacterIdentity? Identity = null);
+    CharacterIdentity? Identity = null,
+    IReadOnlyList<ContactSelection>? Contacts = null,
+    IReadOnlyList<IdentitySelection>? Identities = null,
+    IReadOnlyList<LicenseSelection>? Licenses = null,
+    IReadOnlyList<LifestyleSelection>? Lifestyles = null);
 
 public sealed record CharacterCreationChangePreview(
     CharacterCreationDraftDetails Candidate,

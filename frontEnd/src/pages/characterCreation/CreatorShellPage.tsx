@@ -20,7 +20,7 @@ import { toErrorMessage } from '../../api/client.ts'
 
 import { getCatalog, type CatalogContract } from '../../api/characterCreation.ts'
 
-import { AttributeStep, AugmentationsStep, IdentityStep, KnowledgeStep, MagicResonanceStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, ResourcesStep, SkillsStep } from '../../components/characterCreation/steps/index.ts'
+import { AttributeStep, AugmentationsStep, ContactsStep, IdentityStep, KnowledgeStep, LifestyleStep, MagicResonanceStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, ResourcesStep, SkillsStep } from '../../components/characterCreation/steps/index.ts'
 
 import { CREATION_STEPS, FIRST_STEP_INDEX, LAST_STEP_INDEX, diagnosticStepIndex, isPriorityAssignmentComplete, isStepAvailable, stepIdByIndex, stepLabel } from '../../components/characterCreation/steps.ts'
 
@@ -330,6 +330,8 @@ export default function CreatorShellPage() {
              {catalog && currentStepId === 'awakening' && <MagicResonanceStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {catalog && currentStepId === 'knowledge' && <KnowledgeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {catalog && currentStepId === 'resources' && <ResourcesStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStepId === 'contacts' && <ContactsStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
+             {catalog && currentStepId === 'lifestyle' && <LifestyleStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} />}
              {currentStepId === 'identity' && <IdentityStep name={draft.name} onNameChange={setLocalName} document={draft.document} onChange={setLocalDocument} />}
              {!isStepAvailable(currentStep) && <p className="creator-shell__placeholder">This section will unlock in a later creation milestone.</p>}
 

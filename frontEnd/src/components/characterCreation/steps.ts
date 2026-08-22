@@ -17,9 +17,9 @@ export const CREATION_STEPS: readonly CreationStep[] = [
   { id: 'skills', index: 8, label: 'Active Skills & Groups', available: true },
   { id: 'awakening', index: 9, label: 'Awakening / Emergence', available: true },
   { id: 'knowledge', index: 10, label: 'Knowledge & Languages', available: true },
-  { id: 'contacts', index: 11, label: 'Contacts', available: false },
+  { id: 'contacts', index: 11, label: 'Contacts', available: true },
   { id: 'resources', index: 12, label: 'Resources & Vehicles', available: true },
-  { id: 'lifestyle', index: 13, label: 'Lifestyle & Starting Cash', available: false },
+  { id: 'lifestyle', index: 13, label: 'Lifestyle & Starting Cash', available: true },
   { id: 'karma', index: 14, label: 'Karma & Finishing', available: false },
   { id: 'review', index: 15, label: 'Review & Finalize', available: false },
 ]
@@ -41,6 +41,9 @@ const DIAGNOSTIC_STEP_IDS: Record<string, string> = {
   'awakening-emergence': 'awakening',
   knowledge: 'knowledge',
   resources: 'augmentations',
+  contacts: 'contacts',
+  identities: 'resources',
+  lifestyle: 'lifestyle',
 }
 
 export function stepLabel(index: number): string {

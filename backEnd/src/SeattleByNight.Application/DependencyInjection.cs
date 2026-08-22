@@ -19,6 +19,9 @@ public static class DependencyInjection
         services.AddSingleton<KarmaBudgetEvaluator>();
         services.AddSingleton<ResourcesEssenceEvaluator>();
         services.AddSingleton<GearAttachmentEvaluator>();
+        services.AddSingleton<ContactEvaluator>();
+        services.AddSingleton<IdentityEvaluator>();
+        services.AddSingleton<LifestyleEvaluator>();
         services.AddSingleton<CharacterCreationDraftEvaluator>();
 
         return services;

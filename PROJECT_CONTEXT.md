@@ -477,9 +477,9 @@ across all new categories. Street samurai, decker, rigger, and
 magical-equipment golden builds all pass; a full CHAR-812-style line-by-line
 reconciliation against the core PDF has not yet been run.
 
-CHAR-809A (Gear Capacity, Mounts, And Attachments) is in progress: firearm
-mounts and armor Capacity are implemented, covering the two clearest host
-shapes (named mount slots vs. a single Capacity pool). Draft resource
+CHAR-809A (Gear Capacity, Mounts, And Attachments) is complete: firearm
+mounts, armor Capacity, device Capacity, augmentation/cyberlimb Capacity, and
+vehicle weapon mounts are all implemented. Draft resource
 selections (`ResourceSelection`) carry a client-generated, stable per-line
 `instanceId` so two purchased copies of the same host track their attachments
 independently; a new typed `AttachmentSelection` (`hostInstanceId`,
@@ -500,9 +500,18 @@ small square "+" control on a purchased host opens a modal (the shared `Modal`
 primitive, closed only by its own control or an outside click) that shows the
 host's mount slots or Capacity count at the top and a list of eligible,
 not-yet-attached options below — selecting one adds it and the modal stays
-open. Augmentation and cyberlimb Capacity, device Capacity for
-optical/audio/sensor hosts, and vehicle weapon mounts/modifications remain
-unimplemented. `AttachmentSelection.Mount` is a plain string, not a C# enum,
+open. The same evaluator and modal pattern also cover device Capacity
+(optical/audio/sensor hosts bought at a chosen Rating-as-Capacity, e.g.
+goggles, with vision/audio/sensor enhancements consuming it), augmentation/
+cyberlimb Capacity (cybereyes/cyberears/cyberlimbs carry a Capacity pool;
+bracketed-Capacity-cost bodyware/cyberguns install in a cyberlimb instead of
+costing Essence; cyberlimb Agility/Armor/Strength enhancements are capped at
+one per type per limb), and vehicle weapon mounts (`floor(Body / 3)` mount
+slots; standard mounts cost 1 slot, heavy mounts cost 2 and are
+creation-unavailable; Manual Operation requires an existing mount on the same
+host instance). Cyberdeck program slots remain a separately tracked gap
+outside CHAR-809A's written scope. `AttachmentSelection.Mount` is a plain
+string, not a C# enum,
 because the draft document round-trips through the API's default JSON options
 (which have no enum-to-string converter — other domain enums like
 `RoomAccessType` already serialize as raw integers); only catalog responses
@@ -525,9 +534,9 @@ and kind. Existing characters were migrated to explicit legacy finalized sheets
 without invented SR5 statistics. Only finalized characters are playable. The
 authenticated character-creation
   HTTP surface and the priority, metatype, attribute, quality, skill, knowledge,
-  Awakening/Emergence, and (partial) resources/essence creator UI are
-  implemented. Contacts, lifestyle, remaining Karma, and final review sections
-  remain unavailable until their milestones.
+  Awakening/Emergence, and resources/essence (including gear Capacity, mounts,
+  and attachments) creator UI are implemented. Contacts, lifestyle, remaining
+  Karma, and final review sections remain unavailable until their milestones.
 
 Backend endpoints:
 

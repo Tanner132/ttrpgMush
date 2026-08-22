@@ -1,6 +1,7 @@
 using MediatR;
 using SeattleByNight.Application.CharacterCreation.Catalog;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.Dice;
 
 namespace SeattleByNight.Application.CharacterCreation.Drafts;
 
@@ -222,15 +223,21 @@ public sealed class FinalizeCharacterCreationDraftCommandHandler
     private readonly ICharacterCreationDraftStore store;
     private readonly CharacterCreationDraftEvaluator evaluator;
     private readonly WorldOptions worldOptions;
+    private readonly IRulesetCatalogProvider catalogProvider;
+    private readonly IDiceEngine diceEngine;
 
     public FinalizeCharacterCreationDraftCommandHandler(
         ICharacterCreationDraftStore store,
         CharacterCreationDraftEvaluator evaluator,
-        WorldOptions worldOptions)
+        WorldOptions worldOptions,
+        IRulesetCatalogProvider catalogProvider,
+        IDiceEngine diceEngine)
     {
         this.store = store;
         this.evaluator = evaluator;
         this.worldOptions = worldOptions;
+        this.catalogProvider = catalogProvider;
+        this.diceEngine = diceEngine;
     }
 
     public async Task<FinalizeCharacterResult> Handle(
@@ -256,13 +263,46 @@ public sealed class FinalizeCharacterCreationDraftCommandHandler
                 Diagnostics: details.Diagnostics);
         }
 
+        var canonicalSheet = RollStartingCash(draft, details.CanonicalSheet);
+
         return await store.FinalizeAsync(new CommitFinalizedCharacter(
             request.UserId,
             request.CharacterId,
             request.ExpectedVersion,
             CharacterCreationDraftSerialization.DigestDocument(draft.Document),
             CharacterCreationDocumentVersions.Sheet,
-            CharacterCreationDraftSerialization.SerializeCanonicalSheet(details.CanonicalSheet),
+            CharacterCreationDraftSerialization.SerializeCanonicalSheet(canonicalSheet),
             worldOptions.StartingRoomId), cancellationToken);
+    }
+
+    // starting-cash.randomness: the dice roll is a one-shot, finalize-only side
+    // effect, deliberately kept out of LifestyleEvaluator (which re-runs on
+    // every preview and must stay deterministic).
+    private CanonicalCharacterSheet RollStartingCash(
+        CharacterCreationDraftSnapshot draft,
+        CanonicalCharacterSheet canonicalSheet)
+    {
+        var primary = canonicalSheet.Lifestyles?.Lifestyles.FirstOrDefault(item => item.IsPrimary);
+        if (primary is null)
+        {
+            return canonicalSheet;
+        }
+
+        var catalog = catalogProvider.Get(draft.RulesetId, draft.CatalogVersion);
+        if (!catalog.LifestyleTiers.TryGetValue(primary.TierId, out var tier))
+        {
+            return canonicalSheet;
+        }
+
+        var dice = tier.StartingCashDice;
+        var rolls = diceEngine.Roll(new DiceExpression(dice.Count, dice.Sides, 0));
+        var diceTotal = rolls.Sum();
+        var startingCash = new CanonicalStartingCash(
+            dice.Count, dice.Sides, dice.Multiplier, rolls, diceTotal, diceTotal * dice.Multiplier);
+
+        return canonicalSheet with
+        {
+            Lifestyles = canonicalSheet.Lifestyles! with { StartingCash = startingCash },
+        };
     }
 }

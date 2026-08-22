@@ -8345,6 +8345,50 @@
         "fixed": 1500
       },
       "requiresParameter": true
+    },
+    {
+      "id": "fake-sin",
+      "displayName": "Fake SIN",
+      "categoryId": "identity",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 367,
+        "pdfPage": 369
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 2500
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "fake-license",
+      "displayName": "Fake License",
+      "categoryId": "identity",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 367,
+        "pdfPage": 369
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 200
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
     }
   ],
   "weapons": [
@@ -14431,6 +14475,93 @@
       },
       "mountSlotCost": 0,
       "requiresExistingMount": true
+    }
+  ],
+  "lifestyleTiers": [
+    {
+      "id": "street-lifestyle",
+      "displayName": "Street Lifestyle",
+      "classification": "selectable",
+      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "baseCostPerMonth": 0,
+      "startingCashDice": { "count": 1, "sides": 6, "multiplier": 20 }
+    },
+    {
+      "id": "squatter-lifestyle",
+      "displayName": "Squatter Lifestyle",
+      "classification": "parameterized",
+      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "baseCostPerMonth": 500,
+      "startingCashDice": { "count": 2, "sides": 6, "multiplier": 40 }
+    },
+    {
+      "id": "low-lifestyle",
+      "displayName": "Low Lifestyle",
+      "classification": "parameterized",
+      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "baseCostPerMonth": 2000,
+      "startingCashDice": { "count": 3, "sides": 6, "multiplier": 60 }
+    },
+    {
+      "id": "middle-lifestyle",
+      "displayName": "Middle Lifestyle",
+      "classification": "parameterized",
+      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "baseCostPerMonth": 5000,
+      "startingCashDice": { "count": 4, "sides": 6, "multiplier": 100 }
+    },
+    {
+      "id": "high-lifestyle",
+      "displayName": "High Lifestyle",
+      "classification": "parameterized",
+      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "baseCostPerMonth": 10000,
+      "startingCashDice": { "count": 5, "sides": 6, "multiplier": 500 }
+    },
+    {
+      "id": "luxury-lifestyle",
+      "displayName": "Luxury Lifestyle",
+      "classification": "parameterized",
+      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "baseCostPerMonth": 100000,
+      "startingCashDice": { "count": 6, "sides": 6, "multiplier": 1000 }
+    }
+  ],
+  "lifestyleOptions": [
+    {
+      "id": "special-work-area",
+      "displayName": "Special Work Area",
+      "classification": "selectable",
+      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "fixedMonthlyAmount": 1000
+    },
+    {
+      "id": "extra-secure",
+      "displayName": "Extra Secure",
+      "classification": "selectable",
+      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "adjustmentPercent": 20
+    },
+    {
+      "id": "obscure-difficult-to-find",
+      "displayName": "Obscure/Difficult to Find",
+      "classification": "selectable",
+      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "adjustmentPercent": 10
+    },
+    {
+      "id": "cramped",
+      "displayName": "Cramped",
+      "classification": "selectable",
+      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "adjustmentPercent": -10
+    },
+    {
+      "id": "dangerous-area",
+      "displayName": "Dangerous Area",
+      "classification": "selectable",
+      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "adjustmentPercent": -20
     }
   ]
 }

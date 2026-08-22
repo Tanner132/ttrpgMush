@@ -179,7 +179,7 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(139, catalog.Gear.Count);
+        Assert.Equal(141, catalog.Gear.Count);
         Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "commlink"));
         Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "breaking-and-entering"));
         Assert.Equal(13, catalog.Gear.Values.Count(item => item.CategoryId == "survival"));

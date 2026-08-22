@@ -265,6 +265,29 @@ public sealed class GearAttachmentEvaluatorTests
     }
 
     [Fact]
+    public void Lowering_a_host_rating_below_its_attachments_surfaces_a_diagnostic_without_deleting_them()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Goggles re-rated down to Rating 1 (Capacity 1) while Low-Light ([1])
+        // and Image Link ([1]) remain attached from a prior Rating-3 purchase.
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("goggles", Rating: 1, InstanceId: "goggles-1")],
+            Attachments:
+            [
+                new AttachmentSelection("goggles-1", "low-light-vision-enhancement"),
+                new AttachmentSelection("goggles-1", "image-link-enhancement"),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "attachment.capacity.exceeded");
+        Assert.Equal(2, evaluation.Attachments!.Attachments.Count);
+    }
+
+    [Fact]
     public void Fixed_capacity_device_host_accepts_enhancements_within_its_pool()
     {
         var catalog = CatalogTestData.Catalog;

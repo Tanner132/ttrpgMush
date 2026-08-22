@@ -14,6 +14,9 @@ public sealed class CharacterCreationDraftEvaluator
     private readonly KarmaBudgetEvaluator karmaBudgetEvaluator;
     private readonly ResourcesEssenceEvaluator resourcesEssenceEvaluator;
     private readonly GearAttachmentEvaluator gearAttachmentEvaluator;
+    private readonly ContactEvaluator contactEvaluator;
+    private readonly IdentityEvaluator identityEvaluator;
+    private readonly LifestyleEvaluator lifestyleEvaluator;
 
     public CharacterCreationDraftEvaluator(
         IRulesetCatalogProvider catalogProvider,
@@ -23,7 +26,10 @@ public sealed class CharacterCreationDraftEvaluator
         MagicResonanceEvaluator magicResonanceEvaluator,
         KarmaBudgetEvaluator karmaBudgetEvaluator,
         ResourcesEssenceEvaluator resourcesEssenceEvaluator,
-        GearAttachmentEvaluator gearAttachmentEvaluator)
+        GearAttachmentEvaluator gearAttachmentEvaluator,
+        ContactEvaluator contactEvaluator,
+        IdentityEvaluator identityEvaluator,
+        LifestyleEvaluator lifestyleEvaluator)
     {
         this.catalogProvider = catalogProvider;
         this.priorityEvaluator = priorityEvaluator;
@@ -33,6 +39,9 @@ public sealed class CharacterCreationDraftEvaluator
         this.karmaBudgetEvaluator = karmaBudgetEvaluator;
         this.resourcesEssenceEvaluator = resourcesEssenceEvaluator;
         this.gearAttachmentEvaluator = gearAttachmentEvaluator;
+        this.contactEvaluator = contactEvaluator;
+        this.identityEvaluator = identityEvaluator;
+        this.lifestyleEvaluator = lifestyleEvaluator;
     }
 
     public CharacterCreationDraftDetails Evaluate(CharacterCreationDraftSnapshot draft)
@@ -77,6 +86,9 @@ public sealed class CharacterCreationDraftEvaluator
         var magicEvaluation = new MagicResonanceEvaluation([], [], null);
         var resourcesEvaluation = new ResourcesEssenceEvaluation([], null);
         var gearAttachmentEvaluation = new GearAttachmentEvaluation([], null);
+        var contactEvaluation = new ContactEvaluation([], null);
+        var identityEvaluation = new IdentityEvaluation([], null);
+        var lifestyleEvaluation = new LifestyleEvaluation([], null);
 
         if (evaluation.IsReady
             && (draft.Document.Metatype is not null || draft.Document.Attributes is not null || draft.Document.SpecialAttributes is not null))
@@ -107,13 +119,29 @@ public sealed class CharacterCreationDraftEvaluator
             gearAttachmentEvaluation = gearAttachmentEvaluator.Evaluate(catalog, draft.Document, resourcesEvaluation);
             diagnostics.AddRange(gearAttachmentEvaluation.Diagnostics);
         }
+        if (evaluation.IsReady && draft.Document.Contacts is not null)
+        {
+            contactEvaluation = contactEvaluator.Evaluate(catalog, draft.Document, metatypeEvaluation);
+            diagnostics.AddRange(contactEvaluation.Diagnostics);
+        }
+        if (evaluation.IsReady && (draft.Document.Identities is not null || draft.Document.Licenses is not null))
+        {
+            identityEvaluation = identityEvaluator.Evaluate(catalog, draft.Document, resourcesEvaluation, gearAttachmentEvaluation);
+            diagnostics.AddRange(identityEvaluation.Diagnostics);
+        }
+        if (evaluation.IsReady && draft.Document.Lifestyles is not null)
+        {
+            lifestyleEvaluation = lifestyleEvaluator.Evaluate(catalog, draft.Document, resourcesEvaluation, gearAttachmentEvaluation, identityEvaluation);
+            diagnostics.AddRange(lifestyleEvaluation.Diagnostics);
+        }
         if (evaluation.IsReady)
         {
-            diagnostics.AddRange(karmaBudgetEvaluator.Evaluate(catalog, draft.Document));
+            diagnostics.AddRange(karmaBudgetEvaluator.Evaluate(catalog, draft.Document, contactEvaluation));
         }
 
         var canonicalSheet = evaluation.IsReady
-            ? BuildCanonicalSheet(evaluation.Preview, metatypeEvaluation, skillsEvaluation, magicEvaluation, resourcesEvaluation, gearAttachmentEvaluation)
+            ? BuildCanonicalSheet(evaluation.Preview, metatypeEvaluation, skillsEvaluation, magicEvaluation, resourcesEvaluation,
+                gearAttachmentEvaluation, contactEvaluation, identityEvaluation, lifestyleEvaluation)
             : null;
 
         return new CharacterCreationDraftDetails(
@@ -130,7 +158,10 @@ public sealed class CharacterCreationDraftEvaluator
         QualitiesSkillsKnowledgeEvaluation skillsEvaluation,
         MagicResonanceEvaluation magicEvaluation,
         ResourcesEssenceEvaluation resourcesEvaluation,
-        GearAttachmentEvaluation gearAttachmentEvaluation) =>
+        GearAttachmentEvaluation gearAttachmentEvaluation,
+        ContactEvaluation contactEvaluation,
+        IdentityEvaluation identityEvaluation,
+        LifestyleEvaluation lifestyleEvaluation) =>
         new(
             preview,
             metatypeEvaluation.Metatype,
@@ -144,7 +175,10 @@ public sealed class CharacterCreationDraftEvaluator
             skillsEvaluation.NativeLanguages,
             magicEvaluation.MagicResonance,
             resourcesEvaluation.Resources,
-            gearAttachmentEvaluation.Attachments);
+            gearAttachmentEvaluation.Attachments,
+            contactEvaluation.Contacts,
+            identityEvaluation.Identities,
+            lifestyleEvaluation.Lifestyles);
 
     private static IEnumerable<CharacterCreationDiagnostic> DownstreamRevalidationDiagnostics(
         CharacterCreationDraftSnapshot draft,
@@ -204,5 +238,38 @@ public sealed class CharacterCreationDraftEvaluator
                 source,
                 new Dictionary<string, string>(),
                 "Resolve the priority assignment before finalizing gear attachments.");
+
+        if (draft.Document.Contacts is not null)
+            yield return new CharacterCreationDiagnostic(
+                "creation.upstream-change-requires-revalidation",
+                CharacterCreationDiagnosticSeverity.Error,
+                "contacts",
+                "contacts",
+                [],
+                source,
+                new Dictionary<string, string>(),
+                "Resolve the priority assignment before finalizing contacts.");
+
+        if (draft.Document.Identities is not null || draft.Document.Licenses is not null)
+            yield return new CharacterCreationDiagnostic(
+                "creation.upstream-change-requires-revalidation",
+                CharacterCreationDiagnosticSeverity.Error,
+                "resources",
+                "identities",
+                [],
+                source,
+                new Dictionary<string, string>(),
+                "Resolve the priority assignment before finalizing identities and licenses.");
+
+        if (draft.Document.Lifestyles is not null)
+            yield return new CharacterCreationDiagnostic(
+                "creation.upstream-change-requires-revalidation",
+                CharacterCreationDiagnosticSeverity.Error,
+                "lifestyle",
+                "lifestyle",
+                [],
+                source,
+                new Dictionary<string, string>(),
+                "Resolve the priority assignment before finalizing lifestyle selections.");
     }
 }

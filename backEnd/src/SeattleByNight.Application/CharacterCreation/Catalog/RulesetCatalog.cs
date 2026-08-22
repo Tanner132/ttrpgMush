@@ -393,6 +393,27 @@ public sealed record CyberdeckDefinition(
     IReadOnlyList<int>? AttributeArray = null,
     int? Programs = null);
 
+public sealed record LifestyleStartingCashDice(int Count, int Sides, int Multiplier);
+
+public sealed record LifestyleTierDefinition(
+    string Id,
+    string DisplayName,
+    GearClassification Classification,
+    SourceCitation Source,
+    decimal BaseCostPerMonth,
+    LifestyleStartingCashDice StartingCashDice);
+
+// Adjustment is expressed as exactly one of a percentage of the host
+// lifestyle's monthly cost (AdjustmentPercent, e.g. -20 for Dangerous Area)
+// or a fixed monthly amount (FixedMonthlyAmount, e.g. Special Work Area).
+public sealed record LifestyleOptionDefinition(
+    string Id,
+    string DisplayName,
+    GearClassification Classification,
+    SourceCitation Source,
+    decimal? AdjustmentPercent = null,
+    decimal? FixedMonthlyAmount = null);
+
 public sealed record MagicResonanceSkillGrant(
     string Domain,
     int Count,
@@ -445,7 +466,9 @@ public sealed class RulesetCatalog
         ImmutableDictionary<string, WeaponAccessoryDefinition> weaponAccessories,
         ImmutableDictionary<string, ArmorModificationDefinition> armorModifications,
         ImmutableDictionary<string, CyberlimbEnhancementDefinition> cyberlimbEnhancements,
-        ImmutableDictionary<string, VehicleModificationDefinition> vehicleModifications)
+        ImmutableDictionary<string, VehicleModificationDefinition> vehicleModifications,
+        ImmutableDictionary<string, LifestyleTierDefinition> lifestyleTiers,
+        ImmutableDictionary<string, LifestyleOptionDefinition> lifestyleOptions)
     {
         RulesetId = rulesetId;
         Version = version;
@@ -486,6 +509,8 @@ public sealed class RulesetCatalog
         ArmorModifications = armorModifications;
         CyberlimbEnhancements = cyberlimbEnhancements;
         VehicleModifications = vehicleModifications;
+        LifestyleTiers = lifestyleTiers;
+        LifestyleOptions = lifestyleOptions;
     }
 
     public string RulesetId { get; }
@@ -524,6 +549,8 @@ public sealed class RulesetCatalog
     public IReadOnlyDictionary<string, ArmorModificationDefinition> ArmorModifications { get; }
     public IReadOnlyDictionary<string, CyberlimbEnhancementDefinition> CyberlimbEnhancements { get; }
     public IReadOnlyDictionary<string, VehicleModificationDefinition> VehicleModifications { get; }
+    public IReadOnlyDictionary<string, LifestyleTierDefinition> LifestyleTiers { get; }
+    public IReadOnlyDictionary<string, LifestyleOptionDefinition> LifestyleOptions { get; }
 
     public PriorityCellDefinition? GetPriorityCell(string categoryId, string levelId) =>
         priorityCellLookup.TryGetValue((categoryId, levelId), out var cell) ? cell : null;

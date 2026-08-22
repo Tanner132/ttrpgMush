@@ -99,6 +99,8 @@ const catalog: CatalogContract = {
     },
   ],
   vehicleModifications: [],
+  lifestyleTiers: [],
+  lifestyleOptions: [],
 }
 
 const baseDocument: CharacterCreationDocument = {

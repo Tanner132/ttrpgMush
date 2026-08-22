@@ -3,10 +3,12 @@ using SeattleByNight.Application.CharacterCreation.Catalog;
 using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Application.CharacterCreation.Evaluation;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.CharacterCreation;
 using SeattleByNight.Infrastructure.Characters;
+using SeattleByNight.Infrastructure.Dice;
 using SeattleByNight.Infrastructure.Identity;
 using SeattleByNight.Infrastructure.Persistence;
 using SeattleByNight.Infrastructure.Persistence.Seed;
@@ -162,11 +164,16 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
             new MagicResonanceEvaluator(),
             new KarmaBudgetEvaluator(),
             new ResourcesEssenceEvaluator(),
-            new GearAttachmentEvaluator());
+            new GearAttachmentEvaluator(),
+            new ContactEvaluator(),
+            new IdentityEvaluator(),
+            new LifestyleEvaluator());
         var handler = new FinalizeCharacterCreationDraftCommandHandler(
             store,
             evaluator,
-            new WorldOptions());
+            new WorldOptions(),
+            catalogProvider,
+            new DiceEngine(new DiceOptions(), new CryptographicDiceRandom()));
 
         var result = await handler.Handle(
             new FinalizeCharacterCreationDraftCommand(userId, updated.CharacterId, updated.Version),

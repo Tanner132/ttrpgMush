@@ -14,8 +14,8 @@ slices publish and reconcile their complete option facts.
 
 ## Status
 
-Runtime counts below reflect the `sr5-core` `1.0.0` catalog resource as of the
-CHAR-809 in-progress state. They are working figures for this ledger, not a
+Runtime counts below reflect the `sr5-core` `1.0.0` catalog resource as of
+CHAR-809A completion. They are working figures for this ledger, not a
 substitute for a full CHAR-812 reconciliation pass.
 
 | Category | Approved-PDF identity review | Detailed fact review | Runtime catalog | Reconciliation |
@@ -26,12 +26,12 @@ substitute for a full CHAR-812 reconciliation pass.
 | Knowledge and languages | Complete as open-authored categories | Complete | 4 open categories published | Reconciled (CHAR-807 complete) |
 | Magic and Resonance | Complete identity pass | Complete | 6 paths, 3 aspected values, 2 traditions, 84 spells, 9 rituals, 25 adept powers, 16 mentor spirits, 20 complex forms, 6 spirit types, 5 sprite types published | Reconciled (CHAR-808 complete) |
 | Weapons and armor | Complete identity pass | Complete | 77 weapons (includes grapple gun, micro flare launcher, monofilament chainsaw), 11 armor published | Substantially reconciled; final ammunition/explosives pass pending CHAR-809 |
-| Electronics and software | Complete identity pass | Complete | Commlinks (7), a new typed `cyberdecks` catalog (9), electronics accessories, RFID tags, communications/countermeasures, software, and skillsofts published in `gear`/`cyberdecks` | Substantially reconciled; Capacity-scaled optical/audio/sensor hosts and their enhancements deferred to CHAR-809A |
+| Electronics and software | Complete identity pass | Complete | Commlinks (7), a new typed `cyberdecks` catalog (9), electronics accessories, RFID tags, communications/countermeasures, software, and skillsofts published in `gear`/`cyberdecks`; Capacity-scaled optical/audio/sensor hosts and their enhancements published under CHAR-809A | Substantially reconciled; cyberdeck program slots remain a separately tracked gap outside CHAR-809A's written scope |
 | General gear and consumables | Complete identity pass | Complete | 100+ items published across credsticks, tools, fixed-capacity optical devices, security devices, restraints, breaking-and-entering gear, industrial chemicals, survival gear, biotech, DocWagon contracts, and slap patches | Substantially reconciled (CHAR-809) |
 | Augmentations | Complete identity pass | Complete | 91 augmentations across 5 grades (standard, alphaware, betaware, deltaware, used) published | Substantially reconciled (CHAR-809) |
-| Vehicles and drones | Complete identity pass | Complete | 40 items published: 4 bikes, 7 cars, 4 trucks/vans, 3 boats, 2 submarines, 9 aircraft, 11 drones | Substantially reconciled; vehicle modifications (rigger interface, weapon mounts) deferred to CHAR-809A |
+| Vehicles and drones | Complete identity pass | Complete | 40 items published: 4 bikes, 7 cars, 4 trucks/vans, 3 boats, 2 submarines, 9 aircraft, 11 drones; vehicle modifications (rigger interface, standard/heavy weapon mounts, manual operation) published under CHAR-809A | Substantially reconciled |
 | Magical equipment | Complete identity pass | Complete | 16 foci published under CHAR-808; reagents and magical lodge materials published in `gear`; 5 spell formulae published as parameterized purchases without known-spell linkage | Substantially reconciled; focus formulae (cost tied to a specific focus's price) and spell-formula-to-known-spell linkage deferred |
-| Accessories, modifications, and capacity hosts | Complete identity pass | Complete | Firearm mounts and armor Capacity implemented: 17 weapon accessories (`weaponAccessories`) with mount facts, 7 armor modifications (`armorModifications`) with Capacity cost, `armor.capacity` now consumed by the new `GearAttachmentEvaluator`. Augmentation/cyberlimb Capacity, optical/audio/sensor device Capacity, and vehicle weapon mounts remain unimplemented | In progress (CHAR-809A) |
+| Accessories, modifications, and capacity hosts | Complete identity pass | Complete | Firearm mounts, armor Capacity, device Capacity, augmentation/cyberlimb Capacity, and vehicle weapon mounts all implemented: 17 weapon accessories (`weaponAccessories`), 7 armor modifications (`armorModifications`), 3 cyberlimb enhancements (`cyberlimbEnhancements`), 4 vehicle modifications (`vehicleModifications`), plus Capacity-cost fields on gear/augmentation entries, all consumed by `GearAttachmentEvaluator` | Reconciled (CHAR-809A complete) |
 | Contacts, identities, lifestyles | Complete identity pass | Complete | Not implemented | Pending (CHAR-810) |
 
 ## Classification
@@ -221,17 +221,18 @@ gear and combat-capable weapons in the source; following the existing
 but no separate weapons-catalog entry), they were added once to `weapons`
 rather than duplicated into `gear`.
 
-Capacity-scaled host devices are explicitly out of CHAR-809 scope: the core
+Capacity-scaled host devices were explicitly out of CHAR-809 scope: the core
 text describes optical, audio, and sensor host devices (binoculars, cameras,
 contacts, glasses, goggles, sensor housings) as purchased at a chosen Capacity
 with their cost derived from that Capacity, and CHAR-809A's own scope text
 claims "device Capacity for optical, audio, and sensor hosts" verbatim. Only
 fixed-cost, non-Capacity-range items from those tables (Binoculars/Optical,
-Micro-Camera, Endoscope, Imaging Scope, Periscope, Mage Sight Goggles) are
-published under CHAR-809; the remaining host devices and all vision/audio
-enhancements are deferred to CHAR-809A alongside armor modifications and
-vehicle weapon mounts/rigger interfaces, which the ledger's capacity/mount
-rule table below already sources to the same pages.
+Micro-Camera, Endoscope, Imaging Scope, Periscope, Mage Sight Goggles) were
+published under CHAR-809; the remaining variable-Capacity host devices and all
+vision/audio enhancements, along with augmentation/cyberlimb Capacity and
+vehicle weapon mounts/rigger interfaces, are now published under CHAR-809A,
+which the ledger's capacity/mount rule table below already sources to the
+same pages.
 
 | Category | Source |
 | --- | --- |
@@ -254,10 +255,9 @@ cybergun smartlinks, and installed vehicle/drone mounts. The cited product row a
 description are authoritative for each inclusion.
 
 Hosted attachments are a separate catalog concern from the hosts themselves and
-are delivered by CHAR-809A. Firearm mounts and armor Capacity are implemented;
-augmentation/cyberlimb Capacity, optical/audio/sensor device Capacity, and
-vehicle weapon mounts remain pending. The governing capacity and mount rules
-are:
+were delivered by CHAR-809A: firearm mounts, armor Capacity, augmentation/
+cyberlimb Capacity, optical/audio/sensor device Capacity, and vehicle weapon
+mounts are all implemented. The governing capacity and mount rules are:
 
 | Rule | Source |
 | --- | --- |
@@ -300,14 +300,16 @@ against the reviewed inventory above (CHAR-806 through CHAR-808 complete).
 Weapons, armor, augmentations, electronics/software, general gear, magical
 supplies, and vehicles/drones are all substantially populated but not yet
 given a final CHAR-812 reconciliation pass. Contacts/identities/lifestyles
-remain entirely unimplemented (CHAR-810). Known CHAR-809 gaps carried forward
-to CHAR-809A or later: Capacity-scaled optical/audio/sensor host devices and
-their enhancements, armor modifications, focus formulae, spell-formula-to-
-known-spell linkage, and vehicle modifications (rigger interface, weapon
-mounts). Identity counts elsewhere in this ledger are review checkpoints, not
-release counts. CHAR-810 must complete its catalog section, and CHAR-812 must
-run the final full reconciliation and publish the released semantic digest,
-before this ledger can report zero unexplained discrepancy.
+remain entirely unimplemented (CHAR-810). CHAR-809A closed every CHAR-809
+attachment/Capacity gap: firearm mounts, armor Capacity, optical/audio/sensor
+device Capacity and their enhancements, augmentation/cyberlimb Capacity, and
+vehicle modifications (rigger interface, weapon mounts) are all implemented,
+tested, and manually verified. Remaining known gaps outside CHAR-809A's
+written scope: cyberdeck program slots, focus formulae, and spell-formula-to-
+known-spell linkage. Identity counts elsewhere in this ledger are review
+checkpoints, not release counts. CHAR-810 must complete its catalog section,
+and CHAR-812 must run the final full reconciliation and publish the released
+semantic digest, before this ledger can report zero unexplained discrepancy.
 CHAR-802's readiness checks (missing citation, duplicate stable ID,
 unsupported source, dangling reference) already run against whatever the
 catalog currently contains.

@@ -78,7 +78,9 @@ public static partial class RulesetCatalogLoader
             ToDictionary(document.WeaponAccessories!, item => item.Id),
             ToDictionary(document.ArmorModifications!, item => item.Id),
             ToDictionary(document.CyberlimbEnhancements!, item => item.Id),
-            ToDictionary(document.VehicleModifications!, item => item.Id));
+            ToDictionary(document.VehicleModifications!, item => item.Id),
+            ToDictionary(document.LifestyleTiers!, item => item.Id),
+            ToDictionary(document.LifestyleOptions!, item => item.Id));
     }
 
     public static string ComputeSemanticDigest(string json)
@@ -139,7 +141,9 @@ public static partial class RulesetCatalogLoader
             || document.WeaponAccessories is null
             || document.ArmorModifications is null
             || document.CyberlimbEnhancements is null
-            || document.VehicleModifications is null)
+            || document.VehicleModifications is null
+            || document.LifestyleTiers is null
+            || document.LifestyleOptions is null)
         {
             throw new RulesetCatalogException("The catalog is missing a required collection.");
         }
@@ -177,6 +181,8 @@ public static partial class RulesetCatalogLoader
         ValidateUnique(document.ArmorModifications, item => item.Id, "armor modification");
         ValidateUnique(document.CyberlimbEnhancements, item => item.Id, "cyberlimb enhancement");
         ValidateUnique(document.VehicleModifications, item => item.Id, "vehicle modification");
+        ValidateUnique(document.LifestyleTiers, item => item.Id, "lifestyle tier");
+        ValidateUnique(document.LifestyleOptions, item => item.Id, "lifestyle option");
 
         var sourceIds = document.Sources.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (sourceIds.Count == 0)
@@ -487,6 +493,27 @@ public static partial class RulesetCatalogLoader
             }
         }
 
+        foreach (var tier in document.LifestyleTiers)
+        {
+            ValidateCommonEntry(tier.Id, tier.DisplayName, tier.Source, sourceIds, "lifestyle tier");
+            if (tier.BaseCostPerMonth < 0)
+                throw new RulesetCatalogException($"Lifestyle tier '{tier.Id}' has a negative base cost.");
+            if (tier.StartingCashDice is null
+                || tier.StartingCashDice.Count <= 0
+                || tier.StartingCashDice.Sides <= 0
+                || tier.StartingCashDice.Multiplier <= 0)
+                throw new RulesetCatalogException($"Lifestyle tier '{tier.Id}' has an invalid starting-cash dice expression.");
+        }
+
+        foreach (var option in document.LifestyleOptions)
+        {
+            ValidateCommonEntry(option.Id, option.DisplayName, option.Source, sourceIds, "lifestyle option");
+            if (option.AdjustmentPercent is null && option.FixedMonthlyAmount is null)
+                throw new RulesetCatalogException($"Lifestyle option '{option.Id}' must declare an adjustment.");
+            if (option.AdjustmentPercent is not null && option.FixedMonthlyAmount is not null)
+                throw new RulesetCatalogException($"Lifestyle option '{option.Id}' cannot declare both adjustment forms.");
+        }
+
         foreach (var deck in document.Cyberdecks)
         {
             ValidateCommonEntry(deck.Id, deck.DisplayName, deck.Source, sourceIds, "cyberdeck");
@@ -742,5 +769,7 @@ public static partial class RulesetCatalogLoader
         WeaponAccessoryDefinition[]? WeaponAccessories,
         ArmorModificationDefinition[]? ArmorModifications,
         CyberlimbEnhancementDefinition[]? CyberlimbEnhancements,
-        VehicleModificationDefinition[]? VehicleModifications);
+        VehicleModificationDefinition[]? VehicleModifications,
+        LifestyleTierDefinition[]? LifestyleTiers,
+        LifestyleOptionDefinition[]? LifestyleOptions);
 }

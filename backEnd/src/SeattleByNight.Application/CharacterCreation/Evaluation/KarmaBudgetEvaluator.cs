@@ -15,7 +15,8 @@ public sealed class KarmaBudgetEvaluator
 
     public IReadOnlyList<CharacterCreationDiagnostic> Evaluate(
         RulesetCatalog catalog,
-        CharacterCreationDraftDocument document)
+        CharacterCreationDraftDocument document,
+        ContactEvaluation? contactEvaluation = null)
     {
         var diagnostics = new List<CharacterCreationDiagnostic>();
         var positive = 0;
@@ -39,6 +40,7 @@ public sealed class KarmaBudgetEvaluator
         var powerPointKarma = (magic?.PurchasedPowerPoints ?? 0) * MysticAdeptPowerPointKarmaCost;
         var complexFormKarma = (magic?.ComplexForms ?? []).Count(item => !item.Granted) * ComplexFormKarmaCost;
         var nuyenConversionKarma = document.NuyenFromKarma ?? 0;
+        var contactKarma = contactEvaluation?.Contacts?.GeneralKarmaSpent ?? 0;
 
         var source = catalog.Sources["sr5-core"];
         var citation = new SourceCitation(source.Id, 71, 73);
@@ -53,7 +55,7 @@ public sealed class KarmaBudgetEvaluator
                 "Reduce awarded negative qualities to 25 Karma or less."));
 
         var pool = CreationKarmaPool + negative;
-        var spent = positive + formulaKarma + powerPointKarma + complexFormKarma + nuyenConversionKarma;
+        var spent = positive + formulaKarma + powerPointKarma + complexFormKarma + nuyenConversionKarma + contactKarma;
         if (spent > pool)
             diagnostics.Add(CharacterCreationDiagnosticFactory.Error(
                 Step, "karma.creation-pool.exceeded", "qualities", [], citation,
@@ -62,7 +64,7 @@ public sealed class KarmaBudgetEvaluator
                     ["actual"] = spent.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     ["maximum"] = pool.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 },
-                "Reduce positive qualities, purchased formulae, Power Points, complex forms, or Karma-to-nuyen conversion to fit the creation Karma pool."));
+                "Reduce positive qualities, purchased formulae, Power Points, complex forms, Karma-to-nuyen conversion, or contacts beyond the free Charisma-based pool to fit the creation Karma pool."));
 
         return diagnostics;
     }

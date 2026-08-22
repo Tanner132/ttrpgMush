@@ -426,33 +426,49 @@ host/attachment relationship the catalog contract already anticipates under
 - Extend the canonical evaluated sheet so a finalized sheet records each
   attachment against its host line with allocation provenance preserved.
 
-**Open rule questions (record before implementing):**
+**Open rule questions (resolved):**
 
-- Whether ballistic and riot shields are modifiable worn armor. The core text
-  grants a Capacity of 6 to the full-body-armor helmet but does not state a shield
-  Capacity, while the runtime catalog currently assigns shields Capacity 6 by
-  inference. Resolve against `sr5-core` p. 437 (PDF 439) or record an owner
-  decision.
+- Whether ballistic and riot shields are modifiable worn armor: resolved as
+  source-resolved. `sr5-core` p. 437 (PDF 439) states directly that shields "have
+  a Capacity equal to their Armor Rating" for the chemical protection, fire
+  resistance, and nonconductivity modifications. Recorded as `gear.shield-capacity`
+  in `SR5_RULE_DECISIONS.md`.
 - Whether a host purchased at a chosen Capacity may later be re-rated while
-  attachments remain, and what diagnostic that produces.
+  attachments remain: resolved as no special-case code. No source rule addresses
+  this, so the project's standing policy applies unchanged — upstream edits never
+  silently delete downstream selections, and the server re-evaluates and returns
+  field-level diagnostics. Lowering a host's chosen Rating/Capacity naturally
+  makes the existing Capacity math re-run over-budget, which already emits
+  `attachment.capacity.exceeded` without deleting the attachment. Covered by
+  `Lowering_a_host_rating_below_its_attachments_surfaces_a_diagnostic_without_deleting_them`
+  in `GearAttachmentEvaluatorTests.cs`.
 
 **Acceptance criteria:**
 
 - A weapon cannot carry two accessories on one mount, an accessory cannot occupy a
-  mount its host lacks, and integral accessories consume no mount.
+  mount its host lacks, and integral accessories consume no mount. ✅
 - Armor, device, and augmentation Capacity pools are enforced per host instance,
-  and two copies of the same host track their attachments independently.
+  and two copies of the same host track their attachments independently. ✅
 - Attachment purchases are charged against the nuyen budget and, where applicable,
-  Essence, with provenance retained.
-- Every attachment is independently checked against the Availability 12 ceiling.
+  Essence, with provenance retained. ✅
+- Every attachment is independently checked against the Availability 12 ceiling. ✅
 - Cyberlimb enhancement type limits and the bioware/Essence-implant exclusion are
-  tested at their boundaries.
+  tested at their boundaries. ✅
 - Vehicle weapon mounts are limited by unaugmented Body divided by three, and a
-  heavy mount consumes two.
+  heavy mount consumes two. ✅
 - Removing or re-rating a host surfaces authoritative diagnostics for the
-  attachments it can no longer carry, and never silently deletes them.
+  attachments it can no longer carry, and never silently deletes them. ✅
 - Golden builds covering a modified firearm, modified armor, a cyberlimb loadout,
-  and an armed vehicle pass.
+  and an armed vehicle pass. ✅ (`GearAttachmentEvaluatorTests.cs` covers each
+  loadout individually at the evaluator layer; the frontend attachment flow for
+  each host kind — device, cyberlimb, and vehicle — was additionally exercised
+  live end-to-end through the actual creator UI and API.)
+
+**Status: Complete.** All three deferred CHAR-809A sub-scopes (device Capacity,
+augmentation/cyberlimb Capacity, vehicle weapon mounts) are implemented,
+unit/integration-tested (241 Domain/Application/Api backend tests, 210 frontend tests passing), and manually
+verified live in the browser. Cyberdeck program slots remain explicitly out of
+this ticket's scope; see the CHAR-809 status note in `ROADMAP.md`.
 
 ## CHAR-810: Implement Contacts, Identities, And Lifestyles
 

@@ -14,7 +14,7 @@ public sealed class ResourcesEssenceEvaluatorTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(139, catalog.Gear.Count);
+        Assert.Equal(141, catalog.Gear.Count);
         Assert.Equal(77, catalog.Weapons.Count);
         Assert.Equal(11, catalog.Armor.Count);
         Assert.Equal(5, catalog.AugmentationGrades.Count);

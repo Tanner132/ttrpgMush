@@ -27,7 +27,10 @@ public sealed record CanonicalCharacterSheet(
     IReadOnlyList<CanonicalNativeLanguage> NativeLanguages,
     CanonicalMagicResonance? MagicResonance,
     CanonicalResourcesEssence? Resources,
-    CanonicalGearAttachments? GearAttachments = null);
+    CanonicalGearAttachments? GearAttachments = null,
+    CanonicalContacts? Contacts = null,
+    CanonicalIdentities? Identities = null,
+    CanonicalLifestyles? Lifestyles = null);
 
 public sealed record CanonicalMetatype(string Id, CanonicalProvenance Provenance);
 
@@ -156,3 +159,73 @@ public sealed record CanonicalAttachment(
 public sealed record CanonicalGearAttachments(
     IReadOnlyList<CanonicalAttachment> Attachments,
     int TotalNuyenSpent);
+
+public sealed record CanonicalContact(
+    string InstanceId,
+    string Name,
+    string? Role,
+    int Connection,
+    int Loyalty,
+    int KarmaCost,
+    CanonicalProvenance Provenance);
+
+// FreeKarmaPool is natural Charisma x 3 (contact.unused-free-karma);
+// GeneralKarmaSpent is the portion of combined contact Karma cost beyond
+// that pool, drawn from the shared creation Karma pool and folded into
+// KarmaBudgetEvaluator's own spent total. It never converts back the other
+// way.
+public sealed record CanonicalContacts(
+    IReadOnlyList<CanonicalContact> Contacts,
+    int FreeKarmaPool,
+    int GeneralKarmaSpent);
+
+public sealed record CanonicalIdentity(
+    string InstanceId,
+    int Rating,
+    string Details,
+    int NuyenCost,
+    CanonicalProvenance Provenance);
+
+// SinInstanceId references a CanonicalIdentity.InstanceId
+// (identity.fake-license-link) — a license is meaningless without its
+// parent fake SIN.
+public sealed record CanonicalLicense(
+    string InstanceId,
+    string SinInstanceId,
+    int Rating,
+    string Subject,
+    int NuyenCost,
+    CanonicalProvenance Provenance);
+
+public sealed record CanonicalIdentities(
+    IReadOnlyList<CanonicalIdentity> Identities,
+    IReadOnlyList<CanonicalLicense> Licenses,
+    int TotalNuyenSpent);
+
+public sealed record CanonicalLifestyle(
+    string InstanceId,
+    string TierId,
+    bool IsPrimary,
+    int PrepaidMonths,
+    IReadOnlyList<string> OptionIds,
+    string? PaymentFormId,
+    int? AdditionalPersons,
+    int NuyenCost,
+    CanonicalProvenance Provenance);
+
+// Persisted only at finalize (starting-cash.randomness): the evaluator that
+// produces CanonicalLifestyles re-runs on every preview and must stay
+// deterministic, so StartingCash is null on every preview and populated
+// exactly once, server-side, during atomic finalization.
+public sealed record CanonicalStartingCash(
+    int Count,
+    int Sides,
+    int Multiplier,
+    IReadOnlyList<int> Rolls,
+    int DiceTotal,
+    int Total);
+
+public sealed record CanonicalLifestyles(
+    IReadOnlyList<CanonicalLifestyle> Lifestyles,
+    int TotalNuyenSpent,
+    CanonicalStartingCash? StartingCash = null);

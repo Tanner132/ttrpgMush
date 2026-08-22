@@ -65,6 +65,26 @@ const catalog: CatalogContract = {
       cost: { fixed: 25 },
       capacityCost: { fixed: 1 },
     },
+    {
+      id: 'fake-sin',
+      displayName: 'Fake SIN',
+      categoryId: 'identity',
+      classification: 'Parameterized',
+      source,
+      availability: { perRating: 3, legality: 'Forbidden' },
+      cost: { perRating: 2500 },
+      ratingRange: { minimum: 1, maximum: 6 },
+    },
+    {
+      id: 'fake-license',
+      displayName: 'Fake License',
+      categoryId: 'identity',
+      classification: 'Parameterized',
+      source,
+      availability: { perRating: 3, legality: 'Forbidden' },
+      cost: { perRating: 200 },
+      ratingRange: { minimum: 1, maximum: 6 },
+    },
   ],
   weapons: [
     {
@@ -176,6 +196,8 @@ const catalog: CatalogContract = {
       requiresExistingMount: true,
     },
   ],
+  lifestyleTiers: [],
+  lifestyleOptions: [],
 }
 
 const baseDocument: CharacterCreationDocument = {
@@ -364,5 +386,69 @@ describe('ResourcesStep attachments', () => {
 
     expect(document.resources).toHaveLength(0)
     expect(document.attachments).toHaveLength(0)
+  })
+})
+
+describe('ResourcesStep fake SINs and licenses', () => {
+  it('does not render fake SIN or fake license as generic gear checkboxes', () => {
+    renderResourcesStep(baseDocument, () => {})
+    expect(screen.queryByRole('checkbox', { name: /fake sin/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: /fake license/i })).not.toBeInTheDocument()
+  })
+
+  it('adding a fake SIN records it under document.identities, not document.resources', () => {
+    let document = baseDocument
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    const { rerender } = renderResourcesStep(document, onChange)
+
+    fireEvent.click(screen.getByRole('button', { name: /add fake sin/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    expect(document.identities).toHaveLength(1)
+    expect(document.resources ?? []).toHaveLength(0)
+  })
+
+  it('a license can only be added once a fake SIN exists, and links to it', () => {
+    let document = baseDocument
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    const { rerender } = renderResourcesStep(document, onChange)
+
+    expect(screen.getByRole('button', { name: /add license/i })).toBeDisabled()
+
+    fireEvent.click(screen.getByRole('button', { name: /add fake sin/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /add license/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    expect(document.licenses).toHaveLength(1)
+    expect(document.licenses![0].sinInstanceId).toBe(document.identities![0].instanceId)
+  })
+
+  it('removing a fake SIN cascades and removes any license linked to it', () => {
+    let document: CharacterCreationDocument = {
+      ...baseDocument,
+      identities: [{ instanceId: 'sin-1', rating: 1, details: 'Maria Mercurial' }],
+      licenses: [{ instanceId: 'license-1', sinInstanceId: 'sin-1', rating: 1, subject: 'Concealed carry' }],
+    }
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    renderResourcesStep(document, onChange)
+
+    fireEvent.click(screen.getAllByRole('button', { name: /remove/i })[0])
+
+    expect(document.identities).toHaveLength(0)
+    expect(document.licenses).toHaveLength(0)
+  })
+
+  it('folds fake SIN and license cost into the running nuyen total', () => {
+    const document: CharacterCreationDocument = {
+      ...baseDocument,
+      identities: [{ instanceId: 'sin-1', rating: 1, details: 'Maria Mercurial' }],
+      licenses: [{ instanceId: 'license-1', sinInstanceId: 'sin-1', rating: 1, subject: 'Concealed carry' }],
+    }
+    renderResourcesStep(document, () => {})
+
+    // fake-sin Rating 1 = 2500¥, fake-license Rating 1 = 200¥ → 2700 of the budget.
+    expect(screen.getByRole('status')).toHaveTextContent('2,700')
   })
 })
