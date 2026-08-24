@@ -150,6 +150,42 @@ public sealed class CanonicalCharacterSheetTests
         Assert.Equal(json, CharacterCreationDraftSerialization.SerializeCanonicalSheet(deserialized));
     }
 
+    [Fact]
+    public void Attachment_essence_is_included_in_resources_and_derived_statistics()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new CharacterCreationDraftEvaluator(
+            new EmbeddedRulesetCatalogProvider(),
+            new PriorityAssignmentEvaluator(),
+            new MetatypeAndAttributeEvaluator(),
+            new QualitiesSkillsKnowledgeEvaluator(),
+            new MagicResonanceEvaluator(),
+            new KarmaBudgetEvaluator(),
+            new ResourcesEssenceEvaluator(),
+            new GearAttachmentEvaluator(),
+            new ContactEvaluator(),
+            new IdentityEvaluator(),
+            new LifestyleEvaluator(),
+            new DerivedStatisticsEvaluator());
+        var document = ValidDocument() with
+        {
+            Resources = [new ResourceSelection("cybereyes", Rating: 1, InstanceId: "eyes-1")],
+            Attachments = [new AttachmentSelection("eyes-1", "smartlink-implanted")],
+        };
+        var snapshot = new CharacterCreationDraftSnapshot(
+            Guid.NewGuid(), Guid.NewGuid(), "Cyber Mage", "CYBER MAGE",
+            catalog.RulesetId, catalog.Version, catalog.SemanticDigest,
+            "standard-priority", CharacterCreationDocumentVersions.Draft, document,
+            Guid.NewGuid(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
+
+        var details = evaluator.Evaluate(snapshot);
+
+        Assert.Equal(0.2m, details.CanonicalSheet!.GearAttachments!.TotalEssenceLoss);
+        Assert.Equal(0.4m, details.CanonicalSheet.Resources!.TotalEssenceLoss);
+        Assert.Equal(1, details.CanonicalSheet.Resources.MagicLoss);
+        Assert.Equal(5.6m, details.CanonicalSheet.DerivedStatistics!.Essence);
+    }
+
     private static CharacterCreationDraftDocument ValidDocument() => new(
         new PriorityAssignment("e", "b", "a", "c", "d"),
         Metatype: new MetatypeSelection("human"),

@@ -151,6 +151,32 @@ public sealed class ResourcesEssenceEvaluator
             resonanceLoss));
     }
 
+    public ResourcesEssenceEvaluation IncludeAttachmentEssence(
+        RulesetCatalog catalog,
+        CharacterCreationDraftDocument document,
+        ResourcesEssenceEvaluation evaluation,
+        GearAttachmentEvaluation attachments)
+    {
+        if (evaluation.Resources is null || attachments.Attachments is null
+            || attachments.Attachments.TotalEssenceLoss == 0m)
+        {
+            return evaluation;
+        }
+
+        var totalEssenceLoss = evaluation.Resources.TotalEssenceLoss
+            + attachments.Attachments.TotalEssenceLoss;
+        var (magicLoss, resonanceLoss) = MagicResonanceLoss(catalog, document, totalEssenceLoss);
+        return evaluation with
+        {
+            Resources = evaluation.Resources with
+            {
+                TotalEssenceLoss = totalEssenceLoss,
+                MagicLoss = magicLoss,
+                ResonanceLoss = resonanceLoss,
+            },
+        };
+    }
+
     private static int EvaluateNuyenConversion(
         int? nuyenFromKarma,
         SourceCitation source,

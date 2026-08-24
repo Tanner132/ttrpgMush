@@ -8,10 +8,10 @@ public static class CharacterCreationDocumentVersions
     public const int Draft = 1;
 
     // Sheet version 1 carried only the priority assignment preview. Version 2
-    // carries the full evaluated canonical sheet. Both remain readable: the
-    // version is persisted alongside the JSON and the reader never re-parses an
-    // old shape as a new one.
-    public const int Sheet = 2;
+    // introduced the full evaluated canonical sheet; version 3 adds attachment
+    // Essence and explicit granted skill-group ratings. The version is persisted
+    // alongside the JSON so retained sheet shapes remain identifiable.
+    public const int Sheet = 3;
 }
 
 public static class LegacyCharacterSheetDefaults

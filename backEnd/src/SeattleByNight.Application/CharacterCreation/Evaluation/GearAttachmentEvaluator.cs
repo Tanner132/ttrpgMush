@@ -45,7 +45,7 @@ public sealed class GearAttachmentEvaluator
         var attachments = document.Attachments ?? [];
         if (attachments.Count == 0)
         {
-            return new GearAttachmentEvaluation(diagnostics, new CanonicalGearAttachments([], 0));
+            return new GearAttachmentEvaluation(diagnostics, new CanonicalGearAttachments([], 0, 0m));
         }
 
         var hostsById = (document.Resources ?? [])
@@ -142,7 +142,8 @@ public sealed class GearAttachmentEvaluator
             }
         }
 
-        return new GearAttachmentEvaluation(diagnostics, new CanonicalGearAttachments(canonical, RoundNuyen(spent)));
+        return new GearAttachmentEvaluation(diagnostics, new CanonicalGearAttachments(
+            canonical, RoundNuyen(spent), essenceSpent));
     }
 
     private void EvaluateWeaponAccessory(
@@ -460,13 +461,14 @@ public sealed class GearAttachmentEvaluator
         var accessoryCost = Resolve(accessory.Cost?.Fixed, accessory.Cost?.PerRating, accessoryRating);
         spent += accessoryCost;
 
-        if (!isCyberlimb)
-        {
-            essenceSpent += Resolve(accessory.Essence?.Fixed, accessory.Essence?.PerRating, accessoryRating);
-        }
+        var accessoryEssence = isCyberlimb
+            ? 0m
+            : Resolve(accessory.Essence?.Fixed, accessory.Essence?.PerRating, accessoryRating);
+        essenceSpent += accessoryEssence;
 
         canonical.Add(new CanonicalAttachment(
-            selection.HostInstanceId, selection.AccessoryId, null, accessoryRating, RoundNuyen(accessoryCost), CanonicalProvenance.Nuyen));
+            selection.HostInstanceId, selection.AccessoryId, null, accessoryRating, RoundNuyen(accessoryCost),
+            CanonicalProvenance.Nuyen, accessoryEssence));
     }
 
     private static int ResolveAugmentationCapacity(AugmentationDefinition augmentation, int? hostRating) =>

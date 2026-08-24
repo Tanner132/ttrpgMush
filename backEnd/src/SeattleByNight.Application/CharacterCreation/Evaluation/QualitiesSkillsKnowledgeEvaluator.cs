@@ -44,7 +44,7 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
             diagnostics,
             BuildCanonicalQualities(catalog, document),
             BuildCanonicalSkills(catalog, document),
-            BuildCanonicalSkillGroups(document),
+            BuildCanonicalSkillGroups(catalog, document),
             BuildCanonicalKnowledgeSkills(document),
             BuildCanonicalLanguages(document),
             BuildCanonicalNativeLanguages(document),
@@ -69,11 +69,13 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
 
             if (!quality.Repeatable && qualities.Count(item => item.QualityId == selection.QualityId) > 1)
                 Add(diagnostics, "quality.not-repeatable", "qualities", "qualities", selection.QualityId, quality.Source, "Remove the duplicate quality selection.");
+            if (selection.Rating is not null and not 1)
+                Add(diagnostics, "quality.rating.invalid", "qualities", $"qualities[{selection.QualityId}].rating", selection.QualityId, quality.Source, "Qualities are selected once per entry; remove the unsupported rating.");
             if (quality.Conflicts.Any(conflict => qualities.Any(item => item.QualityId == conflict)))
                 Add(diagnostics, "quality.conflict", "qualities", "qualities", selection.QualityId, quality.Source, "Remove one of the conflicting qualities.");
             if (quality.Parameterized && (selection.Parameters is null || selection.Parameters.Values.Any(string.IsNullOrWhiteSpace)))
                 Add(diagnostics, "quality.parameter.required", "qualities", $"qualities[{selection.QualityId}].parameters", selection.QualityId, quality.Source, "Complete every required quality parameter.");
-            if (selection.Parameters is not null && selection.Parameters.Values.Any(value => value.Length > MaxTextLength))
+            if (selection.Parameters is not null && selection.Parameters.Values.Any(value => value is { Length: > MaxTextLength }))
                 Add(diagnostics, "creation.text.too-long", "qualities", $"qualities[{selection.QualityId}].parameters", selection.QualityId, quality.Source, "Use plain text of 120 characters or fewer.");
         }
     }
@@ -99,7 +101,13 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
             .FirstOrDefault(item => item.QualityId == "aptitude")
             ?.Parameters?.GetValueOrDefault("skill-id");
         var grantedRatings = GrantedSkillRatings(catalog, document);
+        var grantedGroupRatings = GrantedSkillGroupRatings(catalog, document);
         var remainingIndividualFree = skillsCell.IndividualSkillPoints;
+        foreach (var duplicate in (document.Skills ?? []).GroupBy(item => item.SkillId, StringComparer.Ordinal).Where(group => group.Count() > 1))
+        {
+            Add(diagnostics, "skill.duplicate", "skills", "skills", duplicate.Key, citation,
+                "Keep one allocation for each active skill.");
+        }
         foreach (var skill in document.Skills ?? [])
         {
             if (!catalog.Skills.TryGetValue(skill.SkillId, out var definition))
@@ -113,7 +121,7 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
             var total = granted + Math.Max(0, skill.Rating);
             if (skill.Rating < 1 || total > cap)
                 Add(diagnostics, "skill.rating.invalid", "skills", $"skills[{skill.SkillId}].rating", skill.SkillId, definition.Source, $"Keep the skill's total creation rating (granted plus points) within {cap}.");
-            var allocated = Math.Clamp(skill.Rating - granted, 0, 20);
+            var allocated = Math.Clamp(skill.Rating, 0, 20);
             for (var step = 1; step <= allocated; step++)
             {
                 if (remainingIndividualFree > 0) remainingIndividualFree--;
@@ -126,7 +134,8 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
                 if (total < 1)
                     Add(diagnostics, "skill.specialization.requires-rating", "skills", $"skills[{skill.SkillId}].specialization", skill.SkillId, definition.Source, "A specialization requires its parent skill at rating 1 or higher.");
             }
-            if (definition.GroupId is not null && (document.SkillGroups ?? []).Any(group => group.SkillGroupId == definition.GroupId))
+            if (definition.GroupId is not null && ((document.SkillGroups ?? []).Any(group => group.SkillGroupId == definition.GroupId)
+                || grantedGroupRatings.ContainsKey(definition.GroupId)))
                 Add(diagnostics, "skill.group-overlap", "skills", $"skills[{skill.SkillId}]", definition.GroupId, definition.Source, "Break the group before allocating this skill individually.");
             if (definition.Parameterized && string.IsNullOrWhiteSpace(skill.Parameter))
                 Add(diagnostics, "skill.parameter.required", "skills", $"skills[{skill.SkillId}].parameter", skill.SkillId, definition.Source, "Enter a bounded specific subject for this skill.");
@@ -135,6 +144,11 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
         }
 
         var remainingGroupFree = skillsCell.SkillGroupPoints;
+        foreach (var duplicate in (document.SkillGroups ?? []).GroupBy(item => item.SkillGroupId, StringComparer.Ordinal).Where(group => group.Count() > 1))
+        {
+            Add(diagnostics, "skill-group.duplicate", "skills", "skillGroups", duplicate.Key, citation,
+                "Keep one allocation for each skill group.");
+        }
         foreach (var group in document.SkillGroups ?? [])
         {
             if (!catalog.SkillGroups.TryGetValue(group.SkillGroupId, out var definition))
@@ -283,7 +297,7 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
             .Where(item => catalog.Qualities.ContainsKey(item.QualityId))
             .Select(item =>
             {
-                var rating = item.Rating ?? 1;
+                var rating = item.Rating is null or 1 ? 1 : 0;
                 return new CanonicalQuality(
                     item.QualityId,
                     rating,
@@ -298,28 +312,53 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
         CharacterCreationDraftDocument document)
     {
         var granted = GrantedSkillRatings(catalog, document);
-        return (document.Skills ?? [])
+        var allocations = (document.Skills ?? [])
             .Where(item => catalog.Skills.ContainsKey(item.SkillId))
-            .Select(item =>
+            .GroupBy(item => item.SkillId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+        var ids = allocations.Keys.Concat(granted.Keys).Distinct(StringComparer.Ordinal)
+            .OrderBy(item => item, StringComparer.Ordinal);
+        return ids.Select(id =>
             {
-                var grantedRating = granted.GetValueOrDefault(item.SkillId);
+                var allocation = allocations.GetValueOrDefault(id);
+                var allocatedRating = allocation?.Rating ?? 0;
+                var grantedRating = granted.GetValueOrDefault(id);
                 return new CanonicalSkill(
-                    item.SkillId,
-                    item.Rating,
+                    id,
+                    allocatedRating,
                     grantedRating,
-                    grantedRating + Math.Max(0, item.Rating),
-                    item.Specialization,
-                    item.Parameter,
-                    CanonicalProvenance.Priority);
+                    grantedRating + Math.Max(0, allocatedRating),
+                    allocation?.Specialization,
+                    allocation?.Parameter,
+                    allocation is null ? CanonicalProvenance.Grant : CanonicalProvenance.Priority);
             })
             .ToArray();
     }
 
     private static IReadOnlyList<CanonicalSkillGroup> BuildCanonicalSkillGroups(
-        CharacterCreationDraftDocument document) =>
-        (document.SkillGroups ?? [])
-            .Select(item => new CanonicalSkillGroup(item.SkillGroupId, item.Rating, CanonicalProvenance.GroupPoints))
+        RulesetCatalog catalog,
+        CharacterCreationDraftDocument document)
+    {
+        var granted = GrantedSkillGroupRatings(catalog, document);
+        var allocations = (document.SkillGroups ?? [])
+            .Where(item => catalog.SkillGroups.ContainsKey(item.SkillGroupId))
+            .GroupBy(item => item.SkillGroupId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+        var ids = allocations.Keys.Concat(granted.Keys).Distinct(StringComparer.Ordinal)
+            .OrderBy(item => item, StringComparer.Ordinal);
+        return ids.Select(id =>
+            {
+                var allocatedRating = allocations.GetValueOrDefault(id)?.Rating ?? 0;
+                var grantedRating = granted.GetValueOrDefault(id);
+                return new CanonicalSkillGroup(
+                    id,
+                    allocatedRating,
+                    allocatedRating == 0 ? CanonicalProvenance.Grant : CanonicalProvenance.GroupPoints,
+                    grantedRating,
+                    grantedRating + Math.Max(0, allocatedRating));
+            })
             .ToArray();
+    }
 
     private static IReadOnlyList<CanonicalKnowledgeSkill> BuildCanonicalKnowledgeSkills(
         CharacterCreationDraftDocument document) =>
@@ -392,6 +431,41 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
 
                 result.TryGetValue(allocation.SkillId, out var existing);
                 result[allocation.SkillId] = existing + skillGrant.Rating;
+            }
+        }
+
+        return result;
+    }
+
+    private static IReadOnlyDictionary<string, int> GrantedSkillGroupRatings(
+        RulesetCatalog catalog,
+        CharacterCreationDraftDocument document)
+    {
+        var result = new Dictionary<string, int>(StringComparer.Ordinal);
+        var selection = document.MagicResonance;
+        if (selection is null || document.PriorityAssignment is null)
+        {
+            return result;
+        }
+
+        var cell = catalog.GetPriorityCell("magic-resonance", document.PriorityAssignment.MagicOrResonance);
+        var grant = cell?.MagicResonancePathGrants?.FirstOrDefault(item => item.PathId == selection.PathId);
+        if (grant is null)
+        {
+            return result;
+        }
+
+        foreach (var groupGrant in grant.SkillGrants.Where(item => item.Domain == "magical-group"))
+        {
+            foreach (var allocation in selection.SkillGroupGrants ?? [])
+            {
+                if (!catalog.SkillGroups.ContainsKey(allocation.SkillGroupId))
+                {
+                    continue;
+                }
+
+                result.TryGetValue(allocation.SkillGroupId, out var existing);
+                result[allocation.SkillGroupId] = existing + groupGrant.Rating;
             }
         }
 

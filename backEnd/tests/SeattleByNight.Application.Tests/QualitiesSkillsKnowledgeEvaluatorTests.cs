@@ -38,6 +38,26 @@ public sealed class QualitiesSkillsKnowledgeEvaluatorTests
         Assert.Equal(22, evaluation.SkillKarmaSpent);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(int.MaxValue)]
+    public void Quality_ratings_other_than_one_are_rejected_without_affecting_karma(int rating)
+    {
+        var catalog = CatalogTestData.Catalog;
+        var document = new CharacterCreationDraftDocument(
+            Assignment,
+            Qualities: [new QualitySelection("guts", rating)],
+            NativeLanguages: [new LanguageSelection("English")]);
+
+        var evaluation = new QualitiesSkillsKnowledgeEvaluator().Evaluate(catalog, Assignment, document);
+        var karma = new KarmaBudgetEvaluator().Evaluate(catalog, document);
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "quality.rating.invalid");
+        Assert.Equal(0, karma.Spent);
+        Assert.Equal(0, Assert.Single(evaluation.Qualities).KarmaCost);
+    }
+
     [Fact]
     public void AptitudeAllowsOneSkillAtRatingSeven()
     {
@@ -63,6 +83,81 @@ public sealed class QualitiesSkillsKnowledgeEvaluatorTests
             NativeLanguages: [new LanguageSelection("English")])).Diagnostics;
 
         Assert.Contains(diagnostics, item => item.Code == "skill.rating.invalid");
+    }
+
+    [Fact]
+    public void Granted_skill_is_canonical_without_an_allocation_and_added_ranks_are_charged()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var assignment = new PriorityAssignment("a", "b", "b", "e", "d");
+        var skillsCell = catalog.GetPriorityCell("skills", "e")!;
+        var fillers = catalog.Skills.Values
+            .Where(item => item.Id != "archery")
+            .OrderBy(item => item.Id, StringComparer.Ordinal)
+            .Take((skillsCell.IndividualSkillPoints ?? 0) / 6)
+            .Select(item => new SkillAllocation(item.Id, 6))
+            .ToList();
+        fillers.Add(new SkillAllocation("archery", 1));
+        var document = new CharacterCreationDraftDocument(
+            assignment,
+            Skills: fillers,
+            NativeLanguages: [new LanguageSelection("English")],
+            MagicResonance: new MagicResonanceSelection(
+                "adept", SkillGrants: [new SkillGrantAllocation("archery")]));
+
+        var evaluation = new QualitiesSkillsKnowledgeEvaluator().Evaluate(catalog, assignment, document);
+        var archery = Assert.Single(evaluation.Skills, item => item.Id == "archery");
+
+        Assert.Equal(1, archery.Rating);
+        Assert.True(archery.GrantedRating > 0);
+        Assert.Equal(archery.GrantedRating + 1, archery.TotalRating);
+        Assert.True(evaluation.SkillKarmaSpent > 0);
+
+        var grantedOnly = new QualitiesSkillsKnowledgeEvaluator().Evaluate(catalog, assignment,
+            document with { Skills = [] });
+        var grantedArchery = Assert.Single(grantedOnly.Skills, item => item.Id == "archery");
+        Assert.Equal(0, grantedArchery.Rating);
+        Assert.Equal(CanonicalProvenance.Grant, grantedArchery.Provenance);
+    }
+
+    [Fact]
+    public void Granted_group_blocks_member_allocations_and_is_canonical()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var assignment = new PriorityAssignment("a", "b", "b", "a", "e");
+        var document = new CharacterCreationDraftDocument(
+            assignment,
+            Skills: [new SkillAllocation("spellcasting", 1)],
+            NativeLanguages: [new LanguageSelection("English")],
+            MagicResonance: new MagicResonanceSelection(
+                "aspected-magician",
+                TraditionId: "hermetic",
+                AspectedValueId: "sorcery",
+                SkillGroupGrants: [new SkillGroupGrantAllocation("sorcery")]));
+
+        var evaluation = new QualitiesSkillsKnowledgeEvaluator().Evaluate(catalog, assignment, document);
+        var group = Assert.Single(evaluation.SkillGroups, item => item.Id == "sorcery");
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "skill.group-overlap");
+        Assert.True(group.GrantedRating > 0);
+        Assert.Equal(group.GrantedRating, group.TotalRating);
+        Assert.Equal(CanonicalProvenance.Grant, group.Provenance);
+    }
+
+    [Fact]
+    public void Duplicate_skill_and_group_allocations_are_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var document = new CharacterCreationDraftDocument(
+            Assignment,
+            Skills: [new SkillAllocation("archery", 1), new SkillAllocation("archery", 1)],
+            SkillGroups: [new SkillGroupAllocation("athletics", 1), new SkillGroupAllocation("athletics", 1)],
+            NativeLanguages: [new LanguageSelection("English")]);
+
+        var diagnostics = new QualitiesSkillsKnowledgeEvaluator().Evaluate(catalog, Assignment, document).Diagnostics;
+
+        Assert.Contains(diagnostics, item => item.Code == "skill.duplicate");
+        Assert.Contains(diagnostics, item => item.Code == "skill-group.duplicate");
     }
 
     [Fact]

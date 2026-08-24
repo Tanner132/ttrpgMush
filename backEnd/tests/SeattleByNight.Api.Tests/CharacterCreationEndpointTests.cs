@@ -263,6 +263,32 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         });
         Assert.Equal(HttpStatusCode.BadRequest, oversized.StatusCode);
 
+        var invalidQualityRating = await client.PutAsJsonAsync($"/api/character-creation/drafts/{characterId}", new
+        {
+            expectedVersion = version,
+            name = "Bounded Runner",
+            document = new
+            {
+                qualities = new[] { new { qualityId = "guts", rating = -1 } }
+            }
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, invalidQualityRating.StatusCode);
+
+        var oversizedAttachmentCollection = await client.PutAsJsonAsync($"/api/character-creation/drafts/{characterId}", new
+        {
+            expectedVersion = version,
+            name = "Bounded Runner",
+            document = new
+            {
+                attachments = Enumerable.Range(0, 501).Select(index => new
+                {
+                    hostInstanceId = $"host-{index}",
+                    accessoryId = "smartlink-implanted"
+                })
+            }
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, oversizedAttachmentCollection.StatusCode);
+
         using var malformedContent = new StringContent("{", Encoding.UTF8, "application/json");
         var malformed = await client.PutAsync($"/api/character-creation/drafts/{characterId}", malformedContent);
         Assert.Equal(HttpStatusCode.BadRequest, malformed.StatusCode);

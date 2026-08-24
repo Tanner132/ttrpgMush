@@ -118,7 +118,7 @@ public sealed class CharacterCreationDraftEvaluator
             magicEvaluation = magicResonanceEvaluator.Evaluate(catalog, draft.Document.PriorityAssignment, draft.Document);
             diagnostics.AddRange(magicEvaluation.Diagnostics);
         }
-        if (evaluation.IsReady && (draft.Document.Resources is not null || draft.Document.NuyenFromKarma is not null))
+        if (evaluation.IsReady)
         {
             resourcesEvaluation = resourcesEssenceEvaluator.Evaluate(catalog, draft.Document.PriorityAssignment, draft.Document);
             diagnostics.AddRange(resourcesEvaluation.Diagnostics);
@@ -127,6 +127,8 @@ public sealed class CharacterCreationDraftEvaluator
         {
             gearAttachmentEvaluation = gearAttachmentEvaluator.Evaluate(catalog, draft.Document, resourcesEvaluation);
             diagnostics.AddRange(gearAttachmentEvaluation.Diagnostics);
+            resourcesEvaluation = resourcesEssenceEvaluator.IncludeAttachmentEssence(
+                catalog, draft.Document, resourcesEvaluation, gearAttachmentEvaluation);
         }
         if (evaluation.IsReady && draft.Document.Contacts is not null)
         {

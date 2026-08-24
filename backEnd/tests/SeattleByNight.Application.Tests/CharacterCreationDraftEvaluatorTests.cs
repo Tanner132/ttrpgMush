@@ -98,5 +98,28 @@ public sealed class CharacterCreationDraftEvaluatorTests
 
         Assert.DoesNotContain(details.Diagnostics, item => item.Step == "contacts");
         Assert.DoesNotContain(details.Diagnostics, item => item.Code.StartsWith("identity.") || item.Code.StartsWith("license."));
+        Assert.NotNull(details.CanonicalSheet?.Resources);
+        Assert.Equal(5_000, details.CanonicalSheet?.DerivedStatistics?.CarryoverNuyen);
+    }
+
+    [Fact]
+    public void Lifestyle_spending_is_checked_when_the_resources_list_is_absent()
+    {
+        var document = new CharacterCreationDraftDocument(
+            new PriorityAssignment("a", "b", "e", "c", "d"),
+            Metatype: new MetatypeSelection("human"),
+            Attributes: new AttributeAllocation(new Dictionary<string, int>
+            {
+                ["body"] = 1, ["agility"] = 1, ["reaction"] = 1, ["strength"] = 1,
+                ["willpower"] = 1, ["logic"] = 1, ["intuition"] = 1, ["charisma"] = 1,
+            }),
+            NativeLanguages: [new LanguageSelection("English")],
+            MagicResonance: new MagicResonanceSelection("mundane"),
+            Lifestyles: [new LifestyleSelection("life-1", "luxury-lifestyle", IsPrimary: true, PrepaidMonths: 1)]);
+
+        var details = evaluator.Evaluate(Snapshot(document));
+
+        Assert.Contains(details.Diagnostics, item => item.Code == "lifestyle.nuyen.exceeded");
+        Assert.False(details.IsReadyToFinalize);
     }
 }

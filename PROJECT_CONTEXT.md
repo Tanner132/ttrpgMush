@@ -524,13 +524,19 @@ until their milestones.
 The persistence layer supports slot-bearing, name-reserving SR5 drafts with JSONB
 typed selections, UUID optimistic concurrency, start/read/update/discard/finalize
 application operations, and immutable evaluated sheets. Finalization now writes a
-complete canonical evaluated sheet (sheet schema version 2) capturing the resolved
+complete canonical evaluated sheet (sheet schema version 3) capturing the resolved
 metatype, absolute attribute and special-attribute values, qualities, skills and
 groups, knowledge and languages, native languages, and the Awakening/Emergence
 selection — each retaining its allocation provenance (priority, special points,
-group points, grant, Karma, free points, or native). Version-1 priority-only
-evaluated sheets and legacy sheets remain readable through their schema version
-and kind. Existing characters were migrated to explicit legacy finalized sheets
+group points, grant, Karma, free points, or native). Version-1 priority-only,
+version-2 evaluated, and legacy sheets remain readable through their schema version
+and kind. Version 3 records attachment Essence and explicit allocated, granted, and
+total skill-group ratings. Resource-budget evaluation always runs after priority
+assignment, including for an empty purchase list, and consolidates direct and
+attachment Essence before deriving Magic/Resonance loss, Social Limit, and final
+Essence. Quality ratings are restricted to the supported single-selection model;
+priority-granted skills and groups participate in canonical ratings, overlap checks,
+and point/Karma accounting. Existing characters were migrated to explicit legacy finalized sheets
 without invented SR5 statistics. Only finalized characters are playable. The
 authenticated character-creation
   HTTP surface and the priority, metatype, attribute, quality, skill, knowledge,

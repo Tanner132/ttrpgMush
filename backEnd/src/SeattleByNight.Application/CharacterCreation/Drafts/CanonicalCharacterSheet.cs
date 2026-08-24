@@ -79,7 +79,9 @@ public sealed record CanonicalSkill(
 public sealed record CanonicalSkillGroup(
     string Id,
     int Rating,
-    CanonicalProvenance Provenance);
+    CanonicalProvenance Provenance,
+    int GrantedRating = 0,
+    int TotalRating = 0);
 
 public sealed record CanonicalKnowledgeSkill(
     string Name,
@@ -173,11 +175,13 @@ public sealed record CanonicalAttachment(
     string? Mount,
     int? Rating,
     int NuyenCost,
-    CanonicalProvenance Provenance);
+    CanonicalProvenance Provenance,
+    decimal EssenceLoss = 0m);
 
 public sealed record CanonicalGearAttachments(
     IReadOnlyList<CanonicalAttachment> Attachments,
-    int TotalNuyenSpent);
+    int TotalNuyenSpent,
+    decimal TotalEssenceLoss = 0m);
 
 public sealed record CanonicalContact(
     string InstanceId,

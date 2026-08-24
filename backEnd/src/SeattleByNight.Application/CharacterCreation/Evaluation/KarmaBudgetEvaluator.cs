@@ -38,7 +38,7 @@ public sealed class KarmaBudgetEvaluator
                 continue;
             }
 
-            var cost = (selection.Rating ?? 1) * quality.Cost;
+            var cost = selection.Rating is null or 1 ? quality.Cost : 0;
             if (quality.Polarity == "positive") positive += cost;
             else negative += cost;
         }

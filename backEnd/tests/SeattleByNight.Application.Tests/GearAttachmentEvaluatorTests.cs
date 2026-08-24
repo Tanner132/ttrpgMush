@@ -433,6 +433,8 @@ public sealed class GearAttachmentEvaluatorTests
 
         var evaluation = evaluator.Evaluate(catalog, document, fitsEssence);
         Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(0.2m, evaluation.Attachments!.TotalEssenceLoss);
+        Assert.Equal(0.2m, Assert.Single(evaluation.Attachments.Attachments).EssenceLoss);
 
         var tightEssence = new ResourcesEssenceEvaluation(
             [], new CanonicalResourcesEssence([], NuyenBudget: 1_000_000, NuyenFromKarma: 0, TotalNuyenSpent: 0,
