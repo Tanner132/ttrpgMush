@@ -32,7 +32,7 @@ substitute for a full CHAR-812 reconciliation pass.
 | Vehicles and drones | Complete identity pass | Complete | 40 items published: 4 bikes, 7 cars, 4 trucks/vans, 3 boats, 2 submarines, 9 aircraft, 11 drones; vehicle modifications (rigger interface, standard/heavy weapon mounts, manual operation) published under CHAR-809A | Substantially reconciled |
 | Magical equipment | Complete identity pass | Complete | 16 foci published under CHAR-808; reagents and magical lodge materials published in `gear`; 5 spell formulae published as parameterized purchases without known-spell linkage | Substantially reconciled; focus formulae (cost tied to a specific focus's price) and spell-formula-to-known-spell linkage deferred |
 | Accessories, modifications, and capacity hosts | Complete identity pass | Complete | Firearm mounts, armor Capacity, device Capacity, augmentation/cyberlimb Capacity, and vehicle weapon mounts all implemented: 17 weapon accessories (`weaponAccessories`), 7 armor modifications (`armorModifications`), 3 cyberlimb enhancements (`cyberlimbEnhancements`), 4 vehicle modifications (`vehicleModifications`), plus Capacity-cost fields on gear/augmentation entries, all consumed by `GearAttachmentEvaluator` | Reconciled (CHAR-809A complete) |
-| Contacts, identities, lifestyles | Complete identity pass | Complete | Not implemented | Pending (CHAR-810) |
+| Contacts, identities, lifestyles | Complete identity pass | Complete | Free-form contacts (Karma-priced, not a catalog collection); `fake-sin`/`fake-license` gear items; 6 lifestyle tiers and 5 lifestyle options published in `lifestyleTiers`/`lifestyleOptions` | Reconciled (CHAR-810 complete) |
 
 ## Classification
 
@@ -299,17 +299,18 @@ skills/groups, knowledge/languages, and Magic and Resonance are reconciled
 against the reviewed inventory above (CHAR-806 through CHAR-808 complete).
 Weapons, armor, augmentations, electronics/software, general gear, magical
 supplies, and vehicles/drones are all substantially populated but not yet
-given a final CHAR-812 reconciliation pass. Contacts/identities/lifestyles
-remain entirely unimplemented (CHAR-810). CHAR-809A closed every CHAR-809
+given a final CHAR-812 reconciliation pass. CHAR-809A closed every CHAR-809
 attachment/Capacity gap: firearm mounts, armor Capacity, optical/audio/sensor
 device Capacity and their enhancements, augmentation/cyberlimb Capacity, and
 vehicle modifications (rigger interface, weapon mounts) are all implemented,
-tested, and manually verified. Remaining known gaps outside CHAR-809A's
-written scope: cyberdeck program slots, focus formulae, and spell-formula-to-
-known-spell linkage. Identity counts elsewhere in this ledger are review
-checkpoints, not release counts. CHAR-810 must complete its catalog section,
-and CHAR-812 must run the final full reconciliation and publish the released
-semantic digest, before this ledger can report zero unexplained discrepancy.
+tested, and manually verified. CHAR-810 is complete: free-form contacts,
+fake SINs and linked licenses, and all six core lifestyle tiers with their
+options and payment forms are implemented, tested, and manually verified.
+Remaining known gaps outside CHAR-809A's written scope: cyberdeck program
+slots, focus formulae, and spell-formula-to-known-spell linkage. Identity
+counts elsewhere in this ledger are review checkpoints, not release counts.
+CHAR-812 must run the final full reconciliation and publish the released
+semantic digest before this ledger can report zero unexplained discrepancy.
 CHAR-802's readiness checks (missing citation, duplicate stable ID,
 unsupported source, dangling reference) already run against whatever the
 catalog currently contains.

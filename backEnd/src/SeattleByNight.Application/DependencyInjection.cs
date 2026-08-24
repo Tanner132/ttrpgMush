@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddSingleton<ContactEvaluator>();
         services.AddSingleton<IdentityEvaluator>();
         services.AddSingleton<LifestyleEvaluator>();
+        services.AddSingleton<DerivedStatisticsEvaluator>();
         services.AddSingleton<CharacterCreationDraftEvaluator>();
 
         return services;

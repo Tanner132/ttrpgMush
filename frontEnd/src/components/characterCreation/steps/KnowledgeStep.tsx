@@ -1,10 +1,15 @@
 import type { CreationStepProps } from './types.ts'
 import { Diagnostics } from '../Diagnostics.tsx'
+import { computeFreeKnowledgeLanguagePoints, computeKnowledgeLanguageKarmaSpent } from '../budgets.ts'
 
 export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
   const knowledge = document.knowledgeSkills ?? []
   const language = document.languages ?? []
   const nativeLanguages = document.nativeLanguages ?? []
+  const freePoints = computeFreeKnowledgeLanguagePoints(catalog, document)
+  const pointsSpent = knowledge.reduce((sum, item) => sum + item.rating + (item.specialization ? 1 : 0), 0)
+    + language.reduce((sum, item) => sum + item.rating + (item.specialization ? 1 : 0), 0)
+  const karmaSpent = computeKnowledgeLanguageKarmaSpent(catalog, document)
   const updateNative = (index: number, name: string) => {
     const next = [...nativeLanguages]
     if (name) next[index] = { name }
@@ -22,7 +27,11 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
         <section className="creation-step" style={{ overflow: 'auto', padding: 'var(--sb-space-5) var(--sb-space-6)' }} aria-labelledby="knowledge-step-heading">
           <p className="creation-step__eyebrow">KNOWLEDGE / LANGUAGES</p>
           <h3 id="knowledge-step-heading">Name what your character knows</h3>
-          <p className="creation-step__intro">Knowledge subjects and languages are authored plain text. Native languages are recorded separately and never receive a numeric rating; Bilingual grants a second.</p>
+          <p className="creation-step__intro">Knowledge subjects and languages are authored plain text. Native languages are recorded separately and never receive a numeric rating; Bilingual grants a second. Points beyond the free pool are not blocked — they draw extra Karma at the published rate.</p>
+          <div className="creation-step__allocation-status" role="status">
+            <strong>{pointsSpent}</strong> / {freePoints} free Knowledge/Language points
+            {karmaSpent > 0 && <span> · <strong>{karmaSpent}</strong> extra Karma</span>}
+          </div>
 
           {[0, 1].map((index) => (
             <label className="creation-attribute" key={index}>

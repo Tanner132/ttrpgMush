@@ -54,9 +54,36 @@ npm --prefix frontEnd run build
 
 ## Next Build Ticket
 
-Continue the accepted character-creation feature with **CHAR-810: Implement
-Contacts, Identities, And Lifestyles** in the Milestone 8 file. CHAR-801
-through CHAR-809A are complete.
+Continue the accepted character-creation feature with **CHAR-812:
+Completeness, Accessibility, And Release Gate** in the Milestone 8 file.
+CHAR-801 through CHAR-811 are complete.
+
+CHAR-811 (Final Review And Atomic Finalization) is **complete**: finalization
+now genuinely requires a complete character. Previously, Metatype/Attributes,
+Skills/Knowledge (including the one-required-free-native-language rule), Magic
+or Resonance, and Lifestyle were only validated when their document field
+happened to be non-null, so a draft could reach `isReadyToFinalize: true`
+having never touched most of the sheet; each of those evaluators now always
+runs once the priority assignment is resolved, closing that gap (Contacts and
+Identities/Licenses remain deliberately optional, per CHAR-810). A new
+`DerivedStatisticsEvaluator` computes the sr5-core p. 101 final-calculations
+block — Essence, Physical/Mental/Social Limits, Initiative (base + 1D6),
+Physical/Stun Condition Monitor boxes and Overflow, and Karma/nuyen
+carryover (capped at 7/5,000) — deterministically on every preview, not just
+at finalize, and exposes it through the draft response. The new Review &
+Finalize creator step shows this final-calculations block alongside every
+diagnostic in the draft; the underlying Finalize action, atomic
+draft-to-sheet commit, optimistic-concurrency conflict handling, and
+New-Character-Room routing already existed from earlier tickets and needed no
+changes. Both Standard Priority and Sum-to-Ten end-to-end flows are verified
+to finalize successfully. There is no separate "Karma & Finishing" step: the
+creator header already carries a running Karma total, so a dedicated summary
+step added nothing. Instead, Knowledge/Language points beyond the free pool
+(previously a hard block) now draw extra Karma directly, per the sr5-core
+p. 107 Karma Advancement Table (a rank's marginal cost is its own rank
+number; a specialization beyond the pool costs a flat 7), folded into the
+same shared creation Karma pool as contacts' free-Karma overflow. Verified
+via 384 backend tests (15 new) and 233 frontend tests (8 new).
 
 CHAR-809 is substantially complete: weapons, armor, and augmentations are
 substantially cataloged; general gear, electronics/software, and magical
@@ -93,5 +120,23 @@ augmentation, vehicle). Verified via 241 Domain/Application/Api backend tests,
 the creator UI. Cyberdeck program slots remain a separately tracked gap
 outside CHAR-809A's written scope — not implemented here.
 
-CHAR-810 (Contacts, Identities, and Lifestyles) through CHAR-812 (release
-gate) have not been started.
+CHAR-810 (Contacts, Identities, and Lifestyles) is **complete**: free-form
+contacts (Connection/Loyalty, priced against a Charisma x3 free Karma pool
+with overflow drawn from the general creation Karma pool), fake SINs and
+linked licenses (rating-scaled `catalog.gear` purchases sharing the Resources
+nuyen budget with gear/attachments), and all six core lifestyle tiers
+(payment forms of standard/permanent/team, lifestyle options, one required
+primary, metatype cost multipliers) are implemented via three new evaluators
+(`ContactEvaluator`, `IdentityEvaluator`, `LifestyleEvaluator`) chained into
+the existing Resources/GearAttachment budget pipeline. Starting cash is
+rolled once, server-side, only at finalize (`CanonicalStartingCash`), staying
+out of the deterministic preview evaluators. The Contacts and Lifestyle
+creator steps are new; fake SIN/license purchases are folded into the
+existing Resources & Vehicles step rather than a dedicated one, since both
+draw from the same catalog.gear/nuyen mechanism. Verified via 147
+Application-layer backend tests (25 new) and 225 frontend tests (15 new), and
+live manual exercise of contacts, fake SIN + license linkage, and lifestyle
+selection through the creator UI.
+
+CHAR-811 (Final Review And Atomic Finalization) and CHAR-812 (release gate)
+have not been started.

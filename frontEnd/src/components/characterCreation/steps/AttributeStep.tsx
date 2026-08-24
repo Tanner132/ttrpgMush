@@ -4,6 +4,7 @@ import type { CreationStepProps } from './types.ts'
 import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { describeAttribute } from '../catalogDescriptions.ts'
+import { computeAttributeKarmaSpent } from '../budgets.ts'
 
 const NORMAL_ATTRIBUTE_IDS = ['body', 'agility', 'reaction', 'strength', 'willpower', 'logic', 'intuition', 'charisma']
 
@@ -14,6 +15,7 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
   const allocations = document.attributes?.values ?? {}
   const budget = cell?.physicalMentalAttributePoints ?? 0
   const spent = NORMAL_ATTRIBUTE_IDS.reduce((sum, id) => sum + (allocations[id] ?? 0), 0)
+  const karmaSpent = computeAttributeKarmaSpent(catalog, document)
   const update = (id: string, value: number) => onChange({
     ...document,
     attributes: { values: { ...allocations, [id]: Math.max(0, value) } },
@@ -30,8 +32,8 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
         <div className="console__header">
           <span className="console__header-number">STEP 05</span>
           <span className="console__header-title">ATTRIBUTES</span>
-          <span className="console__header-status" style={{ color: spent === budget ? 'var(--sb-accent)' : 'var(--sb-warning)' }}>
-            {spent} / {budget} ASSIGNED
+          <span className="console__header-status" style={{ color: spent < budget ? 'var(--sb-warning)' : 'var(--sb-accent)' }}>
+            {spent} / {budget} ASSIGNED{karmaSpent > 0 ? ` · ${karmaSpent} KARMA` : ''}
           </span>
         </div>
         <div className="attribute-rows">
@@ -94,15 +96,16 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
           { label: 'NATURAL MAX', value: selectedRange ? String(selectedRange.maximum) : '—' },
         ]}
         rows={[
-          { label: 'ASSIGNED', value: `${spent} of ${budget}`, tone: spent === budget ? 'accent' : 'warning' },
-          { label: 'REMAINING', value: String(Math.max(0, budget - spent)), tone: spent > budget ? 'danger' : 'default' },
+          { label: 'ASSIGNED', value: `${spent} of ${budget}`, tone: spent < budget ? 'warning' : 'accent' },
+          { label: 'REMAINING', value: String(Math.max(0, budget - spent)), tone: 'default' },
           { label: 'FROM PRIORITY', value: priority ? `PRIORITY ${priority.toUpperCase()}` : 'UNASSIGNED' },
+          ...(karmaSpent > 0 ? [{ label: 'KARMA COST', value: `${karmaSpent}`, tone: 'warning' as const }] : []),
         ]}
-        warn={spent !== budget
-          ? spent < budget
-            ? `You have ${budget - spent} unspent attribute points. Every point left here is wasted — they do not convert to karma.`
-            : `You are ${spent - budget} over the attribute budget. The server will reject this on finalize.`
-          : undefined}
+        warn={spent < budget
+          ? `You have ${budget - spent} unspent attribute points. Every point left here is wasted — they do not convert to karma.`
+          : karmaSpent > 0
+            ? `Points beyond the priority budget are not blocked — they draw ${karmaSpent} Karma at the published rate.`
+            : undefined}
       />
     </div>
   )

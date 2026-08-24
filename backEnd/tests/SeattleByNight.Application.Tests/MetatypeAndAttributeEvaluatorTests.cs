@@ -106,6 +106,53 @@ public sealed class MetatypeAndAttributeEvaluatorTests
             && item.MessageArguments["maximum"] == "7");
     }
 
+    [Fact]
+    public void Attribute_points_within_budget_cost_no_karma()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new MetatypeAndAttributeEvaluator();
+        var result = evaluator.Evaluate(catalog, Assignment, new CharacterCreationDraftDocument(
+            Assignment,
+            Metatype: new MetatypeSelection("human"),
+            // Attributes priority A grants 24 points; this spends exactly that.
+            Attributes: Allocation(("body", 4), ("agility", 4), ("charisma", 4), ("intuition", 4), ("logic", 4), ("reaction", 4))));
+
+        Assert.DoesNotContain(result.Diagnostics, item => item.Code == "attributes.points-must-be-spent");
+        Assert.Equal(0, result.AttributeKarmaSpent);
+    }
+
+    [Fact]
+    public void Attribute_points_beyond_budget_are_no_longer_blocked_and_cost_karma()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new MetatypeAndAttributeEvaluator();
+        var result = evaluator.Evaluate(catalog, Assignment, new CharacterCreationDraftDocument(
+            Assignment,
+            Metatype: new MetatypeSelection("human"),
+            // 24-point budget fully consumed by the first six (alphabetical)
+            // attributes; Willpower's two points are entirely Karma-priced:
+            // human base 1, so rank1 = 5*(1+1)=10, rank2 = 5*(1+2)=15, total 25.
+            Attributes: Allocation(("body", 4), ("agility", 4), ("charisma", 4), ("intuition", 4), ("logic", 4), ("reaction", 4), ("willpower", 2))));
+
+        Assert.DoesNotContain(result.Diagnostics, item => item.Code == "attributes.points-must-be-spent");
+        Assert.Equal(25, result.AttributeKarmaSpent);
+    }
+
+    [Fact]
+    public void Underspent_attribute_points_are_still_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new MetatypeAndAttributeEvaluator();
+        var result = evaluator.Evaluate(catalog, Assignment, new CharacterCreationDraftDocument(
+            Assignment,
+            Metatype: new MetatypeSelection("human"),
+            Attributes: Allocation(("body", 4))));
+
+        Assert.Contains(result.Diagnostics, item => item.Code == "attributes.points-must-be-spent"
+            && item.MessageArguments["actual"] == "4"
+            && item.MessageArguments["required"] == "24");
+    }
+
     private static AttributeAllocation Allocation(params (string Id, int Points)[] values)
     {
         var map = new Dictionary<string, int>

@@ -24,11 +24,20 @@ public sealed class CharacterCreationChangePreviewTests
         new GearAttachmentEvaluator(),
         new ContactEvaluator(),
         new IdentityEvaluator(),
-        new LifestyleEvaluator());
+        new LifestyleEvaluator(),
+        new DerivedStatisticsEvaluator());
 
     [Fact]
-    public async Task Priority_change_clears_skills_and_magic_and_refunds_skill_budgets()
+    public async Task Priority_change_pushes_skill_karma_overflow_over_the_pool_and_refunds_skill_budgets()
     {
+        // skill.karma-overflow: a shrunken skills priority no longer clears
+        // or invalidates "skills" itself (points beyond the new, smaller
+        // budget just draw Karma instead) — but here that extra Karma cost
+        // is large enough to push the shared creation Karma pool over,
+        // surfacing as a "qualities"-step karma.creation-pool.exceeded
+        // diagnostic (KarmaBudgetEvaluator's fixed Step) rather than a
+        // skills-specific one. RefundedBudgets is unrelated to diagnostics
+        // and still reports the same priority-swap deltas.
         var current = Snapshot(ValidDocument());
         var handler = Handler(current);
 
@@ -39,8 +48,9 @@ public sealed class CharacterCreationChangePreviewTests
 
         Assert.Equal(CharacterCreationDraftError.None, result.Error);
         var preview = result.Preview!;
-        Assert.Equal(new[] { "skills", "awakening-emergence" }, preview.ClearedSelections);
-        Assert.Equal("skills", preview.EarliestInvalidatedStep);
+        Assert.DoesNotContain("skills", preview.ClearedSelections);
+        Assert.Equal(new[] { "qualities", "awakening-emergence" }, preview.ClearedSelections);
+        Assert.Equal("qualities", preview.EarliestInvalidatedStep);
         Assert.Equal(6, preview.RefundedBudgets["skill-points"]);
         Assert.Equal(2, preview.RefundedBudgets["skill-group-points"]);
         Assert.DoesNotContain("attribute-points", preview.RefundedBudgets.Keys);
@@ -66,8 +76,12 @@ public sealed class CharacterCreationChangePreviewTests
     }
 
     [Fact]
-    public async Task Attribute_change_invalidates_knowledge()
+    public async Task Attribute_change_shrinking_the_free_knowledge_pool_no_longer_invalidates_knowledge()
     {
+        // knowledge.karma-overflow: points beyond the free Knowledge/Language
+        // pool now draw Karma instead of being blocked, so shrinking the free
+        // pool (by reducing Intuition/Logic) no longer clears/invalidates the
+        // knowledge step — it only raises its Karma cost.
         var current = Snapshot(KnowledgeDocument(intuition: 2, logic: 3));
         var handler = Handler(current);
 
@@ -78,9 +92,8 @@ public sealed class CharacterCreationChangePreviewTests
 
         Assert.Equal(CharacterCreationDraftError.None, result.Error);
         var preview = result.Preview!;
-        Assert.Contains("knowledge", preview.ClearedSelections);
-        Assert.Equal("knowledge", preview.EarliestInvalidatedStep);
-        Assert.True(preview.RequiresConfirmation);
+        Assert.DoesNotContain("knowledge", preview.ClearedSelections);
+        Assert.DoesNotContain(preview.Candidate.Diagnostics, item => item.Code == "knowledge.free-points.exceeded");
     }
 
     private PreviewCharacterCreationDraftChangeQueryHandler Handler(CharacterCreationDraftSnapshot current) =>
@@ -162,7 +175,13 @@ public sealed class CharacterCreationChangePreviewTests
         }),
         KnowledgeSkills: [new KnowledgeSkillAllocation("Seattle Street Gangs", "street", 3)],
         Languages: [new LanguageAllocation("Japanese", 2)],
-        NativeLanguages: [new LanguageSelection("English")]);
+        NativeLanguages: [new LanguageSelection("English")],
+        MagicResonance: new MagicResonanceSelection(
+            "magician",
+            TraditionId: "hermetic",
+            SkillGrants: [new SkillGrantAllocation("spellcasting"), new SkillGrantAllocation("summoning")],
+            Spells: GrantedSpellIds.Select(id => new SpellSelection(id, Granted: true)).ToArray()),
+        Lifestyles: [new LifestyleSelection("life-1", "street-lifestyle", IsPrimary: true, PrepaidMonths: 0)]);
 
     private static AttributeAllocation Attributes(
         int body, int agility, int reaction, int strength, int willpower, int logic, int intuition, int charisma) =>

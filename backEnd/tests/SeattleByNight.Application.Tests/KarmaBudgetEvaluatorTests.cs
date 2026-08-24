@@ -17,7 +17,7 @@ public sealed class KarmaBudgetEvaluatorTests
             new QualitySelection("aptitude"),
             new QualitySelection("guts"),
             new QualitySelection("mentor-spirit"),
-        ]));
+        ])).Diagnostics;
 
         Assert.Contains(diagnostics, item => item.Code == "quality.positive-karma-cap");
     }
@@ -31,7 +31,7 @@ public sealed class KarmaBudgetEvaluatorTests
             new QualitySelection("bad-luck"),
             new QualitySelection("astral-beacon"),
             new QualitySelection("bad-rep"),
-        ]));
+        ])).Diagnostics;
 
         Assert.Contains(diagnostics, item => item.Code == "quality.negative-karma-cap");
     }
@@ -54,7 +54,7 @@ public sealed class KarmaBudgetEvaluatorTests
                     new SpellSelection("manabolt"),
                     new SpellSelection("fireball"),
                     new SpellSelection("heal"),
-                ])));
+                ]))).Diagnostics;
 
         Assert.DoesNotContain(diagnostics, item => item.Code == "karma.creation-pool.exceeded");
     }
@@ -76,7 +76,7 @@ public sealed class KarmaBudgetEvaluatorTests
                     new SpellSelection("manabolt"),
                     new SpellSelection("fireball"),
                     new SpellSelection("heal"),
-                ])));
+                ]))).Diagnostics;
 
         Assert.Contains(diagnostics, item => item.Code == "karma.creation-pool.exceeded"
             && item.MessageArguments["actual"] == "34"
@@ -99,7 +99,7 @@ public sealed class KarmaBudgetEvaluatorTests
                     new ComplexFormSelection("resonance-spike"),
                     new ComplexFormSelection("tattletale"),
                     new ComplexFormSelection("stitches"),
-                ])));
+                ]))).Diagnostics;
 
         Assert.Contains(diagnostics, item => item.Code == "karma.creation-pool.exceeded");
     }
@@ -113,10 +113,41 @@ public sealed class KarmaBudgetEvaluatorTests
             new QualitySelection("aptitude"),
             new QualitySelection("guts"),
             new QualitySelection("mentor-spirit"),
-        ]));
+        ])).Diagnostics;
 
         Assert.Contains(diagnostics, item => item.Code == "quality.positive-karma-cap");
         Assert.Contains(diagnostics, item => item.Code == "karma.creation-pool.exceeded");
+    }
+
+    [Fact]
+    public void Knowledge_language_karma_overflow_counts_against_the_creation_pool()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        var withoutOverflow = evaluator.Evaluate(catalog, Document(), null,
+            new QualitiesSkillsKnowledgeEvaluation([], [], [], [], [], [], [], KnowledgeLanguageKarmaSpent: 0)).Diagnostics;
+        Assert.DoesNotContain(withoutOverflow, item => item.Code == "karma.creation-pool.exceeded");
+
+        var withOverflow = evaluator.Evaluate(catalog, Document(), null,
+            new QualitiesSkillsKnowledgeEvaluation([], [], [], [], [], [], [], KnowledgeLanguageKarmaSpent: 30)).Diagnostics;
+        Assert.Contains(withOverflow, item => item.Code == "karma.creation-pool.exceeded"
+            && item.MessageArguments["actual"] == "30");
+    }
+
+    [Fact]
+    public void Attribute_and_skill_karma_overflow_count_against_the_creation_pool()
+    {
+        var catalog = CatalogTestData.Catalog;
+
+        var metatypeEvaluation = new MetatypeAndAttributeEvaluation([], null, [], [], AttributeKarmaSpent: 20);
+        var skillsEvaluation = new QualitiesSkillsKnowledgeEvaluation([], [], [], [], [], [], [], SkillKarmaSpent: 15);
+
+        var withOverflow = evaluator.Evaluate(catalog, Document(), null, skillsEvaluation, metatypeEvaluation).Diagnostics;
+        Assert.Contains(withOverflow, item => item.Code == "karma.creation-pool.exceeded"
+            && item.MessageArguments["actual"] == "35");
+
+        var withoutOverflow = evaluator.Evaluate(catalog, Document()).Diagnostics;
+        Assert.DoesNotContain(withoutOverflow, item => item.Code == "karma.creation-pool.exceeded");
     }
 
     private static CharacterCreationDraftDocument Document(

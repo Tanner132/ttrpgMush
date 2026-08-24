@@ -17,6 +17,7 @@ public sealed class CharacterCreationDraftEvaluator
     private readonly ContactEvaluator contactEvaluator;
     private readonly IdentityEvaluator identityEvaluator;
     private readonly LifestyleEvaluator lifestyleEvaluator;
+    private readonly DerivedStatisticsEvaluator derivedStatisticsEvaluator;
 
     public CharacterCreationDraftEvaluator(
         IRulesetCatalogProvider catalogProvider,
@@ -29,7 +30,8 @@ public sealed class CharacterCreationDraftEvaluator
         GearAttachmentEvaluator gearAttachmentEvaluator,
         ContactEvaluator contactEvaluator,
         IdentityEvaluator identityEvaluator,
-        LifestyleEvaluator lifestyleEvaluator)
+        LifestyleEvaluator lifestyleEvaluator,
+        DerivedStatisticsEvaluator derivedStatisticsEvaluator)
     {
         this.catalogProvider = catalogProvider;
         this.priorityEvaluator = priorityEvaluator;
@@ -42,6 +44,7 @@ public sealed class CharacterCreationDraftEvaluator
         this.contactEvaluator = contactEvaluator;
         this.identityEvaluator = identityEvaluator;
         this.lifestyleEvaluator = lifestyleEvaluator;
+        this.derivedStatisticsEvaluator = derivedStatisticsEvaluator;
     }
 
     public CharacterCreationDraftDetails Evaluate(CharacterCreationDraftSnapshot draft)
@@ -90,21 +93,27 @@ public sealed class CharacterCreationDraftEvaluator
         var identityEvaluation = new IdentityEvaluation([], null);
         var lifestyleEvaluation = new LifestyleEvaluation([], null);
 
-        if (evaluation.IsReady
-            && (draft.Document.Metatype is not null || draft.Document.Attributes is not null || draft.Document.SpecialAttributes is not null))
+        // Metatype/Attributes, Skills/Knowledge, and Magic-or-Resonance are
+        // mandatory sections of every creation (CHAR-811 completeness): unlike
+        // Resources, Contacts, and Identities (deliberately optional — see
+        // ContactEvaluator's doc comment), a character cannot finalize having
+        // never touched these at all. Each evaluator already handles an absent
+        // selection correctly (e.g. MagicResonanceEvaluator's magic.path.required,
+        // MetatypeAndAttributeEvaluator's attributes.allocation-required), so
+        // they now always run once the priority assignment is ready, rather
+        // than only when their document field happens to be non-null.
+        if (evaluation.IsReady)
         {
             metatypeEvaluation = metatypeAndAttributeEvaluator.Evaluate(catalog, draft.Document.PriorityAssignment,
                 draft.Document);
             diagnostics.AddRange(metatypeEvaluation.Diagnostics);
         }
-        if (evaluation.IsReady && (draft.Document.Qualities is not null || draft.Document.Skills is not null
-            || draft.Document.SkillGroups is not null || draft.Document.KnowledgeSkills is not null
-            || draft.Document.Languages is not null || draft.Document.NativeLanguages is not null))
+        if (evaluation.IsReady)
         {
             skillsEvaluation = qualitiesSkillsKnowledgeEvaluator.Evaluate(catalog, draft.Document.PriorityAssignment, draft.Document);
             diagnostics.AddRange(skillsEvaluation.Diagnostics);
         }
-        if (evaluation.IsReady && draft.Document.MagicResonance is not null)
+        if (evaluation.IsReady)
         {
             magicEvaluation = magicResonanceEvaluator.Evaluate(catalog, draft.Document.PriorityAssignment, draft.Document);
             diagnostics.AddRange(magicEvaluation.Diagnostics);
@@ -129,19 +138,30 @@ public sealed class CharacterCreationDraftEvaluator
             identityEvaluation = identityEvaluator.Evaluate(catalog, draft.Document, resourcesEvaluation, gearAttachmentEvaluation);
             diagnostics.AddRange(identityEvaluation.Diagnostics);
         }
-        if (evaluation.IsReady && draft.Document.Lifestyles is not null)
+        // Lifestyle is also mandatory (sr5-core p. 101 final-calculations step
+        // requires a lifestyle) — LifestyleEvaluator's own primary-required
+        // check now fires on an empty list too, so this always runs.
+        if (evaluation.IsReady)
         {
             lifestyleEvaluation = lifestyleEvaluator.Evaluate(catalog, draft.Document, resourcesEvaluation, gearAttachmentEvaluation, identityEvaluation);
             diagnostics.AddRange(lifestyleEvaluation.Diagnostics);
         }
+        var karmaBudgetEvaluation = new KarmaBudgetEvaluation([], 0, 0);
         if (evaluation.IsReady)
         {
-            diagnostics.AddRange(karmaBudgetEvaluator.Evaluate(catalog, draft.Document, contactEvaluation));
+            karmaBudgetEvaluation = karmaBudgetEvaluator.Evaluate(catalog, draft.Document, contactEvaluation, skillsEvaluation, metatypeEvaluation);
+            diagnostics.AddRange(karmaBudgetEvaluation.Diagnostics);
         }
+
+        var derivedStatisticsEvaluation = evaluation.IsReady
+            ? derivedStatisticsEvaluator.Evaluate(metatypeEvaluation, resourcesEvaluation, gearAttachmentEvaluation,
+                identityEvaluation, lifestyleEvaluation, karmaBudgetEvaluation)
+            : new DerivedStatisticsEvaluation([], null);
+        diagnostics.AddRange(derivedStatisticsEvaluation.Diagnostics);
 
         var canonicalSheet = evaluation.IsReady
             ? BuildCanonicalSheet(evaluation.Preview, metatypeEvaluation, skillsEvaluation, magicEvaluation, resourcesEvaluation,
-                gearAttachmentEvaluation, contactEvaluation, identityEvaluation, lifestyleEvaluation)
+                gearAttachmentEvaluation, contactEvaluation, identityEvaluation, lifestyleEvaluation, derivedStatisticsEvaluation)
             : null;
 
         return new CharacterCreationDraftDetails(
@@ -161,7 +181,8 @@ public sealed class CharacterCreationDraftEvaluator
         GearAttachmentEvaluation gearAttachmentEvaluation,
         ContactEvaluation contactEvaluation,
         IdentityEvaluation identityEvaluation,
-        LifestyleEvaluation lifestyleEvaluation) =>
+        LifestyleEvaluation lifestyleEvaluation,
+        DerivedStatisticsEvaluation derivedStatisticsEvaluation) =>
         new(
             preview,
             metatypeEvaluation.Metatype,
@@ -178,7 +199,8 @@ public sealed class CharacterCreationDraftEvaluator
             gearAttachmentEvaluation.Attachments,
             contactEvaluation.Contacts,
             identityEvaluation.Identities,
-            lifestyleEvaluation.Lifestyles);
+            lifestyleEvaluation.Lifestyles,
+            derivedStatisticsEvaluation.Statistics);
 
     private static IEnumerable<CharacterCreationDiagnostic> DownstreamRevalidationDiagnostics(
         CharacterCreationDraftSnapshot draft,

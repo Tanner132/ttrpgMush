@@ -27,19 +27,19 @@ function diagnostic(overrides: Partial<Diagnostic>): Diagnostic {
 describe('creation steps', () => {
   it('bounds navigation to the first and last steps', () => {
     expect(FIRST_STEP_INDEX).toBe(2)
-    expect(LAST_STEP_INDEX).toBe(15)
+    expect(LAST_STEP_INDEX).toBe(14)
   })
 
   it('labels every step', () => {
-    expect(CREATION_STEPS).toHaveLength(14)
+    expect(CREATION_STEPS).toHaveLength(13)
     for (const step of CREATION_STEPS) {
       expect(stepLabel(step.index)).toBe(step.label)
     }
   })
 
-  it('marks exactly the implemented steps available', () => {
+  it('marks every step available', () => {
     expect(CREATION_STEPS.filter((step) => isStepAvailable(step.index)).map((step) => step.index))
-      .toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+      .toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
   })
 
   it('maps diagnostics to their attention step', () => {
@@ -64,7 +64,7 @@ describe('creation steps', () => {
 describe('computeDraftProgress', () => {
   it('reports every available step clean when there are no diagnostics', () => {
     const progress = computeDraftProgress([])
-    expect(progress).toEqual({ cleanSteps: 12, totalSteps: 12, blockingCount: 0, firstBlocking: null })
+    expect(progress).toEqual({ cleanSteps: 13, totalSteps: 13, blockingCount: 0, firstBlocking: null })
   })
 
   it('counts each flagged available step once regardless of diagnostic count', () => {
@@ -75,8 +75,8 @@ describe('computeDraftProgress', () => {
     ]
 
     const progress = computeDraftProgress(diagnostics)
-    expect(progress.cleanSteps).toBe(10)
-    expect(progress.totalSteps).toBe(12)
+    expect(progress.cleanSteps).toBe(11)
+    expect(progress.totalSteps).toBe(13)
     expect(progress.blockingCount).toBe(1)
     expect(progress.firstBlocking).toBe(diagnostics[0])
   })

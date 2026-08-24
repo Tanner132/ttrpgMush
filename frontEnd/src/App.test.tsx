@@ -18,7 +18,6 @@ vi.mock('./api/account.ts', () => ({
 
 vi.mock('./api/characters.ts', () => ({
   listCharacters: vi.fn(),
-  createCharacter: vi.fn(),
 }))
 
 vi.mock('./api/playSession.ts', () => ({

@@ -10,7 +10,9 @@ public sealed record QualitiesSkillsKnowledgeEvaluation(
     IReadOnlyList<CanonicalSkillGroup> SkillGroups,
     IReadOnlyList<CanonicalKnowledgeSkill> KnowledgeSkills,
     IReadOnlyList<CanonicalLanguage> Languages,
-    IReadOnlyList<CanonicalNativeLanguage> NativeLanguages);
+    IReadOnlyList<CanonicalNativeLanguage> NativeLanguages,
+    int KnowledgeLanguageKarmaSpent = 0,
+    int SkillKarmaSpent = 0);
 
 public sealed class QualitiesSkillsKnowledgeEvaluator
 {
@@ -35,8 +37,8 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
         }
 
         EvaluateQualities(catalog, document, diagnostics, citation);
-        EvaluateSkills(catalog, document, diagnostics, citation, skillsCell);
-        EvaluateKnowledgeAndLanguages(catalog, document, diagnostics, citation);
+        EvaluateSkills(catalog, document, diagnostics, citation, skillsCell, out var skillKarmaSpent);
+        EvaluateKnowledgeAndLanguages(catalog, document, diagnostics, citation, out var knowledgeLanguageKarmaSpent);
 
         return new QualitiesSkillsKnowledgeEvaluation(
             diagnostics,
@@ -45,7 +47,9 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
             BuildCanonicalSkillGroups(document),
             BuildCanonicalKnowledgeSkills(document),
             BuildCanonicalLanguages(document),
-            BuildCanonicalNativeLanguages(document));
+            BuildCanonicalNativeLanguages(document),
+            knowledgeLanguageKarmaSpent,
+            skillKarmaSpent);
     }
 
     private static void EvaluateQualities(
@@ -74,18 +78,28 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
         }
     }
 
+    // sr5-core p. 107, Karma Advancement Table: an Active Skill point costs
+    // (new rating) x 2 Karma marginally, a Skill Group point costs (new
+    // rating) x 5, and a new specialization costs a flat 7 (shared with
+    // Knowledge/Language specializations) — matching knowledge.karma-overflow's
+    // established free-pool-then-Karma pattern, in document array order.
+    private const int ActiveSkillKarmaPerRating = 2;
+    private const int SkillGroupKarmaPerRating = 5;
+
     private static void EvaluateSkills(
         RulesetCatalog catalog,
         CharacterCreationDraftDocument document,
         List<CharacterCreationDiagnostic> diagnostics,
         SourceCitation citation,
-        PriorityCellDefinition skillsCell)
+        PriorityCellDefinition skillsCell,
+        out int skillKarmaSpent)
     {
+        skillKarmaSpent = 0;
         var aptitudeSkillId = (document.Qualities ?? [])
             .FirstOrDefault(item => item.QualityId == "aptitude")
             ?.Parameters?.GetValueOrDefault("skill-id");
         var grantedRatings = GrantedSkillRatings(catalog, document);
-        var individualSpent = 0;
+        var remainingIndividualFree = skillsCell.IndividualSkillPoints;
         foreach (var skill in document.Skills ?? [])
         {
             if (!catalog.Skills.TryGetValue(skill.SkillId, out var definition))
@@ -99,10 +113,16 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
             var total = granted + Math.Max(0, skill.Rating);
             if (skill.Rating < 1 || total > cap)
                 Add(diagnostics, "skill.rating.invalid", "skills", $"skills[{skill.SkillId}].rating", skill.SkillId, definition.Source, $"Keep the skill's total creation rating (granted plus points) within {cap}.");
-            individualSpent += Math.Max(0, skill.Rating - granted);
+            var allocated = Math.Clamp(skill.Rating - granted, 0, 20);
+            for (var step = 1; step <= allocated; step++)
+            {
+                if (remainingIndividualFree > 0) remainingIndividualFree--;
+                else skillKarmaSpent += ActiveSkillKarmaPerRating * (granted + step);
+            }
             if (skill.Specialization is not null)
             {
-                individualSpent++;
+                if (remainingIndividualFree > 0) remainingIndividualFree--;
+                else skillKarmaSpent += SpecializationOverflowKarmaCost;
                 if (total < 1)
                     Add(diagnostics, "skill.specialization.requires-rating", "skills", $"skills[{skill.SkillId}].specialization", skill.SkillId, definition.Source, "A specialization requires its parent skill at rating 1 or higher.");
             }
@@ -113,10 +133,8 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
             if (skill.Parameter is { Length: > MaxTextLength } || skill.Specialization is { Length: > MaxTextLength })
                 Add(diagnostics, "creation.text.too-long", "skills", $"skills[{skill.SkillId}]", skill.SkillId, definition.Source, "Use plain text of 120 characters or fewer.");
         }
-        if (individualSpent > skillsCell.IndividualSkillPoints)
-            Add(diagnostics, "skill.individual-budget.exceeded", "skills", "skills", "", citation, "Reduce individual skill and specialization points to the priority budget.");
 
-        var groupSpent = 0;
+        var remainingGroupFree = skillsCell.SkillGroupPoints;
         foreach (var group in document.SkillGroups ?? [])
         {
             if (!catalog.SkillGroups.TryGetValue(group.SkillGroupId, out var definition))
@@ -125,23 +143,36 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
                 continue;
             }
             if (group.Rating is < 1 or > MaxCreationRating) Add(diagnostics, "skill-group.rating.invalid", "skills", $"skillGroups[{group.SkillGroupId}].rating", group.SkillGroupId, definition.Source, "Use a creation rating from 1 through 6.");
-            groupSpent += Math.Max(0, group.Rating);
+            var rating = Math.Clamp(group.Rating, 0, 20);
+            for (var step = 1; step <= rating; step++)
+            {
+                if (remainingGroupFree > 0) remainingGroupFree--;
+                else skillKarmaSpent += SkillGroupKarmaPerRating * step;
+            }
         }
-        if (groupSpent > skillsCell.SkillGroupPoints)
-            Add(diagnostics, "skill-group.budget.exceeded", "skills", "skillGroups", "", citation, "Reduce skill-group points to the priority budget.");
     }
+
+    // sr5-core p. 107, Karma Advancement Table (Knowledge/Language Skills):
+    // reaching rating N costs N*(N+1)/2 Karma if bought entirely with Karma,
+    // i.e. rank r's marginal cost is r Karma; a new specialization costs a
+    // flat 7 Karma (character improvement table, same page). Free points
+    // (knowledge.free-points) still cover ranks and specializations 1-for-1,
+    // consumed in document order exactly as before free-point spending was
+    // ever capped; anything past the free pool now draws Karma at the
+    // published rate instead of being blocked outright.
+    private const int SpecializationOverflowKarmaCost = 7;
 
     private static void EvaluateKnowledgeAndLanguages(
         RulesetCatalog catalog,
         CharacterCreationDraftDocument document,
         List<CharacterCreationDiagnostic> diagnostics,
-        SourceCitation citation)
+        SourceCitation citation,
+        out int knowledgeLanguageKarmaSpent)
     {
+        knowledgeLanguageKarmaSpent = 0;
         var knowledge = document.KnowledgeSkills ?? [];
         var languages = document.Languages ?? [];
         var nativeLanguages = document.NativeLanguages ?? [];
-        if (knowledge.Count == 0 && languages.Count == 0 && nativeLanguages.Count == 0)
-            return;
 
         foreach (var entry in knowledge)
         {
@@ -186,11 +217,26 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
             return;
         }
 
-        var spent = knowledge.Sum(item => Math.Max(0, item.Rating) + (item.Specialization is null ? 0 : 1))
-            + languages.Sum(item => Math.Max(0, item.Rating) + (item.Specialization is null ? 0 : 1));
-        if (spent > freePool)
-            Add(diagnostics, "knowledge.free-points.exceeded", "knowledge", "knowledge", "", citation,
-                $"Free Knowledge/Language points total {freePool}; reduce ratings or specializations.");
+        var remainingFree = freePool;
+        foreach (var entry in knowledge)
+            ChargeAgainstFreePoolThenKarma(entry.Rating, entry.Specialization is not null, ref remainingFree, ref knowledgeLanguageKarmaSpent);
+        foreach (var language in languages)
+            ChargeAgainstFreePoolThenKarma(language.Rating, language.Specialization is not null, ref remainingFree, ref knowledgeLanguageKarmaSpent);
+    }
+
+    private static void ChargeAgainstFreePoolThenKarma(
+        int rating, bool hasSpecialization, ref int remainingFree, ref int karmaSpent)
+    {
+        for (var rank = 1; rank <= Math.Max(0, rating); rank++)
+        {
+            if (remainingFree > 0) remainingFree--;
+            else karmaSpent += rank;
+        }
+        if (hasSpecialization)
+        {
+            if (remainingFree > 0) remainingFree--;
+            else karmaSpent += SpecializationOverflowKarmaCost;
+        }
     }
 
     private static bool TryGetFreeKnowledgeLanguagePoints(

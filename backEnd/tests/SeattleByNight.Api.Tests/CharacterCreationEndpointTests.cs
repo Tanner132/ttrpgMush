@@ -209,6 +209,35 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
     }
 
     [Fact]
+    public async Task Valid_sum_to_ten_draft_also_finalizes_into_the_new_character_room()
+    {
+        // ValidDocument's priority levels (e, b, a, c, d) cost 0+3+4+2+1 = 10,
+        // so the same complete document is valid under both creation methods
+        // — CHAR-811 requires both Standard Priority and Sum-to-Ten to reach
+        // finalization, not just Standard Priority.
+        var owner = await CreatePlayerAsync();
+        var started = await StartDraftAsync(owner, "Sum To Ten Runner", "sum-to-ten");
+        var characterId = started.GetProperty("characterId").GetGuid();
+        var update = await owner.PutAsJsonAsync($"/api/character-creation/drafts/{characterId}", new
+        {
+            expectedVersion = started.GetProperty("version").GetGuid(),
+            name = "Sum To Ten Runner",
+            document = ValidDocument()
+        });
+        var updated = await ReadObjectAsync(update);
+        Assert.True(updated.GetProperty("isReadyToFinalize").GetBoolean(),
+            string.Join("; ", updated.GetProperty("diagnostics").EnumerateArray().Select(item => item.GetProperty("code").GetString())));
+
+        var finalize = await owner.PostAsJsonAsync(
+            $"/api/character-creation/drafts/{characterId}/finalize",
+            new { expectedVersion = updated.GetProperty("version").GetGuid() });
+        finalize.EnsureSuccessStatusCode();
+        var sheet = await ReadObjectAsync(finalize);
+        Assert.Equal("sum-to-ten", sheet.GetProperty("sheet")
+            .GetProperty("priorityAssignment").GetProperty("creationMethodId").GetString());
+    }
+
+    [Fact]
     public async Task Malformed_and_oversized_documents_are_rejected()
     {
         var client = await CreatePlayerAsync();
@@ -245,12 +274,12 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         return await factory.RegisterAndLoginAsync(username, $"{username}@test.local", Password);
     }
 
-    private static async Task<JsonElement> StartDraftAsync(HttpClient client, string name)
+    private static async Task<JsonElement> StartDraftAsync(HttpClient client, string name, string creationMethodId = "standard-priority")
     {
         var response = await client.PostAsJsonAsync("/api/character-creation/drafts", new
         {
             name,
-            creationMethodId = "standard-priority",
+            creationMethodId,
             userId = Guid.NewGuid(),
             lifecycleState = "Finalized"
         });
@@ -258,15 +287,66 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         return await ReadObjectAsync(response);
     }
 
+    // A genuinely complete, ready-to-finalize document — CHAR-811 closed the
+    // gap where metatype, attributes, skills/knowledge, magic-or-resonance,
+    // and lifestyle were all silently optional at finalization.
     private static object ValidDocument() => new
     {
         priorityAssignment = new
         {
-            metatype = "a",
+            metatype = "e",
             attributes = "b",
-            magicOrResonance = "c",
-            skills = "d",
-            resources = "e"
+            magicOrResonance = "a",
+            skills = "c",
+            resources = "d"
+        },
+        metatype = new { metatypeId = "human" },
+        attributes = new
+        {
+            values = new Dictionary<string, int>
+            {
+                ["body"] = 3,
+                ["agility"] = 3,
+                ["reaction"] = 3,
+                ["strength"] = 3,
+                ["willpower"] = 3,
+                ["logic"] = 3,
+                ["intuition"] = 2,
+                ["charisma"] = 0,
+            }
+        },
+        specialAttributes = new
+        {
+            values = new Dictionary<string, int>
+            {
+                ["edge"] = 1,
+                ["magic"] = 0,
+                ["resonance"] = 0,
+            }
+        },
+        nativeLanguages = new[] { new { name = "English" } },
+        magicResonance = new
+        {
+            pathId = "magician",
+            traditionId = "hermetic",
+            skillGrants = new[] { new { skillId = "spellcasting" }, new { skillId = "summoning" } },
+            spells = new[]
+            {
+                new { spellId = "manabolt", granted = true },
+                new { spellId = "fireball", granted = true },
+                new { spellId = "heal", granted = true },
+                new { spellId = "detect-life", granted = true },
+                new { spellId = "invisibility", granted = true },
+                new { spellId = "armor", granted = true },
+                new { spellId = "levitate", granted = true },
+                new { spellId = "influence", granted = true },
+                new { spellId = "combat-sense", granted = true },
+                new { spellId = "increase-reflexes", granted = true },
+            }
+        },
+        lifestyles = new[]
+        {
+            new { instanceId = "life-1", tierId = "street-lifestyle", isPrimary = true, prepaidMonths = 0 }
         }
     };
 

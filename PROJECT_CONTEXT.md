@@ -534,9 +534,12 @@ and kind. Existing characters were migrated to explicit legacy finalized sheets
 without invented SR5 statistics. Only finalized characters are playable. The
 authenticated character-creation
   HTTP surface and the priority, metatype, attribute, quality, skill, knowledge,
-  Awakening/Emergence, and resources/essence (including gear Capacity, mounts,
-  and attachments) creator UI are implemented. Contacts, lifestyle, remaining
-  Karma, and final review sections remain unavailable until their milestones.
+  Awakening/Emergence, resources/essence (including gear Capacity, mounts, and
+  attachments), contacts, lifestyle, and review/finalize creator UI are all
+  implemented; every creator step is available. There is no dedicated Karma
+  step — Knowledge/Language points beyond the free pool draw extra Karma
+  directly (sr5-core p. 107 Karma Advancement Table) rather than being
+  blocked, and the header's running Karma total already covers this.
 
 Backend endpoints:
 

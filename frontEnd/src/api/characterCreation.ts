@@ -644,6 +644,23 @@ export interface StepStatus {
     state: StepState
 }
 
+// Server-derived final-calculations block (sr5-core p. 101, PDF 103).
+// Deterministic — present on every draft response once attributes and
+// Essence are resolvable, not just at finalize.
+export interface DerivedStatistics {
+    essence: number
+    physicalLimit: number
+    mentalLimit: number
+    socialLimit: number
+    initiativeBase: number
+    initiativeDice: number
+    physicalConditionMonitor: number
+    stunConditionMonitor: number
+    conditionMonitorOverflow: number
+    carryoverKarma: number
+    carryoverNuyen: number
+}
+
 export interface DraftDetail {
     characterId: string
     name: string
@@ -656,6 +673,7 @@ export interface DraftDetail {
     version: string
     diagnostics: Diagnostic[]
     isReadyToFinalize: boolean
+    derivedStatistics: DerivedStatistics | null
     createdAtUtc: string
     updatedAtUtc: string
 }

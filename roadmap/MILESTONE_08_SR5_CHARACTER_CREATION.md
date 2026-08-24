@@ -483,10 +483,36 @@ also depend on CHAR-809A.
 
 **Acceptance criteria:**
 
-- Contact costs, caps, and free/Karma point provenance are tested.
-- Licenses cannot become global character flags or silently legalize forbidden items.
-- Lifestyle and starting-cash calculations are server authoritative.
-- Open-ended fields remain bounded plain text and are never interpreted as HTML.
+- Contact costs, caps, and free/Karma point provenance are tested. ✅
+  (`ContactEvaluatorTests.cs`: free-Karma-pool exact spend, creation-cap
+  rejection, general-Karma overflow, unspent-pool rejection, duplicate
+  instance ids.)
+- Licenses cannot become global character flags or silently legalize
+  forbidden items. ✅ `IdentityEvaluator` never reads `Availability.Legality`
+  and returns only a fresh local `CanonicalIdentities` record touching no
+  shared/static state; `IdentityEvaluatorTests.cs` locks this in by asserting
+  an unrelated item's diagnostics are identical whether or not a
+  license/SIN is also present.
+- Lifestyle and starting-cash calculations are server authoritative. ✅
+  `LifestyleEvaluator` computes every preview cost; the one-shot starting-cash
+  dice roll happens only in `FinalizeCharacterCreationDraftCommandHandler`
+  during atomic finalization, never in the deterministic preview path.
+- Open-ended fields remain bounded plain text and are never interpreted as
+  HTML. ✅ Contact name/role, fake SIN details, and license subject are all
+  capped at 120 characters (`creation.text.too-long`) and rendered as plain
+  React text content, matching the `quality.open-parameters` convention used
+  elsewhere in the creator.
+
+**Status: Complete.** `ContactEvaluator`, `IdentityEvaluator`, and
+`LifestyleEvaluator` are implemented, chained into the existing
+Resources/GearAttachment nuyen budget, unit-tested (147 Application-layer
+backend tests, 25 new), and exposed through new Contacts and Lifestyle
+creator steps plus a fake-SIN/license section folded into the existing
+Resources & Vehicles step. 225 frontend tests pass (15 new), and the full
+flow — adding a contact, purchasing a fake SIN, linking a license to it, and
+choosing a primary lifestyle with a team payment form — was manually
+exercised live through the creator UI with diagnostics surfacing and
+clearing correctly.
 
 ## CHAR-811: Final Review And Atomic Finalization
 
@@ -500,10 +526,50 @@ also depend on CHAR-809A.
 
 **Acceptance criteria:**
 
-- Finalization succeeds if and only if no blocking diagnostic remains.
-- Duplicate submissions and concurrent edits produce one deterministic committed result.
-- Valid Standard Priority and Sum-to-Ten end-to-end flows enter the New Character Room.
-- Invalid or interrupted finalization leaves the complete draft resumable.
+- Finalization succeeds if and only if no blocking diagnostic remains. ✅
+  Already true by construction (`IsReadyToFinalize` is exactly "no Error-
+  severity diagnostic"), but this was previously vacuous for untouched
+  sections. Metatype/Attributes, Skills/Knowledge (including the
+  one-required-free-native-language rule), Magic-or-Resonance, and Lifestyle
+  now always evaluate once the priority assignment is resolved, so a draft
+  that never touched them is correctly blocked rather than trivially "ready."
+  Contacts and Identities/Licenses remain deliberately optional (CHAR-810).
+- Duplicate submissions and concurrent edits produce one deterministic
+  committed result. ✅ Pre-existing: `ExpectedVersion` optimistic concurrency
+  plus an atomic draft-delete/sheet-insert commit already guaranteed this;
+  `Finalization_atomically_creates_sheet_and_removes_draft` covers the
+  duplicate-submission case (a second finalize with the same version returns
+  `NotFound` once the draft is gone).
+- Valid Standard Priority and Sum-to-Ten end-to-end flows enter the New
+  Character Room. ✅ `Valid_sum_to_ten_draft_also_finalizes_into_the_new_character_room`
+  adds Sum-to-Ten coverage alongside the existing Standard Priority test.
+- Invalid or interrupted finalization leaves the complete draft resumable. ✅
+  Pre-existing: a rule-violation or conflict response never mutates the
+  stored draft.
+
+**Status: Complete.** A new `DerivedStatisticsEvaluator` computes the
+sr5-core p. 101 final-calculations block (Essence, Physical/Mental/Social
+Limits, Initiative, Condition Monitor boxes and Overflow, Karma/nuyen
+carryover capped at 7/5,000) deterministically on every preview, exposed
+through the draft response. The new Review & Finalize creator step displays
+this block plus every diagnostic in the draft; the Finalize action itself,
+atomic commit, and room routing needed no changes. The direct name-only
+character-creation endpoint (`POST /api/characters`) has no remaining
+production caller — the creator UI only ever calls the draft/finalize
+endpoints — and is kept solely as shared test scaffolding for unrelated
+suites (movement, chat, room presence) that need a character to exist
+without exercising SR5 chargen. There is no separate "Karma & Finishing"
+creator step: the creator header already carries a running Karma total, so a
+dedicated summary step was cut as redundant. Instead, Knowledge/Language
+points beyond the free pool — previously a hard block
+(`knowledge.free-points.exceeded`) — now draw extra Karma directly, per the
+sr5-core p. 107 Karma Advancement Table (a rank's marginal cost is its own
+rank number, cumulative 1/3/6/10/15/21 to reach ratings 1-6; a specialization
+beyond the pool costs a flat 7), folded into the same shared creation Karma
+pool as contacts' free-Karma overflow (`knowledge.karma-overflow`). Verified
+via 384 backend tests (15 new) and 233 frontend tests (8 new), plus live
+manual exercise of the Review & Finalize step showing real diagnostics and
+final calculations.
 
 ## CHAR-812: Completeness, Accessibility, And Release Gate
 

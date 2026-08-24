@@ -28,7 +28,8 @@ public sealed class CanonicalCharacterSheetTests
             new GearAttachmentEvaluator(),
             new ContactEvaluator(),
             new IdentityEvaluator(),
-            new LifestyleEvaluator());
+            new LifestyleEvaluator(),
+            new DerivedStatisticsEvaluator());
 
         var snapshot = new CharacterCreationDraftSnapshot(
             Guid.NewGuid(),
@@ -123,7 +124,8 @@ public sealed class CanonicalCharacterSheetTests
             new GearAttachmentEvaluator(),
             new ContactEvaluator(),
             new IdentityEvaluator(),
-            new LifestyleEvaluator());
+            new LifestyleEvaluator(),
+            new DerivedStatisticsEvaluator());
         var snapshot = new CharacterCreationDraftSnapshot(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -198,5 +200,6 @@ public sealed class CanonicalCharacterSheetTests
             "magician",
             TraditionId: "hermetic",
             SkillGrants: [new SkillGrantAllocation("spellcasting"), new SkillGrantAllocation("summoning")],
-            Spells: GrantedSpellIds.Select(id => new SpellSelection(id, Granted: true)).ToArray()));
+            Spells: GrantedSpellIds.Select(id => new SpellSelection(id, Granted: true)).ToArray()),
+        Lifestyles: [new LifestyleSelection("life-1", "street-lifestyle", IsPrimary: true, PrepaidMonths: 0)]);
 }

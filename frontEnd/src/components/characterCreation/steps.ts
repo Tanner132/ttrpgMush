@@ -20,8 +20,7 @@ export const CREATION_STEPS: readonly CreationStep[] = [
   { id: 'contacts', index: 11, label: 'Contacts', available: true },
   { id: 'resources', index: 12, label: 'Resources & Vehicles', available: true },
   { id: 'lifestyle', index: 13, label: 'Lifestyle & Starting Cash', available: true },
-  { id: 'karma', index: 14, label: 'Karma & Finishing', available: false },
-  { id: 'review', index: 15, label: 'Review & Finalize', available: false },
+  { id: 'review', index: 14, label: 'Review & Finalize', available: true },
 ]
 
 export const FIRST_STEP_INDEX = CREATION_STEPS[0].index

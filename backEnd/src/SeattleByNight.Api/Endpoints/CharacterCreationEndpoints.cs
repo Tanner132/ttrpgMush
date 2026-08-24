@@ -90,7 +90,24 @@ public sealed record CharacterCreationDraftResponse(
     DateTimeOffset UpdatedAtUtc,
     PriorityAssignmentPreview? Preview,
     IReadOnlyList<CharacterCreationDiagnosticResponse> Diagnostics,
-    bool IsReadyToFinalize);
+    bool IsReadyToFinalize,
+    DerivedStatisticsResponse? DerivedStatistics);
+
+// Final-calculations block (sr5-core p. 101, PDF 103) for the review/finishing
+// steps. Deterministic — recomputed on every draft response, not just at
+// finalize — unlike starting cash, which stays server-only until then.
+public sealed record DerivedStatisticsResponse(
+    decimal Essence,
+    int PhysicalLimit,
+    int MentalLimit,
+    int SocialLimit,
+    int InitiativeBase,
+    int InitiativeDice,
+    int PhysicalConditionMonitor,
+    int StunConditionMonitor,
+    int ConditionMonitorOverflow,
+    int CarryoverKarma,
+    int CarryoverNuyen);
 
 public sealed record CharacterCreationChangePreviewResponse(
     CharacterCreationDraftResponse Candidate,
@@ -305,8 +322,18 @@ public static class CharacterCreationEndpoints
             draft.CharacterId, draft.Name, draft.RulesetId, draft.CatalogVersion,
             draft.CatalogSemanticDigest, draft.CreationMethodId, draft.DocumentSchemaVersion,
             draft.Document, draft.Version, draft.CreatedAtUtc, draft.UpdatedAtUtc,
-            details.Preview, details.Diagnostics.Select(ToResponse).ToArray(), details.IsReadyToFinalize);
+            details.Preview, details.Diagnostics.Select(ToResponse).ToArray(), details.IsReadyToFinalize,
+            ToResponse(details.CanonicalSheet?.DerivedStatistics));
     }
+
+    private static DerivedStatisticsResponse? ToResponse(CanonicalDerivedStatistics? statistics) =>
+        statistics is null
+            ? null
+            : new DerivedStatisticsResponse(
+                statistics.Essence, statistics.PhysicalLimit, statistics.MentalLimit, statistics.SocialLimit,
+                statistics.InitiativeBase, statistics.InitiativeDice, statistics.PhysicalConditionMonitor,
+                statistics.StunConditionMonitor, statistics.ConditionMonitorOverflow,
+                statistics.CarryoverKarma, statistics.CarryoverNuyen);
 
     private static CharacterCreationDiagnosticResponse ToResponse(CharacterCreationDiagnostic diagnostic) => new(
         diagnostic.Code,

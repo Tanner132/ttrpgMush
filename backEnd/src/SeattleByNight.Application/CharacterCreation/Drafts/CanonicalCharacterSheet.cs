@@ -30,7 +30,26 @@ public sealed record CanonicalCharacterSheet(
     CanonicalGearAttachments? GearAttachments = null,
     CanonicalContacts? Contacts = null,
     CanonicalIdentities? Identities = null,
-    CanonicalLifestyles? Lifestyles = null);
+    CanonicalLifestyles? Lifestyles = null,
+    CanonicalDerivedStatistics? DerivedStatistics = null);
+
+// Server-derived final-calculations block (sr5-core p. 101, PDF 103): Essence,
+// Inherent Limits, Initiative, Condition Monitor boxes, and Karma/nuyen
+// carryover. Recomputed identically on every preview once attributes and
+// Essence are resolvable — unlike CanonicalStartingCash, nothing here is
+// randomized, so it is never finalize-only.
+public sealed record CanonicalDerivedStatistics(
+    decimal Essence,
+    int PhysicalLimit,
+    int MentalLimit,
+    int SocialLimit,
+    int InitiativeBase,
+    int InitiativeDice,
+    int PhysicalConditionMonitor,
+    int StunConditionMonitor,
+    int ConditionMonitorOverflow,
+    int CarryoverKarma,
+    int CarryoverNuyen);
 
 public sealed record CanonicalMetatype(string Id, CanonicalProvenance Provenance);
 

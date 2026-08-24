@@ -7,11 +7,25 @@ public sealed record MetatypeAndAttributeEvaluation(
     IReadOnlyList<CharacterCreationDiagnostic> Diagnostics,
     CanonicalMetatype? Metatype,
     IReadOnlyList<CanonicalAttribute> Attributes,
-    IReadOnlyList<CanonicalAttribute> SpecialAttributes);
+    IReadOnlyList<CanonicalAttribute> SpecialAttributes,
+    int AttributeKarmaSpent = 0);
 
 public sealed class MetatypeAndAttributeEvaluator
 {
     private const string Step = "metatype-and-attributes";
+
+    // sr5-core p. 107, Karma Advancement Table (Attributes): raising an
+    // attribute to a given rating costs (new rating) x 5 Karma per point,
+    // marginally. Physical/Mental attribute points beyond the priority grant
+    // (previously a hard block) now draw Karma at this rate instead — the
+    // free-pool consumption order is NORMAL_ATTRIBUTE_IDS (deterministic,
+    // since a Dictionary carries no meaningful order of its own). Edge,
+    // Magic, and Resonance are excluded: Magic/Resonance rating increases
+    // require Initiation/Submersion, not simple Karma spending, and the
+    // combined special-attribute pool has no clean way to isolate Edge's
+    // share from theirs, so special attributes stay hard-capped at their
+    // metatype/priority grant.
+    private const int AttributeKarmaPerRating = 5;
 
     public MetatypeAndAttributeEvaluation Evaluate(
         RulesetCatalog catalog,
@@ -30,6 +44,7 @@ public sealed class MetatypeAndAttributeEvaluator
         CanonicalMetatype? canonicalMetatype = null;
         var canonicalAttributes = new List<CanonicalAttribute>();
         var canonicalSpecialAttributes = new List<CanonicalAttribute>();
+        var attributeKarmaSpent = 0;
 
         if (metatype is not null)
         {
@@ -88,32 +103,51 @@ public sealed class MetatypeAndAttributeEvaluator
                         "Allocate all special attribute points granted by the metatype priority."));
             }
         }
+        else
+        {
+            diagnostics.Add(new CharacterCreationDiagnostic(
+                "metatype.required", CharacterCreationDiagnosticSeverity.Error, Step,
+                "metatype", [], metatypeCell.Source, new Dictionary<string, string>(),
+                "Choose a metatype."));
+        }
 
-        if (attributes is not null)
         {
             var expected = attributeCell.PhysicalMentalAttributePoints ?? 0;
             var normalIds = catalog.Attributes.Values.Where(item => item.Group is "physical" or "mental")
                 .Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-            var invalid = attributes.Values?.Where(item => !normalIds.Contains(item.Key)).Select(item => item.Key).ToArray() ?? [];
+            var invalid = attributes?.Values?.Where(item => !normalIds.Contains(item.Key)).Select(item => item.Key).ToArray() ?? [];
             if (invalid.Length > 0)
                 diagnostics.Add(Unknown(invalid[0], catalog, "attributes"));
-            var missing = normalIds.Where(id => attributes.Values is null || !attributes.Values.ContainsKey(id)).ToArray();
+            var missing = normalIds.Where(id => attributes?.Values is null || !attributes.Values.ContainsKey(id)).ToArray();
             if (missing.Length > 0)
                 diagnostics.Add(new CharacterCreationDiagnostic(
                     "attributes.allocation-required", CharacterCreationDiagnosticSeverity.Error, Step,
                     "attributes", missing, attributeCell.Source, new Dictionary<string, string>(),
                     "Provide an allocation for every Physical and Mental attribute."));
-            var spent = attributes.Values?.Where(item => normalIds.Contains(item.Key)).Sum(item => item.Value) ?? 0;
-            if (spent != expected)
+            var spent = attributes?.Values?.Where(item => normalIds.Contains(item.Key)).Sum(item => item.Value) ?? 0;
+            if (spent < expected)
                 diagnostics.Add(new CharacterCreationDiagnostic(
                     "attributes.points-must-be-spent", CharacterCreationDiagnosticSeverity.Error, Step,
                     "attributes", [], attributeCell.Source,
                     new Dictionary<string, string> { ["actual"] = spent.ToString(), ["required"] = expected.ToString() },
-                    "Spend exactly the points granted by the Attributes priority."));
+                    "Spend every point granted by the Attributes priority (points beyond it draw Karma instead)."));
 
             if (canonicalMetatype is not null && catalog.Metatypes.TryGetValue(canonicalMetatype.Id, out var selected))
             {
-                foreach (var item in attributes.Values ?? new Dictionary<string, int>())
+                var remainingFreeAttributePoints = expected;
+                foreach (var attribute in catalog.Attributes.Values
+                    .Where(item => item.Group is "physical" or "mental")
+                    .OrderBy(item => item.Id, StringComparer.Ordinal))
+                {
+                    if (!selected.Attributes.TryGetValue(attribute.Id, out var attributeRange)) continue;
+                    var allocated = Math.Clamp(attributes?.Values?.GetValueOrDefault(attribute.Id) ?? 0, 0, 20);
+                    for (var step = 1; step <= allocated; step++)
+                    {
+                        if (remainingFreeAttributePoints > 0) remainingFreeAttributePoints--;
+                        else attributeKarmaSpent += AttributeKarmaPerRating * (attributeRange.Minimum + step);
+                    }
+                }
+                foreach (var item in attributes?.Values ?? new Dictionary<string, int>())
                 {
                     if (!selected.Attributes.TryGetValue(item.Key, out var range)) continue;
                     var value = range.Minimum + item.Value;
@@ -125,7 +159,7 @@ public sealed class MetatypeAndAttributeEvaluator
                             new Dictionary<string, string> { ["maximum"] = maximum.ToString() },
                             "Reduce the allocation to the metatype natural maximum."));
                 }
-                var atMaximum = (attributes.Values ?? new Dictionary<string, int>()).Count(item =>
+                var atMaximum = (attributes?.Values ?? new Dictionary<string, int>()).Count(item =>
                     selected.Attributes.TryGetValue(item.Key, out var range)
                     && range.Minimum + item.Value == NaturalMaximum(document, item.Key, range));
                 if (atMaximum > 1)
@@ -139,7 +173,7 @@ public sealed class MetatypeAndAttributeEvaluator
                     .OrderBy(item => item.Id, StringComparer.Ordinal))
                 {
                     if (!selected.Attributes.TryGetValue(attribute.Id, out var range)) continue;
-                    var allocated = attributes.Values?.GetValueOrDefault(attribute.Id) ?? 0;
+                    var allocated = attributes?.Values?.GetValueOrDefault(attribute.Id) ?? 0;
                     canonicalAttributes.Add(new CanonicalAttribute(
                         attribute.Id, range.Minimum, allocated, range.Minimum + allocated,
                         CanonicalProvenance.Priority));
@@ -148,7 +182,7 @@ public sealed class MetatypeAndAttributeEvaluator
         }
 
         return new MetatypeAndAttributeEvaluation(
-            diagnostics, canonicalMetatype, canonicalAttributes, canonicalSpecialAttributes);
+            diagnostics, canonicalMetatype, canonicalAttributes, canonicalSpecialAttributes, attributeKarmaSpent);
     }
 
     private static int NaturalMaximum(

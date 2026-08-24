@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.CharacterCreation.Catalog;
 using SeattleByNight.Application.CharacterCreation.Drafts;
@@ -131,7 +132,14 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
         Assert.Equal(CharacterCreationDraftError.Conflict, staleDiscard);
         var persisted = await store.GetAsync(userId, started.CharacterId);
         Assert.Equal("Updated Name", persisted!.Name);
-        Assert.Equal(document, persisted.Document);
+        // Compare via deep JSON equality, not record equality: the document
+        // round-trips through JSONB storage as List<T> (never equal to the
+        // original collection-expression-backed array types by record
+        // equality) with dictionary keys in different order, even when every
+        // value matches.
+        Assert.True(JsonNode.DeepEquals(
+            JsonNode.Parse(CharacterCreationDraftSerialization.SerializeDocument(document)),
+            JsonNode.Parse(CharacterCreationDraftSerialization.SerializeDocument(persisted.Document))));
 
         Assert.Equal(CharacterCreationDraftError.None,
             await store.DiscardAsync(userId, started.CharacterId, current.Version));
@@ -167,7 +175,8 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
             new GearAttachmentEvaluator(),
             new ContactEvaluator(),
             new IdentityEvaluator(),
-            new LifestyleEvaluator());
+            new LifestyleEvaluator(),
+            new DerivedStatisticsEvaluator());
         var handler = new FinalizeCharacterCreationDraftCommandHandler(
             store,
             evaluator,
@@ -215,8 +224,67 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
             new CharacterCreationDraftDocument(null));
     }
 
+    private static readonly string[] GrantedSpellIds =
+    [
+        "manabolt", "fireball", "heal", "detect-life", "invisibility", "armor", "levitate",
+        "influence", "combat-sense", "increase-reflexes",
+    ];
+
+    // Mirrors CanonicalCharacterSheetTests.ValidDocument (a proven-complete,
+    // ready-to-finalize document) plus a Lifestyle, since CHAR-811 closed the
+    // gap where finalization never required one.
     private static CharacterCreationDraftDocument ValidDocument() => new(
-        new PriorityAssignment("a", "b", "c", "d", "e"));
+        new PriorityAssignment("e", "b", "a", "c", "d"),
+        Metatype: new MetatypeSelection("human"),
+        Attributes: new AttributeAllocation(new Dictionary<string, int>
+        {
+            ["body"] = 3,
+            ["agility"] = 3,
+            ["reaction"] = 3,
+            ["strength"] = 3,
+            ["willpower"] = 3,
+            ["logic"] = 3,
+            ["intuition"] = 2,
+            ["charisma"] = 0,
+        }),
+        SpecialAttributes: new SpecialAttributeAllocation(new Dictionary<string, int>
+        {
+            ["edge"] = 1,
+            ["magic"] = 0,
+            ["resonance"] = 0,
+        }),
+        Qualities:
+        [
+            new QualitySelection("guts"),
+            new QualitySelection("aptitude", Parameters: new Dictionary<string, string> { ["skill-id"] = "archery" }),
+        ],
+        Skills:
+        [
+            new SkillAllocation("archery", 3),
+            new SkillAllocation("pistols", 2),
+        ],
+        SkillGroups:
+        [
+            new SkillGroupAllocation("athletics", 2),
+        ],
+        KnowledgeSkills:
+        [
+            new KnowledgeSkillAllocation("Seattle Street Gangs", "street", 3),
+        ],
+        Languages:
+        [
+            new LanguageAllocation("Japanese", 2),
+        ],
+        NativeLanguages:
+        [
+            new LanguageSelection("English"),
+        ],
+        MagicResonance: new MagicResonanceSelection(
+            "magician",
+            TraditionId: "hermetic",
+            SkillGrants: [new SkillGrantAllocation("spellcasting"), new SkillGrantAllocation("summoning")],
+            Spells: GrantedSpellIds.Select(id => new SpellSelection(id, Granted: true)).ToArray()),
+        Lifestyles: [new LifestyleSelection("life-1", "street-lifestyle", IsPrimary: true, PrepaidMonths: 0)]);
 
     private async Task<Guid> CreateUserAsync()
     {

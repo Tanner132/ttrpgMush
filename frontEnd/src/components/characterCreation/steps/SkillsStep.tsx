@@ -4,6 +4,7 @@ import { CatalogRail } from '../CatalogRail.tsx'
 import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { describeSkillDomain } from '../catalogDescriptions.ts'
+import { computeSkillKarmaSpent } from '../budgets.ts'
 
 function clampRating(value: number): number {
   return Math.max(0, Math.min(6, value))
@@ -56,6 +57,7 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
 
   const individualSpent = selectedSkills.reduce((sum, item) => sum + item.rating, 0)
   const groupSpent = selectedGroups.reduce((sum, item) => sum + item.rating, 0)
+  const karmaSpent = computeSkillKarmaSpent(catalog, document)
 
   const pickedSkills = selectedSkills.flatMap((item) => {
     const definition = catalog.skills.find((skill) => skill.id === item.skillId)
@@ -77,6 +79,9 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
         budgets={[
           { label: 'INDIVIDUAL PTS', spent: String(individualSpent), budget: String(individualBudget), pct: (individualSpent / (individualBudget || 1)) * 100, tone: 'accent' },
           { label: 'GROUP PTS', spent: String(groupSpent), budget: String(groupBudget), pct: (groupSpent / (groupBudget || 1)) * 100, tone: 'info' },
+          ...(karmaSpent > 0
+            ? [{ label: 'KARMA COST', spent: String(karmaSpent), budget: '—', pct: 100, tone: 'warning' as const }]
+            : []),
         ]}
         facetLabel="CATEGORY"
         facets={Array.from(new Set(catalog.skills.map((skill) => skill.category))).sort().map((category) => ({

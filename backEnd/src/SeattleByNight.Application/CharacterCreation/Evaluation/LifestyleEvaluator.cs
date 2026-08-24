@@ -31,11 +31,11 @@ public sealed class LifestyleEvaluator
         IdentityEvaluation identityEvaluation)
     {
         var diagnostics = new List<CharacterCreationDiagnostic>();
-        var lifestyles = document.Lifestyles;
-        if (lifestyles is null)
-        {
-            return new LifestyleEvaluation(diagnostics, null);
-        }
+        // Unlike Contacts/Identities (deliberately optional), a character
+        // must have a lifestyle (sr5-core p. 101 final-calculations step), so
+        // an absent/empty list still runs the primary-required check below
+        // rather than short-circuiting to an unvalidated null result.
+        var lifestyles = document.Lifestyles ?? [];
 
         var metatype = document.Metatype is null
             ? null
@@ -109,7 +109,7 @@ public sealed class LifestyleEvaluator
                 selection.PaymentFormId, selection.AdditionalPersons, RoundNuyen(cost), CanonicalProvenance.Nuyen));
         }
 
-        if (lifestyles.Count > 0 && primaryCount != 1)
+        if (primaryCount != 1)
         {
             diagnostics.Add(Error("lifestyle.primary.required", "lifestyle", [], FallbackSource(catalog),
                 new Dictionary<string, string> { ["actual"] = primaryCount.ToString(System.Globalization.CultureInfo.InvariantCulture) },

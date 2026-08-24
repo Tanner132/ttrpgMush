@@ -138,6 +138,114 @@ export function computeLifestyleSpent(catalog: CatalogContract, document: Charac
   return total
 }
 
+// Mirrors QualitiesSkillsKnowledgeEvaluator.EvaluateKnowledgeAndLanguages's
+// Karma-overflow math (sr5-core p. 107, Karma Advancement Table): free
+// Knowledge/Language points cover ranks and a specialization 1-for-1 in
+// document order (knowledge entries then language entries, each entry's
+// ranks low-to-high then its specialization); anything past the free pool
+// draws Karma — rank r costs r Karma marginally, a specialization costs a
+// flat 7.
+const SPECIALIZATION_OVERFLOW_KARMA_COST = 7
+
+export function computeFreeKnowledgeLanguagePoints(catalog: CatalogContract, document: CharacterCreationDocument): number {
+  const metatype = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
+  const intuitionRange = metatype?.attributes['intuition']
+  const logicRange = metatype?.attributes['logic']
+  const intuition = (intuitionRange?.minimum ?? 0) + (document.attributes?.values['intuition'] ?? 0)
+  const logic = (logicRange?.minimum ?? 0) + (document.attributes?.values['logic'] ?? 0)
+  return (intuition + logic) * 2
+}
+
+export function computeKnowledgeLanguageKarmaSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
+  let remainingFree = computeFreeKnowledgeLanguagePoints(catalog, document)
+  let karmaSpent = 0
+
+  const chargeEntry = (rating: number, hasSpecialization: boolean) => {
+    for (let rank = 1; rank <= Math.max(0, rating); rank++) {
+      if (remainingFree > 0) remainingFree--
+      else karmaSpent += rank
+    }
+    if (hasSpecialization) {
+      if (remainingFree > 0) remainingFree--
+      else karmaSpent += SPECIALIZATION_OVERFLOW_KARMA_COST
+    }
+  }
+
+  for (const entry of document.knowledgeSkills ?? []) chargeEntry(entry.rating, entry.specialization != null)
+  for (const language of document.languages ?? []) chargeEntry(language.rating, language.specialization != null)
+
+  return karmaSpent
+}
+
+// Mirrors MetatypeAndAttributeEvaluator's Karma-overflow math (sr5-core
+// p. 107, Karma Advancement Table): Physical/Mental attribute points beyond
+// the priority grant cost (new rating) x 5 Karma marginally. Free-pool
+// consumption order is alphabetical attribute id, matching the backend.
+// Edge/Magic/Resonance are excluded (see the backend evaluator's comment).
+const ATTRIBUTE_KARMA_PER_RATING = 5
+
+export function computeAttributeKarmaSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
+  const cell = catalog.priorityCells.find(
+    (item) => item.categoryId === 'attributes' && item.levelId === document.priorityAssignment?.attributes,
+  )
+  const metatype = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
+  const values = document.attributes?.values ?? {}
+  let remainingFree = cell?.physicalMentalAttributePoints ?? 0
+  let karmaSpent = 0
+
+  for (const id of [...NORMAL_ATTRIBUTE_IDS].sort()) {
+    const minimum = metatype?.attributes[id]?.minimum ?? 0
+    const allocated = Math.max(0, values[id] ?? 0)
+    for (let step = 1; step <= allocated; step++) {
+      if (remainingFree > 0) remainingFree--
+      else karmaSpent += ATTRIBUTE_KARMA_PER_RATING * (minimum + step)
+    }
+  }
+
+  return karmaSpent
+}
+
+// Mirrors QualitiesSkillsKnowledgeEvaluator.EvaluateSkills's Karma-overflow
+// math: Active Skill points cost (new rating) x 2 marginally, Skill Group
+// points cost (new rating) x 5, a specialization beyond the pool costs a
+// flat 7. Like computeSkillBudget/computeSkillGroupBudget above, this does
+// not subtract magic-path-granted skill ratings (an existing, documented
+// approximation in this client-side preview layer) — only the server's
+// calculation is authoritative.
+const ACTIVE_SKILL_KARMA_PER_RATING = 2
+const SKILL_GROUP_KARMA_PER_RATING = 5
+
+export function computeSkillKarmaSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
+  const cell = catalog.priorityCells.find(
+    (item) => item.categoryId === 'skills' && item.levelId === document.priorityAssignment?.skills,
+  )
+  let remainingIndividualFree = cell?.individualSkillPoints ?? 0
+  let karmaSpent = 0
+
+  for (const skill of document.skills ?? []) {
+    const allocated = Math.max(0, skill.rating)
+    for (let step = 1; step <= allocated; step++) {
+      if (remainingIndividualFree > 0) remainingIndividualFree--
+      else karmaSpent += ACTIVE_SKILL_KARMA_PER_RATING * step
+    }
+    if (skill.specialization != null) {
+      if (remainingIndividualFree > 0) remainingIndividualFree--
+      else karmaSpent += SPECIALIZATION_OVERFLOW_KARMA_COST
+    }
+  }
+
+  let remainingGroupFree = cell?.skillGroupPoints ?? 0
+  for (const group of document.skillGroups ?? []) {
+    const rating = Math.max(0, group.rating)
+    for (let step = 1; step <= rating; step++) {
+      if (remainingGroupFree > 0) remainingGroupFree--
+      else karmaSpent += SKILL_GROUP_KARMA_PER_RATING * step
+    }
+  }
+
+  return karmaSpent
+}
+
 // Mirrors MagicResonanceStep's netKarma accumulator.
 export function computeKarmaSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
   let net = 0
@@ -158,6 +266,10 @@ export function computeKarmaSpent(catalog: CatalogContract, document: CharacterC
     net += (selection.purchasedPowerPoints ?? 0) * 2
     net += ungrantedForms * 4
   }
+
+  net += computeKnowledgeLanguageKarmaSpent(catalog, document)
+  net += computeAttributeKarmaSpent(catalog, document)
+  net += computeSkillKarmaSpent(catalog, document)
 
   return net
 }
