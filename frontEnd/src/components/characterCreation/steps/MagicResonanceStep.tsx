@@ -1,11 +1,29 @@
+import { useState } from 'react'
 import type { AdeptPowerDefinition, MagicResonanceSelection, SpellDefinition } from '../../../api/characterCreation.ts'
 import { effectivePowerPointCost } from '../../../api/characterCreation.ts'
 import type { CreationStepProps } from './types.ts'
+import { Diagnostics } from '../Diagnostics.tsx'
+import { Readout } from '../Readout.tsx'
+import {
+  describeAdeptPower,
+  describeComplexForm,
+  describeMentorSpirit,
+  describeRitual,
+  describeSpell,
+} from '../catalogDescriptions.ts'
 
 const MAGICAL_GROUP_IDS = ['sorcery', 'conjuring', 'enchanting']
 const PREPARATION_TRIGGERS = ['command', 'contact', 'time']
 
-export function MagicResonanceStep({ catalog, document, onChange }: CreationStepProps) {
+type FocusedItem =
+  | { kind: 'spell' | 'preparation'; id: string }
+  | { kind: 'ritual'; id: string }
+  | { kind: 'power'; id: string }
+  | { kind: 'form'; id: string }
+  | { kind: 'mentor'; id: string }
+
+export function MagicResonanceStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
+  const [focused, setFocused] = useState<FocusedItem | null>(null)
   const priority = document.priorityAssignment?.magicOrResonance
   const cell = catalog.priorityCells.find((item) => item.categoryId === 'magic-resonance' && item.levelId === priority)
   const grants = cell?.magicResonancePathGrants ?? []
@@ -102,7 +120,13 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
   const mentor = selection?.mentorSpirit
 
   return (
-    <section className="creation-step" aria-labelledby="magic-step-heading">
+    <div className="console console--form-readout">
+      <div className="console__main">
+        <div className="console__header">
+          <span className="console__header-number">STEP 09</span>
+          <span className="console__header-title">AWAKENING</span>
+        </div>
+        <section className="creation-step" style={{ overflow: 'auto', padding: 'var(--sb-space-5) var(--sb-space-6)' }} aria-labelledby="magic-step-heading">
       <p className="creation-step__eyebrow">AWAKENING / EMERGENCE</p>
       <h3 id="magic-step-heading">Choose how the Sixth World touches you</h3>
       <p className="creation-step__intro">Magic and Resonance are mutually exclusive. The priority grant sets the attribute rating; special points may raise it to the natural maximum. Essence loss is applied before final eligibility. Select a chosen path again to clear it.</p>
@@ -214,7 +238,7 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
                 {catalog.spells.map(spell => {
                   const selectedSpell = spells.find(item => item.spellId === spell.id)
                   return (
-                    <label className="creation-attribute" key={spell.id}>
+                    <label className="creation-attribute" key={spell.id} onClick={() => setFocused({ kind: 'spell', id: spell.id })}>
                       <span>
                         <strong>{spell.displayName}</strong>
                         <small>{spell.category} / {spell.type} / {spell.drain}{selectedSpell?.granted ? ' · granted' : selectedSpell ? ' · 5 Karma' : ''}</small>
@@ -232,7 +256,7 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
                 {catalog.rituals.map(ritual => {
                   const selected = rituals.some(item => item.ritualId === ritual.id)
                   return (
-                    <label className="creation-attribute" key={ritual.id}>
+                    <label className="creation-attribute" key={ritual.id} onClick={() => setFocused({ kind: 'ritual', id: ritual.id })}>
                       <span><strong>{ritual.displayName}</strong><small>{ritual.keywords.join(', ')}{selected ? ' · granted' : ' · 5 Karma'}</small></span>
                       <input type="checkbox" checked={selected} onChange={() => toggleRitual(ritual.id)} />
                     </label>
@@ -242,8 +266,8 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
               <div className="creation-step__attributes">
                 <p className="creation-step__eyebrow">ALCHEMICAL PREPARATIONS · {preparations.length} selected</p>
                 {preparations.map((preparation, index) => (
-                  <div className="creation-attribute" key={index}>
-                    <select value={preparation.spellId} onChange={event => updatePreparation(index, { spellId: event.target.value })}>
+                  <div className="creation-attribute" key={index} onClick={() => setFocused({ kind: 'preparation', id: preparation.spellId })}>
+                    <select value={preparation.spellId} onChange={event => { updatePreparation(index, { spellId: event.target.value }); setFocused({ kind: 'preparation', id: event.target.value }) }}>
                       {catalog.spells.map(spell => <option key={spell.id} value={spell.id}>{spell.displayName}</option>)}
                     </select>
                     <select value={preparation.trigger} onChange={event => updatePreparation(index, { trigger: event.target.value })}>
@@ -279,7 +303,7 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
                 {catalog.adeptPowers.map(power => {
                   const selectedPower = powers.find(item => item.powerId === power.id)
                   return (
-                    <label className="creation-attribute" key={power.id}>
+                    <label className="creation-attribute" key={power.id} onClick={() => setFocused({ kind: 'power', id: power.id })}>
                       <span><strong>{power.displayName}</strong><small>{selectedPower ? `${effectivePowerPointCost(power, selectedPower.rank ?? 1)} PP` : `${power.powerPointCost} PP${power.ranked ? ' per rank' : ''}`}</small></span>
                       <input type="checkbox" checked={selectedPower !== undefined} onChange={() => togglePower(power)} />
                       {power.ranked && selectedPower && (
@@ -301,7 +325,7 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
               {catalog.complexForms.map(form => {
                 const selected = forms.some(item => item.complexFormId === form.id)
                 return (
-                  <label className="creation-attribute" key={form.id}>
+                  <label className="creation-attribute" key={form.id} onClick={() => setFocused({ kind: 'form', id: form.id })}>
                     <span><strong>{form.displayName}</strong><small>{form.target} / {form.duration} / {form.fade}{selected ? ' · granted' : ' · 4 Karma'}</small></span>
                     <input type="checkbox" checked={selected} onChange={() => toggleForm(form.id)} />
                   </label>
@@ -313,7 +337,14 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
           {isAwakened && hasMentorQuality && (
             <label className="creation-attribute">
               <span><strong>Mentor spirit</strong><small>Requires the Mentor Spirit quality</small></span>
-              <select value={mentor?.mentorSpiritId ?? ''} onChange={event => update({ mentorSpirit: event.target.value ? { mentorSpiritId: event.target.value } : null })}>
+              <select
+                value={mentor?.mentorSpiritId ?? ''}
+                onFocus={() => { if (mentor?.mentorSpiritId) setFocused({ kind: 'mentor', id: mentor.mentorSpiritId }) }}
+                onChange={event => {
+                  update({ mentorSpirit: event.target.value ? { mentorSpiritId: event.target.value } : null })
+                  if (event.target.value) setFocused({ kind: 'mentor', id: event.target.value })
+                }}
+              >
                 <option value="">Select mentor</option>
                 {catalog.mentorSpirits.map(spirit => <option key={spirit.id} value={spirit.id}>{spirit.displayName}</option>)}
               </select>
@@ -328,6 +359,116 @@ export function MagicResonanceStep({ catalog, document, onChange }: CreationStep
           </div>
         </>
       )}
-    </section>
+
+      <Diagnostics diagnostics={diagnostics} boxed />
+        </section>
+      </div>
+
+      {path && renderFocusedReadout(focused, catalog, { spells, powers })}
+    </div>
+  )
+}
+
+function renderFocusedReadout(
+  focused: FocusedItem | null,
+  catalog: CreationStepProps['catalog'],
+  context: { spells: NonNullable<MagicResonanceSelection['spells']>; powers: NonNullable<MagicResonanceSelection['adeptPowers']> },
+) {
+  if (!focused) {
+    return (
+      <Readout
+        mode="reference"
+        name="SELECT AN OPTION"
+        text="Click any spell, ritual, preparation, adept power, complex form, or mentor spirit on the left to see what it does."
+      />
+    )
+  }
+
+  if (focused.kind === 'spell' || focused.kind === 'preparation') {
+    const spell = catalog.spells.find((item) => item.id === focused.id)
+    if (!spell) return null
+    const selectedSpell = context.spells.find((item) => item.spellId === spell.id)
+    return (
+      <Readout
+        mode="reference"
+        source={focused.kind === 'preparation' ? 'SR5 CORE · ALCHEMY' : 'SR5 CORE'}
+        name={spell.displayName.toUpperCase()}
+        meta={focused.kind === 'preparation' ? `ALCHEMICAL PREPARATION · ${spell.category.toUpperCase()}` : `${spell.category.toUpperCase()} · ${spell.type.toUpperCase()}`}
+        text={focused.kind === 'preparation'
+          ? `${describeSpell(spell)} Prepared in advance and triggered later instead of cast in the moment.`
+          : describeSpell(spell)}
+        stats={[
+          { label: 'RANGE', value: spell.range },
+          { label: 'DRAIN', value: spell.drain },
+        ]}
+        rows={[
+          { label: 'DURATION', value: spell.duration },
+          { label: 'STATUS', value: selectedSpell ? (selectedSpell.granted ? 'GRANTED' : '5 KARMA') : 'NOT TAKEN', tone: selectedSpell?.granted ? 'accent' : 'default' },
+        ]}
+      />
+    )
+  }
+
+  if (focused.kind === 'ritual') {
+    const ritual = catalog.rituals.find((item) => item.id === focused.id)
+    if (!ritual) return null
+    return (
+      <Readout
+        mode="reference"
+        source="SR5 CORE"
+        name={ritual.displayName.toUpperCase()}
+        meta={ritual.keywords.join(' · ').toUpperCase()}
+        text={describeRitual(ritual.id)}
+        rows={ritual.incorporatedSpellCategory ? [{ label: 'SPELL CATEGORY', value: ritual.incorporatedSpellCategory.toUpperCase() }] : undefined}
+      />
+    )
+  }
+
+  if (focused.kind === 'power') {
+    const power = catalog.adeptPowers.find((item) => item.id === focused.id)
+    if (!power) return null
+    const selectedPower = context.powers.find((item) => item.powerId === power.id)
+    return (
+      <Readout
+        mode="reference"
+        source="SR5 CORE"
+        name={power.displayName.toUpperCase()}
+        meta={power.ranked ? `RANKED${power.maxRank ? ` · UP TO ${power.maxRank}` : ''}` : 'FIXED'}
+        text={describeAdeptPower(power.id)}
+        stats={[
+          { label: 'PP COST', value: selectedPower ? String(effectivePowerPointCost(power, selectedPower.rank ?? 1)) : String(power.powerPointCost), tone: 'accent' },
+        ]}
+      />
+    )
+  }
+
+  if (focused.kind === 'form') {
+    const form = catalog.complexForms.find((item) => item.id === focused.id)
+    if (!form) return null
+    return (
+      <Readout
+        mode="reference"
+        source="SR5 CORE"
+        name={form.displayName.toUpperCase()}
+        meta={`TARGET · ${form.target.toUpperCase()}`}
+        text={describeComplexForm(form.id)}
+        rows={[
+          { label: 'DURATION', value: form.duration },
+          { label: 'FADE', value: form.fade },
+        ]}
+      />
+    )
+  }
+
+  const spirit = catalog.mentorSpirits.find((item) => item.id === focused.id)
+  if (!spirit) return null
+  return (
+    <Readout
+      mode="reference"
+      source="SR5 CORE"
+      name={spirit.displayName.toUpperCase()}
+      meta="MENTOR SPIRIT"
+      text={describeMentorSpirit(spirit.id)}
+    />
   )
 }

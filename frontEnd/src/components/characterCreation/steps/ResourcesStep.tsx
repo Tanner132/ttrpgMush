@@ -6,13 +6,17 @@ import { GearAttachmentModal } from './GearAttachmentModal.tsx'
 import {
   MOUNT_LABELS,
   attachmentUnitCost,
+  buildResourceLines,
   effectiveWeaponMount,
   gearHostCapacity,
-  humanizeResourceCategory,
   resolveAccessory,
   vehicleMountCapacity,
   type ResourceLine,
 } from './resourceCatalog.ts'
+import { CatalogRail } from '../CatalogRail.tsx'
+import { Readout } from '../Readout.tsx'
+import { Diagnostics } from '../Diagnostics.tsx'
+import { describeResourceItem } from '../catalogDescriptions.ts'
 
 const PURCHASABLE: string[] = ['Selectable', 'Parameterized']
 
@@ -23,7 +27,15 @@ const IDENTITY_GEAR_IDS = new Set(['fake-sin', 'fake-license'])
 const MIN_RATING = 1
 const MAX_RATING = 6
 
-export function ResourcesStep({ catalog, document, onChange }: CreationStepProps) {
+function money(amount: number): string {
+  if (Math.abs(amount) >= 1000) {
+    const thousands = amount / 1000
+    return `${Number.isInteger(thousands) ? thousands : thousands.toFixed(1)}k¥`
+  }
+  return `${amount}¥`
+}
+
+export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
   const resources = document.resources ?? []
   const augmentationIds = new Set(catalog.augmentations.map((aug) => aug.id))
   const augSelections = resources.filter((item) => augmentationIds.has(item.itemId))
@@ -36,72 +48,7 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
   const nuyenFromKarma = document.nuyenFromKarma ?? 0
   const nuyenBudget = (cell?.resourceNuyen ?? 0) + nuyenFromKarma * 2000
 
-  const lines: ResourceLine[] = [
-    ...catalog.gear.map((item) => ({
-      id: item.id,
-      displayName: item.displayName,
-      groupKey: item.categoryId,
-      groupLabel: humanizeResourceCategory(item.categoryId),
-      classification: item.classification,
-      availability: item.availability,
-      cost: item.cost,
-      ratingRange: item.ratingRange,
-      requiresParameter: item.requiresParameter ?? false,
-      hostKind: (item.isCapacityHost || item.capacity) ? ('gear' as const) : undefined,
-      capacity: item.capacity,
-      isCapacityHost: item.isCapacityHost,
-    })),
-    ...catalog.weapons.map((item) => ({
-      id: item.id,
-      displayName: item.displayName,
-      groupKey: item.weaponCategoryId,
-      groupLabel: humanizeResourceCategory(item.weaponCategoryId),
-      classification: item.classification,
-      availability: item.availability,
-      cost: item.cost,
-      ratingRange: item.ratingRange,
-      requiresParameter: item.requiresParameter ?? false,
-      hostKind: 'weapon' as const,
-      weaponCategoryId: item.weaponCategoryId,
-    })),
-    ...catalog.armor.map((item) => ({
-      id: item.id,
-      displayName: item.displayName,
-      groupKey: 'armor',
-      groupLabel: 'Armor',
-      classification: item.classification,
-      availability: item.availability,
-      cost: item.cost,
-      ratingRange: item.ratingRange,
-      requiresParameter: false,
-      hostKind: item.capacity ? ('armor' as const) : undefined,
-      capacity: item.capacity,
-    })),
-    ...catalog.vehicles.map((item) => ({
-      id: item.id,
-      displayName: item.displayName,
-      groupKey: item.vehicleCategoryId,
-      groupLabel: humanizeResourceCategory(item.vehicleCategoryId),
-      classification: item.classification,
-      availability: item.availability,
-      cost: item.cost,
-      ratingRange: undefined,
-      requiresParameter: false,
-      hostKind: item.body ? ('vehicle' as const) : undefined,
-      body: item.body,
-    })),
-    ...catalog.cyberdecks.map((item) => ({
-      id: item.id,
-      displayName: item.displayName,
-      groupKey: 'cyberdeck',
-      groupLabel: humanizeResourceCategory('cyberdeck'),
-      classification: item.classification,
-      availability: item.availability,
-      cost: item.cost,
-      ratingRange: undefined,
-      requiresParameter: false,
-    })),
-  ]
+  const lines = buildResourceLines(catalog)
 
   const purchasable = lines.filter((item) => PURCHASABLE.includes(item.classification) && !IDENTITY_GEAR_IDS.has(item.id))
   const groups = [...new Set(purchasable.map((item) => item.groupKey))]
@@ -109,6 +56,9 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
 
   const attachments = document.attachments ?? []
   const [openHostInstanceId, setOpenHostInstanceId] = useState<string | null>(null)
+  // Defaults to whatever's already purchased so a pre-populated draft shows
+  // its attachments button immediately, without requiring a click first.
+  const [focusedId, setFocusedId] = useState(() => itemSelections[0]?.itemId ?? purchasable[0]?.id ?? '')
 
   const setItemSelections = (next: ResourceSelection[], nextAttachments: AttachmentSelection[] = attachments) =>
     onChange({ ...document, resources: [...augSelections, ...next], attachments: nextAttachments })
@@ -152,6 +102,7 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
         instanceId: crypto.randomUUID(),
       }])
     }
+    setFocusedId(item.id)
   }
 
   const updateSelection = (itemId: string, patch: Partial<ResourceSelection>) =>
@@ -194,140 +145,222 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
     : undefined
   const openHostLine = openHost ? findLine(openHost.itemId) : undefined
 
+  const picked = itemSelections.flatMap((selection) => {
+    const line = findLine(selection.itemId)
+    if (!line) return []
+    return [{
+      id: line.id,
+      name: line.displayName,
+      badge: money(Math.round(unitCost(line, selection.rating ?? null) * (selection.quantity ?? 1))),
+      active: focusedId === line.id,
+      onFocus: () => setFocusedId(line.id),
+      onRemove: () => toggle(line),
+    }]
+  })
+
+  const focused = purchasable.find((item) => item.id === focusedId) ?? purchasable[0]
+  const focusedSelection = focused ? itemSelections.find((item) => item.itemId === focused.id) : undefined
+  const taken = focusedSelection !== undefined
+  const focusedAttachments = focusedSelection?.instanceId
+    ? attachments.filter((entry) => entry.hostInstanceId === focusedSelection.instanceId)
+    : []
+  const focusedAvailability = focused ? resolveAvailabilityNumber(focused.availability, focusedSelection?.rating ?? null) : null
+
   return (
-    <section className="creation-step" aria-labelledby="resources-step-heading">
-      <p className="creation-step__eyebrow">RESOURCES / VEHICLES</p>
-      <h3 id="resources-step-heading">Spend nuyen on gear, weapons, armor, and wheels</h3>
-      <p className="creation-step__intro">Numeric Availability may not exceed 12 and a purchasable Rating may not exceed 6.</p>
-      <div className="creation-step__allocation-status" role="status">
-        <strong>{spent.toLocaleString()}</strong> / {nuyenBudget.toLocaleString()} nuyen
-      </div>
+    <div className="console console--catalog">
+      <CatalogRail
+        budgets={[
+          { label: 'NUYEN', spent: money(spent), budget: money(nuyenBudget), pct: (spent / (nuyenBudget || 1)) * 100, tone: spent > nuyenBudget ? 'danger' : 'accent' },
+        ]}
+        facets={groups.map((groupKey) => ({
+          label: (purchasable.find((item) => item.groupKey === groupKey)?.groupLabel ?? groupKey).toUpperCase(),
+          count: purchasable.filter((item) => item.groupKey === groupKey).length,
+        }))}
+        picked={picked}
+      />
 
-      <label className="creation-attribute">
-        <span><strong>Karma → nuyen</strong><small>Convert up to 10 Karma at 2,000¥ each</small></span>
-        <input aria-label="Karma converted to nuyen" type="number" min="0" max="10" value={nuyenFromKarma}
-          onChange={(event) => updateNuyenFromKarma(Math.min(10, Math.max(0, Number(event.target.value) || 0)))} />
-      </label>
-
-      {groups.map((groupKey) => (
-        <div className="creation-step__attributes" key={groupKey}>
-          <p className="creation-step__eyebrow">
-            {purchasable.find((item) => item.groupKey === groupKey)?.groupLabel ?? groupKey}
-          </p>
-          {purchasable.filter((item) => item.groupKey === groupKey).map((item) => {
+      <div className="console__main">
+        <div className="console__header">
+          <span className="console__header-prompt">catalog:resources&gt;</span>
+          <input className="console__header-input" placeholder="pistol · armor · deck (visual only)" readOnly />
+          <span className="console__header-count">{purchasable.length} entries</span>
+        </div>
+        <div className="creation-step__allocation-status" role="status" style={{ margin: 0, borderRadius: 0 }}>
+          <strong>{spent.toLocaleString()}</strong> / {nuyenBudget.toLocaleString()} nuyen
+        </div>
+        <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 60px 96px' }}>
+          <span>ITEM</span><span>CATEGORY</span><span>AVAIL</span><span />
+        </div>
+        <div className="console__list">
+          {purchasable.map((item) => {
             const selection = itemSelections.find((entry) => entry.itemId === item.id)
-            const rating = selection?.rating ?? null
-            const cost = unitCost(item, rating)
-            const availability = resolveAvailabilityNumber(item.availability, rating)
-            const hostAttachments = selection?.instanceId
-              ? attachments.filter((entry) => entry.hostInstanceId === selection.instanceId)
-              : []
+            const isTaken = selection !== undefined
+            const availability = resolveAvailabilityNumber(item.availability, selection?.rating ?? null)
             return (
-              <div className="creation-resource-line" key={item.id}>
-                <label className="creation-attribute">
-                  <span>
-                    <strong>{item.displayName}</strong>
-                    <small>{cost.toLocaleString()}¥ · Avail {availability ?? '—'}{item.ratingRange ? ` · Rating ${item.ratingRange.minimum}-${item.ratingRange.maximum}` : ''}</small>
-                  </span>
-                  <input type="checkbox" checked={selection !== undefined} onChange={() => toggle(item)} />
-                  {selection && item.ratingRange && (
-                    <input aria-label={`${item.displayName} rating`} min={item.ratingRange.minimum} max={Math.min(item.ratingRange.maximum, 6)} type="number" value={selection.rating ?? item.ratingRange.minimum} onChange={(event) => updateSelection(item.id, { rating: Number(event.target.value) })} />
-                  )}
-                  {selection && item.requiresParameter && (
-                    <input aria-label={`${item.displayName} parameter`} placeholder="Required parameter" maxLength={120} value={selection.parameter ?? ''} onChange={(event) => updateSelection(item.id, { parameter: event.target.value })} />
-                  )}
-                  {selection && (
-                    <input aria-label={`${item.displayName} quantity`} min="1" max="1000" type="number" value={selection.quantity ?? 1} onChange={(event) => updateSelection(item.id, { quantity: Number(event.target.value) })} />
-                  )}
-                  {selection && item.hostKind && (
-                    <button type="button" className="creation-attachment__add"
-                      aria-label={`Manage attachments for ${item.displayName}`}
-                      onClick={() => setOpenHostInstanceId(selection.instanceId ?? null)}>+</button>
-                  )}
-                </label>
-                {hostAttachments.length > 0 && (
-                  <ul className="creation-resource-line__attachments">
-                    {hostAttachments.map((attachment) => {
-                      const accessory = resolveAccessory(catalog, item.hostKind, attachment.accessoryId)
-                      return (
-                        <li key={attachment.accessoryId}>
-                          <span>{accessory?.displayName ?? attachment.accessoryId}</span>
-                          <small>
-                            {attachmentUnitCost(catalog, attachment).toLocaleString()}¥
-                            {(() => {
-                              const mount = effectiveWeaponMount(catalog, attachment)
-                              return mount ? ` · ${MOUNT_LABELS[mount]}` : ''
-                            })()}
-                          </small>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
+              <div
+                key={item.id}
+                className={`console__row${focusedId === item.id ? ' console__row--active' : ''}${isTaken ? ' console__row--taken' : ''}`}
+                style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 60px 96px' }}
+                onClick={() => setFocusedId(item.id)}
+              >
+                <span className="console__row-name"><span className="console__row-name-text">{item.displayName}</span></span>
+                <span className="console__row-col">{item.groupLabel}</span>
+                <span className="console__row-col">{availability ?? '—'}</span>
+                <span className="console__row-end">
+                  <label className={`console__toggle${isTaken ? ' console__toggle--on' : ''}`}>
+                    <input type="checkbox" className="console__toggle-input" checked={isTaken} onChange={() => toggle(item)} aria-label={item.displayName} />
+                    {isTaken ? `${money(Math.round(unitCost(item, selection?.rating ?? null)))} ✓` : money(Math.round(unitCost(item, item.ratingRange?.minimum ?? null)))}
+                  </label>
+                </span>
               </div>
             )
           })}
-        </div>
-      ))}
 
-      {sinLine && (
-        <div className="creation-step__attributes">
-          <p className="creation-step__eyebrow">Fake SINs</p>
-          <ul className="creation-contacts">
-            {identities.map((identity) => (
-              <li className="creation-resource-line" key={identity.instanceId}>
-                <label className="creation-attribute">
-                  <span><strong>Rating</strong></span>
-                  <input aria-label="Fake SIN rating" type="number" min={MIN_RATING} max={MAX_RATING} value={identity.rating}
-                    onChange={(event) => updateIdentity(identity.instanceId, { rating: Number(event.target.value) })} />
-                </label>
-                <label className="creation-attribute">
-                  <span><strong>Details</strong><small>{unitCost(sinLine, identity.rating).toLocaleString()}¥</small></span>
-                  <input aria-label="Fake SIN details" maxLength={120} value={identity.details}
-                    onChange={(event) => updateIdentity(identity.instanceId, { details: event.target.value })} />
-                </label>
-                <button type="button" onClick={() => removeIdentity(identity.instanceId)}>Remove</button>
-              </li>
-            ))}
-          </ul>
-          <button type="button" onClick={addIdentity}>Add fake SIN</button>
-        </div>
-      )}
+          <div className="creation-step__attributes" style={{ padding: 'var(--sb-space-3) var(--sb-space-4)' }}>
+            <label className="creation-attribute">
+              <span><strong>Karma → nuyen</strong><small>Convert up to 10 Karma at 2,000¥ each</small></span>
+              <input aria-label="Karma converted to nuyen" type="number" min="0" max="10" value={nuyenFromKarma}
+                onChange={(event) => updateNuyenFromKarma(Math.min(10, Math.max(0, Number(event.target.value) || 0)))} />
+            </label>
+          </div>
 
-      {licenseLine && (
-        <div className="creation-step__attributes">
-          <p className="creation-step__eyebrow">Licenses</p>
-          <ul className="creation-contacts">
-            {licenses.map((license) => (
-              <li className="creation-resource-line" key={license.instanceId}>
-                <label className="creation-attribute">
-                  <span><strong>Fake SIN</strong></span>
-                  <select aria-label="License SIN" value={license.sinInstanceId}
-                    onChange={(event) => updateLicense(license.instanceId, { sinInstanceId: event.target.value })}>
-                    <option value="">Select a fake SIN</option>
-                    {identities.map((identity) => (
-                      <option key={identity.instanceId} value={identity.instanceId}>
-                        {identity.details || identity.instanceId}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="creation-attribute">
-                  <span><strong>Rating</strong></span>
-                  <input aria-label="License rating" type="number" min={MIN_RATING} max={MAX_RATING} value={license.rating}
-                    onChange={(event) => updateLicense(license.instanceId, { rating: Number(event.target.value) })} />
-                </label>
-                <label className="creation-attribute">
-                  <span><strong>Subject</strong><small>{unitCost(licenseLine, license.rating).toLocaleString()}¥</small></span>
-                  <input aria-label="License subject" maxLength={120} value={license.subject}
-                    onChange={(event) => updateLicense(license.instanceId, { subject: event.target.value })} />
-                </label>
-                <button type="button" onClick={() => removeLicense(license.instanceId)}>Remove</button>
-              </li>
-            ))}
-          </ul>
-          <button type="button" onClick={addLicense} disabled={identities.length === 0}>Add license</button>
+          {sinLine && (
+            <div className="creation-step__attributes" style={{ padding: '0 var(--sb-space-4) var(--sb-space-3)' }}>
+              <p className="creation-step__eyebrow">FAKE SINS</p>
+              <ul className="creation-contacts">
+                {identities.map((identity) => (
+                  <li className="creation-resource-line" key={identity.instanceId}>
+                    <label className="creation-attribute">
+                      <span><strong>Rating</strong></span>
+                      <input aria-label="Fake SIN rating" type="number" min={MIN_RATING} max={MAX_RATING} value={identity.rating}
+                        onChange={(event) => updateIdentity(identity.instanceId, { rating: Number(event.target.value) })} />
+                    </label>
+                    <label className="creation-attribute">
+                      <span><strong>Details</strong><small>{unitCost(sinLine, identity.rating).toLocaleString()}¥</small></span>
+                      <input aria-label="Fake SIN details" maxLength={120} value={identity.details}
+                        onChange={(event) => updateIdentity(identity.instanceId, { details: event.target.value })} />
+                    </label>
+                    <button type="button" onClick={() => removeIdentity(identity.instanceId)}>Remove</button>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" onClick={addIdentity}>Add fake SIN</button>
+            </div>
+          )}
+
+          {licenseLine && (
+            <div className="creation-step__attributes" style={{ padding: '0 var(--sb-space-4) var(--sb-space-3)' }}>
+              <p className="creation-step__eyebrow">LICENSES</p>
+              <ul className="creation-contacts">
+                {licenses.map((license) => (
+                  <li className="creation-resource-line" key={license.instanceId}>
+                    <label className="creation-attribute">
+                      <span><strong>Fake SIN</strong></span>
+                      <select aria-label="License SIN" value={license.sinInstanceId}
+                        onChange={(event) => updateLicense(license.instanceId, { sinInstanceId: event.target.value })}>
+                        <option value="">Select a fake SIN</option>
+                        {identities.map((identity) => (
+                          <option key={identity.instanceId} value={identity.instanceId}>
+                            {identity.details || identity.instanceId}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="creation-attribute">
+                      <span><strong>Rating</strong></span>
+                      <input aria-label="License rating" type="number" min={MIN_RATING} max={MAX_RATING} value={license.rating}
+                        onChange={(event) => updateLicense(license.instanceId, { rating: Number(event.target.value) })} />
+                    </label>
+                    <label className="creation-attribute">
+                      <span><strong>Subject</strong><small>{unitCost(licenseLine, license.rating).toLocaleString()}¥</small></span>
+                      <input aria-label="License subject" maxLength={120} value={license.subject}
+                        onChange={(event) => updateLicense(license.instanceId, { subject: event.target.value })} />
+                    </label>
+                    <button type="button" onClick={() => removeLicense(license.instanceId)}>Remove</button>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" onClick={addLicense} disabled={identities.length === 0}>Add license</button>
+            </div>
+          )}
+
+          <Diagnostics diagnostics={diagnostics} />
         </div>
+      </div>
+
+      {focused && (
+        <Readout
+          mode="config"
+          source="SR5 CORE"
+          name={focused.displayName.toUpperCase()}
+          meta={focused.groupLabel.toUpperCase()}
+          text={describeResourceItem(focused.id, focused.groupKey)}
+          stats={[
+            { label: 'COST', value: money(Math.round(unitCost(focused, focusedSelection?.rating ?? null)) * (focusedSelection?.quantity ?? 1)), tone: 'accent' },
+            { label: 'AVAIL', value: String(focusedAvailability ?? '—'), tone: (focusedAvailability ?? 0) > 12 ? 'danger' : 'default' },
+          ]}
+          configureTitle={taken ? 'CONFIGURE' : undefined}
+          action={(
+            <button type="button" className={`readout__action${taken ? ' readout__action--remove' : ''}`} onClick={() => toggle(focused)}>
+              {taken ? 'REMOVE FROM DOSSIER' : 'ADD TO DOSSIER +'}
+            </button>
+          )}
+          rows={[{ label: 'RATING RANGE', value: focused.ratingRange ? `${focused.ratingRange.minimum}–${focused.ratingRange.maximum}` : 'FIXED' }]}
+          warn={(focusedAvailability ?? 0) > 12 ? `Availability ${focusedAvailability} exceeds the creation cap of 12. The server will reject this item on finalize.` : undefined}
+        >
+          {taken && (
+            <>
+              {focused.ratingRange && (
+                <div className="readout__field">
+                  <span className="readout__field-label">RATING <span className="readout__field-sub">({focused.ratingRange.minimum}–{Math.min(focused.ratingRange.maximum, 6)})</span></span>
+                  <span className="readout__pillrow" style={{ maxWidth: 140 }}>
+                    <button type="button" className="console__stepper-btn" aria-label={`Decrease ${focused.displayName} rating`} disabled={(focusedSelection?.rating ?? focused.ratingRange.minimum) <= focused.ratingRange.minimum} onClick={() => updateSelection(focused.id, { rating: Math.max(focused.ratingRange!.minimum, (focusedSelection?.rating ?? focused.ratingRange!.minimum) - 1) })}>−</button>
+                    <span className="console__stepper-value console__stepper-value--active" style={{ minWidth: 24 }}>{focusedSelection?.rating ?? focused.ratingRange.minimum}</span>
+                    <button type="button" className="console__stepper-btn" aria-label={`Increase ${focused.displayName} rating`} disabled={(focusedSelection?.rating ?? focused.ratingRange.minimum) >= Math.min(focused.ratingRange.maximum, 6)} onClick={() => updateSelection(focused.id, { rating: Math.min(Math.min(focused.ratingRange!.maximum, 6), (focusedSelection?.rating ?? focused.ratingRange!.minimum) + 1) })}>+</button>
+                  </span>
+                </div>
+              )}
+              <div className="readout__field">
+                <span className="readout__field-label">QUANTITY</span>
+                <span className="readout__pillrow" style={{ maxWidth: 140 }}>
+                  <button type="button" className="console__stepper-btn" aria-label={`Decrease ${focused.displayName} quantity`} disabled={(focusedSelection?.quantity ?? 1) <= 1} onClick={() => updateSelection(focused.id, { quantity: Math.max(1, (focusedSelection?.quantity ?? 1) - 1) })}>−</button>
+                  <span className="console__stepper-value console__stepper-value--active" style={{ minWidth: 24 }}>{focusedSelection?.quantity ?? 1}</span>
+                  <button type="button" className="console__stepper-btn" aria-label={`Increase ${focused.displayName} quantity`} onClick={() => updateSelection(focused.id, { quantity: (focusedSelection?.quantity ?? 1) + 1 })}>+</button>
+                </span>
+              </div>
+              {focused.requiresParameter && (
+                <div className="readout__field--stack">
+                  <span className="readout__field-label" style={{ color: 'var(--sb-warning)' }}>REQUIRED PARAMETER</span>
+                  <div className="readout__input-row">
+                    <input aria-label={`${focused.displayName} parameter`} placeholder="Required parameter" value={focusedSelection?.parameter ?? ''} onChange={(event) => updateSelection(focused.id, { parameter: event.target.value })} />
+                  </div>
+                </div>
+              )}
+              {focused.hostKind && (
+                <div className="readout__field--stack">
+                  <div className="readout__field">
+                    <span className="readout__field-label">ATTACHMENTS</span>
+                    <button type="button" className="creator-header__btn" aria-label={`Manage attachments for ${focused.displayName}`} onClick={() => setOpenHostInstanceId(focusedSelection!.instanceId ?? null)}>MANAGE ▸</button>
+                  </div>
+                  {focusedAttachments.length > 0 && (
+                    <div className="readout__attach-list">
+                      {focusedAttachments.map((attachment) => {
+                        const accessory = resolveAccessory(catalog, focused.hostKind, attachment.accessoryId)
+                        const mount = effectiveWeaponMount(catalog, attachment)
+                        return (
+                          <div className="readout__attach-row" key={attachment.accessoryId}>
+                            <span>{accessory?.displayName ?? attachment.accessoryId}</span>
+                            <span>{attachmentUnitCost(catalog, attachment).toLocaleString()}¥{mount ? ` · ${MOUNT_LABELS[mount]}` : ''}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </Readout>
       )}
 
       {openHost?.instanceId && openHostLine?.hostKind && (
@@ -349,6 +382,6 @@ export function ResourcesStep({ catalog, document, onChange }: CreationStepProps
           onClose={() => setOpenHostInstanceId(null)}
         />
       )}
-    </section>
+    </div>
   )
 }

@@ -9,13 +9,18 @@ import {
 import type { CreationStepProps } from './types.ts'
 import { GearAttachmentModal } from './GearAttachmentModal.tsx'
 import { augmentationHostCapacity, resolveAccessory } from './resourceCatalog.ts'
+import { CatalogRail } from '../CatalogRail.tsx'
+import { Readout } from '../Readout.tsx'
+import { Diagnostics } from '../Diagnostics.tsx'
+import { ESSENCE_BUDGET } from '../budgets.ts'
+import { describeAugmentation } from '../catalogDescriptions.ts'
 
 const AUGMENTATION_CATEGORY_LABELS: Record<string, string> = {
-  'headware': 'Headware',
-  'eyeware': 'Eyeware',
-  'earware': 'Earware',
-  'bodyware': 'Bodyware',
-  'cyberlimb': 'Cyberlimbs',
+  headware: 'Headware',
+  eyeware: 'Eyeware',
+  earware: 'Earware',
+  bodyware: 'Bodyware',
+  cyberlimb: 'Cyberlimbs',
   'implant-weapon': 'Implant Weapons',
   'basic-bioware': 'Basic Bioware',
   'cultured-bioware': 'Cultured Bioware',
@@ -23,7 +28,15 @@ const AUGMENTATION_CATEGORY_LABELS: Record<string, string> = {
 
 const PURCHASABLE: string[] = ['Selectable', 'Parameterized']
 
-export function AugmentationsStep({ catalog, document, onChange }: CreationStepProps) {
+function money(amount: number): string {
+  if (Math.abs(amount) >= 1000) {
+    const thousands = amount / 1000
+    return `${Number.isInteger(thousands) ? thousands : thousands.toFixed(1)}k¥`
+  }
+  return `${amount}¥`
+}
+
+export function AugmentationsStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
   const resources = document.resources ?? []
   const grades = catalog.augmentationGrades.filter((grade) => grade.creationEligible)
   const standardGrade = grades.find((grade) => grade.id === 'standard') ?? grades[0]
@@ -33,6 +46,11 @@ export function AugmentationsStep({ catalog, document, onChange }: CreationStepP
   const otherResources = resources.filter((item) => !isAugmentation(item.itemId))
   const attachments = document.attachments ?? []
   const [openHostInstanceId, setOpenHostInstanceId] = useState<string | null>(null)
+
+  const purchasable = catalog.augmentations.filter((aug) => PURCHASABLE.includes(aug.classification))
+  // Defaults to whatever's already purchased so a pre-populated draft shows
+  // its attachments button immediately, without requiring a click first.
+  const [focusedId, setFocusedId] = useState(() => augSelections[0]?.itemId ?? purchasable[0]?.id ?? '')
 
   const setAugSelections = (next: ResourceSelection[], nextAttachments: AttachmentSelection[] = attachments) =>
     onChange({ ...document, resources: [...otherResources, ...next], attachments: nextAttachments })
@@ -56,6 +74,7 @@ export function AugmentationsStep({ catalog, document, onChange }: CreationStepP
       * metatypeGearMultiplier(document.metatype?.metatypeId)
     essence += augmentationUnitEssence(aug, grade, rating) * (selection.quantity ?? 1)
   }
+  essence = Math.round(essence * 100) / 100
 
   const toggle = (aug: AugmentationDefinition) => {
     const existing = augSelections.find((item) => item.itemId === aug.id)
@@ -72,6 +91,7 @@ export function AugmentationsStep({ catalog, document, onChange }: CreationStepP
         instanceId: crypto.randomUUID(),
       }])
     }
+    setFocusedId(aug.id)
   }
 
   const updateSelection = (itemId: string, patch: Partial<ResourceSelection>) =>
@@ -84,8 +104,33 @@ export function AugmentationsStep({ catalog, document, onChange }: CreationStepP
     setAugSelections(augSelections, attachments.filter((item) =>
       !(item.hostInstanceId === hostInstanceId && item.accessoryId === accessoryId)))
 
-  const purchasable = catalog.augmentations.filter((aug) => PURCHASABLE.includes(aug.classification))
-  const categories = [...new Set(purchasable.map((aug) => aug.augmentationCategoryId))]
+  const picked = augSelections.flatMap((selection) => {
+    const aug = catalog.augmentations.find((item) => item.id === selection.itemId)
+    if (!aug) return []
+    const grade = gradeFor(selection)
+    return [{
+      id: aug.id,
+      name: aug.displayName,
+      badge: money(Math.round(augmentationUnitCost(aug, grade, selection.rating ?? null)) * (selection.quantity ?? 1)),
+      active: focusedId === aug.id,
+      onFocus: () => setFocusedId(aug.id),
+      onRemove: () => toggle(aug),
+    }]
+  })
+
+  const focused = purchasable.find((item) => item.id === focusedId) ?? purchasable[0]
+  const focusedSelection = focused ? augSelections.find((item) => item.itemId === focused.id) : undefined
+  const taken = focusedSelection !== undefined
+  const focusedGrade = gradeFor(focusedSelection)
+  const focusedHostKind = focused?.capacity ? ('augmentation' as const) : undefined
+  const focusedAttachments = focusedSelection?.instanceId
+    ? attachments.filter((entry) => entry.hostInstanceId === focusedSelection.instanceId)
+    : []
+  const capTotal = focused?.capacity ? augmentationHostCapacity(focused, focusedSelection?.rating ?? null) : 0
+  const capUsed = focusedAttachments.reduce((total, entry) => {
+    const accessory = resolveAccessory(catalog, focusedHostKind, entry.accessoryId)
+    return total + (accessory ? 1 : 0)
+  }, 0)
 
   const openHost = openHostInstanceId
     ? augSelections.find((selection) => selection.instanceId === openHostInstanceId)
@@ -93,72 +138,151 @@ export function AugmentationsStep({ catalog, document, onChange }: CreationStepP
   const openHostAug = openHost ? catalog.augmentations.find((aug) => aug.id === openHost.itemId) : undefined
 
   return (
-    <section className="creation-step" aria-labelledby="augmentation-step-heading">
-      <p className="creation-step__eyebrow">AUGMENTATIONS / ESSENCE</p>
-      <h3 id="augmentation-step-heading">Buy chrome and burn Essence</h3>
-      <p className="creation-step__intro">Standard and alphaware grades are available at creation. Numeric Availability may not exceed 12 and a purchasable Rating may not exceed 6.</p>
-      <div className="creation-step__allocation-status" role="status">
-        <strong>{essence.toFixed(1)}</strong> / 6 Essence · <strong>{spent.toLocaleString()}</strong> / {nuyenBudget.toLocaleString()} nuyen
-      </div>
-      {categories.map((categoryId) => (
-        <div className="creation-step__attributes" key={categoryId}>
-          <p className="creation-step__eyebrow">{AUGMENTATION_CATEGORY_LABELS[categoryId] ?? categoryId}</p>
-          {purchasable.filter((aug) => aug.augmentationCategoryId === categoryId).map((aug) => {
+    <div className="console console--catalog">
+      <CatalogRail
+        budgets={[
+          { label: 'ESSENCE BURNED', spent: essence.toFixed(2), budget: ESSENCE_BUDGET.toFixed(2), pct: (essence / ESSENCE_BUDGET) * 100, tone: essence > ESSENCE_BUDGET ? 'danger' : 'accent' },
+          { label: 'NUYEN', spent: money(spent), budget: money(nuyenBudget), pct: (spent / (nuyenBudget || 1)) * 100, tone: spent > nuyenBudget ? 'danger' : 'accent' },
+        ]}
+        facets={Object.entries(AUGMENTATION_CATEGORY_LABELS).map(([id, label]) => ({
+          label: label.toUpperCase(),
+          count: purchasable.filter((aug) => aug.augmentationCategoryId === id).length,
+        })).filter((facet) => facet.count > 0)}
+        picked={picked}
+      />
+
+      <div className="console__main">
+        <div className="console__header">
+          <span className="console__header-prompt">catalog:augmentations&gt;</span>
+          <input className="console__header-input" placeholder="eye · reflex · bioware (visual only)" readOnly />
+          <span className="console__header-count">{purchasable.length} entries</span>
+        </div>
+        <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 60px 96px' }}>
+          <span>AUGMENTATION</span><span>SLOT</span><span>ESS</span><span />
+        </div>
+        <div className="console__list">
+          {purchasable.map((aug) => {
             const selection = augSelections.find((item) => item.itemId === aug.id)
+            const isTaken = selection !== undefined
             const grade = gradeFor(selection)
-            const rating = selection?.rating ?? null
-            const cost = augmentationUnitCost(aug, grade, rating)
-            const essenceLoss = augmentationUnitEssence(aug, grade, rating)
-            const availability = augmentationAvailability(aug, grade, rating)
-            const hostKind = aug.capacity ? ('augmentation' as const) : undefined
-            const hostAttachments = selection?.instanceId
-              ? attachments.filter((entry) => entry.hostInstanceId === selection.instanceId)
-              : []
             return (
-              <div className="creation-resource-line" key={aug.id}>
-                <label className="creation-attribute">
-                  <span>
-                    <strong>{aug.displayName}</strong>
-                    <small>{cost.toLocaleString()}¥ · {essenceLoss} Essence · Avail {availability ?? '—'}{aug.ratingRange ? ` · Rating ${aug.ratingRange.minimum}-${aug.ratingRange.maximum}` : ''}</small>
-                  </span>
-                  <input type="checkbox" checked={selection !== undefined} onChange={() => toggle(aug)} />
-                  {selection && aug.ratingRange && (
-                    <input aria-label={`${aug.displayName} rating`} min={aug.ratingRange.minimum} max={Math.min(aug.ratingRange.maximum, 6)} type="number" value={selection.rating ?? aug.ratingRange.minimum} onChange={(event) => updateSelection(aug.id, { rating: Number(event.target.value) })} />
-                  )}
-                  {selection && aug.requiresParameter && (
-                    <input aria-label={`${aug.displayName} parameter`} placeholder="Required parameter" maxLength={120} value={selection.parameter ?? ''} onChange={(event) => updateSelection(aug.id, { parameter: event.target.value })} />
-                  )}
-                  {selection && (
-                    <select aria-label={`${aug.displayName} grade`} value={selection.gradeId ?? 'standard'} onChange={(event) => updateSelection(aug.id, { gradeId: event.target.value })}>
-                      {grades.map((grade) => <option key={grade.id} value={grade.id}>{grade.displayName}</option>)}
-                    </select>
-                  )}
-                  {selection && (
-                    <input aria-label={`${aug.displayName} quantity`} min="1" max="1000" type="number" value={selection.quantity ?? 1} onChange={(event) => updateSelection(aug.id, { quantity: Number(event.target.value) })} />
-                  )}
-                  {selection && hostKind && (
-                    <button type="button" className="creation-attachment__add"
-                      aria-label={`Manage attachments for ${aug.displayName}`}
-                      onClick={() => setOpenHostInstanceId(selection.instanceId ?? null)}>+</button>
-                  )}
-                </label>
-                {hostAttachments.length > 0 && (
-                  <ul className="creation-resource-line__attachments">
-                    {hostAttachments.map((attachment) => {
-                      const accessory = resolveAccessory(catalog, hostKind, attachment.accessoryId)
-                      return (
-                        <li key={attachment.accessoryId}>
-                          <span>{accessory?.displayName ?? attachment.accessoryId}</span>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
+              <div
+                key={aug.id}
+                className={`console__row${focusedId === aug.id ? ' console__row--active' : ''}${isTaken ? ' console__row--taken' : ''}`}
+                style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 60px 96px' }}
+                onClick={() => setFocusedId(aug.id)}
+              >
+                <span className="console__row-name"><span className="console__row-name-text">{aug.displayName}</span></span>
+                <span className="console__row-col">{AUGMENTATION_CATEGORY_LABELS[aug.augmentationCategoryId] ?? aug.augmentationCategoryId}</span>
+                <span className="console__row-col">{augmentationUnitEssence(aug, grade, selection?.rating ?? null)}</span>
+                <span className="console__row-end">
+                  <label className={`console__toggle${isTaken ? ' console__toggle--on' : ''}`}>
+                    <input type="checkbox" className="console__toggle-input" checked={isTaken} onChange={() => toggle(aug)} aria-label={aug.displayName} />
+                    {isTaken ? `${money(Math.round(augmentationUnitCost(aug, grade, selection?.rating ?? null)))} ✓` : money(Math.round(augmentationUnitCost(aug, standardGrade, aug.ratingRange?.minimum ?? null)))}
+                  </label>
+                </span>
               </div>
             )
           })}
         </div>
-      ))}
+        <Diagnostics diagnostics={diagnostics} />
+      </div>
+
+      {focused && (
+        <Readout
+          mode="config"
+          source="SR5 CORE"
+          name={focused.displayName.toUpperCase()}
+          meta={`${(AUGMENTATION_CATEGORY_LABELS[focused.augmentationCategoryId] ?? focused.augmentationCategoryId).toUpperCase()}`}
+          text={describeAugmentation(focused.id, focused.augmentationCategoryId)}
+          stats={[
+            { label: 'COST', value: money(Math.round(augmentationUnitCost(focused, focusedGrade, focusedSelection?.rating ?? null)) * (focusedSelection?.quantity ?? 1)), tone: 'accent' },
+            { label: 'ESSENCE', value: String(augmentationUnitEssence(focused, focusedGrade, focusedSelection?.rating ?? null)), tone: augmentationUnitEssence(focused, focusedGrade, focusedSelection?.rating ?? null) >= 1 ? 'danger' : 'default' },
+          ]}
+          configureTitle={taken ? 'CONFIGURE' : undefined}
+          action={(
+            <button type="button" className={`readout__action${taken ? ' readout__action--remove' : ''}`} onClick={() => toggle(focused)}>
+              {taken ? 'REMOVE FROM DOSSIER' : 'ADD TO DOSSIER +'}
+            </button>
+          )}
+          rows={[
+            { label: 'AVAILABILITY', value: String(augmentationAvailability(focused, focusedGrade, focusedSelection?.rating ?? null) ?? '—') },
+            { label: 'RATING RANGE', value: focused.ratingRange ? `${focused.ratingRange.minimum}–${focused.ratingRange.maximum}` : 'FIXED' },
+          ]}
+          warn={(augmentationAvailability(focused, focusedGrade, focusedSelection?.rating ?? null) ?? 0) > 12
+            ? 'Availability exceeds the creation cap of 12. The server will reject this item on finalize.'
+            : augmentationUnitEssence(focused, focusedGrade, focusedSelection?.rating ?? null) >= 2
+              ? 'This implant burns a large chunk of Essence. Check the Attributes step for the Magic loss.'
+              : undefined}
+        >
+          {taken && (
+            <>
+              {focused.ratingRange && (
+                <div className="readout__field">
+                  <span className="readout__field-label">RATING <span className="readout__field-sub">({focused.ratingRange.minimum}–{Math.min(focused.ratingRange.maximum, 6)})</span></span>
+                  <span className="readout__pillrow" style={{ maxWidth: 140 }}>
+                    <button type="button" className="console__stepper-btn" aria-label={`Decrease ${focused.displayName} rating`} disabled={(focusedSelection?.rating ?? focused.ratingRange.minimum) <= focused.ratingRange.minimum} onClick={() => updateSelection(focused.id, { rating: Math.max(focused.ratingRange!.minimum, (focusedSelection?.rating ?? focused.ratingRange!.minimum) - 1) })}>−</button>
+                    <span className="console__stepper-value console__stepper-value--active" style={{ minWidth: 24 }}>{focusedSelection?.rating ?? focused.ratingRange.minimum}</span>
+                    <button type="button" className="console__stepper-btn" aria-label={`Increase ${focused.displayName} rating`} disabled={(focusedSelection?.rating ?? focused.ratingRange.minimum) >= Math.min(focused.ratingRange.maximum, 6)} onClick={() => updateSelection(focused.id, { rating: Math.min(Math.min(focused.ratingRange!.maximum, 6), (focusedSelection?.rating ?? focused.ratingRange!.minimum) + 1) })}>+</button>
+                  </span>
+                </div>
+              )}
+              <div className="readout__field readout__field--stack">
+                <span className="readout__field-label">GRADE</span>
+                <span className="readout__pillrow">
+                  {grades.map((grade) => (
+                    <button
+                      key={grade.id}
+                      type="button"
+                      className={`readout__pill${(focusedSelection?.gradeId ?? 'standard') === grade.id ? ' readout__pill--active' : ''}`}
+                      aria-label={`${focused.displayName} grade ${grade.displayName}`}
+                      onClick={() => updateSelection(focused.id, { gradeId: grade.id })}
+                    >
+                      {grade.displayName.toUpperCase()}
+                    </button>
+                  ))}
+                </span>
+              </div>
+              <div className="readout__field">
+                <span className="readout__field-label">QUANTITY</span>
+                <span className="readout__pillrow" style={{ maxWidth: 140 }}>
+                  <button type="button" className="console__stepper-btn" aria-label={`Decrease ${focused.displayName} quantity`} disabled={(focusedSelection?.quantity ?? 1) <= 1} onClick={() => updateSelection(focused.id, { quantity: Math.max(1, (focusedSelection?.quantity ?? 1) - 1) })}>−</button>
+                  <span className="console__stepper-value console__stepper-value--active" style={{ minWidth: 24 }}>{focusedSelection?.quantity ?? 1}</span>
+                  <button type="button" className="console__stepper-btn" aria-label={`Increase ${focused.displayName} quantity`} onClick={() => updateSelection(focused.id, { quantity: (focusedSelection?.quantity ?? 1) + 1 })}>+</button>
+                </span>
+              </div>
+              {focused.requiresParameter && (
+                <div className="readout__field--stack">
+                  <span className="readout__field-label" style={{ color: 'var(--sb-warning)' }}>REQUIRED PARAMETER</span>
+                  <div className="readout__input-row">
+                    <input aria-label={`${focused.displayName} parameter`} placeholder="e.g. pollutants" value={focusedSelection?.parameter ?? ''} onChange={(event) => updateSelection(focused.id, { parameter: event.target.value })} />
+                  </div>
+                </div>
+              )}
+              {focusedHostKind && (
+                <div className="readout__field--stack">
+                  <div className="readout__field">
+                    <span className="readout__field-label">ATTACHMENTS <span className="readout__field-sub">({capUsed}/{capTotal})</span></span>
+                    <button type="button" className="creator-header__btn" aria-label={`Manage attachments for ${focused.displayName}`} onClick={() => setOpenHostInstanceId(focusedSelection!.instanceId ?? null)}>MANAGE ▸</button>
+                  </div>
+                  {focusedAttachments.length > 0 && (
+                    <div className="readout__attach-list">
+                      {focusedAttachments.map((attachment) => {
+                        const accessory = resolveAccessory(catalog, focusedHostKind, attachment.accessoryId)
+                        return (
+                          <div className="readout__attach-row" key={attachment.accessoryId}>
+                            <span>{accessory?.displayName ?? attachment.accessoryId}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </Readout>
+      )}
 
       {openHost?.instanceId && openHostAug?.capacity && (
         <GearAttachmentModal
@@ -174,6 +298,6 @@ export function AugmentationsStep({ catalog, document, onChange }: CreationStepP
           onClose={() => setOpenHostInstanceId(null)}
         />
       )}
-    </section>
+    </div>
   )
 }

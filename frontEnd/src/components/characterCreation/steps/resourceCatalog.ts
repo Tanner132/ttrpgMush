@@ -199,3 +199,75 @@ export function augmentationHostCapacity(
 export function vehicleMountCapacity(item: Pick<VehicleDefinition, 'body'>): number {
   return item.body != null ? Math.floor(item.body / 3) : 0
 }
+
+// The unified shopping list ResourcesStep (and the header's nuyen readout)
+// both need: every purchasable gear/weapon/armor/vehicle/cyberdeck line,
+// normalized to one shape.
+export function buildResourceLines(catalog: CatalogContract): ResourceLine[] {
+  return [
+    ...catalog.gear.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: item.categoryId,
+      groupLabel: humanizeResourceCategory(item.categoryId),
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: item.ratingRange,
+      requiresParameter: item.requiresParameter ?? false,
+      hostKind: (item.isCapacityHost || item.capacity) ? ('gear' as const) : undefined,
+      capacity: item.capacity,
+      isCapacityHost: item.isCapacityHost,
+    })),
+    ...catalog.weapons.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: item.weaponCategoryId,
+      groupLabel: humanizeResourceCategory(item.weaponCategoryId),
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: item.ratingRange,
+      requiresParameter: item.requiresParameter ?? false,
+      hostKind: 'weapon' as const,
+      weaponCategoryId: item.weaponCategoryId,
+    })),
+    ...catalog.armor.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: 'armor',
+      groupLabel: 'Armor',
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: item.ratingRange,
+      requiresParameter: false,
+      hostKind: item.capacity ? ('armor' as const) : undefined,
+      capacity: item.capacity,
+    })),
+    ...catalog.vehicles.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: item.vehicleCategoryId,
+      groupLabel: humanizeResourceCategory(item.vehicleCategoryId),
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: undefined,
+      requiresParameter: false,
+      hostKind: item.body ? ('vehicle' as const) : undefined,
+      body: item.body,
+    })),
+    ...catalog.cyberdecks.map((item) => ({
+      id: item.id,
+      displayName: item.displayName,
+      groupKey: 'cyberdeck',
+      groupLabel: humanizeResourceCategory('cyberdeck'),
+      classification: item.classification,
+      availability: item.availability,
+      cost: item.cost,
+      ratingRange: undefined,
+      requiresParameter: false,
+    })),
+  ]
+}

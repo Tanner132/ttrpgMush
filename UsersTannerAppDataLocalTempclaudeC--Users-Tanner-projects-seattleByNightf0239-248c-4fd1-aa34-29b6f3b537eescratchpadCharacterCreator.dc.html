@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; height:100%; background:#050609; color:#d7e4e0; font-family:'Source Code Pro',ui-monospace,monospace; -webkit-font-smoothing:antialiased; overflow:hidden; }
+  * { box-sizing:border-box; }
+  a { color:#00d2ff; text-decoration:none; }
+  a:hover { color:#00ffcc; }
+  input, textarea, button, select { font-family:inherit; }
+  ::selection { background:#00ffcc; color:#06251f; }
+  ::-webkit-scrollbar { width:7px; height:7px; }
+  ::-webkit-scrollbar-track { background:#080a0e; }
+  ::-webkit-scrollbar-thumb { background:#1e2430; border:1px solid #080a0e; }
+  ::-webkit-scrollbar-thumb:hover { background:#2b3340; }
+  #ribbon { scrollbar-width:thin; scrollbar-color:#1e2430 #080a0e; }
+  #ribbon::-webkit-scrollbar { height:4px; }
+  #ribbon::-webkit-scrollbar-track { background:#06080b; }
+  #ribbon::-webkit-scrollbar-thumb { background:#242c38; border:0; }
+  #ribbon::-webkit-scrollbar-thumb:hover { background:#333d4c; }
+  @keyframes crtFlicker { 0%,100%{opacity:.995} 12%{opacity:1} 44%{opacity:.985} 76%{opacity:.99} }
+  @keyframes sweep { 0%{transform:translateY(-12vh)} 100%{transform:translateY(112vh)} }
+  @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; } }
+</style>
+</helmet>
+
+<div style="position:relative;height:100vh;width:100%;background:#050609;display:flex;flex-direction:column;overflow:hidden">
+
+  <div style="position:absolute;inset:0;z-index:60;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.30) 0 1px,rgba(0,0,0,0) 1px 4px);mix-blend-mode:multiply;opacity:{{ crtScan }}"></div>
+  <div style="position:absolute;inset:0;z-index:61;pointer-events:none;background:radial-gradient(126% 106% at 50% 48%,rgba(0,0,0,0) 66%,rgba(0,0,0,.55) 100%);animation:crtFlicker 5.6s linear infinite;opacity:{{ crtVignette }}"></div>
+  <div style="position:absolute;inset:0;z-index:62;pointer-events:none;overflow:hidden"><div style="position:absolute;left:0;right:0;height:16vh;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(215,228,224,.028) 60%,rgba(255,255,255,0) 100%);animation:sweep 8s linear infinite"></div></div>
+  <div style="position:absolute;inset:0;z-index:63;pointer-events:none;box-shadow:inset 0 0 96px rgba(0,0,0,.55), inset 0 0 34px rgba(0,255,204,.10)"></div>
+
+  <!-- dossier header -->
+  <header style="position:relative;z-index:20;display:flex;align-items:center;gap:16px;height:40px;padding:0 14px;background:#0a0c11;border-bottom:1px solid #1e2430;flex-shrink:0">
+    <span style="width:9px;height:9px;background:#00ffcc;box-shadow:0 0 10px #00ffcc;display:inline-block;flex-shrink:0"></span>
+    <span style="font-family:Rajdhani,sans-serif;font-size:17px;font-weight:700;letter-spacing:.14em;color:#d7e4e0;white-space:nowrap">KESTREL</span>
+    <span style="font-size:10px;letter-spacing:.16em;color:#4b5860;white-space:nowrap">#a41f7c02 · ELF · STANDARD PRIORITY</span>
+    <div style="flex:1;min-width:8px"></div>
+    <div style="display:flex;align-items:center;gap:7px;height:28px;flex-shrink:0">
+      <sc-for list="{{ headerBudgets }}" as="b" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:6px;height:28px;border:1px solid {{ b.border }};background:{{ b.bg }};padding:0 10px;flex-shrink:0">
+          <span style="font-size:9.5px;letter-spacing:.16em;color:#64746f">{{ b.label }}</span>
+          <span style="font-size:9.5px;letter-spacing:.16em;font-weight:600;color:{{ b.fg }};white-space:nowrap">{{ b.value }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <sc-if value="{{ isConsole }}" hint-placeholder-val="{{ false }}">
+      <button type="button" onClick="{{ goDossier }}" style="display:flex;align-items:center;height:28px;border:1px solid #00ffcc;background:rgba(0,255,204,.12);color:#00ffcc;font-size:9.5px;letter-spacing:.16em;padding:0 10px;cursor:pointer;white-space:nowrap;flex-shrink:0" style-hover="background:#00ffcc;color:#04140f">◂ DOSSIER</button>
+    </sc-if>
+    <button type="button" onClick="{{ goBlocking }}" title="Jump to the step that needs fixing" style="display:flex;align-items:center;height:28px;font-size:9.5px;letter-spacing:.16em;color:#ff0055;border:1px solid #ff0055;background:transparent;padding:0 10px;white-space:nowrap;flex-shrink:0;cursor:pointer" style-hover="background:#ff0055;color:#120106">{{ blockingLabel }} ▸</button>
+  </header>
+
+  <!-- step ribbon -->
+  <sc-if value="{{ isConsole }}" hint-placeholder-val="{{ false }}">
+
+  <!-- console -->
+  <div style="position:relative;z-index:20;flex:1;display:grid;grid-template-columns:{{ consoleCols }};min-height:0">
+
+    <!-- rail: budgets, facets, picked — catalog steps only -->
+    <sc-if value="{{ hasRail }}" hint-placeholder-val="{{ true }}">
+    <aside style="border-right:1px solid #1e2430;background:#0a0c11;overflow-y:auto;display:flex;flex-direction:column">
+      <div style="padding:11px 13px 9px;border-bottom:1px solid #131820">
+        <div style="font-size:9px;letter-spacing:.22em;color:#4b5860;margin-bottom:9px">BUDGET</div>
+        <sc-for list="{{ budgets }}" as="b" hint-placeholder-count="2">
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:10px;letter-spacing:.08em;color:#7f8f8b;margin-bottom:5px">
+              <span>{{ b.label }}</span><span style="color:{{ b.fg }};font-weight:600">{{ b.value }}</span>
+            </div>
+            <div style="height:4px;background:#131820;border:1px solid #1a2028"><div style="height:100%;width:{{ b.pct }}%;background:{{ b.fg }};box-shadow:0 0 8px {{ b.glow }}"></div></div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="padding:11px 0 9px;border-bottom:1px solid #131820">
+        <div style="padding:0 13px 8px;font-size:9px;letter-spacing:.22em;color:#4b5860">{{ facetLabel }}</div>
+        <sc-for list="{{ facets }}" as="f" hint-placeholder-count="6">
+          <button type="button" onClick="{{ f.pick }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 13px;border:0;border-left:2px solid {{ f.mark }};background:{{ f.bg }};color:{{ f.fg }};font-size:11px;letter-spacing:.04em;text-align:left;cursor:pointer" style-hover="background:#0e131b">
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.label }}</span>
+            <span style="font-size:9.5px;color:{{ f.countFg }};flex-shrink:0">{{ f.count }}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <div style="padding:11px 13px 8px;font-size:9px;letter-spacing:.22em;color:#4b5860;display:flex;justify-content:space-between">
+          <span>SELECTED</span><span style="color:#00ffcc">{{ pickedCount }}</span>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding-bottom:10px">
+          <sc-if value="{{ pickedEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:4px 13px 0;font-size:10.5px;color:#39444c">— none —</div>
+          </sc-if>
+          <sc-for list="{{ picked }}" as="p" hint-placeholder-count="4">
+            <div onClick="{{ p.focus }}" style="display:flex;align-items:center;justify-content:space-between;gap:7px;padding:5px 13px;cursor:pointer;background:{{ p.bg }};border-left:2px solid {{ p.mark }}" style-hover="background:#0e131b">
+              <span style="font-size:11px;color:#c3d2ce;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</span>
+              <span style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                <span style="font-size:10px;color:#00ffcc">{{ p.badge }}</span>
+                <button type="button" onClick="{{ p.remove }}" title="Remove" style="border:0;background:transparent;color:#4b5860;font-size:12px;line-height:1;padding:0 2px;cursor:pointer" style-hover="color:#ff0055">×</button>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </aside>
+    </sc-if>
+
+    <!-- result console -->
+    <section ref="{{ consoleRef }}" style="display:flex;flex-direction:column;min-width:0;min-height:0;background:#04060a">
+
+      <sc-if value="{{ hasSearch }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;gap:11px;padding:0 15px;height:50px;border-bottom:1px solid #1e2430;background:linear-gradient(180deg,rgba(0,255,204,.045),transparent);flex-shrink:0">
+        <span style="font-size:12px;letter-spacing:.1em;color:#00ffcc;text-shadow:0 0 10px rgba(0,255,204,.3);white-space:nowrap">{{ queryPrompt }}</span>
+        <input value="{{ q }}" onInput="{{ onQuery }}" placeholder="{{ queryHint }}" style="flex:1;min-width:0;border:0;outline:none;background:transparent;color:#d7e4e0;font-size:14px;letter-spacing:.03em;caret-color:transparent">
+        <span style="display:inline-block;width:9px;height:17px;background:#00ffcc;box-shadow:0 0 12px #00ffcc;margin-left:-6px;animation:blink 1.05s steps(1) infinite;flex-shrink:0"></span>
+        <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ clearQuery }}" title="Clear filter" style="border:1px solid #2b3340;background:transparent;color:#93a6a2;font-size:11px;line-height:1;padding:4px 7px;cursor:pointer;flex-shrink:0" style-hover="border-color:#ff0055;color:#ff0055">✕</button>
+        </sc-if>
+        <span style="font-size:10px;letter-spacing:.16em;color:#4b5860;white-space:nowrap;flex-shrink:0">{{ resultCount }} / {{ totalCount }}</span>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isPlainHeader }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:12px;padding:0 18px;height:50px;border-bottom:1px solid #1e2430;background:linear-gradient(180deg,rgba(0,255,204,.045),transparent);flex-shrink:0">
+          <span style="font-size:10px;letter-spacing:.22em;color:#00ffcc">{{ stepNumber }}</span>
+          <span style="font-family:Rajdhani,sans-serif;font-size:19px;font-weight:700;letter-spacing:.13em;color:#d7e4e0">{{ stepTitle }}</span>
+          <div style="flex:1"></div>
+          <span style="font-size:10px;letter-spacing:.14em;color:{{ stepStatusFg }}">{{ stepStatus }}</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ hasSubTabs }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:stretch;height:32px;border-bottom:1px solid #1e2430;background:#080a0e;flex-shrink:0;overflow-x:auto">
+          <sc-for list="{{ subTabs }}" as="t" hint-placeholder-count="4">
+            <button type="button" onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:7px;padding:0 14px;border:0;border-right:1px solid #101620;border-bottom:2px solid {{ t.underline }};background:{{ t.bg }};color:{{ t.fg }};font-size:10px;letter-spacing:.16em;white-space:nowrap;cursor:pointer;flex-shrink:0">
+              {{ t.label }}<span style="font-size:9px;color:#4b5860">{{ t.count }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ hasSearch }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 15px;border-bottom:1px solid #131820;flex-shrink:0;flex-wrap:wrap">
+        <span style="font-size:9.5px;letter-spacing:.16em;color:#4b5860">FLAGS</span>
+        <sc-for list="{{ flags }}" as="f" hint-placeholder-count="3">
+          <button type="button" onClick="{{ f.toggle }}" style="border:1px solid {{ f.border }};background:{{ f.bg }};color:{{ f.fg }};font-size:9.5px;letter-spacing:.08em;padding:3px 9px;cursor:pointer">{{ f.label }}</button>
+        </sc-for>
+        <div style="flex:1"></div>
+        <span style="font-size:9.5px;letter-spacing:.14em;color:#39444c">SORT</span>
+        <sc-for list="{{ sorts }}" as="s" hint-placeholder-count="2">
+          <button type="button" onClick="{{ s.pick }}" style="border:1px solid {{ s.border }};background:{{ s.bg }};color:{{ s.fg }};font-size:9.5px;letter-spacing:.08em;padding:3px 9px;cursor:pointer">{{ s.label }}</button>
+        </sc-for>
+      </div>
+
+      </sc-if>
+
+      <sc-if value="{{ isCatalog }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:{{ gridCols }};gap:9px;padding:6px 15px;border-bottom:1px solid #1e2430;background:#080a0e;font-size:9px;letter-spacing:.18em;color:#4b5860;flex-shrink:0">
+        <span style="min-width:0;overflow:hidden">{{ colName }}</span>
+        <sc-for list="{{ midHeaders }}" as="h" hint-placeholder-count="2">
+          <span style="min-width:0;overflow:hidden">{{ h.label }}</span>
+        </sc-for>
+        <span style="text-align:right">{{ colFour }}</span>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;min-height:0">
+        <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:34px 15px;text-align:center">
+            <div style="font-size:12px;letter-spacing:.14em;color:#64746f">NO MATCHES FOR “{{ q }}”</div>
+            <button type="button" onClick="{{ resetAll }}" style="margin-top:14px;border:1px solid #2b3340;background:transparent;color:#93a6a2;font-size:10px;letter-spacing:.18em;padding:8px 14px;cursor:pointer" style-hover="border-color:#00ffcc;color:#00ffcc">RESET FILTERS</button>
+          </div>
+        </sc-if>
+        <sc-for list="{{ results }}" as="r" hint-placeholder-count="12">
+          <div onClick="{{ r.select }}" style="display:grid;grid-template-columns:{{ gridCols }};gap:9px;align-items:center;padding:{{ rowPad }} 15px;border-bottom:1px solid #0c1016;cursor:pointer;background:{{ r.bg }};border-left:2px solid {{ r.mark }}" style-hover="background:#0d1118">
+            <span style="display:flex;align-items:center;gap:8px;min-width:0">
+              <span style="font-size:13px;color:{{ r.fg }};letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span>
+              <sc-if value="{{ r.locked }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:8.5px;letter-spacing:.12em;color:#ffb000;border:1px solid rgba(255,176,0,.4);padding:1px 5px;flex-shrink:0">VIA GROUP</span>
+              </sc-if>
+            </span>
+            <sc-for list="{{ r.mid }}" as="m" hint-placeholder-count="2">
+              <span style="font-size:10.5px;color:{{ m.fg }};letter-spacing:.05em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.v }}</span>
+            </sc-for>
+
+            <span style="display:flex;align-items:center;justify-content:flex-end;gap:7px">
+              <sc-if value="{{ r.isRating }}" hint-placeholder-val="{{ true }}">
+                <span style="display:flex;align-items:center;gap:6px">
+                  <button type="button" onClick="{{ r.dec }}" style="width:22px;height:22px;border:1px solid {{ r.stepBorder }};background:#0d1118;color:{{ r.stepFg }};font-size:12px;line-height:1;cursor:pointer;flex-shrink:0" style-hover="border-color:#00ffcc;color:#00ffcc">−</button>
+                  <span style="font-family:Rajdhani,sans-serif;font-size:17px;font-weight:700;min-width:15px;text-align:center;color:{{ r.valueFg }}">{{ r.value }}</span>
+                  <button type="button" onClick="{{ r.inc }}" style="width:22px;height:22px;border:1px solid {{ r.stepBorder }};background:#0d1118;color:{{ r.stepFg }};font-size:12px;line-height:1;cursor:pointer;flex-shrink:0" style-hover="border-color:#00ffcc;color:#00ffcc">+</button>
+                </span>
+              </sc-if>
+              <sc-if value="{{ r.isToggle }}" hint-placeholder-val="{{ false }}">
+                <button type="button" onClick="{{ r.toggle }}" style="border:1px solid {{ r.tglBorder }};background:{{ r.tglBg }};color:{{ r.tglFg }};font-size:9.5px;letter-spacing:.14em;padding:5px 11px;cursor:pointer;min-width:74px" style-hover="border-color:#00ffcc">{{ r.tglLabel }}</button>
+              </sc-if>
+            </span>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+      <!-- ══ PRIORITY: 5×5 assignment grid ══ -->
+      <sc-if value="{{ isPriority }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow:auto;padding:18px">
+          <div style="display:grid;grid-template-columns:44px repeat(5,minmax(96px,1fr));gap:1px;background:#1e2430;border:1px solid #1e2430">
+            <div style="background:#0e1219;padding:8px 6px"></div>
+            <sc-for list="{{ priorityCols }}" as="c" hint-placeholder-count="5">
+              <div style="background:#0e1219;padding:8px 9px;font-size:9px;letter-spacing:.16em;color:#7f8f8b">{{ c.label }}</div>
+            </sc-for>
+            <sc-for list="{{ priorityCells }}" as="p" hint-placeholder-count="30">
+              <div style="background:{{ p.bg }};padding:{{ p.pad }};display:flex;align-items:center;justify-content:{{ p.justify }};border-left:2px solid {{ p.mark }}">
+                <sc-if value="{{ p.isLabel }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:Rajdhani,sans-serif;font-size:17px;font-weight:700;color:#7f8f8b">{{ p.label }}</span>
+                </sc-if>
+                <sc-if value="{{ p.isCell }}" hint-placeholder-val="{{ true }}">
+                  <button type="button" onClick="{{ p.pick }}" style="width:100%;height:100%;min-height:48px;border:0;background:transparent;color:{{ p.fg }};font-size:10.5px;letter-spacing:.05em;text-align:left;cursor:pointer;padding:0;line-height:1.5" style-hover="color:#00ffcc">{{ p.text }}</button>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:14px;font-size:10.5px;letter-spacing:.06em;color:#64746f;line-height:1.8">Each column takes exactly one priority letter, and no letter repeats across columns.</div>
+        </div>
+      </sc-if>
+
+      <!-- ══ METATYPE ══ -->
+      <sc-if value="{{ isMetatype }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow:auto;padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:13px;align-content:start">
+          <sc-for list="{{ metatypes }}" as="m" hint-placeholder-count="5">
+            <button type="button" onClick="{{ m.pick }}" style="display:flex;flex-direction:column;gap:9px;padding:14px;border:1px solid {{ m.border }};background:{{ m.bg }};cursor:pointer;text-align:left" style-hover="border-color:#00ffcc">
+              <span style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-family:Rajdhani,sans-serif;font-size:20px;font-weight:700;letter-spacing:.08em;color:{{ m.fg }}">{{ m.name }}</span>
+                <span style="font-size:9px;letter-spacing:.14em;color:{{ m.fg }}">{{ m.badge }}</span>
+              </span>
+              <span style="font-size:10.5px;letter-spacing:.06em;color:#7f8f8b;line-height:1.7">{{ m.mods }}</span>
+              <span style="display:flex;align-items:baseline;gap:6px;border-top:1px solid #1e2430;padding-top:8px">
+                <span style="font-size:9px;letter-spacing:.14em;color:#4b5860">SPECIAL PTS</span>
+                <span style="font-family:Rajdhani,sans-serif;font-size:15px;font-weight:700;color:#d7e4e0">{{ m.special }}</span>
+              </span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ══ ATTRIBUTES ══ -->
+      <sc-if value="{{ isAttributes }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow:auto;padding:16px 18px">
+          <sc-for list="{{ attrRows }}" as="a" hint-placeholder-count="8">
+            <div onClick="{{ a.select }}" style="display:grid;grid-template-columns:minmax(0,1fr) 128px 116px;gap:12px;align-items:center;padding:9px 11px;margin-bottom:5px;border:1px solid {{ a.border }};background:{{ a.bg }};cursor:pointer" style-hover="border-color:#2b3340">
+              <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                <span style="font-family:Rajdhani,sans-serif;font-size:15px;font-weight:700;letter-spacing:.1em;color:{{ a.fg }}">{{ a.name }}</span>
+                <span style="font-size:9.5px;letter-spacing:.1em;color:#4b5860">{{ a.range }}</span>
+              </span>
+              <span style="display:flex;gap:2px;align-items:center">
+                <sc-for list="{{ a.pips }}" as="p" hint-placeholder-count="6">
+                  <span style="width:12px;height:16px;background:{{ p.bg }};border:1px solid {{ p.border }};display:inline-block"></span>
+                </sc-for>
+              </span>
+              <span style="display:flex;align-items:center;justify-content:flex-end;gap:7px">
+                <button type="button" onClick="{{ a.dec }}" style="width:24px;height:24px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:12px;cursor:pointer" style-hover="border-color:#00ffcc;color:#00ffcc">−</button>
+                <span style="font-family:Rajdhani,sans-serif;font-size:19px;font-weight:700;min-width:18px;text-align:center;color:{{ a.valueFg }}">{{ a.value }}</span>
+                <button type="button" onClick="{{ a.inc }}" style="width:24px;height:24px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:12px;cursor:pointer" style-hover="border-color:#00ffcc;color:#00ffcc">+</button>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ══ IDENTITY ══ -->
+      <sc-if value="{{ isIdentity }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow:auto;padding:22px 24px">
+          <div style="max-width:620px;display:flex;flex-direction:column;gap:16px">
+            <sc-for list="{{ identityFields }}" as="f" hint-placeholder-count="4">
+              <label style="display:flex;flex-direction:column;gap:6px">
+                <span style="font-size:9.5px;letter-spacing:.2em;color:#7f8f8b">{{ f.label }}</span>
+                <span style="display:flex;align-items:center;gap:9px;border:1px solid #1e2430;background:#02040a;padding:0 11px;height:40px" style-focus-within="border-color:#00ffcc">
+                  <span style="font-size:10px;color:#00ffcc">&gt;</span>
+                  <input value="{{ f.value }}" onInput="{{ f.onInput }}" placeholder="{{ f.hint }}" style="flex:1;min-width:0;border:0;outline:none;background:transparent;color:#d7e4e0;font-size:13px;caret-color:#00ffcc">
+                </span>
+                <span style="font-size:10px;color:#4b5860;letter-spacing:.04em">{{ f.help }}</span>
+              </label>
+            </sc-for>
+            <label style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:9.5px;letter-spacing:.2em;color:#7f8f8b">BACKGROUND</span>
+              <textarea placeholder="Where they came from, who wants them dead, why they run the shadows." style="border:1px solid #1e2430;background:#02040a;color:#d7e4e0;font-size:13px;line-height:1.7;padding:11px;min-height:120px;resize:vertical;outline:none;caret-color:#00ffcc"></textarea>
+            </label>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ══ CONTACTS ══ -->
+      <sc-if value="{{ isContacts }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow:auto;padding:16px 18px">
+          <sc-for list="{{ contacts }}" as="c" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 108px 108px 34px;gap:11px;align-items:center;padding:10px 12px;margin-bottom:6px;border:1px solid #1e2430;background:#0a0d13">
+              <span style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                <span style="font-size:13px;color:#d7e4e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.name }}</span>
+                <span style="font-size:10px;letter-spacing:.1em;color:#64746f">{{ c.archetype }}</span>
+              </span>
+              <span style="display:flex;flex-direction:column;gap:4px">
+                <span style="font-size:9px;letter-spacing:.14em;color:#4b5860">CONNECTION</span>
+                <span style="display:flex;align-items:center;gap:6px">
+                  <button type="button" onClick="{{ c.decCon }}" style="width:20px;height:20px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:11px;cursor:pointer">−</button>
+                  <span style="font-family:Rajdhani,sans-serif;font-size:15px;font-weight:700;color:#00ffcc;min-width:12px;text-align:center">{{ c.connection }}</span>
+                  <button type="button" onClick="{{ c.incCon }}" style="width:20px;height:20px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:11px;cursor:pointer">+</button>
+                </span>
+              </span>
+              <span style="display:flex;flex-direction:column;gap:4px">
+                <span style="font-size:9px;letter-spacing:.14em;color:#4b5860">LOYALTY</span>
+                <span style="display:flex;align-items:center;gap:6px">
+                  <button type="button" onClick="{{ c.decLoy }}" style="width:20px;height:20px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:11px;cursor:pointer">−</button>
+                  <span style="font-family:Rajdhani,sans-serif;font-size:15px;font-weight:700;color:#00d2ff;min-width:12px;text-align:center">{{ c.loyalty }}</span>
+                  <button type="button" onClick="{{ c.incLoy }}" style="width:20px;height:20px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:11px;cursor:pointer">+</button>
+                </span>
+              </span>
+              <button type="button" onClick="{{ c.remove }}" title="Remove" style="width:28px;height:28px;border:1px solid #2b3340;background:transparent;color:#4b5860;font-size:13px;cursor:pointer" style-hover="border-color:#ff0055;color:#ff0055">×</button>
+            </div>
+          </sc-for>
+          <button type="button" onClick="{{ addContact }}" style="margin-top:8px;border:1px dashed #2b3340;background:transparent;color:#7f8f8b;font-size:10px;letter-spacing:.18em;padding:11px 16px;cursor:pointer;width:100%" style-hover="border-color:#00ffcc;color:#00ffcc">+ ADD CONTACT</button>
+        </div>
+      </sc-if>
+
+      <!-- ══ LIFESTYLE ══ -->
+      <sc-if value="{{ isLifestyle }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow:auto;padding:18px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px">
+            <sc-for list="{{ lifestyles }}" as="l" hint-placeholder-count="6">
+              <button type="button" onClick="{{ l.pick }}" style="display:flex;flex-direction:column;gap:7px;padding:13px;border:1px solid {{ l.border }};background:{{ l.bg }};cursor:pointer;text-align:left" style-hover="border-color:#00ffcc">
+                <span style="font-family:Rajdhani,sans-serif;font-size:17px;font-weight:700;letter-spacing:.1em;color:{{ l.fg }}">{{ l.name }}</span>
+                <span style="font-size:13px;color:#00ffcc">{{ l.cost }}</span>
+                <span style="font-size:10.5px;color:#7f8f8b;line-height:1.65">{{ l.text }}</span>
+              </button>
+            </sc-for>
+          </div>
+          <div style="margin-top:18px;display:flex;align-items:center;gap:14px;border:1px solid #1e2430;background:#0a0d13;padding:13px 15px;max-width:420px">
+            <span style="font-size:9.5px;letter-spacing:.16em;color:#7f8f8b">PREPAID MONTHS</span>
+            <div style="flex:1"></div>
+            <button type="button" onClick="{{ decMonths }}" style="width:26px;height:26px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:13px;cursor:pointer">−</button>
+            <span style="font-family:Rajdhani,sans-serif;font-size:19px;font-weight:700;color:#d7e4e0;min-width:22px;text-align:center">{{ months }}</span>
+            <button type="button" onClick="{{ incMonths }}" style="width:26px;height:26px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:13px;cursor:pointer">+</button>
+            <span style="font-size:12px;color:#00ffcc;min-width:72px;text-align:right">{{ lifestyleTotal }}</span>
+          </div>
+          <div style="margin-top:9px;font-size:10.5px;letter-spacing:.04em;color:#64746f">{{ lifestyleNote }}</div>
+        </div>
+      </sc-if>
+
+      <!-- ══ KARMA / REVIEW ══ -->
+      <sc-if value="{{ isSummary }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:grid;place-items:center;padding:30px">
+          <div style="text-align:center;max-width:420px">
+            <div style="font-family:Rajdhani,sans-serif;font-size:22px;font-weight:700;letter-spacing:.14em;color:#4b5860">STEP LOCKED</div>
+            <div style="font-size:11.5px;line-height:1.8;color:#64746f;margin-top:10px">Clear the blocking diagnostics on earlier steps and this unlocks automatically.</div>
+            <button type="button" onClick="{{ goBlocking }}" style="margin-top:18px;border:1px solid #ff0055;background:transparent;color:#ff0055;font-size:10px;letter-spacing:.18em;padding:10px 18px;cursor:pointer" style-hover="background:#ff0055;color:#120106">GO TO BLOCKING STEP ▸</button>
+          </div>
+        </div>
+      </sc-if>
+    </section>
+
+    <!-- docked readout: config on catalog steps, explanation on allocation steps -->
+    <sc-if value="{{ hasReadout }}" hint-placeholder-val="{{ true }}">
+    <aside style="border-left:1px solid #1e2430;background:#0a0c11;display:flex;flex-direction:column;min-height:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 13px;background:#0e1219;border-bottom:1px solid #1e2430;flex-shrink:0">
+        <span style="font-size:9px;letter-spacing:.22em;color:#00ffcc">{{ readoutLabel }}</span>
+        <span style="font-size:9px;letter-spacing:.14em;color:#4b5860">{{ detail.source }}</span>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:16px 15px">
+        <div style="font-family:Rajdhani,sans-serif;font-size:22px;font-weight:700;letter-spacing:.05em;color:#d7e4e0;line-height:1.15">{{ detail.name }}</div>
+        <div style="font-size:10.5px;letter-spacing:.13em;color:#64746f;margin-top:5px">{{ detail.meta }}</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#1e2430;border:1px solid #1e2430;margin:15px 0">
+          <sc-for list="{{ detail.stats }}" as="st" hint-placeholder-count="2">
+            <div style="background:#04060a;padding:8px 10px">
+              <div style="font-size:8.5px;letter-spacing:.14em;color:#4b5860">{{ st.label }}</div>
+              <div style="font-family:Rajdhani,sans-serif;font-size:19px;font-weight:700;color:{{ st.fg }}">{{ st.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <p style="margin:0 0 15px;font-size:12px;line-height:1.7;color:#93a6a2;text-wrap:pretty">{{ detail.text }}</p>
+
+        <!-- inline config: the modal contents, docked -->
+        <sc-if value="{{ detail.hasConfig }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px solid #2b3340;background:#04060a;margin-bottom:14px">
+            <div style="padding:7px 11px;border-bottom:1px solid #1e2430;font-size:9px;letter-spacing:.2em;color:#00ffcc">CONFIGURE</div>
+            <div style="padding:12px 11px;display:flex;flex-direction:column;gap:11px">
+
+              <sc-if value="{{ detail.hasRating }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                  <span style="font-size:10.5px;letter-spacing:.1em;color:#7f8f8b">RATING <span style="color:#39444c">{{ detail.ratingRange }}</span></span>
+                  <span style="display:flex;align-items:center;gap:7px">
+                    <button type="button" onClick="{{ detail.decRating }}" style="width:24px;height:24px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:12px;cursor:pointer" style-hover="border-color:#00ffcc;color:#00ffcc">−</button>
+                    <span style="font-family:Rajdhani,sans-serif;font-size:17px;font-weight:700;color:#00ffcc;min-width:16px;text-align:center">{{ detail.rating }}</span>
+                    <button type="button" onClick="{{ detail.incRating }}" style="width:24px;height:24px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:12px;cursor:pointer" style-hover="border-color:#00ffcc;color:#00ffcc">+</button>
+                  </span>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ detail.hasGrade }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <span style="font-size:10.5px;letter-spacing:.1em;color:#7f8f8b">GRADE</span>
+                  <div style="display:flex;gap:5px">
+                    <sc-for list="{{ detail.grades }}" as="g" hint-placeholder-count="2">
+                      <button type="button" onClick="{{ g.pick }}" style="flex:1;border:1px solid {{ g.border }};background:{{ g.bg }};color:{{ g.fg }};font-size:9.5px;letter-spacing:.1em;padding:6px 4px;cursor:pointer">{{ g.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ detail.hasQty }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                  <span style="font-size:10.5px;letter-spacing:.1em;color:#7f8f8b">QUANTITY</span>
+                  <span style="display:flex;align-items:center;gap:7px">
+                    <button type="button" onClick="{{ detail.decQty }}" style="width:24px;height:24px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:12px;cursor:pointer" style-hover="border-color:#00ffcc;color:#00ffcc">−</button>
+                    <span style="font-family:Rajdhani,sans-serif;font-size:17px;font-weight:700;color:#d7e4e0;min-width:16px;text-align:center">{{ detail.qty }}</span>
+                    <button type="button" onClick="{{ detail.incQty }}" style="width:24px;height:24px;border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:12px;cursor:pointer" style-hover="border-color:#00ffcc;color:#00ffcc">+</button>
+                  </span>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ detail.hasParam }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <span style="font-size:10.5px;letter-spacing:.1em;color:#ffb000">{{ detail.paramLabel }}</span>
+                  <div style="display:flex;align-items:center;gap:8px;border:1px solid #1e2430;background:#02040a;padding:0 9px;height:32px">
+                    <span style="font-size:10px;color:#ffb000">&gt;</span>
+                    <input value="{{ detail.param }}" onInput="{{ detail.onParam }}" placeholder="{{ detail.paramHint }}" style="flex:1;min-width:0;border:0;outline:none;background:transparent;color:#d7e4e0;font-size:12px;caret-color:#ffb000">
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ detail.hasAttach }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font-size:10.5px;letter-spacing:.1em;color:#7f8f8b">ATTACHMENTS <span style="color:#39444c">{{ detail.capLabel }}</span></span>
+                    <button type="button" onClick="{{ openAttach }}" style="border:1px solid #00d2ff;background:rgba(0,210,255,.1);color:#00d2ff;font-size:9px;letter-spacing:.14em;padding:4px 9px;cursor:pointer" style-hover="background:#00d2ff;color:#04141a">MANAGE ▸</button>
+                  </div>
+                  <sc-for list="{{ detail.attachments }}" as="a" hint-placeholder-count="2">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:#93a6a2;border-left:2px solid #00d2ff;padding-left:8px">
+                      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.name }}</span>
+                      <span style="color:#64746f;flex-shrink:0">{{ a.cost }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ detail.isTaken }}" hint-placeholder-val="{{ true }}">
+          <button type="button" onClick="{{ detail.removeSelf }}" style="width:100%;border:1px solid rgba(255,0,85,.5);background:transparent;color:#ff0055;font-size:9.5px;letter-spacing:.18em;padding:9px;cursor:pointer;margin-bottom:14px" style-hover="background:rgba(255,0,85,.12)">REMOVE FROM DOSSIER</button>
+        </sc-if>
+
+        <sc-if value="{{ detail.notTaken }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ detail.addSelf }}" style="width:100%;border:1px solid #00ffcc;background:rgba(0,255,204,.13);color:#00ffcc;font-family:Rajdhani,sans-serif;font-size:13px;font-weight:700;letter-spacing:.2em;padding:11px;cursor:pointer;margin-bottom:14px" style-hover="background:#00ffcc;color:#04140f">{{ detail.addLabel }}</button>
+        </sc-if>
+
+        <div style="border-top:1px solid #1e2430;padding-top:11px;font-size:10.5px;line-height:1.95;color:#64746f;letter-spacing:.04em">
+          <sc-for list="{{ detail.rows }}" as="d" hint-placeholder-count="3">
+            <div style="display:flex;justify-content:space-between;gap:10px">
+              <span>{{ d.k }}</span><span style="color:{{ d.fg }};text-align:right">{{ d.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ detail.hasWarn }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:14px;border:1px solid rgba(255,176,0,.45);background:rgba(255,176,0,.06);padding:10px 11px;font-size:11px;line-height:1.65;color:#ffb000">{{ detail.warn }}</div>
+        </sc-if>
+      </div>
+    </aside>
+    </sc-if>
+  </div>
+
+  </sc-if>
+
+  <!-- dossier: the landing surface and the creator's index -->
+  <sc-if value="{{ isDossier }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative;z-index:20;flex:1;min-height:0;display:flex;flex-direction:column;background:#070810">
+      <div style="display:flex;align-items:center;gap:14px;padding:0 16px;height:44px;background:#0a0d13;border-bottom:1px solid #1e2430;flex-shrink:0">
+        <span style="font-size:10px;letter-spacing:.24em;color:#00ffcc">DOSSIER INDEX</span>
+        <span style="font-size:10px;letter-spacing:.13em;color:#4b5860">select a section to edit</span>
+        <div style="flex:1"></div>
+        <span style="font-size:10px;letter-spacing:.16em;color:#7f8f8b">{{ progressLabel }}</span>
+        <button type="button" onClick="{{ resume }}" style="border:1px solid #00ffcc;background:rgba(0,255,204,.13);color:#00ffcc;font-size:9.5px;letter-spacing:.18em;padding:7px 13px;cursor:pointer;flex-shrink:0" style-hover="background:#00ffcc;color:#04140f">RESUME {{ resumeLabel }} ▸</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px;align-content:start">
+        <sc-for list="{{ dossier }}" as="d" hint-placeholder-count="6">
+          <div style="border:1px solid #1e2430;background:#080a0e">
+            <button type="button" onClick="{{ d.go }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;border:0;border-bottom:1px solid #1e2430;border-left:2px solid {{ d.statusFg }};background:#0e1219;color:#d7e4e0;font-size:10px;letter-spacing:.16em;cursor:pointer;text-align:left" style-hover="background:#141a24;color:#00ffcc">
+              <span>{{ d.label }}</span>
+              <span style="font-size:9.5px;color:{{ d.statusFg }};flex-shrink:0">{{ d.status }}</span>
+            </button>
+            <div style="padding:9px 11px;display:flex;flex-direction:column;gap:4px;min-height:44px">
+              <sc-if value="{{ d.empty }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:10.5px;color:#39444c">— empty —</span>
+              </sc-if>
+              <sc-for list="{{ d.items }}" as="i" hint-placeholder-count="3">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:9px;font-size:11px">
+                  <span style="color:#c3d2ce;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ i.name }}</span>
+                  <span style="color:#00ffcc;flex-shrink:0">{{ i.badge }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- attachment modal: genuinely nested config keeps its modal -->
+  <sc-if value="{{ attachOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeAttach }}" style="position:absolute;inset:0;z-index:90;background:rgba(2,3,6,.82);display:grid;place-items:center;padding:30px">
+      <div style="width:560px;max-width:100%;max-height:100%;border:1px solid #00d2ff;background:#0a0d13;box-shadow:0 0 70px rgba(0,0,0,.9);display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:#0e1219;border-bottom:1px solid #1e2430;flex-shrink:0">
+          <span style="font-size:10px;letter-spacing:.2em;color:#00d2ff">ATTACHMENTS · {{ detail.name }}</span>
+          <button type="button" onClick="{{ closeAttach }}" style="border:1px solid #2b3340;background:transparent;color:#93a6a2;font-size:9.5px;letter-spacing:.16em;padding:4px 10px;cursor:pointer" style-hover="border-color:#ff0055;color:#ff0055">CLOSE ✕</button>
+        </div>
+        <div style="padding:13px;flex-shrink:0;border-bottom:1px solid #1e2430">
+          <div style="display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;color:#7f8f8b;margin-bottom:7px"><span>CAPACITY</span><span style="color:{{ capFg }}">{{ capUsed }} / {{ capTotal }}</span></div>
+          <div style="height:5px;background:#131820;border:1px solid #1a2028"><div style="height:100%;width:{{ capPct }}%;background:{{ capFg }};box-shadow:0 0 9px {{ capFg }}"></div></div>
+        </div>
+        <div style="flex:1;overflow-y:auto;min-height:0">
+          <sc-for list="{{ accessories }}" as="a" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:11px;padding:9px 13px;border-bottom:1px solid #0c1016;background:{{ a.bg }}">
+              <span style="min-width:0">
+                <span style="display:block;font-size:12.5px;color:{{ a.fg }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.name }}</span>
+                <span style="display:block;font-size:10px;color:#64746f;margin-top:2px">{{ a.meta }}</span>
+              </span>
+              <button type="button" onClick="{{ a.toggle }}" style="border:1px solid {{ a.border }};background:{{ a.btnBg }};color:{{ a.btnFg }};font-size:9.5px;letter-spacing:.14em;padding:5px 11px;cursor:pointer;flex-shrink:0;min-width:78px">{{ a.label }}</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- command bar -->
+  <footer style="position:relative;z-index:20;display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;background:#0a0d13;border-top:1px solid #1e2430;flex-shrink:0">
+    <sc-if value="{{ isConsole }}" hint-placeholder-val="{{ false }}">
+      <button type="button" onClick="{{ prevStep }}" style="border:1px solid #2b3340;background:#0d1118;color:#93a6a2;font-size:10.5px;letter-spacing:.18em;padding:9px 15px;cursor:pointer;white-space:nowrap" style-hover="border-color:#00ffcc;color:#00ffcc">◂ {{ prevLabel }}</button>
+    </sc-if>
+    <div style="flex:1;display:flex;align-items:center;gap:12px;min-width:0">
+      <div style="flex:1;height:3px;background:#131820;min-width:40px"><div style="height:100%;width:{{ progressPct }}%;background:#00ffcc;box-shadow:0 0 10px rgba(0,255,204,.4)"></div></div>
+      <span style="font-size:9.5px;letter-spacing:.14em;color:#4b5860;white-space:nowrap">{{ progressLabel }}</span>
+    </div>
+    <sc-if value="{{ isConsole }}" hint-placeholder-val="{{ false }}">
+    <button type="button" onClick="{{ nextStep }}" style="border:1px solid #00ffcc;background:rgba(0,255,204,.13);color:#00ffcc;font-size:10.5px;letter-spacing:.18em;padding:9px 15px;cursor:pointer;white-space:nowrap" style-hover="background:#00ffcc;color:#04140f">{{ nextLabel }} ▸</button>
+    </sc-if>
+    <sc-if value="{{ isDossier }}" hint-placeholder-val="{{ true }}">
+      <span style="font-size:9.5px;letter-spacing:.16em;color:#ff0055;white-space:nowrap">{{ blockingDetail }}</span>
+    </sc-if>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;crt&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Soft&quot;,&quot;Standard&quot;,&quot;Heavy&quot;],&quot;default&quot;:&quot;Soft&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Terminal&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Comfortable&quot;,&quot;Compact&quot;],&quot;default&quot;:&quot;Comfortable&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Terminal&quot;}}">
+// ── catalogs ──────────────────────────────────────────────────────────
+const SKILLS = [
+  ['archery','Archery','—','AGI','Combat','Bows and crossbows. Quiet, unregistered, useless past a hundred metres of drizzle.'],
+  ['automatics','Automatics','firearms','AGI','Combat','SMGs, assault rifles, machine pistols on burst. The answer when extraction goes loud.'],
+  ['blades','Blades','close-combat','AGI','Combat','Edged weapons from survival knife to monofilament katana. No ballistic evidence.'],
+  ['clubs','Clubs','close-combat','AGI','Combat','Batons, staves, anything heavy enough to end an argument non-lethally.'],
+  ['heavy-weapons','Heavy Weapons','—','AGI','Combat','Grenade launchers, missiles, assault cannons. Availability caps bite at creation.'],
+  ['longarms','Longarms','firearms','AGI','Combat','Sport rifles, sniper rifles, shotguns. Reach across the Barrens from a rooftop.'],
+  ['pistols','Pistols','firearms','AGI','Combat','Hold-outs, light and heavy pistols, tasers. Concealable and socially survivable.'],
+  ['unarmed','Unarmed Combat','close-combat','AGI','Combat','Strikes, throws, cyberimplant weaponry, martial arts styles.'],
+  ['gymnastics','Gymnastics','athletics','AGI','Physical','Balance, tumbling, climbing fire escapes. Every rooftop chase leans on this.'],
+  ['running','Running','athletics','STR','Physical','Sprint and endurance movement while carrying gear and taking fire.'],
+  ['swimming','Swimming','athletics','STR','Physical','Sustained movement through water. Puget Sound is colder than it looks.'],
+  ['sneaking','Sneaking','stealth','AGI','Physical','Move unseen and unheard. With a chameleon suit it beats most rent-a-cops.'],
+  ['palming','Palming','stealth','AGI','Physical','Sleight of hand — lift a keycard, plant a tag, pocket the chip mid-handshake.'],
+  ['disguise','Disguise','stealth','INT','Physical','Makeup, prosthetics, posture. Beats facial recognition, not a SIN scan.'],
+  ['perception','Perception','—','INT','Physical','Notice the tail, the tripwire, the tell. The most-rolled skill at the table.'],
+  ['computer','Computer','electronics','LOG','Technical','Matrix Search, Edit File, Matrix Perception — the legal half of deck work.'],
+  ['hardware','Hardware','electronics','LOG','Technical','Build, repair, jury-rig electronics. Cracking a maglock housing counts.'],
+  ['software','Software','electronics','LOG','Technical','Write and edit programs, thread complex forms, register sprites.'],
+  ['cybercombat','Cybercombat','cracking','LOG','Technical','Attack actions against icons and IC. Biofeedback cuts both ways on a hot deck.'],
+  ['electronic-warfare','Electronic Warfare','cracking','LOG','Technical','Jam, spoof, intercept, encrypt. Owns the airspace before the run starts.'],
+  ['hacking','Hacking','cracking','LOG','Technical','Brute Force, Hack on the Fly, Data Spike. Raises Overwatch with every mark.'],
+  ['armorer','Armorer','—','LOG','Technical','Maintain and modify weapons and armor, build ammunition, mount accessories.'],
+  ['first-aid','First Aid','biotech','LOG','Technical','Stabilize damage within the golden hour. No second attempt on the same wound.'],
+  ['con','Con','acting','CHA','Social','Fast talk, impersonation, running a pretext past a corp receptionist.'],
+  ['etiquette','Etiquette','influence','CHA','Social','Know the protocol for the room — corp, street, magical, or matrix.'],
+  ['intimidation','Intimidation','—','CHA','Social','Coerce through presence or threat. Troll adepts get mileage here.'],
+  ['negotiation','Negotiation','influence','CHA','Social','Set the payday before anyone mentions the bodyguard count.'],
+  ['impersonation','Impersonation','acting','CHA','Social','Sustain another identity in voice and manner over time.'],
+  ['assensing','Assensing','—','INT','Magical','Read auras: health, emotion, magical activity, cyberware voids.'],
+  ['spellcasting','Spellcasting','sorcery','MAG','Magical','Cast combat, detection, health, illusion, manipulation spells. Drain resists on WIL.'],
+  ['counterspelling','Counterspelling','sorcery','MAG','Magical','Dispel and defend the team against hostile magic.'],
+  ['summoning','Summoning','conjuring','MAG','Magical','Call spirits of your tradition and bind services from them.'],
+  ['compiling','Compiling','tasking','RES','Resonance','Compile sprites from the resonance. Technomancers only.'],
+  ['registering','Registering','tasking','RES','Resonance','Register sprites for lasting tasks and deny dissonance a foothold.'],
+  ['pilot-ground','Pilot Ground Craft','—','REA','Vehicle','Drive wheeled and tracked vehicles, rigged or manual, through Seattle traffic.'],
+  ['gunnery','Gunnery','—','AGI','Vehicle','Fire vehicle- and drone-mounted weapons.'],
+].map(([id,name,group,attr,cat,text]) => ({ id, name, group, attr, cat, text }))
+
+const GROUPS = ['firearms','close-combat','athletics','stealth','electronics','cracking','biotech','acting','influence','sorcery','conjuring','tasking']
+
+const QUALITIES = [
+  ['ambidextrous','Ambidextrous','positive',4,'No off-hand penalty with either hand.',false],
+  ['analytical-mind','Analytical Mind','positive',5,'+2 dice on Logic tests to solve puzzles and analyse data.',false],
+  ['bilingual','Bilingual','positive',5,'A second native language at no knowledge-point cost.',true],
+  ['blandness','Blandness','positive',8,'Witnesses struggle to describe you. −2 to their Memory tests.',false],
+  ['catlike','Catlike','positive',7,'+2 dice on Sneaking tests.',false],
+  ['exceptional-attribute','Exceptional Attribute','positive',14,'Raise one attribute maximum by 1.',true],
+  ['first-impression','First Impression','positive',11,'+2 dice on the first social test with a new contact.',false],
+  ['guts','Guts','positive',10,'+2 dice to resist fear and intimidation.',false],
+  ['high-pain-tolerance','High Pain Tolerance','positive',7,'Ignore one box of damage per level for modifiers.',true],
+  ['mentor-spirit','Mentor Spirit','positive',5,'A patron totem grants bonuses and imposes a code.',true],
+  ['photographic-memory','Photographic Memory','positive',6,'+2 dice on Memory tests.',false],
+  ['toughness','Toughness','positive',9,'+1 die per level to resist damage.',true],
+  ['addiction','Addiction','negative',4,'A substance dependency with escalating penalties.',true],
+  ['allergy','Allergy','negative',5,'Discomfort or damage on exposure to a substance.',true],
+  ['bad-luck','Bad Luck','negative',12,'Spent Edge can backfire catastrophically.',false],
+  ['code-of-honor','Code of Honor','negative',15,'A binding personal code you cannot violate.',true],
+  ['combat-paralysis','Combat Paralysis','negative',12,'Halve Initiative on the first pass of any combat.',false],
+  ['gremlins','Gremlins','negative',4,'Technology glitches around you more often.',true],
+  ['sinner','SINner','negative',5,'You have a real, traceable System Identification Number.',true],
+  ['spirit-bane','Spirit Bane','negative',7,'One spirit type is hostile to you on sight.',true],
+  ['uncouth','Uncouth','negative',14,'Social skill defaulting is impossible; social groups cost double.',false],
+  ['wanted','Wanted','negative',10,'An active warrant follows you through the metroplex.',true],
+].map(([id,name,polarity,cost,text,param]) => ({ id, name, polarity, cost, text, param, cat: polarity === 'positive' ? 'Positive' : 'Negative' }))
+
+const AUGS = [
+  ['datajack','Datajack','Headware',1000,0.1,2,null,false,0],
+  ['commlink-implant','Implanted Commlink','Headware',4000,0.2,4,[1,6],false,0],
+  ['control-rig','Control Rig','Headware',43000,1,10,[1,3],false,0],
+  ['cerebral-booster','Cerebral Booster','Cultured Bioware',31500,0.2,12,[1,3],false,0],
+  ['sleep-regulator','Sleep Regulator','Basic Bioware',21000,0.1,8,null,false,0],
+  ['synaptic-booster','Synaptic Booster','Cultured Bioware',95000,0.5,16,[1,3],false,0],
+  ['cybereyes','Cybereyes','Eyeware',4000,0.2,4,[1,4],false,4],
+  ['flare-comp','Flare Compensation','Eyeware',1000,0.1,2,null,false,0],
+  ['low-light','Low-Light Vision','Eyeware',1500,0.1,3,null,false,0],
+  ['smartlink','Smartlink','Eyeware',4000,0.2,7,null,false,0],
+  ['cyberears','Cyberears','Earware',3000,0.2,4,[1,4],false,4],
+  ['audio-enhance','Audio Enhancement','Earware',4000,0.1,5,[1,3],false,0],
+  ['wired-reflexes','Wired Reflexes','Bodyware',39000,2,8,[1,3],false,0],
+  ['bone-lacing','Bone Lacing','Bodyware',35000,1.5,10,null,true,0],
+  ['muscle-replacement','Muscle Replacement','Bodyware',25000,1,12,[1,4],false,0],
+  ['dermal-plating','Dermal Plating','Bodyware',12000,0.5,10,[1,3],false,0],
+  ['reaction-enhancers','Reaction Enhancers','Bodyware',13000,0.3,9,[1,3],false,0],
+  ['cyberarm','Obvious Full Cyberarm','Cyberlimbs',15000,1,4,null,false,8],
+  ['cyberskull','Obvious Cyberskull','Cyberlimbs',10000,0.75,4,null,false,4],
+  ['spur','Spurs','Implant Weapons',5000,0.3,8,null,false,0],
+  ['hand-razors','Hand Razors','Implant Weapons',2500,0.2,6,null,false,0],
+].map(([id,name,cat,cost,essence,avail,range,param,cap]) => ({ id, name, cat, cost, essence, avail, range, param, cap }))
+
+// Awakened paths gate which sub-catalogs the Awakening step even offers.
+const PATHS = [
+  ['magician','Magician','MAG','Sorcery + Conjuring · spells, rituals, spirits',['spells']],
+  ['mystic-adept','Mystic Adept','MAG','Spells and powers from one Magic rating',['spells','powers']],
+  ['adept','Adept','MAG','Power points only · no spellcasting',['powers']],
+  ['aspected','Aspected Magician','MAG','One magical group only',['spells']],
+  ['technomancer','Technomancer','RES','Resonance · complex forms and sprites',['forms']],
+  ['mundane','Mundane','—','No awakening · skip this step',[]],
+].map(([id,name,attrCode,text,offers]) => ({ id, name, cat: attrCode, text, offers }))
+
+const GROUP_DATA = GROUPS.map(g => ({
+  id: g,
+  name: g.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+  cat: 'Group',
+  members: SKILLS.filter(s => s.group === g).map(s => s.name),
+  text: 'Funding this group sets every member skill at the same rating. Members cannot be raised individually until the group is broken.',
+}))
+
+const GEAR = [
+  ['ares-predator','Ares Predator V','Heavy Pistols',725,5,null,false,true],
+  ['colt-america','Colt America L36','Light Pistols',320,4,null,false,true],
+  ['fichetti-security','Fichetti Security 600','Light Pistols',350,4,null,false,true],
+  ['ak-97','AK-97','Assault Rifles',950,6,null,false,true],
+  ['hk-227','HK-227X','SMGs',900,7,null,false,true],
+  ['remington-990','Remington 990','Shotguns',950,6,null,false,true],
+  ['ranger-arms','Ranger Arms SM-5','Sniper Rifles',16000,20,null,false,true],
+  ['combat-axe','Combat Axe','Blades',500,8,null,false,false],
+  ['survival-knife','Survival Knife','Blades',100,0,null,false,false],
+  ['stun-baton','Stun Baton','Clubs',750,4,null,false,false],
+  ['armor-jacket','Armor Jacket','Armor',1000,2,null,false,true],
+  ['lined-coat','Lined Coat','Armor',900,2,null,false,true],
+  ['chameleon-suit','Chameleon Suit','Armor',1700,10,null,false,true],
+  ['fullbody-armor','Full Body Armor','Armor',2000,12,null,false,true],
+  ['erika-mcd1','Erika MCD-1','Cyberdecks',49500,4,null,false,false],
+  ['microdeck-summit','Microdeck Summit','Cyberdecks',18000,3,null,false,false],
+  ['hermes-ikon','Hermes Ikon','Commlinks',3000,4,null,false,false],
+  ['meta-link','Meta Link','Commlinks',100,2,null,false,false],
+  ['fake-sin','Fake SIN','Identity',2500,4,[1,6],true,false],
+  ['fake-license','Fake License','Identity',200,4,[1,6],true,false],
+  ['medkit','Medkit','Electronics',250,2,[1,6],false,false],
+  ['autopicker','Autopicker','Electronics',500,8,[1,6],false,false],
+  ['sequencer','Sequencer','Electronics',400,8,[1,6],false,false],
+  ['jammer-area','Area Jammer','Electronics',600,6,[1,6],false,false],
+  ['dodge-scoot','Dodge Scoot','Vehicles',3000,4,null,false,true],
+  ['jackrabbit','Jackrabbit','Vehicles',8000,4,null,false,true],
+  ['americar','Ford Americar','Vehicles',16000,4,null,false,true],
+].map(([id,name,cat,cost,avail,range,param,host]) => ({ id, name, cat, cost, avail, range, param, host }))
+
+const SPELLS = [
+  ['manabolt','Manabolt','Combat','Direct','F−3','Mana damage to a living target. The workhorse killing spell.'],
+  ['powerbolt','Powerbolt','Combat','Direct','F−3','Physical damage through armor. Higher drain than Manabolt.'],
+  ['fireball','Fireball','Combat','Indirect','F−1','Area elemental damage. Sets things on fire, including evidence.'],
+  ['stunbolt','Stunbolt','Combat','Direct','F−3','Stun damage to a living target. Non-lethal and deniable.'],
+  ['clairvoyance','Clairvoyance','Detection','Active','F−2','See a remote location you know.'],
+  ['detect-enemies','Detect Enemies','Detection','Passive','F−2','Sense hostile intent within range.'],
+  ['mind-probe','Mind Probe','Detection','Active','F−1','Read surface thoughts. Deeply illegal and deeply useful.'],
+  ['heal','Heal','Health','Permanent','F−4','Repair physical damage. Once per wound.'],
+  ['increase-reflexes','Increase Reflexes','Health','Sustained','F−3','Add Initiative dice. The mage answer to Wired Reflexes.'],
+  ['antidote','Antidote','Health','Permanent','F−4','Resist a toxin already in the system.'],
+  ['invisibility','Invisibility','Illusion','Sustained','F−2','Single-sense mana illusion. Cameras still see you.'],
+  ['improved-invisibility','Improved Invisibility','Illusion','Sustained','F−1','Physical illusion. Cameras do not see you.'],
+  ['trid-phantasm','Trid Phantasm','Illusion','Sustained','F−1','Multi-sense physical illusion of a scene.'],
+  ['influence','Influence','Manipulation','Permanent','F−1','Implant a suggestion the target believes is their own.'],
+  ['levitate','Levitate','Manipulation','Sustained','F−2','Lift a target vertically. Rooftop access solved.'],
+  ['armor','Armor','Manipulation','Sustained','F−3','Add spell-armor dice against physical damage.'],
+  ['physical-barrier','Physical Barrier','Manipulation','Sustained','F−1','A wall of hardened mana. Blocks pursuit.'],
+].map(([id,name,cat,type,drain,text]) => ({ id, name, cat, type, drain, text }))
+
+const POWERS = [
+  ['improved-reflexes','Improved Reflexes','Combat',1.5,true,'Add Initiative dice. The adept version of speed.'],
+  ['killing-hands','Killing Hands','Combat',0.5,false,'Unarmed strikes deal Physical damage.'],
+  ['critical-strike','Critical Strike','Combat',0.25,true,'Increase unarmed DV per level.'],
+  ['combat-sense','Combat Sense','Combat',0.5,true,'Add dice to surprise and defence tests.'],
+  ['improved-ability','Improved Ability','Physical',0.5,true,'Raise one active skill above its normal cap.'],
+  ['enhanced-perception','Enhanced Perception','Physical',0.25,true,'Add dice to Perception tests.'],
+  ['great-leap','Great Leap','Physical',0.25,true,'Add dice to jumping tests.'],
+  ['traceless-walk','Traceless Walk','Physical',1,false,'Leave no physical or astral trace as you move.'],
+  ['voice-control','Voice Control','Social',0.5,true,'Add dice to vocal social tests.'],
+  ['commanding-voice','Commanding Voice','Social',0.5,false,'Issue a one-word command a target must obey.'],
+  ['cool-resolve','Cool Resolve','Social',0.5,true,'Add dice to resist social manipulation.'],
+  ['astral-perception','Astral Perception','Astral',1,false,'Perceive the astral plane at will.'],
+].map(([id,name,cat,pp,ranked,text]) => ({ id, name, cat, pp, ranked, text }))
+
+const FORMS = [
+  ['cleaner','Cleaner','Persona','Fade−2','Scrub the traces of your passage from a host.'],
+  ['editor','Editor','Device','Fade−1','Alter files at resonance level.'],
+  ['pulse-storm','Pulse Storm','Device','Fade−1','Matrix damage to a device icon.'],
+  ['static-veil','Static Veil','Persona','Fade−2','Raise your Sleaze against a single observer.'],
+  ['resonance-veil','Resonance Veil','Device','Fade−2','Make a device show what you choose.'],
+  ['diffusion-firewall','Diffusion of Firewall','Device','Fade−2','Temporarily reduce a target Firewall.'],
+  ['infusion-dataproc','Infusion of Data Processing','Persona','Fade−1','Temporarily raise your Data Processing.'],
+  ['puppeteer','Puppeteer','Device','Fade−1','Force a device to run one command.'],
+].map(([id,name,cat,fade,text]) => ({ id, name, cat, fade, text }))
+
+const KNOWLEDGE = [
+  ['seattle-streets','Seattle Streets','Street','Who runs which block, and which alleys are dead ends.'],
+  ['gang-territories','Gang Territories','Street','Halloweeners, Ancients, Cutters — borders and grudges.'],
+  ['smuggling-routes','Smuggling Routes','Street','How cargo crosses the border without a manifest.'],
+  ['fixers','Local Fixers','Street','Who brokers what, and whose word survives an audit.'],
+  ['corporate-politics','Corporate Politics','Academic','Board-level rivalry inside the Big Ten.'],
+  ['matrix-theory','Matrix Theory','Academic','Protocol architecture and host topology.'],
+  ['magical-theory','Magical Theory','Academic','Traditions, metaplanes, and thaumaturgic law.'],
+  ['parazoology','Parazoology','Academic','Awakened creatures and how to avoid them.'],
+  ['security-design','Security Design','Professional','How corp sites are laid out and where the gaps are.'],
+  ['data-havens','Data Havens','Professional','Where deniable information is stored and traded.'],
+  ['military-hardware','Military Hardware','Professional','Milspec gear, markings, and who fields it.'],
+  ['sprawl-cuisine','Sprawl Cuisine','Interest','Where to eat that will not put you in a clinic.'],
+  ['urban-brawl','Urban Brawl','Interest','Teams, stats, and the betting lines.'],
+  ['english','English','Language','Metroplex lingua franca.'],
+  ['sperethiel','Sperethiel','Language','Elven tongue of Tír Tairngire.'],
+  ['orzet','Or’zet','Language','Ork language, increasingly written.'],
+  ['japanese','Japanese','Language','Corporate and cultural currency in the sprawl.'],
+].map(([id,name,cat,text]) => ({ id, name, cat, text }))
+
+const ACCESSORIES = {
+  weapon: [
+    ['smartgun','Smartgun System, Internal',2,'Top mount · +2 dice with smartlink'],
+    ['laser-sight','Laser Sight',1,'Top or under mount · +1 die'],
+    ['silencer','Silencer / Suppressor',2,'Barrel mount · −2 to hear the shot'],
+    ['foregrip','Foregrip',1,'Under mount · −1 recoil'],
+    ['gas-vent','Gas-Vent 3 System',3,'Barrel mount · −3 recoil'],
+    ['imaging-scope','Imaging Scope',2,'Top mount · vision enhancement'],
+    ['shock-pad','Shock Pad',1,'Stock · −1 recoil'],
+  ],
+  armor: [
+    ['fire-resist','Fire Resistance',2,'+1 armor vs fire per rating'],
+    ['nonconductivity','Nonconductivity',2,'+1 armor vs electricity per rating'],
+    ['insulation','Thermal Insulation',2,'Defeats thermographic tracking'],
+    ['chemical-protection','Chemical Protection',2,'+1 vs contact vectors per rating'],
+    ['ruthenium','Ruthenium Polymers',4,'Active camouflage coating'],
+  ],
+  aug: [
+    ['image-link','Image Link',1,'Overlay AR imagery on vision'],
+    ['smartlink-cap','Smartlink',3,'Weapon targeting integration'],
+    ['thermographic','Thermographic Vision',2,'See heat signatures'],
+    ['vision-magnify','Vision Magnification',2,'Optical zoom'],
+    ['flare-comp-cap','Flare Compensation',1,'Ignore glare and flash'],
+    ['micro-recorder','Micro-Recorder',1,'Capture what you see'],
+  ],
+}
+
+const METATYPES = [
+  ['human','Human','No attribute modifiers','+2 Edge · Edge max 7','Cheapest metatype at every priority. Nothing is raised, nothing is capped, and the extra Edge buys you outs.'],
+  ['elf','Elf','+1 AGI · +2 CHA','Low-light vision','Agility and Charisma above human maximums. The face and the infiltrator both want this body.'],
+  ['dwarf','Dwarf','+2 BOD · +2 STR · +1 WIL · −1 REA','Thermographic · +2 toxin resist','Tough and stubborn, slower off the mark. Lifestyle costs run 20% higher.'],
+  ['ork','Ork','+3 BOD · +2 STR · −1 LOG · −1 CHA','Low-light vision','Cheap muscle at good priorities. The Logic and Charisma hits hurt deckers and faces.'],
+  ['troll','Troll','+4 BOD · +4 STR · −1 AGI · −2 LOG · −2 CHA','Thermographic · +1 reach · +1 dermal','Enormous and expensive. Gear costs double and doorways are a real problem.'],
+].map(([id,name,mods,traits,text]) => ({ id, name, mods, traits, text }))
+
+const ATTRS = [
+  ['bod','BODY','BOD','Soaks damage, resists toxins and disease, and sets how much punishment you walk away from.'],
+  ['agi','AGILITY','AGI','The runner attribute. Drives firearms, sneaking, palming and most physical skills.'],
+  ['rea','REACTION','REA','Half your Initiative and your dodge pool. Low Reaction means you act last and get hit first.'],
+  ['str','STRENGTH','STR','Melee damage, lifting, climbing and running. Cheap to ignore unless you fight up close.'],
+  ['wil','WILLPOWER','WIL','Resists drain, fear and mental manipulation. Every caster needs it; everyone benefits.'],
+  ['log','LOGIC','LOG','Matrix actions, repairs and most technical skills. The decker and rigger attribute.'],
+  ['int','INTUITION','INT','Perception, ambush avoidance and the other half of Initiative. The most quietly useful stat.'],
+  ['cha','CHARISMA','CHA','Social pools and, for some traditions, drain resistance. The face attribute.'],
+].map(([id,name,code,text]) => ({ id, name, code, text }))
+
+const PRIORITY_COLS = [
+  { id:'metatype', label:'METATYPE' }, { id:'attributes', label:'ATTRIBUTES' },
+  { id:'magic', label:'MAGIC / RES' }, { id:'skills', label:'SKILLS' }, { id:'resources', label:'RESOURCES' },
+]
+
+// Display strings and the numbers every downstream budget derives from.
+const PRIORITY_TABLE = {
+  A: { metatype:'Human 9 / Elf 8 / Troll 5', attributes:'24 attribute points', magic:'Magician or Mystic Adept · Magic 6', skills:'46 skill / 10 group', resources:'450,000¥', attrPts:24, skillPts:46, groupPts:10, nuyen:450000 },
+  B: { metatype:'Human 7 / Elf 6 / Troll 0', attributes:'20 attribute points', magic:'Magician Magic 4 · Adept Magic 6', skills:'36 skill / 5 group', resources:'275,000¥', attrPts:20, skillPts:36, groupPts:5, nuyen:275000 },
+  C: { metatype:'Human 5 / Elf 3 / Ork 0',   attributes:'16 attribute points', magic:'Magician Magic 3 · Adept Magic 4', skills:'28 skill / 2 group', resources:'140,000¥', attrPts:16, skillPts:28, groupPts:2, nuyen:140000 },
+  D: { metatype:'Human 3 / Elf 0',           attributes:'14 attribute points', magic:'Adept or Aspected · Magic 2',     skills:'22 skill / 0 group', resources:'50,000¥',  attrPts:14, skillPts:22, groupPts:0, nuyen:50000 },
+  E: { metatype:'Human 1',                   attributes:'12 attribute points', magic:'Mundane · no Magic or Resonance', skills:'18 skill / 0 group', resources:'6,000¥',   attrPts:12, skillPts:18, groupPts:0, nuyen:6000 },
+}
+
+const SPECIAL_POINTS = {
+  A: { human:9, elf:8, dwarf:7, ork:7, troll:5 },
+  B: { human:7, elf:6, dwarf:4, ork:4, troll:0 },
+  C: { human:5, elf:3, dwarf:1, ork:0, troll:null },
+  D: { human:3, elf:0, dwarf:null, ork:null, troll:null },
+  E: { human:1, elf:null, dwarf:null, ork:null, troll:null },
+}
+
+const PRIORITY_EXPLAIN = {
+  metatype: 'Buys your metatype and the special attribute points that raise Edge, Magic or Resonance. Trolls and dwarves need a high letter just to be legal.',
+  attributes: 'The pool you spend on Body through Charisma. This is the single hardest priority to go cheap on — attributes cost karma to raise later and cap out fast.',
+  magic: 'Sets whether you are Awakened at all, which path is open to you, and your starting Magic or Resonance rating. Priority E locks you to mundane.',
+  skills: 'Individual skill points and skill group points. Group points are strictly better per point but force every member skill to the same rating.',
+  resources: 'Starting nuyen for gear, augmentations, vehicles and lifestyle. Chrome is expensive — deckers and street samurai usually pay here.',
+}
+
+const LIFESTYLE_TIERS = [
+  ['street','Street',0,'Squats, doorways and the Barrens. No cost, no security, no address to raid.'],
+  ['squatter','Squatter',500,'A room with a door that mostly locks. Utilities are optimistic.'],
+  ['low','Low',2000,'A real apartment in a bad district. Basic security, working plumbing.'],
+  ['middle','Middle',5000,'Clean building, working locks, neighbours who mind their business.'],
+  ['high','High',10000,'Corp-adjacent tower with real security and a doorman who remembers faces.'],
+  ['luxury','Luxury',100000,'A penthouse and the staff to run it. Visible enough to be a liability.'],
+].map(([id,name,cost,text]) => ({ id, name, cost, text }))
+
+// ── step definitions ─────────────────────────────────────────────────
+// layout: catalog = rail + search + readout/config
+//         allocate = no rail, no search, readout explains the selection
+//         form = center column only
+const STEPS = [
+  { id:'identity',      n:'02', label:'IDENTITY',      layout:'form' },
+  { id:'priority',      n:'03', label:'PRIORITY',      layout:'allocate' },
+  { id:'metatype',      n:'04', label:'METATYPE',      layout:'allocate' },
+  { id:'attributes',    n:'05', label:'ATTRIBUTES',    layout:'allocate', warn:true },
+  { id:'qualities',     n:'06', label:'QUALITIES',     layout:'catalog' },
+  { id:'augmentations', n:'07', label:'AUGMENTATIONS', layout:'catalog' },
+  { id:'skills',        n:'08', label:'SKILLS',        layout:'catalog' },
+  { id:'awakening',     n:'09', label:'AWAKENING',     layout:'catalog' },
+  { id:'knowledge',     n:'10', label:'KNOWLEDGE',     layout:'catalog' },
+  { id:'contacts',      n:'11', label:'CONTACTS',      layout:'form' },
+  { id:'resources',     n:'12', label:'RESOURCES',     layout:'catalog' },
+  { id:'lifestyle',     n:'13', label:'LIFESTYLE',     layout:'form' },
+  { id:'karma',         n:'14', label:'KARMA',         layout:'form', locked:true },
+  { id:'review',        n:'15', label:'REVIEW',        layout:'form', locked:true },
+]
+
+function subTabsFor(step, pathId) {
+  if (step === 'skills') return [{ id:'individual', label:'INDIVIDUAL' }, { id:'groups', label:'GROUPS' }]
+  if (step !== 'awakening') return []
+  const tabs = [{ id:'path', label:'PATH' }]
+  const p = PATHS.find(x => x.id === pathId)
+  if (!p) return tabs
+  if (p.offers.indexOf('spells') >= 0) tabs.push({ id:'spells', label:'SPELLS' })
+  if (p.offers.indexOf('powers') >= 0) tabs.push({ id:'powers', label:'POWERS' })
+  if (p.offers.indexOf('forms') >= 0) tabs.push({ id:'forms', label:'FORMS' })
+  return tabs
+}
+const firstSub = (step, pathId) => (subTabsFor(step, pathId)[0] || {}).id || ''
+
+const ACC = '#00ffcc', AMBER = '#ffb000', CYAN = '#00d2ff', RED = '#ff0055'
+const money = (n) => n >= 1000 ? (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'k¥' : n + '¥'
+
+class Component extends DCLogic {
+  state = {
+    step: 'skills', sub: 'individual', path: 'magician', q: '', facet: 'All', sort: 'name',
+    flags: { taken:false, untrained:false, affordable:false },
+    sel: { skills:'hacking', qualities:'catlike', augmentations:'wired-reflexes', resources:'ares-predator', awakening:'manabolt', knowledge:'seattle-streets' },
+    ratings: { hacking:5, sneaking:4, perception:3, computer:3, pistols:3 },
+    groupRatings: {},
+    know: { 'seattle-streets':3, 'matrix-theory':2, english:0 },
+    picks: {
+      qualities: { catlike:{}, 'high-pain-tolerance':{ rating:2 }, gremlins:{ rating:1, param:'wireless devices' } },
+      augmentations: { datajack:{ qty:1, grade:'standard' }, cybereyes:{ rating:2, qty:1, grade:'alpha' } },
+      resources: { 'ares-predator':{ qty:1 }, 'armor-jacket':{ qty:1 } },
+      awakening: {},
+    },
+    attachments: { 'ares-predator':['smartgun','laser-sight'], 'armor-jacket':['nonconductivity'] },
+    view: 'dossier', lastStep: 'skills', attachOpen: false, consoleW: 900, winW: 1440,
+    // A–E is a strict permutation: each letter used exactly once.
+    // Elf needs metatype ≥ D; Magician needs magic ≥ C.
+    priority: { attributes:'A', magic:'B', resources:'C', metatype:'D', skills:'E' },
+    selPriority: 'attributes',
+    metatype: 'elf', selMeta: 'elf',
+    attrs: { bod:3, agi:5, rea:4, str:2, wil:3, log:2, int:2, cha:1 }, selAttr: 'agi',
+    identity: { name:'Kestrel', alias:'Kes', concept:'Street samurai turned fixer’s problem-solver' },
+    contacts: [
+      { id:'c1', name:'Vasquez', archetype:'Fixer · Redmond', connection:4, loyalty:2 },
+      { id:'c2', name:'Doc Mensah', archetype:'Street doc · Tacoma', connection:3, loyalty:4 },
+    ],
+    lifestyle: 'low', months: 3,
+  }
+
+  componentDidMount() {
+    this.onKey = (e) => {
+      const tag = (e.target.tagName || '').toLowerCase()
+      if (e.key === '/' && tag !== 'input') {
+        e.preventDefault()
+        const el = this.consoleEl && this.consoleEl.querySelector('input')
+        if (el) el.focus()
+      }
+      if (e.key === 'Escape') {
+        if (this.state.attachOpen) this.setState({ attachOpen:false })
+        else if (this.state.q) this.setState({ q:'' })
+        else this.setState({ view:'dossier' })
+      }
+    }
+    window.addEventListener('keydown', this.onKey)
+    this.onResize = () => {
+      const w = window.innerWidth
+      if (Math.abs(w - this.state.winW) > 6) this.setState({ winW: w })
+    }
+    this.onResize()
+    window.addEventListener('resize', this.onResize)
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.onKey)
+    window.removeEventListener('resize', this.onResize)
+    if (this.ro) this.ro.disconnect()
+  }
+
+  measure = (el) => {
+    if (!el || el === this.consoleEl) return
+    this.consoleEl = el
+    if (!this.ro && typeof ResizeObserver !== 'undefined') {
+      this.ro = new ResizeObserver((entries) => {
+        const w = Math.round(entries[0].contentRect.width)
+        if (w > 0 && Math.abs(w - this.state.consoleW) > 6) this.setState({ consoleW: w })
+      })
+    }
+    if (this.ro) this.ro.observe(el)
+  }
+
+  go = (step) => this.setState(s => ({
+    step, lastStep: step, view:'console', q:'', facet:'All', sub: firstSub(step, s.path),
+    flags:{ taken:false, untrained:false, affordable:false },
+  }))
+
+  bumpGroup(id, d) {
+    this.setState(s => {
+      const cur = s.groupRatings[id] || 0
+      const next = Math.max(0, Math.min(6, cur + d))
+      const g = Object.assign({}, s.groupRatings)
+      if (next === 0) delete g[id]; else g[id] = next
+      // Funding a group clears individual ratings on its members so the two
+      // allocations never overlap.
+      let r = s.ratings
+      if (next > 0) {
+        r = Object.assign({}, s.ratings)
+        SKILLS.filter(sk => sk.group === id).forEach(sk => { delete r[sk.id] })
+      }
+      return { groupRatings: g, ratings: r, sel: Object.assign({}, s.sel, { skills: id }) }
+    })
+  }
+  setSel = (id) => this.setState(s => ({ sel: Object.assign({}, s.sel, { [s.step]: id }) }))
+
+  entries() {
+    const S = this.state
+    if (S.step === 'skills') return S.sub === 'groups' ? GROUP_DATA : SKILLS
+    if (S.step === 'qualities') return QUALITIES
+    if (S.step === 'augmentations') return AUGS
+    if (S.step === 'resources') return GEAR
+    if (S.step === 'knowledge') return KNOWLEDGE
+    if (S.step === 'awakening') {
+      if (S.sub === 'path') return PATHS
+      if (S.sub === 'spells') return SPELLS
+      if (S.sub === 'powers') return POWERS
+      if (S.sub === 'forms') return FORMS
+      return PATHS
+    }
+    return []
+  }
+
+  isTaken(id) {
+    const S = this.state
+    if (S.step === 'awakening' && S.sub === 'path') return S.path === id
+    if (S.step === 'skills' && S.sub === 'groups') return (S.groupRatings[id] || 0) > 0
+    if (S.step === 'skills') return (S.ratings[id] || 0) > 0
+    if (S.step === 'knowledge') return S.know[id] !== undefined
+    const bucket = S.picks[S.step === 'awakening' ? 'awakening' : S.step] || {}
+    return bucket[id] !== undefined
+  }
+
+  bumpSkill(id, d) {
+    this.setState(s => {
+      const cur = s.ratings[id] || 0
+      const next = Math.max(0, Math.min(6, cur + d))
+      const r = Object.assign({}, s.ratings)
+      if (next === 0) delete r[id]; else r[id] = next
+      return { ratings: r, sel: Object.assign({}, s.sel, { skills: id }) }
+    })
+  }
+
+  bumpKnow(id, d) {
+    this.setState(s => {
+      const cur = s.know[id] || 0
+      const next = Math.max(0, Math.min(6, cur + d))
+      const k = Object.assign({}, s.know)
+      if (next === 0 && s.know[id] === undefined) k[id] = 0; else if (next === 0) delete k[id]; else k[id] = next
+      return { know: k, sel: Object.assign({}, s.sel, { knowledge: id }) }
+    })
+  }
+
+  togglePick(id, defaults) {
+    this.setState(s => {
+      const key = s.step === 'awakening' ? 'awakening' : s.step
+      const bucket = Object.assign({}, s.picks[key] || {})
+      if (bucket[id] !== undefined) delete bucket[id]; else bucket[id] = defaults || {}
+      return { picks: Object.assign({}, s.picks, { [key]: bucket }), sel: Object.assign({}, s.sel, { [s.step]: id }) }
+    })
+  }
+
+  patchContact(id, patch) {
+    this.setState(s => ({ contacts: s.contacts.map(c => c.id === id ? Object.assign({}, c, patch) : c) }))
+  }
+
+  patchPick(id, patch) {
+    this.setState(s => {
+      const key = s.step === 'awakening' ? 'awakening' : s.step
+      const bucket = Object.assign({}, s.picks[key] || {})
+      bucket[id] = Object.assign({}, bucket[id], patch)
+      return { picks: Object.assign({}, s.picks, { [key]: bucket }) }
+    })
+  }
+
+  accessoryKind(id) {
+    const g = GEAR.find(x => x.id === id)
+    if (g) return g.cat === 'Armor' ? 'armor' : 'weapon'
+    return 'aug'
+  }
+
+  spentNuyen() {
+    const S = this.state
+    let n = 0
+    Object.keys(S.picks.resources || {}).forEach(id => {
+      const g = GEAR.find(x => x.id === id); if (!g) return
+      const p = S.picks.resources[id]
+      n += g.cost * (p.qty || 1)
+    })
+    Object.keys(S.picks.augmentations || {}).forEach(id => {
+      const a = AUGS.find(x => x.id === id); if (!a) return
+      const p = S.picks.augmentations[id]
+      n += Math.round(a.cost * (p.grade === 'alpha' ? 1.2 : 1)) * (p.qty || 1)
+    })
+    Object.keys(S.attachments).forEach(host => {
+      const kind = this.accessoryKind(host)
+      S.attachments[host].forEach(aid => {
+        const acc = (ACCESSORIES[kind] || []).find(a => a[0] === aid)
+        if (acc) n += acc[2] * 500
+      })
+    })
+    // Lifestyle is paid out of the same nuyen pool.
+    const tier = LIFESTYLE_TIERS.find(l => l.id === S.lifestyle)
+    if (tier) n += tier.cost * S.months
+    return n
+  }
+
+  spentEssence() {
+    const S = this.state
+    let e = 0
+    Object.keys(S.picks.augmentations || {}).forEach(id => {
+      const a = AUGS.find(x => x.id === id); if (!a) return
+      const p = S.picks.augmentations[id]
+      e += a.essence * (p.grade === 'alpha' ? 0.8 : 1) * (p.qty || 1)
+    })
+    return Math.round(e * 100) / 100
+  }
+
+  karmaSpent() {
+    const S = this.state
+    let pos = 0, neg = 0
+    Object.keys(S.picks.qualities || {}).forEach(id => {
+      const qy = QUALITIES.find(x => x.id === id); if (!qy) return
+      const r = S.picks.qualities[id].rating || 1
+      if (qy.polarity === 'positive') pos += qy.cost * r; else neg += qy.cost * r
+    })
+    return { pos, neg }
+  }
+
+  renderVals() {
+    const S = this.state
+    const CRT = { Off:[0,0], Soft:[0.34,0.45], Standard:[0.62,0.7], Heavy:[1,1] }
+    const crt = CRT[this.props.crt] ?? CRT.Soft
+    const compact = (this.props.density ?? 'Comfortable') === 'Compact'
+    const stepDef = STEPS.find(x => x.id === S.step) || STEPS[6]
+    const all = this.entries()
+
+    // facets
+    const facetKey = S.step === 'awakening' && S.sub === 'powers' ? 'cat' : 'cat'
+    const cats = Array.from(new Set(all.map(e => e[facetKey]))).sort()
+    const facetList = ['All'].concat(cats)
+
+    // filter
+    const q = S.q.trim().toLowerCase()
+    let results = all.filter(e => {
+      if (S.facet !== 'All' && e[facetKey] !== S.facet) return false
+      const taken = this.isTaken(e.id)
+      if (S.flags.taken && !taken) return false
+      if (S.flags.untrained && taken) return false
+      if (S.flags.affordable) {
+        if (S.step === 'resources' && e.cost > 30000) return false
+        if (S.step === 'augmentations' && e.cost > 40000) return false
+      }
+      if (!q) return true
+      const hay = [e.name, e.group, e.attr, e.cat, e.type, e.polarity, e.drain, e.fade].filter(Boolean).join(' ').toLowerCase()
+      return hay.includes(q)
+    })
+    if (S.sort === 'taken') results = results.slice().sort((a, b) => (this.isTaken(b.id) ? 1 : 0) - (this.isTaken(a.id) ? 1 : 0))
+    if (S.sort === 'cost') results = results.slice().sort((a, b) => (a.cost ?? a.pp ?? 0) - (b.cost ?? b.pp ?? 0))
+
+    // ── column shape + row builder per step
+    const skillSpent = Object.values(S.ratings).reduce((a, b) => a + b, 0)
+    const nuyen = this.spentNuyen(), essence = this.spentEssence(), karma = this.karmaSpent()
+    // Every budget derives from the priority letters — changing one moves them all.
+    const P = S.priority
+    const attrBudget = PRIORITY_TABLE[P.attributes].attrPts
+    const skillBudget = PRIORITY_TABLE[P.skills].skillPts
+    const groupBudget = PRIORITY_TABLE[P.skills].groupPts
+    const nuyenBudget = PRIORITY_TABLE[P.resources].nuyen
+    const attrSpentTotal = Object.values(S.attrs).reduce((x, y) => x + y, 0)
+    const knowBudget = ((S.attrs.log || 1) + (S.attrs.int || 1)) * 2
+    const groupFunded = new Set(Object.keys(S.groupRatings).filter(g => S.groupRatings[g] > 0))
+
+    // Column budget: fixed tracks + gaps + padding must never squeeze the name
+    // track below readable width, so secondary columns drop out instead.
+    const cw = S.consoleW
+    const tier = cw >= 620 ? 2 : cw >= 460 ? 1 : 0
+    const gridCols = tier === 2 ? 'minmax(150px,1fr) 96px 74px 118px'
+      : tier === 1 ? 'minmax(140px,1fr) 74px 112px'
+      : 'minmax(120px,1fr) 104px'
+
+    let colName = 'NAME', colTwo = 'CATEGORY', colThree = '', colFour = ''
+    const rows = results.map(e => {
+      const taken = this.isTaken(e.id)
+      const on = (S.sel[S.step] || '') === e.id
+      const base = {
+        name: e.name, mark: on ? ACC : 'transparent', bg: on ? '#0d1118' : 'transparent',
+        fg: taken ? ACC : '#c3d2ce', select: () => this.setSel(e.id),
+        isRating: false, isToggle: false, locked: false,
+        stepBorder: '#2b3340', stepFg: '#93a6a2', valueFg: '#39444c',
+        tglBorder: '#2b3340', tglBg: 'transparent', tglFg: '#7f8f8b', tglLabel: 'ADD +',
+        two: '', three: '', threeFg: '#64746f', value: 0,
+      }
+      if (S.step === 'awakening' && S.sub === 'path') {
+        colName = 'PATH'; colTwo = 'GRANTS'; colThree = 'ATTR'; colFour = ''
+        const active = S.path === e.id
+        return Object.assign(base, {
+          isToggle: true, two: e.text, three: e.cat, threeFg: active ? ACC : '#64746f',
+          fg: active ? ACC : '#c3d2ce',
+          tglLabel: active ? 'ACTIVE ✓' : 'SELECT',
+          tglBorder: active ? ACC : '#2b3340', tglBg: active ? 'rgba(0,255,204,.13)' : 'transparent', tglFg: active ? ACC : '#7f8f8b',
+          toggle: () => this.setState(s => ({ path: e.id, sub: firstSub('awakening', e.id), sel: Object.assign({}, s.sel, { awakening: e.id }) })),
+        })
+      }
+      if (S.step === 'skills' && S.sub === 'groups') {
+        colName = 'SKILL GROUP'; colTwo = 'MEMBERS'; colThree = 'COUNT'; colFour = 'RATING'
+        const r = S.groupRatings[e.id] || 0
+        return Object.assign(base, {
+          isRating: true, two: e.members.join(', '), three: String(e.members.length), value: r,
+          valueFg: r > 0 ? ACC : '#39444c',
+          inc: () => this.bumpGroup(e.id, 1), dec: () => this.bumpGroup(e.id, -1),
+        })
+      }
+      if (S.step === 'skills' || (S.step === 'awakening' && S.sub === 'skills')) {
+        colName = 'SKILL'; colTwo = 'GROUP'; colThree = 'ATTR'; colFour = 'RATING'
+        const lockedByGroup = e.group !== '—' && groupFunded.has(e.group)
+        const r = lockedByGroup ? S.groupRatings[e.group] : (S.ratings[e.id] || 0)
+        return Object.assign(base, {
+          isRating: true, locked: lockedByGroup,
+          two: e.group, three: e.attr, threeFg: '#64746f', value: r,
+          valueFg: r > 0 ? ACC : '#39444c',
+          stepBorder: lockedByGroup ? '#1a2028' : '#2b3340',
+          stepFg: lockedByGroup ? '#2b3340' : '#93a6a2',
+          inc: () => { if (!lockedByGroup) this.bumpSkill(e.id, 1) },
+          dec: () => { if (!lockedByGroup) this.bumpSkill(e.id, -1) },
+        })
+      }
+      if (S.step === 'knowledge') {
+        colName = 'KNOWLEDGE'; colTwo = 'CATEGORY'; colThree = 'TYPE'; colFour = 'RATING'
+        const r = S.know[e.id] || 0
+        return Object.assign(base, {
+          isRating: true, two: e.cat, three: e.cat === 'Language' ? 'LANG' : 'KNOW', value: r,
+          valueFg: r > 0 ? ACC : '#39444c',
+          inc: () => this.bumpKnow(e.id, 1), dec: () => this.bumpKnow(e.id, -1),
+        })
+      }
+      if (S.step === 'qualities') {
+        colName = 'QUALITY'; colTwo = 'POLARITY'; colThree = 'KARMA'; colFour = ''
+        const pos = e.polarity === 'positive'
+        return Object.assign(base, {
+          isToggle: true, two: e.polarity, three: (pos ? '−' : '+') + e.cost, threeFg: pos ? AMBER : ACC,
+          tglLabel: taken ? 'TAKEN ✓' : 'ADD +',
+          tglBorder: taken ? ACC : '#2b3340', tglBg: taken ? 'rgba(0,255,204,.13)' : 'transparent', tglFg: taken ? ACC : '#7f8f8b',
+          toggle: () => this.togglePick(e.id, e.param ? { rating:1, param:'' } : { rating:1 }),
+        })
+      }
+      if (S.step === 'augmentations') {
+        colName = 'AUGMENTATION'; colTwo = 'SLOT'; colThree = 'ESS'; colFour = ''
+        return Object.assign(base, {
+          isToggle: true, two: e.cat, three: String(e.essence), threeFg: e.essence >= 1 ? RED : '#64746f',
+          tglLabel: taken ? money(e.cost) + ' ✓' : money(e.cost),
+          tglBorder: taken ? ACC : '#2b3340', tglBg: taken ? 'rgba(0,255,204,.13)' : 'transparent', tglFg: taken ? ACC : '#7f8f8b',
+          toggle: () => this.togglePick(e.id, { qty:1, grade:'standard', rating: e.range ? e.range[0] : undefined }),
+        })
+      }
+      if (S.step === 'resources') {
+        colName = 'ITEM'; colTwo = 'CATEGORY'; colThree = 'AVAIL'; colFour = ''
+        return Object.assign(base, {
+          isToggle: true, two: e.cat, three: String(e.avail), threeFg: e.avail > 12 ? RED : '#64746f',
+          tglLabel: taken ? money(e.cost) + ' ✓' : money(e.cost),
+          tglBorder: taken ? ACC : '#2b3340', tglBg: taken ? 'rgba(0,255,204,.13)' : 'transparent', tglFg: taken ? ACC : '#7f8f8b',
+          toggle: () => this.togglePick(e.id, { qty:1, rating: e.range ? e.range[0] : undefined }),
+        })
+      }
+      // awakening: spells / powers / forms
+      if (S.sub === 'powers') { colName = 'POWER'; colTwo = 'CATEGORY'; colThree = 'PP'; colFour = '' }
+      else if (S.sub === 'forms') { colName = 'COMPLEX FORM'; colTwo = 'TARGET'; colThree = 'FADE'; colFour = '' }
+      else { colName = 'SPELL'; colTwo = 'CATEGORY'; colThree = 'DRAIN'; colFour = '' }
+      const three = S.sub === 'powers' ? String(e.pp) : S.sub === 'forms' ? e.fade : e.drain
+      const two = S.sub === 'forms' ? e.cat : S.sub === 'powers' ? e.cat : e.cat
+      return Object.assign(base, {
+        isToggle: true, two, three,
+        tglLabel: taken ? 'BOUND ✓' : 'BIND +',
+        tglBorder: taken ? ACC : '#2b3340', tglBg: taken ? 'rgba(0,255,204,.13)' : 'transparent', tglFg: taken ? ACC : '#7f8f8b',
+        toggle: () => this.togglePick(e.id, S.sub === 'powers' && e.ranked ? { rank:1 } : {}),
+      })
+    })
+
+    rows.forEach(r => {
+      const two = { v: r.two, fg: '#64746f' }
+      const three = { v: r.three, fg: r.threeFg }
+      r.mid = tier === 2 ? [two, three] : tier === 1 ? [three] : []
+    })
+    const midHeaders = tier === 2 ? [{ label: colTwo }, { label: colThree }]
+      : tier === 1 ? [{ label: colThree }] : []
+
+    // ── budgets per step
+    const bd = (label, cur, max, fg, suffix) => ({
+      label, value: (suffix === '¥' ? money(cur) : cur) + ' / ' + (suffix === '¥' ? money(max) : max),
+      pct: Math.min(100, Math.round((cur / (max || 1)) * 100)), fg, glow: fg,
+    })
+    let budgets = []
+    const groupSpent = Object.values(S.groupRatings).reduce((a,b)=>a+b,0)
+    if (S.step === 'skills') budgets = S.sub === 'groups'
+      ? [bd('GROUP PTS', groupSpent, groupBudget, CYAN), bd('INDIVIDUAL PTS', skillSpent, skillBudget, ACC)]
+      : [bd('INDIVIDUAL PTS', skillSpent, skillBudget, ACC), bd('GROUP PTS', groupSpent, groupBudget, CYAN)]
+    else if (S.step === 'knowledge') budgets = [bd('KNOWLEDGE PTS', Object.values(S.know).reduce((a,b)=>a+b,0), knowBudget, ACC)]
+    else if (S.step === 'qualities') budgets = [bd('POSITIVE KARMA', karma.pos, 25, AMBER), bd('NEGATIVE KARMA', karma.neg, 25, CYAN)]
+    else if (S.step === 'augmentations') budgets = [bd('ESSENCE BURNED', essence, 6, essence > 6 ? RED : ACC), bd('NUYEN', nuyen, nuyenBudget, ACC, '¥')]
+    else if (S.step === 'resources') budgets = [bd('NUYEN', nuyen, nuyenBudget, ACC, '¥')]
+    else budgets = [bd('KARMA POOL', karma.pos - karma.neg, 25, ACC)]
+
+    // ── picked list (this step)
+    let picked = []
+    if (S.step === 'skills' && S.sub === 'groups') {
+      picked = GROUP_DATA.filter(g => (S.groupRatings[g.id] || 0) > 0).map(g => ({
+        name: g.name, badge: String(S.groupRatings[g.id]), id: g.id,
+        focus: () => this.setSel(g.id), remove: () => this.bumpGroup(g.id, -99),
+        bg: (S.sel.skills === g.id) ? '#0d1118' : 'transparent', mark: (S.sel.skills === g.id) ? ACC : 'transparent',
+      }))
+    } else if (S.step === 'awakening' && S.sub === 'path') {
+      const p = PATHS.find(x => x.id === S.path)
+      picked = p ? [{ name: p.name, badge: p.cat, id: p.id, focus: () => this.setSel(p.id), remove: () => {}, bg:'transparent', mark:'transparent' }] : []
+    } else if (S.step === 'skills') {
+      picked = SKILLS.filter(s => (S.ratings[s.id] || 0) > 0).map(s => ({
+        name: s.name, badge: String(S.ratings[s.id]), id: s.id,
+        focus: () => this.setSel(s.id), remove: () => this.bumpSkill(s.id, -99),
+        bg: (S.sel.skills === s.id) ? '#0d1118' : 'transparent', mark: (S.sel.skills === s.id) ? ACC : 'transparent',
+      }))
+    } else if (S.step === 'knowledge') {
+      picked = KNOWLEDGE.filter(k => (S.know[k.id] || 0) > 0).map(k => ({
+        name: k.name, badge: String(S.know[k.id]), id: k.id,
+        focus: () => this.setSel(k.id), remove: () => this.bumpKnow(k.id, -99),
+        bg: 'transparent', mark: 'transparent',
+      }))
+    } else {
+      const key = S.step === 'awakening' ? 'awakening' : S.step
+      const bucket = S.picks[key] || {}
+      picked = Object.keys(bucket).map(id => {
+        const e = all.find(x => x.id === id) || SPELLS.concat(POWERS, FORMS, QUALITIES, AUGS, GEAR).find(x => x.id === id)
+        const p = bucket[id]
+        let badge = '✓'
+        if (S.step === 'qualities' && e) badge = String((p.rating || 1) * e.cost)
+        else if (e && e.cost !== undefined) badge = money(e.cost * (p.qty || 1))
+        else if (p.rank) badge = 'r' + p.rank
+        return {
+          name: e ? e.name : id, badge, id,
+          focus: () => this.setSel(id),
+          remove: () => this.togglePick(id),
+          bg: (S.sel[S.step] === id) ? '#0d1118' : 'transparent', mark: (S.sel[S.step] === id) ? ACC : 'transparent',
+        }
+      })
+    }
+
+    // ── detail / config
+    const selId = S.sel[S.step] || (all[0] && all[0].id)
+    const e = all.find(x => x.id === selId) || all[0] || { name:'—', cat:'', text:'' }
+    const taken = e.id ? this.isTaken(e.id) : false
+    const key = S.step === 'awakening' ? 'awakening' : S.step
+    const pick = (S.picks[key] || {})[e.id] || {}
+    const attList = S.attachments[e.id] || []
+    const kind = this.accessoryKind(e.id)
+    const capTotal = S.step === 'augmentations' ? (e.cap || 0) : e.cat === 'Armor' ? 8 : 6
+    const capUsed = attList.reduce((a, aid) => {
+      const acc = (ACCESSORIES[kind] || []).find(x => x[0] === aid); return a + (acc ? acc[2] : 0)
+    }, 0)
+
+    const stats = []
+    if (S.step === 'awakening' && S.sub === 'path') {
+      stats.push({ label:'ATTRIBUTE', value: e.cat || '—', fg: S.path === e.id ? ACC : '#d7e4e0' })
+      stats.push({ label:'STATUS', value: S.path === e.id ? 'ACTIVE' : 'AVAILABLE', fg: S.path === e.id ? ACC : '#64746f' })
+    } else if (S.step === 'skills' && S.sub === 'groups') {
+      const r = S.groupRatings[e.id] || 0
+      stats.push({ label:'RATING', value:String(r), fg: r > 0 ? ACC : '#39444c' })
+      stats.push({ label:'MEMBERS', value:String((e.members || []).length), fg:'#d7e4e0' })
+    } else if (S.step === 'skills' || (S.step === 'awakening' && S.sub === 'skills')) {
+      const r = S.ratings[e.id] || 0
+      stats.push({ label:'RATING', value:String(r), fg: r > 0 ? ACC : '#39444c' })
+      stats.push({ label:'DICE POOL', value: r > 0 ? String(r + 6) : '—', fg:'#d7e4e0' })
+    } else if (S.step === 'knowledge') {
+      const r = S.know[e.id] || 0
+      stats.push({ label:'RATING', value:String(r), fg: r > 0 ? ACC : '#39444c' })
+      stats.push({ label:'LINKED', value: e.cat === 'Language' ? 'INT' : 'LOG', fg:'#d7e4e0' })
+    } else if (S.step === 'qualities') {
+      stats.push({ label:'KARMA', value:String(e.cost * (pick.rating || 1)), fg: e.polarity === 'positive' ? AMBER : ACC })
+      stats.push({ label:'POLARITY', value:(e.polarity || '').toUpperCase(), fg:'#d7e4e0' })
+    } else if (S.step === 'augmentations') {
+      const g = pick.grade === 'alpha' ? 1.2 : 1
+      stats.push({ label:'COST', value:money(Math.round(e.cost * g) * (pick.qty || 1)), fg:ACC })
+      stats.push({ label:'ESSENCE', value:String(Math.round(e.essence * (pick.grade === 'alpha' ? 0.8 : 1) * 100) / 100), fg: e.essence >= 1 ? RED : '#d7e4e0' })
+    } else if (S.step === 'resources') {
+      stats.push({ label:'COST', value:money(e.cost * (pick.qty || 1)), fg:ACC })
+      stats.push({ label:'AVAIL', value:String(e.avail), fg: e.avail > 12 ? RED : '#d7e4e0' })
+    } else if (S.sub === 'powers') {
+      stats.push({ label:'POWER POINTS', value:String(e.pp * (pick.rank || 1)), fg:ACC })
+      stats.push({ label:'RANKED', value: e.ranked ? 'YES' : 'NO', fg:'#d7e4e0' })
+    } else if (S.sub === 'forms') {
+      stats.push({ label:'FADE', value:e.fade || '—', fg:ACC }); stats.push({ label:'TARGET', value:e.cat || '—', fg:'#d7e4e0' })
+    } else {
+      stats.push({ label:'DRAIN', value:e.drain || '—', fg:ACC }); stats.push({ label:'TYPE', value:e.type || '—', fg:'#d7e4e0' })
+    }
+
+    const drows = []
+    if (e.members) drows.push({ k:'MEMBERS', v:(e.members || []).join(', '), fg:'#93a6a2' })
+    if (e.group !== undefined) drows.push({ k:'GROUP', v: e.group === '—' ? 'NONE' : e.group.toUpperCase(), fg:'#d7e4e0' })
+    if (e.range) drows.push({ k:'RATING RANGE', v:e.range[0] + '–' + e.range[1], fg:'#d7e4e0' })
+    if ((e.cap || 0) > 0) drows.push({ k:'CAPACITY', v:String(e.cap), fg:CYAN })
+    // Defaulting is a skill rule (untrained at −1). Meaningless on gear,
+    // implants, spells, powers and qualities — so it only shows for skills.
+    const isSkillEntry = e.group !== undefined && e.attr !== undefined
+    if (isSkillEntry) drows.push({ k:'DEFAULTABLE', v: (e.cat === 'Magical' || e.cat === 'Resonance') ? 'NO' : 'YES', fg:'#d7e4e0' })
+
+    const cfgRating = !!taken && (!!e.range || (S.sub === 'powers' && !!e.ranked) || (S.step === 'qualities' && !!e.param))
+    const cfgGrade = !!taken && S.step === 'augmentations'
+    const cfgQty = !!taken && (S.step === 'resources' || S.step === 'augmentations')
+    const cfgParam = !!taken && e.param === true
+    const cfgAttach = !!taken && (e.host === true || (S.step === 'augmentations' && (e.cap || 0) > 0))
+    const hasConfig = cfgRating || cfgGrade || cfgQty || cfgParam || cfgAttach
+    const grades = ['standard','alpha'].map(g => ({
+      label: g === 'standard' ? 'STANDARD' : 'ALPHAWARE',
+      border: (pick.grade || 'standard') === g ? ACC : '#2b3340',
+      bg: (pick.grade || 'standard') === g ? 'rgba(0,255,204,.13)' : 'transparent',
+      fg: (pick.grade || 'standard') === g ? ACC : '#7f8f8b',
+      pick: () => this.patchPick(e.id, { grade:g }),
+    }))
+
+    const stepIdx = STEPS.findIndex(x => x.id === S.step)
+    const cleanCount = 6
+    const layout = stepDef.layout
+    const isCatalog = layout === 'catalog'
+    const isAllocate = layout === 'allocate'
+    const hasReadout = isCatalog || isAllocate
+    const consoleCols = isCatalog
+      ? 'minmax(158px,204px) minmax(0,1fr) minmax(250px,332px)'
+      : isAllocate ? 'minmax(0,1fr) minmax(250px,332px)' : 'minmax(0,1fr)'
+
+    // Readout on allocation steps explains the selection instead of configuring it.
+    let allocDetail = null
+    if (S.step === 'priority') {
+      const col = PRIORITY_COLS.find(c => c.id === S.selPriority) || PRIORITY_COLS[1]
+      const letter = S.priority[col.id]
+      allocDetail = {
+        name: col.label, meta: 'PRIORITY ' + letter + ' ASSIGNED', source:'SR5 CORE p.65',
+        stats: [
+          { label:'PRIORITY', value:letter, fg:ACC },
+          { label:'GRANTS', value:(PRIORITY_TABLE[letter] || {})[col.id] ? '✓' : '—', fg:'#d7e4e0' },
+        ],
+        text: PRIORITY_EXPLAIN[col.id],
+        rows: ['A','B','C','D','E'].map(L => ({ k:'PRIORITY ' + L, v:PRIORITY_TABLE[L][col.id], fg: S.priority[col.id] === L ? ACC : '#64746f' })),
+        isTaken:false, notTaken:false, hasConfig:false, hasWarn:false,
+      }
+    } else if (S.step === 'metatype') {
+      const m = METATYPES.find(x => x.id === S.selMeta) || METATYPES[0]
+      const active = S.metatype === m.id
+      allocDetail = {
+        name: m.name.toUpperCase(), meta: active ? 'SELECTED' : 'AVAILABLE', source:'SR5 CORE p.65',
+        stats: [
+          { label:'MODIFIERS', value:m.mods.split(' · ').length, fg:ACC },
+          { label:'STATUS', value: active ? 'ACTIVE' : '—', fg: active ? ACC : '#64746f' },
+        ],
+        text: m.text,
+        rows: [
+          { k:'ATTRIBUTE MODS', v:m.mods, fg:'#d7e4e0' },
+          { k:'TRAITS', v:m.traits, fg:'#93a6a2' },
+          { k:'PRIORITY COST', v:(PRIORITY_TABLE[S.priority.metatype] || {}).metatype || '—', fg:'#93a6a2' },
+        ],
+        isTaken:false, notTaken:false, hasConfig:false, hasWarn:false,
+      }
+    } else if (S.step === 'attributes') {
+      const a = ATTRS.find(x => x.id === S.selAttr) || ATTRS[0]
+      const v = S.attrs[a.id] || 1
+      const spent = attrSpentTotal
+      allocDetail = {
+        name: a.name, meta: a.code + ' · PHYSICAL / MENTAL', source:'SR5 CORE p.53',
+        stats: [
+          { label:'RATING', value:String(v), fg:ACC },
+          { label:'NATURAL MAX', value:'6', fg:'#d7e4e0' },
+        ],
+        text: a.text,
+        rows: [
+          { k:'ASSIGNED', v:spent + ' of ' + attrBudget, fg: spent === attrBudget ? ACC : AMBER },
+          { k:'REMAINING', v:String(attrBudget - spent), fg: spent > attrBudget ? RED : '#d7e4e0' },
+          { k:'FROM PRIORITY', v:'PRIORITY ' + P.attributes + ' · ' + PRIORITY_TABLE[P.attributes].attributes, fg:'#93a6a2' },
+        ],
+        isTaken:false, notTaken:false, hasConfig:false,
+        hasWarn: spent !== attrBudget,
+        warn: spent < attrBudget ? 'You have ' + (attrBudget - spent) + ' unspent attribute points. Every point left here is wasted — they do not convert to karma.'
+          : 'You are ' + (spent - attrBudget) + ' over the attribute budget. The server will reject this on finalize.',
+      }
+    }
+
+    return {
+      crtScan: crt[0], crtVignette: crt[1], rowPad: compact ? '5px' : '9px',
+
+      // Chips are ordered so the one relevant to the current step leads and is
+      // never the one that scrolls out of the overflow group at narrow widths.
+      headerBudgets: (() => {
+        const chips = [
+          { key:'skill', label:'SKILL', value:String(skillBudget - skillSpent), fg: skillSpent > skillBudget ? RED : CYAN, border:'#1e2430', bg:'transparent' },
+          { key:'ess', label:'ESS', value:(6 - essence).toFixed(2), fg: essence > 6 ? RED : ACC, border: essence > 6 ? RED : '#1e2430', bg: essence > 6 ? 'rgba(255,0,85,.08)' : 'transparent' },
+          { key:'nuyen', label:'NUYEN', value:money(nuyenBudget - nuyen), fg: nuyen > nuyenBudget ? RED : ACC, border:'#1e2430', bg:'transparent' },
+          { key:'karma', label:'KARMA', value:String(25 - (karma.pos - karma.neg)), fg:AMBER, border:'#1e2430', bg:'transparent' },
+        ]
+        const lead = { skills:'skill', knowledge:'skill', augmentations:'ess', resources:'nuyen', qualities:'karma', awakening:'karma' }[S.step]
+        const i = chips.findIndex(c => c.key === lead)
+        const ordered = i > 0 ? [chips[i]].concat(chips.filter((_, j) => j !== i)) : chips
+        // Drop whole chips that won't fit rather than clipping one mid-value.
+        const fit = S.winW >= 1240 ? 4 : S.winW >= 1080 ? 3 : S.winW >= 920 ? 2 : 1
+        return ordered.slice(0, fit)
+      })(),
+      blockingLabel: attrSpentTotal === attrBudget ? 'NO BLOCKERS' : '1 BLOCKING',
+      blockingDetail: attrSpentTotal === attrBudget
+        ? 'NO BLOCKING DIAGNOSTICS'
+        : attrSpentTotal < attrBudget
+          ? '1 BLOCKING · ' + (attrBudget - attrSpentTotal) + ' UNSPENT ATTRIBUTE POINTS'
+          : '1 BLOCKING · ' + (attrSpentTotal - attrBudget) + ' OVER ATTRIBUTE BUDGET',
+      goBlocking: () => this.go('attributes'),
+      stepNumber: stepDef.n,
+      stepTitle: stepDef.label,
+      stepHint: 'ESC RETURNS TO DOSSIER',
+      isConsole: S.view === 'console', isDossier: S.view === 'dossier',
+      goDossier: () => this.setState({ view:'dossier', attachOpen:false }),
+      resume: () => this.go(S.lastStep),
+      resumeLabel: (STEPS.find(x => x.id === S.lastStep) || STEPS[6]).label,
+
+      ribbon: STEPS.map((st, i) => {
+        const cur = st.id === S.step
+        let count = ''
+        if (st.id === 'skills') count = String(Object.keys(S.ratings).length)
+        else if (st.id === 'knowledge') count = String(Object.keys(S.know).filter(k => S.know[k] > 0).length)
+        else if (S.picks[st.id]) count = String(Object.keys(S.picks[st.id]).length)
+        else if (st.id === 'awakening') count = String(Object.keys(S.picks.awakening || {}).length)
+        return {
+          n: st.n, label: st.label, title: st.label, count: count && count !== '0' ? '· ' + count : '',
+          countFg: ACC,
+          bg: cur ? '#101620' : 'transparent',
+          fg: cur ? '#d7e4e0' : st.locked ? '#39444c' : '#7f8f8b',
+          underline: cur ? ACC : 'transparent',
+          dot: st.locked ? '#2b3340' : st.warn ? AMBER : (i < 6 ? ACC : '#39444c'),
+          dotGlow: st.warn ? '0 0 7px ' + AMBER : 'none',
+          cursor: st.locked ? 'not-allowed' : 'pointer',
+          go: () => { if (!st.locked) this.go(st.id) },
+        }
+      }),
+
+      budgets,
+      facetLabel: S.step === 'qualities' ? 'POLARITY' : 'CATEGORY',
+      facets: facetList.map(c => {
+        const on = S.facet === c
+        const count = c === 'All' ? all.length : all.filter(x => x[facetKey] === c).length
+        return {
+          label: String(c).toUpperCase(), count, bg: on ? '#101620' : 'transparent',
+          fg: on ? ACC : '#7f8f8b', mark: on ? ACC : 'transparent', countFg: on ? ACC : '#4b5860',
+          pick: () => this.setState({ facet: c }),
+        }
+      }),
+      picked, pickedCount: String(picked.length).padStart(2,'0'), pickedEmpty: picked.length === 0,
+
+      queryPrompt: 'catalog:' + (S.step === 'awakening' || S.step === 'skills' ? S.sub : S.step) + '>',
+      queryHint: cw < 560
+        ? 'filter'
+        : S.step === 'skills' ? 'hack · agi · cracking'
+        : S.step === 'resources' ? 'pistol · armor · deck'
+        : S.step === 'augmentations' ? 'eye · reflex · bioware'
+        : 'filter',
+      q: S.q, hasQuery: S.q.length > 0,
+      onQuery: (ev) => this.setState({ q: ev.target.value }),
+      clearQuery: () => this.setState({ q:'' }),
+      resultCount: String(results.length).padStart(2,'0'), totalCount: String(all.length).padStart(2,'0'),
+      noResults: results.length === 0,
+      resetAll: () => this.setState({ q:'', facet:'All', flags:{ taken:false, untrained:false, affordable:false } }),
+
+      hasSubTabs: subTabsFor(S.step, S.path).length > 0,
+      subTabs: subTabsFor(S.step, S.path).map(t => {
+        const on = S.sub === t.id
+        let n = 0
+        const bucket = S.picks.awakening || {}
+        if (t.id === 'spells') n = SPELLS.filter(x => bucket[x.id]).length
+        if (t.id === 'powers') n = POWERS.filter(x => bucket[x.id]).length
+        if (t.id === 'forms') n = FORMS.filter(x => bucket[x.id]).length
+        if (t.id === 'groups') n = Object.keys(S.groupRatings).filter(g => S.groupRatings[g] > 0).length
+        if (t.id === 'individual') n = Object.keys(S.ratings).length
+        if (t.id === 'path') n = 0
+        return {
+          label: t.label, count: n ? '· ' + n : '',
+          bg: on ? '#101620' : 'transparent', fg: on ? ACC : '#7f8f8b', underline: on ? ACC : 'transparent',
+          pick: () => this.setState({ sub: t.id, q:'', facet:'All' }),
+        }
+      }),
+
+      flags: [
+        { k:'taken', label:'--taken' }, { k:'untrained', label:'--untaken' }, { k:'affordable', label:'--affordable' },
+      ].map(f => {
+        const on = S.flags[f.k]
+        return {
+          label: f.label, border: on ? ACC : '#2b3340', bg: on ? 'rgba(0,255,204,.13)' : 'transparent', fg: on ? ACC : '#64746f',
+          toggle: () => this.setState(s => ({ flags: Object.assign({}, s.flags, { [f.k]: !s.flags[f.k] }) })),
+        }
+      }),
+      sorts: [{ k:'name', label:'A–Z' }, { k:'taken', label:'TAKEN' }, { k:'cost', label:'COST' }].map(so => {
+        const on = S.sort === so.k
+        return {
+          label: so.label, border: on ? CYAN : '#2b3340', bg: on ? 'rgba(0,210,255,.12)' : 'transparent', fg: on ? CYAN : '#64746f',
+          pick: () => this.setState({ sort: so.k }),
+        }
+      }),
+
+      colName, colTwo, colThree, colFour, results: rows,
+      gridCols, midHeaders, consoleRef: this.measure,
+
+      consoleCols, hasRail: isCatalog, hasSearch: isCatalog, isCatalog, hasReadout,
+      isPlainHeader: !isCatalog,
+      readoutLabel: isCatalog ? 'READOUT · CONFIG' : 'READOUT · REFERENCE',
+      stepNumber: 'STEP ' + stepDef.n, stepTitle: stepDef.label,
+      stepStatus: stepDef.warn ? 'NEEDS WORK' : stepDef.locked ? 'LOCKED' : 'IN PROGRESS',
+      stepStatusFg: stepDef.warn ? AMBER : stepDef.locked ? '#4b5860' : ACC,
+
+      isPriority: S.step === 'priority',
+      priorityCols: PRIORITY_COLS,
+      priorityCells: ['A','B','C','D','E'].reduce((acc, L) => {
+        acc.push({ isLabel:true, isCell:false, label:L, bg:'#0e1219', pad:'0 0 0 12px', justify:'flex-start', mark:'transparent' })
+        PRIORITY_COLS.forEach(col => {
+          const on = S.priority[col.id] === L
+          acc.push({
+            isLabel:false, isCell:true, text:PRIORITY_TABLE[L][col.id],
+            bg: on ? 'rgba(0,255,204,.10)' : '#04060a', pad:'9px 11px', justify:'flex-start',
+            mark: on ? ACC : 'transparent', fg: on ? ACC : '#7f8f8b',
+            pick: () => this.setState(s => {
+              const next = Object.assign({}, s.priority)
+              const holder = Object.keys(next).find(k => next[k] === L && k !== col.id)
+              if (holder) next[holder] = next[col.id]
+              next[col.id] = L
+              return { priority: next, selPriority: col.id }
+            }),
+          })
+        })
+        return acc
+      }, []),
+
+      isMetatype: S.step === 'metatype',
+      metatypes: METATYPES.map(m => {
+        const active = S.metatype === m.id
+        const focused = S.selMeta === m.id
+        const sp = (SPECIAL_POINTS[S.priority.metatype] || {})[m.id]
+        return {
+          name: m.name.toUpperCase(), mods: m.mods,
+          special: sp === null || sp === undefined ? 'N/A' : String(sp),
+          badge: active ? 'SELECTED' : sp === null ? 'LOCKED' : '',
+          border: active ? ACC : focused ? '#2b3340' : '#1e2430',
+          bg: active ? 'rgba(0,255,204,.08)' : '#0a0d13',
+          fg: active ? ACC : sp === null ? '#4b5860' : '#d7e4e0',
+          pick: () => this.setState({ metatype: m.id, selMeta: m.id }),
+        }
+      }),
+
+      isAttributes: S.step === 'attributes',
+      attrRows: ATTRS.map(a => {
+        const v = S.attrs[a.id] || 1
+        const focused = S.selAttr === a.id
+        return {
+          name: a.name, range: a.code + ' · 1–6', value: v,
+          valueFg: v >= 5 ? ACC : '#d7e4e0',
+          fg: focused ? ACC : '#d7e4e0',
+          border: focused ? ACC : '#1e2430', bg: focused ? '#0d1118' : '#0a0d13',
+          pips: [1,2,3,4,5,6].map(i => ({
+            bg: i <= v ? ACC : 'transparent',
+            border: i <= v ? ACC : '#2b3340',
+          })),
+          select: () => this.setState({ selAttr: a.id }),
+          inc: () => this.setState(s => ({ selAttr:a.id, attrs: Object.assign({}, s.attrs, { [a.id]: Math.min(6, (s.attrs[a.id] || 1) + 1) }) })),
+          dec: () => this.setState(s => ({ selAttr:a.id, attrs: Object.assign({}, s.attrs, { [a.id]: Math.max(1, (s.attrs[a.id] || 1) - 1) }) })),
+        }
+      }),
+
+      isIdentity: S.step === 'identity',
+      identityFields: [
+        { key:'name', label:'STREET NAME', hint:'the handle the shadows know', help:'Shown to other runners in play. Must be unique on the grid.' },
+        { key:'alias', label:'SHORT ALIAS', hint:'what your team shouts', help:'Used in the transcript when space is tight.' },
+        { key:'concept', label:'CONCEPT', hint:'one line — who is this runner', help:'Not mechanical. It anchors every later choice.' },
+      ].map(f => ({
+        label: f.label, hint: f.hint, help: f.help, value: S.identity[f.key] || '',
+        onInput: (ev) => { const v = ev.target.value; this.setState(s => ({ identity: Object.assign({}, s.identity, { [f.key]: v }) })) },
+      })),
+
+      isContacts: S.step === 'contacts',
+      contacts: S.contacts.map(c => ({
+        name: c.name, archetype: c.archetype, connection: c.connection, loyalty: c.loyalty,
+        incCon: () => this.patchContact(c.id, { connection: Math.min(6, c.connection + 1) }),
+        decCon: () => this.patchContact(c.id, { connection: Math.max(1, c.connection - 1) }),
+        incLoy: () => this.patchContact(c.id, { loyalty: Math.min(6, c.loyalty + 1) }),
+        decLoy: () => this.patchContact(c.id, { loyalty: Math.max(1, c.loyalty - 1) }),
+        remove: () => this.setState(s => ({ contacts: s.contacts.filter(x => x.id !== c.id) })),
+      })),
+      addContact: () => this.setState(s => ({
+        contacts: s.contacts.concat([{ id:'c' + Date.now(), name:'New contact', archetype:'Unassigned', connection:1, loyalty:1 }]),
+      })),
+
+      lifestyleNote: 'Paid from the same nuyen pool as gear — ' + money(nuyenBudget - nuyen) + ' left.',
+      isLifestyle: S.step === 'lifestyle',
+      lifestyles: LIFESTYLE_TIERS.map(l => {
+        const on = S.lifestyle === l.id
+        return {
+          name: l.name.toUpperCase(), cost: l.cost === 0 ? 'FREE' : l.cost.toLocaleString() + '¥ / MONTH', text: l.text,
+          border: on ? ACC : '#1e2430', bg: on ? 'rgba(0,255,204,.08)' : '#0a0d13', fg: on ? ACC : '#d7e4e0',
+          pick: () => this.setState({ lifestyle: l.id }),
+        }
+      }),
+      months: S.months,
+      incMonths: () => this.setState(s => ({ months: Math.min(12, s.months + 1) })),
+      decMonths: () => this.setState(s => ({ months: Math.max(0, s.months - 1) })),
+      lifestyleTotal: (((LIFESTYLE_TIERS.find(l => l.id === S.lifestyle) || {}).cost || 0) * S.months).toLocaleString() + '¥',
+
+      isSummary: !!stepDef.locked,
+
+      detail: allocDetail || {
+        name: String(e.name || '').toUpperCase(),
+        // Category and linked attribute live here only — never repeated in drows.
+        meta: [String(e.cat || '').toUpperCase(), e.attr ? 'LINKED ' + e.attr : ''].filter(Boolean).join(' · '),
+        source: 'SR5 CORE',
+        stats, text: e.text || '', rows: drows,
+        isTaken: taken, notTaken: !taken, hasConfig,
+        addLabel: S.step === 'awakening' ? 'BIND TO DOSSIER +' : 'ADD TO DOSSIER +',
+        addSelf: () => {
+          if (S.step === 'skills' || (S.step === 'awakening' && S.sub === 'skills')) this.bumpSkill(e.id, 1)
+          else if (S.step === 'knowledge') this.bumpKnow(e.id, 1)
+          else this.togglePick(e.id, { qty:1, rating: e.range ? e.range[0] : undefined, grade:'standard', rank: e.ranked ? 1 : undefined })
+        },
+        removeSelf: () => {
+          if (S.step === 'skills' || (S.step === 'awakening' && S.sub === 'skills')) this.bumpSkill(e.id, -99)
+          else if (S.step === 'knowledge') this.bumpKnow(e.id, -99)
+          else this.togglePick(e.id)
+        },
+        hasRating: cfgRating,
+        ratingRange: e.range ? '(' + e.range[0] + '–' + e.range[1] + ')' : '(1–6)',
+        rating: pick.rank || pick.rating || (e.range ? e.range[0] : 1),
+        incRating: () => this.patchPick(e.id, S.sub === 'powers' ? { rank: Math.min(6, (pick.rank || 1) + 1) } : { rating: Math.min(6, (pick.rating || 1) + 1) }),
+        decRating: () => this.patchPick(e.id, S.sub === 'powers' ? { rank: Math.max(1, (pick.rank || 1) - 1) } : { rating: Math.max(1, (pick.rating || 1) - 1) }),
+        hasGrade: cfgGrade, grades,
+        hasQty: cfgQty,
+        qty: pick.qty || 1,
+        incQty: () => this.patchPick(e.id, { qty: Math.min(99, (pick.qty || 1) + 1) }),
+        decQty: () => this.patchPick(e.id, { qty: Math.max(1, (pick.qty || 1) - 1) }),
+        hasParam: cfgParam,
+        paramLabel: 'REQUIRED PARAMETER',
+        paramHint: S.step === 'qualities' ? 'e.g. wireless devices' : 'e.g. pollutants',
+        param: pick.param || '',
+        onParam: (ev) => this.patchPick(e.id, { param: ev.target.value }),
+        hasAttach: cfgAttach,
+        capLabel: '(' + capUsed + '/' + capTotal + ')',
+        attachments: attList.map(aid => {
+          const acc = (ACCESSORIES[kind] || []).find(x => x[0] === aid)
+          return { name: acc ? acc[1] : aid, cost: acc ? money(acc[2] * 500) : '—' }
+        }),
+        hasWarn: e.avail > 12 || e.essence >= 2,
+        warn: e.avail > 12 ? 'Availability ' + e.avail + ' exceeds the creation cap of 12. The server will reject this item on finalize.'
+          : 'This implant burns ' + e.essence + ' Essence — over a third of your total. Check the Attributes step for the Magic loss.',
+      },
+
+      attachOpen: S.attachOpen,
+      openAttach: () => this.setState({ attachOpen:true }),
+      closeAttach: () => this.setState({ attachOpen:false }),
+      capUsed, capTotal, capPct: Math.min(100, Math.round((capUsed / capTotal) * 100)),
+      capFg: capUsed > capTotal ? RED : CYAN,
+      accessories: (ACCESSORIES[kind] || []).map(a => {
+        const on = attList.indexOf(a[0]) >= 0
+        return {
+          name: a[1], meta: a[3] + ' · ' + a[2] + ' cap · ' + money(a[2] * 500),
+          fg: on ? CYAN : '#c3d2ce', bg: on ? 'rgba(0,210,255,.06)' : 'transparent',
+          border: on ? CYAN : '#2b3340', btnBg: on ? 'rgba(0,210,255,.14)' : 'transparent', btnFg: on ? CYAN : '#7f8f8b',
+          label: on ? 'FITTED ✓' : 'FIT +',
+          toggle: () => this.setState(s => {
+            const cur = (s.attachments[e.id] || []).slice()
+            const i = cur.indexOf(a[0])
+            if (i >= 0) cur.splice(i, 1); else cur.push(a[0])
+            return { attachments: Object.assign({}, s.attachments, { [e.id]: cur }) }
+          }),
+        }
+      }),
+
+      dossier: STEPS.map(st => {
+        let items = []
+        if (st.id === 'skills') items = SKILLS.filter(x => (S.ratings[x.id] || 0) > 0).map(x => ({ name:x.name, badge:String(S.ratings[x.id]) }))
+        else if (st.id === 'knowledge') items = KNOWLEDGE.filter(x => (S.know[x.id] || 0) > 0).map(x => ({ name:x.name, badge:String(S.know[x.id]) }))
+        else if (st.id === 'qualities') items = Object.keys(S.picks.qualities || {}).map(id => { const qy = QUALITIES.find(x => x.id === id); return { name: qy ? qy.name : id, badge: qy ? String(qy.cost * ((S.picks.qualities[id].rating) || 1)) : '✓' } })
+        else if (st.id === 'augmentations') items = Object.keys(S.picks.augmentations || {}).map(id => { const a = AUGS.find(x => x.id === id); return { name: a ? a.name : id, badge: a ? money(a.cost) : '✓' } })
+        else if (st.id === 'resources') items = Object.keys(S.picks.resources || {}).map(id => { const g = GEAR.find(x => x.id === id); return { name: g ? g.name : id, badge: g ? money(g.cost) : '✓' } })
+        else if (st.id === 'awakening') items = Object.keys(S.picks.awakening || {}).map(id => { const x = SPELLS.concat(POWERS, FORMS).find(y => y.id === id); return { name: x ? x.name : id, badge:'✓' } })
+        else if (st.id === 'identity') items = [{ name: S.identity.name || 'Unnamed', badge:'' }, { name: S.identity.concept || 'No concept', badge:'' }]
+        else if (st.id === 'priority') items = PRIORITY_COLS.map(c => ({ name: c.label, badge: S.priority[c.id] }))
+        else if (st.id === 'metatype') { const m = METATYPES.find(x => x.id === S.metatype); items = m ? [{ name:m.name, badge:m.mods.split(' · ')[0] }] : [] }
+        else if (st.id === 'attributes') items = [{ name: attrSpentTotal + ' of ' + attrBudget + ' assigned', badge: attrSpentTotal === attrBudget ? '✓' : '⚠' }]
+        else if (st.id === 'contacts') items = S.contacts.map(c => ({ name:c.name, badge:c.connection + '/' + c.loyalty }))
+        else if (st.id === 'lifestyle') { const l = LIFESTYLE_TIERS.find(x => x.id === S.lifestyle); items = l ? [{ name:l.name, badge: S.months + ' mo' }] : [] }
+        if (st.locked) items = []
+        const needsWork = st.id === 'attributes' ? attrSpentTotal !== attrBudget : false
+        return {
+          label: st.n + ' ' + st.label, items, empty: items.length === 0,
+          status: st.locked ? 'LOCKED' : needsWork ? 'NEEDS WORK' : items.length ? 'DONE' : 'NOT STARTED',
+          statusFg: st.locked ? '#39444c' : needsWork ? AMBER : items.length ? ACC : '#64746f',
+          go: () => { if (!st.locked) this.go(st.id) },
+        }
+      }),
+
+      progressPct: Math.round((cleanCount / 12) * 100),
+      progressLabel: cleanCount + ' / 12 STEPS CLEAN',
+      prevLabel: (STEPS[stepIdx - 1] || STEPS[0]).label,
+      nextLabel: (STEPS[stepIdx + 1] || STEPS[STEPS.length - 1]).label,
+      prevStep: () => { const p = STEPS[stepIdx - 1]; if (p) this.go(p.id) },
+      nextStep: () => { const n = STEPS[stepIdx + 1]; if (n && !n.locked) this.go(n.id) },
+    }
+  }
+}
+</script>
+</body>
+</html>

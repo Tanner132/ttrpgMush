@@ -1,6 +1,7 @@
 import type { LifestyleOptionDefinition, LifestyleSelection, LifestyleTierDefinition } from '../../../api/characterCreation.ts'
 import { lifestyleCostMultiplier } from '../../../api/characterCreation.ts'
 import type { CreationStepProps } from './types.ts'
+import { Diagnostics } from '../Diagnostics.tsx'
 
 const STREET_TIER_ID = 'street-lifestyle'
 const PERMANENT_PAYMENT_FORM_ID = 'permanent'
@@ -34,7 +35,7 @@ function estimateCost(
   return monthly * Math.max(0, selection.prepaidMonths)
 }
 
-export function LifestyleStep({ catalog, document, onChange }: CreationStepProps) {
+export function LifestyleStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
   const lifestyles = document.lifestyles ?? []
   const multiplier = lifestyleCostMultiplier(document.metatype?.metatypeId)
 
@@ -76,79 +77,89 @@ export function LifestyleStep({ catalog, document, onChange }: CreationStepProps
   }
 
   return (
-    <section className="creation-step" aria-labelledby="lifestyle-step-heading">
-      <p className="creation-step__eyebrow">LIFESTYLE / STARTING CASH</p>
-      <h3 id="lifestyle-step-heading">Choose where and how your character lives</h3>
-      <p className="creation-step__intro">
-        Choose exactly one primary lifestyle. Starting cash is rolled once, automatically, when you finalize your
-        character — it never appears here as a preview.
-      </p>
-      <div className="creation-step__allocation-status" role="status">
-        <strong>{totalSpent.toLocaleString()}</strong> nuyen spent on lifestyles
-      </div>
+    <div className="console console--form">
+      <div className="console__main">
+        <div className="console__header">
+          <span className="console__header-number">STEP 13</span>
+          <span className="console__header-title">LIFESTYLE</span>
+        </div>
+        <section className="creation-step" style={{ overflow: 'auto', padding: 'var(--sb-space-5) var(--sb-space-6)' }} aria-labelledby="lifestyle-step-heading">
+          <p className="creation-step__eyebrow">LIFESTYLE / STARTING CASH</p>
+          <h3 id="lifestyle-step-heading">Choose where and how your character lives</h3>
+          <p className="creation-step__intro">
+            Choose exactly one primary lifestyle. Starting cash is rolled once, automatically, when you finalize your
+            character — it never appears here as a preview.
+          </p>
+          <div className="creation-step__allocation-status" role="status">
+            <strong>{totalSpent.toLocaleString()}</strong> nuyen spent on lifestyles
+          </div>
 
-      <ul className="creation-contacts">
-        {lifestyles.map((selection) => {
-          const tier = catalog.lifestyleTiers.find((item) => item.id === selection.tierId)
-          const isStreet = tier?.id === STREET_TIER_ID
-          return (
-            <li className="creation-resource-line" key={selection.instanceId}>
-              <label className="creation-attribute">
-                <span><strong>Primary</strong></span>
-                <input type="radio" name="primary-lifestyle" checked={selection.isPrimary}
-                  onChange={() => setPrimary(selection.instanceId)} />
-              </label>
-              <label className="creation-attribute">
-                <span><strong>Lifestyle tier</strong></span>
-                <select aria-label="Lifestyle tier" value={selection.tierId}
-                  onChange={(event) => updateLifestyle(selection.instanceId, { tierId: event.target.value })}>
-                  {catalog.lifestyleTiers.map((item) => (
-                    <option key={item.id} value={item.id}>{item.displayName}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="creation-attribute">
-                <span><strong>Payment form</strong></span>
-                <select aria-label="Payment form" value={selection.paymentFormId ?? ''} disabled={isStreet}
-                  onChange={(event) => updateLifestyle(selection.instanceId, { paymentFormId: event.target.value || undefined })}>
-                  <option value="">Standard (prepaid months)</option>
-                  <option value={PERMANENT_PAYMENT_FORM_ID}>Permanent</option>
-                  <option value={TEAM_PAYMENT_FORM_ID}>Team</option>
-                </select>
-              </label>
-              {!isStreet && selection.paymentFormId !== PERMANENT_PAYMENT_FORM_ID && (
-                <label className="creation-attribute">
-                  <span><strong>Prepaid months</strong></span>
-                  <input aria-label="Prepaid months" type="number" min="0" value={selection.prepaidMonths}
-                    onChange={(event) => updateLifestyle(selection.instanceId, { prepaidMonths: Number(event.target.value) })} />
-                </label>
-              )}
-              {selection.paymentFormId === TEAM_PAYMENT_FORM_ID && (
-                <label className="creation-attribute">
-                  <span><strong>Additional persons</strong></span>
-                  <input aria-label="Additional persons" type="number" min="0" value={selection.additionalPersons ?? 0}
-                    onChange={(event) => updateLifestyle(selection.instanceId, { additionalPersons: Number(event.target.value) })} />
-                </label>
-              )}
-              {!isStreet && (
-                <fieldset>
-                  <legend>Lifestyle options</legend>
-                  {catalog.lifestyleOptions.map((option) => (
-                    <label className="creation-attribute" key={option.id}>
-                      <span>{option.displayName}</span>
-                      <input type="checkbox" checked={(selection.optionIds ?? []).includes(option.id)}
-                        onChange={() => toggleOption(selection, option.id)} />
+          <ul className="creation-contacts">
+            {lifestyles.map((selection) => {
+              const tier = catalog.lifestyleTiers.find((item) => item.id === selection.tierId)
+              const isStreet = tier?.id === STREET_TIER_ID
+              return (
+                <li className="creation-resource-line" key={selection.instanceId}>
+                  <label className="creation-attribute">
+                    <span><strong>Primary</strong></span>
+                    <input type="radio" name="primary-lifestyle" checked={selection.isPrimary}
+                      onChange={() => setPrimary(selection.instanceId)} />
+                  </label>
+                  <label className="creation-attribute">
+                    <span><strong>Lifestyle tier</strong></span>
+                    <select aria-label="Lifestyle tier" value={selection.tierId}
+                      onChange={(event) => updateLifestyle(selection.instanceId, { tierId: event.target.value })}>
+                      {catalog.lifestyleTiers.map((item) => (
+                        <option key={item.id} value={item.id}>{item.displayName}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="creation-attribute">
+                    <span><strong>Payment form</strong></span>
+                    <select aria-label="Payment form" value={selection.paymentFormId ?? ''} disabled={isStreet}
+                      onChange={(event) => updateLifestyle(selection.instanceId, { paymentFormId: event.target.value || undefined })}>
+                      <option value="">Standard (prepaid months)</option>
+                      <option value={PERMANENT_PAYMENT_FORM_ID}>Permanent</option>
+                      <option value={TEAM_PAYMENT_FORM_ID}>Team</option>
+                    </select>
+                  </label>
+                  {!isStreet && selection.paymentFormId !== PERMANENT_PAYMENT_FORM_ID && (
+                    <label className="creation-attribute">
+                      <span><strong>Prepaid months</strong></span>
+                      <input aria-label="Prepaid months" type="number" min="0" value={selection.prepaidMonths}
+                        onChange={(event) => updateLifestyle(selection.instanceId, { prepaidMonths: Number(event.target.value) })} />
                     </label>
-                  ))}
-                </fieldset>
-              )}
-              <button type="button" onClick={() => removeLifestyle(selection.instanceId)}>Remove</button>
-            </li>
-          )
-        })}
-      </ul>
+                  )}
+                  {selection.paymentFormId === TEAM_PAYMENT_FORM_ID && (
+                    <label className="creation-attribute">
+                      <span><strong>Additional persons</strong></span>
+                      <input aria-label="Additional persons" type="number" min="0" value={selection.additionalPersons ?? 0}
+                        onChange={(event) => updateLifestyle(selection.instanceId, { additionalPersons: Number(event.target.value) })} />
+                    </label>
+                  )}
+                  {!isStreet && (
+                    <fieldset>
+                      <legend>Lifestyle options</legend>
+                      {catalog.lifestyleOptions.map((option) => (
+                        <label className="creation-attribute" key={option.id}>
+                          <span>{option.displayName}</span>
+                          <input type="checkbox" checked={(selection.optionIds ?? []).includes(option.id)}
+                            onChange={() => toggleOption(selection, option.id)} />
+                        </label>
+                      ))}
+                    </fieldset>
+                  )}
+                  <button type="button" onClick={() => removeLifestyle(selection.instanceId)}>Remove</button>
+                </li>
+              )
+            })}
+          </ul>
 
-      <button type="button" onClick={addLifestyle}>Add lifestyle</button>
-    </section>
+          <button type="button" onClick={addLifestyle}>Add lifestyle</button>
+
+          <Diagnostics diagnostics={diagnostics} boxed />
+        </section>
+      </div>
+    </div>
   )
 }

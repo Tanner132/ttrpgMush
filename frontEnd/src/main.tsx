@@ -11,13 +11,16 @@ import './styles/base.css'
 import './styles/components.css'
 import App from './App.tsx'
 import { AccountProvider } from './auth/AccountProvider.tsx'
+import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <AccountProvider>
-        <App />
-      </AccountProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AccountProvider>
+          <App />
+        </AccountProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )
