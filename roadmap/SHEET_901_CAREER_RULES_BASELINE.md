@@ -416,19 +416,17 @@ does not block this document's approval.
 
 ## 7. Sheet Schema, Legacy, And Creation-Only Catalog Facts
 
-- Supported evaluated `CharacterSheet` schema versions for the typed baseline
-  reader (SHEET-902): versions 1, 2, and 3, per the Milestone 9 Target
-  Architecture text and PROJECT_CONTEXT.md's existing note that finalization
-  currently writes schema version 3. Versions 1-2 exist from earlier
-  finalization code paths before CHAR-811's `DerivedStatisticsEvaluator`
-  was added; SHEET-902 must confirm their exact historical shape from
-  migration history rather than this document, which is a rules contract,
-  not a schema archaeology exercise.
-- Legacy sheet kind (pre-SR5 profile-only characters from Milestone 7,
-  `roadmap/MILESTONE_07_CHARACTER_PROFILES.md`) has no derivable mechanical
-  baseline. Confirmed **no automatic balance** per the Milestone 9 Balance
-  Initialization section; SHEET-902/903 must reject mechanical reads for
-  legacy sheets without inventing zero-value balances.
+- **Scope decision (2026-08-25):** the project owner confirmed no real
+  characters exist yet — every character created so far is test data — so
+  SHEET-902's originally planned support for evaluated schema versions 1 and 2
+  plus a `Legacy` sheet kind was dropped rather than built out. The typed
+  baseline reader supports only the current evaluated schema version (3) and
+  rejects anything else as unsupported. `CharacterSheetKind` and the dead
+  "instant character" creation path that produced `Legacy`-kind sheets were
+  removed from the codebase, and the dev/test seed character was rebuilt as a
+  real evaluated sheet instead of the `{"legacy":true}` stub. This is a
+  product-shape decision, not a rules reinterpretation — it does not change any
+  cost, ceiling, or eligibility fact elsewhere in this document.
 - **Creation-only qualities/options that must remain career-unavailable**
   (from `sr5-catalog/QUALITIES.md`, cross-checked against Section 5's
   contact finding and this document's own research):

@@ -1,5 +1,3 @@
-using SeattleByNight.Domain.Enums;
-
 namespace SeattleByNight.Domain.Entities;
 
 public sealed class CharacterSheet
@@ -13,5 +11,4 @@ public sealed class CharacterSheet
     public string CanonicalSheetJson { get; set; } = "{}";
     public string SourceDraftDigest { get; set; } = string.Empty;
     public DateTimeOffset FinalizedAtUtc { get; set; }
-    public CharacterSheetKind Kind { get; set; }
 }

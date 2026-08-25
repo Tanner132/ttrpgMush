@@ -201,7 +201,6 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
             $"/api/character-creation/drafts/{characterId}/finalize", new { expectedVersion = version });
         finalize.EnsureSuccessStatusCode();
         var sheet = await ReadObjectAsync(finalize);
-        Assert.Equal("Evaluated", sheet.GetProperty("kind").GetString());
         Assert.Equal("standard-priority", sheet.GetProperty("sheet")
             .GetProperty("priorityAssignment").GetProperty("creationMethodId").GetString());
 

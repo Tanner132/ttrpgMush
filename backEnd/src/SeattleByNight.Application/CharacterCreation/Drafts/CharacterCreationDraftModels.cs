@@ -1,5 +1,4 @@
 using SeattleByNight.Application.CharacterCreation.Evaluation;
-using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Application.CharacterCreation.Drafts;
 
@@ -7,20 +6,12 @@ public static class CharacterCreationDocumentVersions
 {
     public const int Draft = 1;
 
-    // Sheet version 1 carried only the priority assignment preview. Version 2
-    // introduced the full evaluated canonical sheet; version 3 adds attachment
-    // Essence and explicit granted skill-group ratings. The version is persisted
-    // alongside the JSON so retained sheet shapes remain identifiable.
+    // The current evaluated canonical sheet shape: attribute/skill/quality/
+    // knowledge/language/magic-resonance evaluation, attachment Essence, and
+    // explicit granted skill-group ratings. Only this version is supported by
+    // the typed baseline reader (SHEET-902) — no historical sheet shapes exist
+    // to preserve.
     public const int Sheet = 3;
-}
-
-public static class LegacyCharacterSheetDefaults
-{
-    public const string RulesetId = "legacy";
-    public const string CatalogVersion = "0.0.0";
-    public const string EmptyDocumentDigest = "44136FA355B3678A1146AD16F7E8649E94FB4FC21FE77E8310C060F61CAAFF8A";
-    public const string CreationMethodId = "legacy-import";
-    public const string CanonicalSheetJson = "{\"legacy\":true}";
 }
 
 public sealed record MetatypeSelection(string MetatypeId);
@@ -247,8 +238,7 @@ public sealed record FinalizedCharacterSheet(
     int SheetSchemaVersion,
     string CanonicalSheetJson,
     string SourceDraftDigest,
-    DateTimeOffset FinalizedAtUtc,
-    CharacterSheetKind Kind);
+    DateTimeOffset FinalizedAtUtc);
 
 public sealed record FinalizeCharacterResult(
     CharacterCreationDraftError Error,

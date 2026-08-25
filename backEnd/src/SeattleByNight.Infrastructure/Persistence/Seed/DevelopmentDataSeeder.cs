@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.Authorization;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.CharacterCreation.Catalog;
 using SeattleByNight.Application.CharacterCreation.Drafts;
+using SeattleByNight.Application.CharacterCreation.Evaluation;
 using SeattleByNight.Domain.Entities;
 using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Identity;
@@ -193,18 +195,18 @@ public static class DevelopmentDataSeeder
 
         if (!await db.CharacterSheets.AnyAsync(sheet => sheet.CharacterId == DevCharacterId, cancellationToken))
         {
+            var catalog = new EmbeddedRulesetCatalogProvider().Current;
             db.CharacterSheets.Add(new CharacterSheet
             {
                 CharacterId = DevCharacterId,
-                RulesetId = LegacyCharacterSheetDefaults.RulesetId,
-                CatalogVersion = LegacyCharacterSheetDefaults.CatalogVersion,
-                CatalogSemanticDigest = LegacyCharacterSheetDefaults.EmptyDocumentDigest,
-                CreationMethodId = LegacyCharacterSheetDefaults.CreationMethodId,
+                RulesetId = catalog.RulesetId,
+                CatalogVersion = catalog.Version,
+                CatalogSemanticDigest = catalog.SemanticDigest,
+                CreationMethodId = "standard-priority",
                 SheetSchemaVersion = CharacterCreationDocumentVersions.Sheet,
-                CanonicalSheetJson = LegacyCharacterSheetDefaults.CanonicalSheetJson,
-                SourceDraftDigest = LegacyCharacterSheetDefaults.EmptyDocumentDigest,
+                CanonicalSheetJson = BuildDevRunnerCanonicalSheetJson(catalog),
+                SourceDraftDigest = new string('0', 64),
                 FinalizedAtUtc = devCharacter.FinalizedAtUtc ?? devCharacter.CreatedAtUtc,
-                Kind = CharacterSheetKind.Legacy,
             });
         }
 
@@ -245,5 +247,122 @@ public static class DevelopmentDataSeeder
                 ConcurrencyStamp = Guid.NewGuid().ToString()
             });
         }
+    }
+
+    // Builds a real, finalization-ready schema-version-3 canonical sheet for
+    // the seeded dev character by running an actual draft document through
+    // the real evaluator, rather than hand-writing JSON. This is the same
+    // pattern the application test suite uses to produce a known-valid sheet
+    // (see CanonicalCharacterSheetTests.ValidDocument()) — it guarantees the
+    // seeded sheet is a genuine example of "what a modern finalized sheet
+    // looks like" instead of the inert `{"legacy":true}` stub this replaces.
+    private static string BuildDevRunnerCanonicalSheetJson(RulesetCatalog catalog)
+    {
+        var evaluator = new CharacterCreationDraftEvaluator(
+            new EmbeddedRulesetCatalogProvider(),
+            new PriorityAssignmentEvaluator(),
+            new MetatypeAndAttributeEvaluator(),
+            new QualitiesSkillsKnowledgeEvaluator(),
+            new MagicResonanceEvaluator(),
+            new KarmaBudgetEvaluator(),
+            new ResourcesEssenceEvaluator(),
+            new GearAttachmentEvaluator(),
+            new ContactEvaluator(),
+            new IdentityEvaluator(),
+            new ProfileEvaluator(),
+            new LifestyleEvaluator(),
+            new DerivedStatisticsEvaluator());
+
+        // This allocation is a known-valid, already-balanced priority/point
+        // spend (mirrors CanonicalCharacterSheetTests.ValidDocument()) —
+        // every priority-granted point pool is exactly spent. Do not trim
+        // sections to "simplify" the seed data without re-verifying every
+        // affected budget; only Identity is added here, which has no budget
+        // of its own.
+        var grantedSpellIds = new[]
+        {
+            "manabolt", "fireball", "heal", "detect-life", "invisibility", "armor", "levitate",
+            "influence", "combat-sense", "increase-reflexes",
+        };
+        var document = new CharacterCreationDraftDocument(
+            new PriorityAssignment("e", "b", "a", "c", "d"),
+            Metatype: new MetatypeSelection("human"),
+            Attributes: new AttributeAllocation(new Dictionary<string, int>
+            {
+                ["body"] = 3,
+                ["agility"] = 3,
+                ["reaction"] = 3,
+                ["strength"] = 3,
+                ["willpower"] = 3,
+                ["logic"] = 3,
+                ["intuition"] = 2,
+                ["charisma"] = 0,
+            }),
+            SpecialAttributes: new SpecialAttributeAllocation(new Dictionary<string, int>
+            {
+                ["edge"] = 1,
+                ["magic"] = 0,
+                ["resonance"] = 0,
+            }),
+            Qualities:
+            [
+                new QualitySelection("guts"),
+                new QualitySelection("aptitude", Parameters: new Dictionary<string, string> { ["skill-id"] = "archery" }),
+            ],
+            Skills:
+            [
+                new SkillAllocation("archery", 3),
+                new SkillAllocation("pistols", 2),
+            ],
+            SkillGroups:
+            [
+                new SkillGroupAllocation("athletics", 2),
+            ],
+            KnowledgeSkills:
+            [
+                new KnowledgeSkillAllocation("Seattle Street Gangs", "street", 3),
+            ],
+            Languages:
+            [
+                new LanguageAllocation("Japanese", 2),
+            ],
+            NativeLanguages:
+            [
+                new LanguageSelection("English"),
+            ],
+            MagicResonance: new MagicResonanceSelection(
+                "magician",
+                TraditionId: "hermetic",
+                SkillGrants: [new SkillGrantAllocation("spellcasting"), new SkillGrantAllocation("summoning")],
+                Spells: grantedSpellIds.Select(id => new SpellSelection(id, Granted: true)).ToArray()),
+            Identity: new CharacterIdentity(
+                Concept: "Dev-only smoke-test runner",
+                ShortDescription: "Seeded on startup for local development."),
+            Lifestyles: [new LifestyleSelection("life-1", "street-lifestyle", IsPrimary: true, PrepaidMonths: 0)]);
+
+        var snapshot = new CharacterCreationDraftSnapshot(
+            DevCharacterId,
+            DevUserId,
+            "Dev Runner",
+            "DEV RUNNER",
+            catalog.RulesetId,
+            catalog.Version,
+            catalog.SemanticDigest,
+            "standard-priority",
+            CharacterCreationDocumentVersions.Draft,
+            document,
+            Guid.NewGuid(),
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow);
+
+        var details = evaluator.Evaluate(snapshot);
+        if (!details.IsReadyToFinalize || details.CanonicalSheet is null)
+        {
+            throw new InvalidOperationException(
+                "The seeded dev character's canonical sheet failed evaluation: "
+                + string.Join("; ", details.Diagnostics.Select(item => item.Code)));
+        }
+
+        return CharacterCreationDraftSerialization.SerializeCanonicalSheet(details.CanonicalSheet);
     }
 }

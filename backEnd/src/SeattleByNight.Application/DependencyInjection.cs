@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SeattleByNight.Application.CharacterCreation.Catalog;
 using SeattleByNight.Application.CharacterCreation.Evaluation;
 using SeattleByNight.Application.CharacterCreation.Drafts;
+using SeattleByNight.Application.CharacterCreation.Sheets;
 
 namespace SeattleByNight.Application;
 
@@ -21,9 +22,11 @@ public static class DependencyInjection
         services.AddSingleton<GearAttachmentEvaluator>();
         services.AddSingleton<ContactEvaluator>();
         services.AddSingleton<IdentityEvaluator>();
+        services.AddSingleton<ProfileEvaluator>();
         services.AddSingleton<LifestyleEvaluator>();
         services.AddSingleton<DerivedStatisticsEvaluator>();
         services.AddSingleton<CharacterCreationDraftEvaluator>();
+        services.AddSingleton<CharacterCreationBaselineReader>();
 
         return services;
     }

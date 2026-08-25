@@ -7,6 +7,8 @@ public interface IRulesetCatalogProvider
     RulesetCatalog Current { get; }
 
     RulesetCatalog Get(string rulesetId, string version);
+
+    bool TryGet(string rulesetId, string version, out RulesetCatalog? catalog);
 }
 
 public sealed record CatalogVersionPin(
@@ -37,9 +39,12 @@ public sealed class EmbeddedRulesetCatalogProvider : IRulesetCatalogProvider
     public RulesetCatalog Current => catalogs[(CurrentRulesetId, CurrentVersion)];
 
     public RulesetCatalog Get(string rulesetId, string version) =>
-        catalogs.TryGetValue((rulesetId, version), out var catalog)
-            ? catalog
+        TryGet(rulesetId, version, out var catalog)
+            ? catalog!
             : throw new KeyNotFoundException($"Ruleset catalog '{rulesetId}/{version}' is not retained.");
+
+    public bool TryGet(string rulesetId, string version, out RulesetCatalog? catalog) =>
+        catalogs.TryGetValue((rulesetId, version), out catalog);
 
     private static IReadOnlyDictionary<(string RulesetId, string Version), RulesetCatalog> LoadRetained()
     {

@@ -51,8 +51,10 @@ decisions pending project-owner approval before SHEET-902 begins.
   their dedicated tickets before they become purchasable.
 - Resource and advancement history is append-only. Corrections create compensating
   records rather than rewriting or deleting history.
-- Legacy character sheets remain readable but cannot use mechanical advancement or
-  purchasing until an explicit conversion or bootstrap workflow is approved.
+- There are no legacy (pre-SR5) character sheets: the project owner confirmed on
+  2026-08-25 that no real characters exist yet, so `CharacterSheetKind` and its
+  associated quick-create path were removed from the codebase (SHEET-902) rather
+  than built out. Every finalized character sheet is a full SR5 evaluated sheet.
 
 ## Rules Contract
 
@@ -313,9 +315,6 @@ transaction as finalization once SHEET-903 is deployed. Existing evaluated sheet
 must be backfilled before mutation endpoints are enabled. Backfill must report
 unsupported versions, missing starting cash, digest mismatches, or malformed sheets
 rather than invent values.
-
-Legacy sheets have no derivable mechanical baseline and receive no automatic
-balances.
 
 ## Advancement Surface
 
@@ -614,24 +613,31 @@ panel.
 
 **Depends on:** SHEET-901.
 
+**Scope note (2026-08-25):** the project owner confirmed no real characters
+exist yet, so this ticket's original scope of supporting evaluated schema
+versions 1/2/3 plus a legacy sheet kind was narrowed: only the current
+evaluated schema version is supported, and `CharacterSheetKind`/legacy support
+was removed from the codebase entirely (including reseeding the dev/test
+character with a real evaluated sheet) rather than built out.
+
 **Scope:**
 
-- Add explicit readers for evaluated sheet schema versions 1, 2, and 3 and for
-  legacy sheet kind.
-- Normalize supported evaluated sheets into one typed career baseline.
+- Add an explicit reader for the current evaluated sheet schema version.
+- Normalize a supported evaluated sheet into one typed career baseline.
 - Validate ruleset, catalog version, and semantic digest during normalization.
-- Add retained fixtures for every supported historical shape.
+- Add fixtures for the current supported shape, including one hand-built
+  literal (not re-derived from the live evaluator) so a future evaluator
+  change can't silently redefine what "a valid sheet" looks like.
 - Preserve creator identity and profile fields through finalization if CHAR-812 has
   not already corrected their current loss.
 
 **Acceptance criteria:**
 
-- Supported evaluated sheets normalize deterministically.
-- Legacy sheets render as legacy without invented statistics or balances.
-- Unknown kind/version combinations, malformed JSON, missing required values, and
-  digest mismatches fail safely.
-- Historical fixtures prevent latest-record changes from silently redefining old
-  sheets.
+- A supported evaluated sheet normalizes deterministically.
+- An unsupported schema version, malformed JSON, missing required values, and a
+  catalog digest mismatch all fail safely with a distinct, typed error.
+- A frozen fixture prevents a latest-record change from silently redefining what
+  "a valid sheet" looks like.
 - The existing immutable sheet row remains unchanged by every read.
 
 ## SHEET-903: Persist Career State, Balances, And History

@@ -127,8 +127,7 @@ public sealed record FinalizedCharacterSheetResponse(
     int SheetSchemaVersion,
     JsonElement Sheet,
     string SourceDraftDigest,
-    DateTimeOffset FinalizedAtUtc,
-    string Kind);
+    DateTimeOffset FinalizedAtUtc);
 
 public static class CharacterCreationEndpoints
 {
@@ -373,7 +372,7 @@ public static class CharacterCreationEndpoints
         sheet.CharacterId, sheet.Name, sheet.RulesetId, sheet.CatalogVersion,
         sheet.CatalogSemanticDigest, sheet.CreationMethodId, sheet.SheetSchemaVersion,
         JsonSerializer.Deserialize<JsonElement>(sheet.CanonicalSheetJson), sheet.SourceDraftDigest,
-        sheet.FinalizedAtUtc, sheet.Kind.ToString());
+        sheet.FinalizedAtUtc);
 
     private static IResult Problem(
         CharacterCreationDraftError error,

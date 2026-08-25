@@ -67,8 +67,15 @@ internal static class CharacterCreationDiagnosticFactory
         string step,
         string fieldPath,
         SourceCitation source) =>
+        TextTooLong(step, fieldPath, source, 120);
+
+    internal static CharacterCreationDiagnostic TextTooLong(
+        string step,
+        string fieldPath,
+        SourceCitation source,
+        int maxLength) =>
         Error(step, "creation.text.too-long", fieldPath, [], source,
-            "Use plain text of 120 characters or fewer.");
+            $"Use plain text of {maxLength.ToString(System.Globalization.CultureInfo.InvariantCulture)} characters or fewer.");
 
     internal static string Bounded(string? value) =>
         string.IsNullOrEmpty(value) ? string.Empty : value[..Math.Min(value.Length, MaxOptionIdLength)];

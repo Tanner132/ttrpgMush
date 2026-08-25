@@ -6,6 +6,7 @@ using SeattleByNight.Application.CharacterCreation.Evaluation;
 using SeattleByNight.Application.Characters;
 using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.PlaySessions;
+using SeattleByNight.Domain.Entities;
 using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.CharacterCreation;
 using SeattleByNight.Infrastructure.Characters;
@@ -82,12 +83,14 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
         var userId = await CreateUserAsync();
         await using (var db = CreateDbContext())
         {
-            var created = await new CharacterStore(db).CreateAsync(
-                userId,
-                "Legacy Runner",
-                "LEGACY RUNNER",
-                WorldOptions.DefaultStartingRoomId);
-            Assert.True(created.IsSuccess);
+            db.Characters.Add(new Character
+            {
+                UserId = userId,
+                Name = "Instant Runner",
+                NormalizedName = "INSTANT RUNNER",
+                CurrentRoomId = WorldOptions.DefaultStartingRoomId,
+            });
+            await db.SaveChangesAsync();
         }
 
         var attempts = new[] { "Draft One", "Draft Two" }.Select(async name =>
@@ -175,6 +178,7 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
             new GearAttachmentEvaluator(),
             new ContactEvaluator(),
             new IdentityEvaluator(),
+            new ProfileEvaluator(),
             new LifestyleEvaluator(),
             new DerivedStatisticsEvaluator());
         var handler = new FinalizeCharacterCreationDraftCommandHandler(
@@ -192,10 +196,9 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
         Assert.NotNull(result.Sheet);
         db.ChangeTracker.Clear();
         var character = await db.Characters.SingleAsync(item => item.Id == updated.CharacterId);
-        var sheet = await db.CharacterSheets.SingleAsync(item => item.CharacterId == updated.CharacterId);
+        await db.CharacterSheets.SingleAsync(item => item.CharacterId == updated.CharacterId);
         Assert.Equal(CharacterLifecycleState.Finalized, character.LifecycleState);
         Assert.Equal(WorldOptions.DefaultStartingRoomId, character.CurrentRoomId);
-        Assert.Equal(CharacterSheetKind.Evaluated, sheet.Kind);
         Assert.False(await db.CharacterCreationDrafts.AnyAsync(item => item.CharacterId == updated.CharacterId));
         Assert.Single(await new CharacterStore(db).ListByUserIdAsync(userId));
 

@@ -28,6 +28,7 @@ public sealed class CanonicalCharacterSheetTests
             new GearAttachmentEvaluator(),
             new ContactEvaluator(),
             new IdentityEvaluator(),
+            new ProfileEvaluator(),
             new LifestyleEvaluator(),
             new DerivedStatisticsEvaluator());
 
@@ -124,6 +125,7 @@ public sealed class CanonicalCharacterSheetTests
             new GearAttachmentEvaluator(),
             new ContactEvaluator(),
             new IdentityEvaluator(),
+            new ProfileEvaluator(),
             new LifestyleEvaluator(),
             new DerivedStatisticsEvaluator());
         var snapshot = new CharacterCreationDraftSnapshot(
@@ -165,6 +167,7 @@ public sealed class CanonicalCharacterSheetTests
             new GearAttachmentEvaluator(),
             new ContactEvaluator(),
             new IdentityEvaluator(),
+            new ProfileEvaluator(),
             new LifestyleEvaluator(),
             new DerivedStatisticsEvaluator());
         var document = ValidDocument() with
@@ -184,6 +187,97 @@ public sealed class CanonicalCharacterSheetTests
         Assert.Equal(0.4m, details.CanonicalSheet.Resources!.TotalEssenceLoss);
         Assert.Equal(1, details.CanonicalSheet.Resources.MagicLoss);
         Assert.Equal(5.6m, details.CanonicalSheet.DerivedStatistics!.Essence);
+    }
+
+    [Fact]
+    public void Creator_identity_and_profile_fields_survive_finalization()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new CharacterCreationDraftEvaluator(
+            new EmbeddedRulesetCatalogProvider(),
+            new PriorityAssignmentEvaluator(),
+            new MetatypeAndAttributeEvaluator(),
+            new QualitiesSkillsKnowledgeEvaluator(),
+            new MagicResonanceEvaluator(),
+            new KarmaBudgetEvaluator(),
+            new ResourcesEssenceEvaluator(),
+            new GearAttachmentEvaluator(),
+            new ContactEvaluator(),
+            new IdentityEvaluator(),
+            new ProfileEvaluator(),
+            new LifestyleEvaluator(),
+            new DerivedStatisticsEvaluator());
+        var document = ValidDocument() with
+        {
+            Identity = new CharacterIdentity(
+                Gender: "Female",
+                Age: "27",
+                EyeColor: "Amber",
+                HairColor: "Black",
+                Height: "5'8\"",
+                Weight: "140 lbs",
+                SkinTone: "Olive",
+                Handedness: "Left",
+                Concept: "Ex-corp face gone independent",
+                ShortDescription: "Sharp suit, sharper tongue.",
+                Description: "Spent a decade climbing the corporate ladder before the ladder climbed back."),
+        };
+        var snapshot = new CharacterCreationDraftSnapshot(
+            Guid.NewGuid(), Guid.NewGuid(), "Profile Runner", "PROFILE RUNNER",
+            catalog.RulesetId, catalog.Version, catalog.SemanticDigest,
+            "standard-priority", CharacterCreationDocumentVersions.Draft, document,
+            Guid.NewGuid(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
+
+        var details = evaluator.Evaluate(snapshot);
+
+        Assert.True(details.IsReadyToFinalize, string.Join("; ", details.Diagnostics.Select(item => item.Code)));
+        var profile = details.CanonicalSheet!.Profile;
+        Assert.NotNull(profile);
+        Assert.Equal(document.Identity.Gender, profile!.Gender);
+        Assert.Equal(document.Identity.Age, profile.Age);
+        Assert.Equal(document.Identity.EyeColor, profile.EyeColor);
+        Assert.Equal(document.Identity.HairColor, profile.HairColor);
+        Assert.Equal(document.Identity.Height, profile.Height);
+        Assert.Equal(document.Identity.Weight, profile.Weight);
+        Assert.Equal(document.Identity.SkinTone, profile.SkinTone);
+        Assert.Equal(document.Identity.Handedness, profile.Handedness);
+        Assert.Equal(document.Identity.Concept, profile.Concept);
+        Assert.Equal(document.Identity.ShortDescription, profile.ShortDescription);
+        Assert.Equal(document.Identity.Description, profile.Description);
+    }
+
+    [Fact]
+    public void Oversized_profile_text_produces_a_diagnostic_without_blocking_other_sections()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new CharacterCreationDraftEvaluator(
+            new EmbeddedRulesetCatalogProvider(),
+            new PriorityAssignmentEvaluator(),
+            new MetatypeAndAttributeEvaluator(),
+            new QualitiesSkillsKnowledgeEvaluator(),
+            new MagicResonanceEvaluator(),
+            new KarmaBudgetEvaluator(),
+            new ResourcesEssenceEvaluator(),
+            new GearAttachmentEvaluator(),
+            new ContactEvaluator(),
+            new IdentityEvaluator(),
+            new ProfileEvaluator(),
+            new LifestyleEvaluator(),
+            new DerivedStatisticsEvaluator());
+        var document = ValidDocument() with
+        {
+            Identity = new CharacterIdentity(Concept: new string('x', 121)),
+        };
+        var snapshot = new CharacterCreationDraftSnapshot(
+            Guid.NewGuid(), Guid.NewGuid(), "Verbose Runner", "VERBOSE RUNNER",
+            catalog.RulesetId, catalog.Version, catalog.SemanticDigest,
+            "standard-priority", CharacterCreationDocumentVersions.Draft, document,
+            Guid.NewGuid(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
+
+        var details = evaluator.Evaluate(snapshot);
+
+        Assert.Contains(details.Diagnostics, item => item.Code == "creation.text.too-long" && item.FieldPath == "identity.concept");
+        Assert.False(details.IsReadyToFinalize);
     }
 
     private static CharacterCreationDraftDocument ValidDocument() => new(

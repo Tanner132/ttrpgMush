@@ -24,7 +24,6 @@ public sealed class CharacterSheetConfiguration : IEntityTypeConfiguration<Chara
         builder.Property(sheet => sheet.CanonicalSheetJson).HasColumnName("canonical_sheet").HasColumnType("jsonb").IsRequired();
         builder.Property(sheet => sheet.SourceDraftDigest).HasColumnName("source_draft_digest").HasMaxLength(64).IsRequired();
         builder.Property(sheet => sheet.FinalizedAtUtc).HasColumnName("finalized_at_utc").HasColumnType("timestamp with time zone");
-        builder.Property(sheet => sheet.Kind).HasColumnName("kind").HasConversion<string>().HasMaxLength(16).IsRequired();
 
         builder.HasOne<Character>()
             .WithOne()

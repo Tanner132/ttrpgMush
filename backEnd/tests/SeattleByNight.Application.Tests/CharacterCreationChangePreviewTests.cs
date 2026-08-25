@@ -24,6 +24,7 @@ public sealed class CharacterCreationChangePreviewTests
         new GearAttachmentEvaluator(),
         new ContactEvaluator(),
         new IdentityEvaluator(),
+        new ProfileEvaluator(),
         new LifestyleEvaluator(),
         new DerivedStatisticsEvaluator());
 

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using SeattleByNight.Application.Characters;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomSessions;
 using SeattleByNight.Domain.Entities;
@@ -108,12 +109,27 @@ public sealed class ApiTestFactory : IAsyncLifetime
         SetAntiforgery(client, await GetAntiforgeryTokenAsync(client));
     }
 
+    // There is no HTTP quick-create endpoint any more (SHEET-902 removed the
+    // legacy name-only creation path; the SR5 creator flow is the only real
+    // way to create a character). Tests that only need *a* finalized,
+    // playable character to exercise sessions/chat/movement insert one
+    // directly, the same way DevelopmentDataSeeder seeds the dev character.
     public async Task<CharacterResponseDto> CreateCharacterAsync(HttpClient client, string name)
     {
-        var response = await client.PostAsJsonAsync("/api/characters", new { name });
-        response.EnsureSuccessStatusCode();
+        var account = await GetAccountAsync(client);
 
-        return (await response.Content.ReadFromJsonAsync<CharacterResponseDto>())!;
+        await using var db = CreateDbContext();
+        var character = new Character
+        {
+            UserId = account.Id,
+            Name = name,
+            NormalizedName = name.ToUpperInvariant(),
+            CurrentRoomId = WorldOptions.DefaultStartingRoomId,
+        };
+        db.Characters.Add(character);
+        await db.SaveChangesAsync();
+
+        return new CharacterResponseDto(character.Id, character.Name);
     }
 
     public async Task<AccountResponseDto> GetAccountAsync(HttpClient client)

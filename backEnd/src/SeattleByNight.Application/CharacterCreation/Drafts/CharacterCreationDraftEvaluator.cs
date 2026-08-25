@@ -16,6 +16,7 @@ public sealed class CharacterCreationDraftEvaluator
     private readonly GearAttachmentEvaluator gearAttachmentEvaluator;
     private readonly ContactEvaluator contactEvaluator;
     private readonly IdentityEvaluator identityEvaluator;
+    private readonly ProfileEvaluator profileEvaluator;
     private readonly LifestyleEvaluator lifestyleEvaluator;
     private readonly DerivedStatisticsEvaluator derivedStatisticsEvaluator;
 
@@ -30,6 +31,7 @@ public sealed class CharacterCreationDraftEvaluator
         GearAttachmentEvaluator gearAttachmentEvaluator,
         ContactEvaluator contactEvaluator,
         IdentityEvaluator identityEvaluator,
+        ProfileEvaluator profileEvaluator,
         LifestyleEvaluator lifestyleEvaluator,
         DerivedStatisticsEvaluator derivedStatisticsEvaluator)
     {
@@ -43,6 +45,7 @@ public sealed class CharacterCreationDraftEvaluator
         this.gearAttachmentEvaluator = gearAttachmentEvaluator;
         this.contactEvaluator = contactEvaluator;
         this.identityEvaluator = identityEvaluator;
+        this.profileEvaluator = profileEvaluator;
         this.lifestyleEvaluator = lifestyleEvaluator;
         this.derivedStatisticsEvaluator = derivedStatisticsEvaluator;
     }
@@ -91,6 +94,7 @@ public sealed class CharacterCreationDraftEvaluator
         var gearAttachmentEvaluation = new GearAttachmentEvaluation([], null);
         var contactEvaluation = new ContactEvaluation([], null);
         var identityEvaluation = new IdentityEvaluation([], null);
+        var profileEvaluation = new ProfileEvaluation([], null);
         var lifestyleEvaluation = new LifestyleEvaluation([], null);
 
         // Metatype/Attributes, Skills/Knowledge, and Magic-or-Resonance are
@@ -140,6 +144,11 @@ public sealed class CharacterCreationDraftEvaluator
             identityEvaluation = identityEvaluator.Evaluate(catalog, draft.Document, resourcesEvaluation, gearAttachmentEvaluation);
             diagnostics.AddRange(identityEvaluation.Diagnostics);
         }
+        if (evaluation.IsReady && draft.Document.Identity is not null)
+        {
+            profileEvaluation = profileEvaluator.Evaluate(catalog, draft.Document);
+            diagnostics.AddRange(profileEvaluation.Diagnostics);
+        }
         // Lifestyle is also mandatory (sr5-core p. 101 final-calculations step
         // requires a lifestyle) — LifestyleEvaluator's own primary-required
         // check now fires on an empty list too, so this always runs.
@@ -163,7 +172,8 @@ public sealed class CharacterCreationDraftEvaluator
 
         var canonicalSheet = evaluation.IsReady
             ? BuildCanonicalSheet(evaluation.Preview, metatypeEvaluation, skillsEvaluation, magicEvaluation, resourcesEvaluation,
-                gearAttachmentEvaluation, contactEvaluation, identityEvaluation, lifestyleEvaluation, derivedStatisticsEvaluation)
+                gearAttachmentEvaluation, contactEvaluation, identityEvaluation, profileEvaluation, lifestyleEvaluation,
+                derivedStatisticsEvaluation)
             : null;
 
         return new CharacterCreationDraftDetails(
@@ -183,6 +193,7 @@ public sealed class CharacterCreationDraftEvaluator
         GearAttachmentEvaluation gearAttachmentEvaluation,
         ContactEvaluation contactEvaluation,
         IdentityEvaluation identityEvaluation,
+        ProfileEvaluation profileEvaluation,
         LifestyleEvaluation lifestyleEvaluation,
         DerivedStatisticsEvaluation derivedStatisticsEvaluation) =>
         new(
@@ -202,7 +213,8 @@ public sealed class CharacterCreationDraftEvaluator
             contactEvaluation.Contacts,
             identityEvaluation.Identities,
             lifestyleEvaluation.Lifestyles,
-            derivedStatisticsEvaluation.Statistics);
+            derivedStatisticsEvaluation.Statistics,
+            profileEvaluation.Profile);
 
     private static IEnumerable<CharacterCreationDiagnostic> DownstreamRevalidationDiagnostics(
         CharacterCreationDraftSnapshot draft,

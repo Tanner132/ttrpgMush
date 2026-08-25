@@ -225,7 +225,6 @@ public sealed class CharacterCreationDraftStore : ICharacterCreationDraftStore
             CanonicalSheetJson = request.CanonicalSheetJson,
             SourceDraftDigest = request.SourceDraftDigest,
             FinalizedAtUtc = now,
-            Kind = CharacterSheetKind.Evaluated,
         };
 
         character.LifecycleState = CharacterLifecycleState.Finalized;
@@ -246,8 +245,7 @@ public sealed class CharacterCreationDraftStore : ICharacterCreationDraftStore
             sheet.SheetSchemaVersion,
             sheet.CanonicalSheetJson,
             sheet.SourceDraftDigest,
-            sheet.FinalizedAtUtc,
-            sheet.Kind));
+            sheet.FinalizedAtUtc));
     }
 
     public async Task<FinalizedCharacterSheet?> GetSheetAsync(
@@ -274,8 +272,7 @@ public sealed class CharacterCreationDraftStore : ICharacterCreationDraftStore
                     sheet.SheetSchemaVersion,
                     sheet.CanonicalSheetJson,
                     sheet.SourceDraftDigest,
-                    sheet.FinalizedAtUtc,
-                    sheet.Kind))
+                    sheet.FinalizedAtUtc))
             .SingleOrDefaultAsync(cancellationToken);
     }
 

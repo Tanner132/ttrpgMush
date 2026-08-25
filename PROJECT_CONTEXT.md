@@ -528,16 +528,20 @@ complete canonical evaluated sheet (sheet schema version 3) capturing the resolv
 metatype, absolute attribute and special-attribute values, qualities, skills and
 groups, knowledge and languages, native languages, and the Awakening/Emergence
 selection — each retaining its allocation provenance (priority, special points,
-group points, grant, Karma, free points, or native). Version-1 priority-only,
-version-2 evaluated, and legacy sheets remain readable through their schema version
-and kind. Version 3 records attachment Essence and explicit allocated, granted, and
-total skill-group ratings. Resource-budget evaluation always runs after priority
+group points, grant, Karma, free points, or native). Version 3 records attachment
+Essence and explicit allocated, granted, and total skill-group ratings; it is the
+only supported evaluated schema version — there is no `CharacterSheetKind` and no
+legacy sheet concept (SHEET-902, 2026-08-25: no real characters existed yet, so
+that support was removed rather than built out, and the dev/test seed character
+was rebuilt as a real evaluated sheet). A `CharacterCreationBaselineReader`
+normalizes a persisted sheet into a typed `CharacterCreationBaseline`, rejecting
+an unsupported schema version, malformed JSON, a catalog digest mismatch, or a
+sheet missing a mandatory section. Resource-budget evaluation always runs after priority
 assignment, including for an empty purchase list, and consolidates direct and
 attachment Essence before deriving Magic/Resonance loss, Social Limit, and final
 Essence. Quality ratings are restricted to the supported single-selection model;
 priority-granted skills and groups participate in canonical ratings, overlap checks,
-and point/Karma accounting. Existing characters were migrated to explicit legacy finalized sheets
-without invented SR5 statistics. Only finalized characters are playable. The
+and point/Karma accounting. Only finalized characters are playable. The
 authenticated character-creation
   HTTP surface and the priority, metatype, attribute, quality, skill, knowledge,
   Awakening/Emergence, resources/essence (including gear Capacity, mounts, and
@@ -570,8 +574,10 @@ Backend endpoints:
   state-changing cookie-authenticated requests.
 - `POST /api/account/register`, `POST /api/account/login`, `POST /api/account/logout`,
   `GET /api/account/me`: ASP.NET Core Identity account management (`/me` includes roles).
-- `GET /api/characters`, `POST /api/characters`: list and create owned finalized
-  legacy characters until the creator flow replaces name-only creation.
+- `GET /api/characters`: list the caller's own finalized characters. The
+  legacy name-only `POST /api/characters` quick-create path was removed
+  (SHEET-902) now that the SR5 creator flow is the only way to create a
+  character.
 - `GET /api/character-creation/catalogs/current`,
   `GET /api/character-creation/catalogs/{catalogId}/{version}`: current and
   retained immutable SR5 catalog contracts.

@@ -157,10 +157,8 @@ header `X-XSRF-TOKEN` obtained from `GET /api/antiforgery/token`.
 ### Characters
 
 - `GET /api/characters` — lists the current user's finalized playable characters
-- `POST /api/characters` — `{ name }`; creates a character in the configured
-  New Character Room as a finalized legacy sheet (maximum two total drafts and
-  finalized characters per user); this endpoint remains until the creator UI
-  replaces the legacy flow
+  (the SR5 creator flow, under Character creation below, is the only way to
+  create one — maximum two total drafts and finalized characters per user)
 - `GET /api/characters/{characterId}/sheet` — returns the owner's immutable
   finalized sheet
 

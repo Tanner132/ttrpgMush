@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SeattleByNight.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using SeattleByNight.Infrastructure.Persistence;
 namespace SeattleByNight.Infrastructure.Migrations
 {
     [DbContext(typeof(SeattleByNightDbContext))]
-    partial class SeattleByNightDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260825162621_RemoveCharacterSheetKind")]
+    partial class RemoveCharacterSheetKind
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

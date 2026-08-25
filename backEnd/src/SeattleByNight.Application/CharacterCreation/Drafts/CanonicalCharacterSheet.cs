@@ -31,7 +31,26 @@ public sealed record CanonicalCharacterSheet(
     CanonicalContacts? Contacts = null,
     CanonicalIdentities? Identities = null,
     CanonicalLifestyles? Lifestyles = null,
-    CanonicalDerivedStatistics? DerivedStatistics = null);
+    CanonicalDerivedStatistics? DerivedStatistics = null,
+    CanonicalCharacterProfile? Profile = null);
+
+// Free-form, non-mechanical player profile text (gender, age, physical
+// description, concept). Has no Karma/priority cost and no RAW citation, so
+// unlike every other Canonical* record it carries no CanonicalProvenance.
+// Named CanonicalCharacterProfile rather than CanonicalIdentity because that
+// name is already taken by the fake-SIN identity record below.
+public sealed record CanonicalCharacterProfile(
+    string? Gender,
+    string? Age,
+    string? EyeColor,
+    string? HairColor,
+    string? Height,
+    string? Weight,
+    string? SkinTone,
+    string? Handedness,
+    string? Concept,
+    string? ShortDescription,
+    string? Description);
 
 // Server-derived final-calculations block (sr5-core p. 101, PDF 103): Essence,
 // Inherent Limits, Initiative, Condition Monitor boxes, and Karma/nuyen
