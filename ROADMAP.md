@@ -56,9 +56,32 @@ npm --prefix frontEnd run build
 
 ## Next Build Ticket
 
-Continue the accepted character-creation feature with **CHAR-812:
-Completeness, Accessibility, And Release Gate** in the Milestone 8 file.
-CHAR-801 through CHAR-811 are complete.
+CHAR-812 (Milestone 8's completeness/accessibility/release gate) has not been
+started; CHAR-801 through CHAR-811 are complete. Normal sequencing is to
+complete CHAR-812 before Milestone 9 (see Release Sequence item 9). The
+project owner explicitly approved starting Milestone 9 rules work ahead of
+CHAR-812 on 2026-08-25 as a recorded process exception.
+
+**SHEET-901** (`roadmap/SHEET_901_CAREER_RULES_BASELINE.md`) is complete and
+approved: the full core Character Improvement Table (attributes, skills,
+groups, specializations, qualities, spells/rituals/preparations, complex
+forms, Initiation, Submersion) is cited and reconciled against the existing
+CHAR-801 creation ledgers, plus new catalog material for the 9 core
+metamagics and 9 core echoes (previously out of creation scope and
+undocumented). All seven candidate rule decisions in `SR5_RULE_DECISIONS.md`
+"Milestone 9 Career Decisions" were reviewed and resolved by the project
+owner on 2026-08-25 (three overrode the original recommendation, one changed
+from rejected to included, three approved as recommended) — notably, the
+spell/ritual/preparation/complex-form `Magic x 2`-style caps and the mystic
+adept's Karma-per-Power-Point purchase are **creation-only**, not
+career-continuing, and new-contact acquisition is **included** at zero Karma
+cost pending a future Storyteller-approval gate. The nuyen purchase
+eligibility ledger (SHEET-910) resolves every catalog collection to
+eligible/excluded but still needs a mechanical per-SKU audit pass before
+implementation, per that document's Section 6.4.
+
+SHEET-902 (typed creation-baseline reading) is unblocked. Either resume with
+CHAR-812, or continue Milestone 9 with SHEET-902.
 
 CHAR-811 (Final Review And Atomic Finalization) is **complete**: finalization
 now genuinely requires a complete character. Previously, Metatype/Attributes,

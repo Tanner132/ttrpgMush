@@ -18,7 +18,7 @@ public sealed class KarmaBudgetEvaluator
     private const int NegativeKarmaCap = 25;
     private const int FormulaKarmaCost = 5;
     private const int ComplexFormKarmaCost = 4;
-    private const int MysticAdeptPowerPointKarmaCost = 2;
+    private const int MysticAdeptPowerPointKarmaCost = 5;
     private const string Step = "qualities";
 
     public KarmaBudgetEvaluation Evaluate(

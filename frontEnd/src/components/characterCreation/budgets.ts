@@ -256,7 +256,7 @@ export function computeKarmaSpent(catalog: CatalogContract, document: CharacterC
       + (selection.preparations ?? []).filter((preparation) => !preparation.granted).length
     const ungrantedForms = (selection.complexForms ?? []).filter((form) => !form.granted).length
     net += ungrantedFormulas * 5
-    net += (selection.purchasedPowerPoints ?? 0) * 2
+    net += (selection.purchasedPowerPoints ?? 0) * 5
     net += ungrantedForms * 4
   }
 

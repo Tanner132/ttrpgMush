@@ -7,9 +7,14 @@ derives every cost and resulting value, records every expenditure, and preserves
 the immutable finalized creation sheet as the character's creation baseline.
 
 See [`../ROADMAP.md`](../ROADMAP.md) for shared delivery rules and verification
-commands. Milestone 8 must pass its release gate before this milestone begins.
-All Shadowrun mechanics and catalog facts remain governed by the approved local
+commands. All Shadowrun mechanics and catalog facts remain governed by the approved local
 core-rulebook and Run Faster PDFs described in `PROJECT_CONTEXT.md`.
+
+See [`SHEET_901_CAREER_RULES_BASELINE.md`](SHEET_901_CAREER_RULES_BASELINE.md)
+for the SHEET-901 rules-freeze deliverable: the cited career advancement cost
+table, attribute/skill/quality/magic/resonance rules, the contact-advancement
+rejection, the nuyen purchase eligibility ledger, and the candidate rule
+decisions pending project-owner approval before SHEET-902 begins.
 
 ## Fixed Product Contract
 
@@ -142,6 +147,66 @@ immutable creation baseline
 The client must not merge raw creation JSON and progression data or calculate
 current ratings. The composed projection returns display-ready names and values,
 current balances, derived statistics, and server-calculated legal next actions.
+
+### Reuse Of Character-Creation Functionality
+
+Reuse character-creation functionality selectively. The career sheet should share
+catalog infrastructure, calculation primitives, visual language, and small
+presentational components, but it must not reopen a finalized character in the
+creation wizard or convert the character back into a draft.
+
+Good frontend reuse candidates include:
+
+- Immutable catalog loading, lifetime request deduplication, semantic-digest
+  verification, and retained-version lookup.
+- Catalog ID indexes, display-name resolution, descriptions, search, filtering, and
+  resource normalization.
+- Existing accessible UI primitives, readouts, option-detail presentations, and
+  responsive section patterns.
+- Pure sheet section renderers extracted from creation review where they can accept
+  purpose-built display data without depending on draft state.
+
+Shared presentation may render the same current value in both workflows while the
+controlling actions remain distinct. For example, an attribute row may be shared,
+but creation allocates priority or Karma points across a mutable draft while career
+advancement offers one server-priced increase against the current Karma balance.
+
+Do not reuse or add a career mode to:
+
+- `CreatorShellPage` workflow orchestration.
+- Creation draft autosave, dirty-generation, impact-preview, or finalization state.
+- Whole-document draft replacement.
+- Creation step completion and downstream-invalidity navigation.
+- Priority, Sum-to-Ten, creation Karma, creation nuyen, Availability-12, or other
+  creation-only budgets and caps.
+
+Avoid a broad `mode = creation | career` switch across existing creator components.
+If a component requires repeated mode checks for rules, mutation behavior,
+diagnostics, or save semantics, keep separate workflow components and extract only
+the smaller mode-independent presentation beneath them.
+
+Good backend reuse candidates include:
+
+- Pinned catalog providers, loaders, validation, and stable IDs.
+- Typed canonical records used by the version-aware creation-baseline reader.
+- Metatype natural-range and Exceptional Attribute resolution.
+- Catalog price and rating resolution.
+- Attachment compatibility and Capacity calculations when later purchase tickets
+  require them.
+- Pure derived-statistic formulas after creation-specific inputs are separated from
+  them.
+
+Do not run career mutations through `CharacterCreationDraftEvaluator`, reconstruct a
+synthetic draft, or call creation-oriented budget evaluators. Creation tolerates an
+intermediate invalid aggregate and validates the whole document before one terminal
+finalization. Career advancement starts from a valid permanent sheet and applies one
+atomic legal operation with an immutable expenditure record.
+
+Application should therefore expose separate career evaluators for intent-oriented
+operations such as raising one attribute, raising one skill, acquiring one quality,
+or purchasing one catalog item. Shared formulas may sit below both workflows, but
+the creator and career handlers, diagnostics, persistence, and transactions remain
+separate.
 
 ### Resource Transactions
 
@@ -333,6 +398,17 @@ core advancement category, including contacts and reputation interactions. Lifet
 Karma earned must remain separate from spendable Karma because Street Cred depends
 on lifetime earnings under core pp. 372-373.
 
+SHEET-901 resolved contacts as **included**: a player may add a new contact in
+career at zero Karma cost (starting at Connection 1 / Loyalty 1), since the
+approved core rules define no purchase price for one. This is a product-shape
+decision, not RAW, and is recorded pending a future Storyteller-approval gate
+(see Deferred Beyond Milestone 9). Raising an existing contact's Connection or
+Loyalty rating has no RAW formula and remains excluded from this milestone.
+See `SHEET_901_CAREER_RULES_BASELINE.md` Section 5 for the full citation and
+reasoning. Reputation (Street Cred/Notoriety/Public Awareness) remains
+deferred as stated below; only the lifetime-Karma basis for Street Cred is
+tracked in this milestone.
+
 ## Nuyen Purchases
 
 ### Initial Eligible Surface
@@ -513,6 +589,10 @@ panel.
   preparation, complex-form, contact, and reputation advancement behavior.
 - Expand the typed catalog only where career evaluation needs facts that are not
   already represented.
+- Identify creation formulas that are genuinely rules-neutral and may be extracted
+  behind shared pure helpers without changing creation behavior.
+- Identify creation evaluators, budgets, diagnostics, and persistence behavior that
+  must remain creation-only.
 - Produce an explicit purchase eligibility ledger for every catalog collection and
   identify entries with incomplete price or career data.
 - Define supported sheet-schema and legacy behavior.
@@ -523,6 +603,8 @@ panel.
 - Every included cost and legality rule cites an approved PDF page.
 - Missing or ambiguous rules have approved product decisions before evaluator work.
 - No creation cap, budget, or grant behavior is silently reused as a career rule.
+- Shared rule helpers have creation regression tests and contain no draft,
+  finalization, or career transaction orchestration.
 - The catalog loader rejects invalid career metadata and digest changes cover every
   new semantic fact.
 - The purchase ledger proves that every exposed item has a deterministic price and
@@ -585,6 +667,8 @@ panel.
 
 - Add an owner-scoped composed-sheet query and typed HTTP response.
 - Resolve canonical IDs against the pinned catalog.
+- Reuse the retained catalog provider and semantic-digest validation rather than
+  introducing a separate career catalog cache or lookup implementation.
 - Calculate current permanent values and derived statistics.
 - Return current balances, bounded recent history, and server-derived advancement
   eligibility.
@@ -607,6 +691,10 @@ panel.
 **Scope:**
 
 - Add typed frontend contracts and a shared character-sheet feature surface.
+- Reuse catalog loading, indexing, descriptions, resource normalization, and UI
+  primitives from character creation where their contracts are workflow-neutral.
+- Extract small pure display sections from creation review only when doing so keeps
+  both callers free of creation/career mode branches.
 - Add `/characters/:characterId/sheet` as an authenticated lazy route.
 - Add **Enter World** and **View Character Sheet** to finalized slot cards.
 - Render every composed-sheet section read-only before enabling expenditure
@@ -618,6 +706,10 @@ panel.
 - Viewing a sheet does not start or alter a play session.
 - Direct navigation and browser refresh work for the owner.
 - All catalog-backed values render readable names with safe fallbacks.
+- The finalized sheet does not mount `CreatorShellPage`, create or update a draft,
+  invoke autosave, or expose finalization behavior.
+- Shared components contain presentation only; career eligibility and costs come
+  from the composed-sheet response rather than frontend creation calculations.
 - Desktop and mobile layouts remain usable without a horizontal table being the
   only representation.
 - Slot and route tests prove ownership remains server-authoritative.
@@ -792,7 +884,11 @@ their controls automatically through the shared component.
 
 ## Deferred Beyond Milestone 9
 
-- Storyteller approval queues and training-time scheduling.
+- Storyteller approval queues and training-time scheduling. **When a
+  Storyteller-approval-gate feature is built, add zero-Karma contact
+  acquisition (Section "Remaining Career Operations" above) to its gated-action
+  list** — Milestone 9 allows it without approval only because no such gate
+  exists yet.
 - Karma and nuyen award administration; this milestone preserves ledger support for
   those later sources but implements player expenditures first.
 - Runtime current Edge, damage, initiative, temporary modifiers, and effects.

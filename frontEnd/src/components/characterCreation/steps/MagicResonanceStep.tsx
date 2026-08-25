@@ -144,7 +144,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
   const formulaKarma = (spells.filter(item => !item.granted).length
     + rituals.filter(item => !item.granted).length
     + preparations.filter(item => !item.granted).length) * 5
-  const powerPointKarma = (selection?.purchasedPowerPoints ?? 0) * 2
+  const powerPointKarma = (selection?.purchasedPowerPoints ?? 0) * 5
   const complexFormKarma = forms.filter(item => !item.granted).length * 4
   const netKarma = positiveQualityKarma + formulaKarma + powerPointKarma + complexFormKarma - negativeQualityKarma
 
@@ -527,7 +527,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
             {path.kind === 'MysticAdept' && (
               <div style={{ padding: 'var(--sb-space-2) var(--sb-space-4)' }}>
                 <label className="creation-attribute">
-                  <span><strong>Purchased Power Points</strong><small>2 Karma each, up to Magic</small></span>
+                  <span><strong>Purchased Power Points</strong><small>5 Karma each, up to Magic</small></span>
                   <input min="0" max={attributeValue} type="number" value={selection?.purchasedPowerPoints ?? 0} onChange={event => update({ purchasedPowerPoints: Number(event.target.value) })} />
                 </label>
               </div>
