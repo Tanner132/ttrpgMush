@@ -10,6 +10,7 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
   const pointsSpent = knowledge.reduce((sum, item) => sum + item.rating + (item.specialization ? 1 : 0), 0)
     + language.reduce((sum, item) => sum + item.rating + (item.specialization ? 1 : 0), 0)
   const karmaSpent = computeKnowledgeLanguageKarmaSpent(catalog, document)
+  const remainingPoints = Math.max(0, freePoints - pointsSpent)
   const updateNative = (index: number, name: string) => {
     const next = [...nativeLanguages]
     if (name) next[index] = { name }
@@ -50,7 +51,8 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
           <h3 id="knowledge-step-heading">Name what your character knows</h3>
           <p className="creation-step__intro">Knowledge subjects and languages are authored plain text. Native languages are recorded separately and never receive a numeric rating; Bilingual grants a second. Points beyond the free pool are not blocked — they draw extra Karma at the published rate.</p>
           <div className="creation-step__allocation-status" role="status">
-            <strong>{pointsSpent}</strong> / {freePoints} free Knowledge/Language points
+            <strong>{remainingPoints}</strong> free Knowledge/Language points remaining
+            <span> · {pointsSpent} / {freePoints} used</span>
             {karmaSpent > 0 && <span> · <strong>{karmaSpent}</strong> extra Karma</span>}
           </div>
 
@@ -65,11 +67,14 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
             {knowledge.map((item, index) => (
               <fieldset className="creation-attribute creation-attribute--knowledge" key={`knowledge-${index}`}>
                 <legend><strong>Knowledge skill {index + 1}</strong></legend>
+                <label>Category
                 <select aria-label={`Knowledge skill ${index + 1} category`} value={item.categoryId} onChange={(event) => updateKnowledge(index, { categoryId: event.target.value })}>
                   {catalog.knowledgeCategories.map((category) => <option key={category.id} value={category.id}>{category.displayName}</option>)}
                 </select>
-                <input aria-label={`Knowledge skill ${index + 1} name`} placeholder="Subject" maxLength={120} value={item.name} onChange={(event) => updateKnowledge(index, { name: event.target.value })} />
-                <input aria-label={`Knowledge skill ${index + 1} rating`} min="1" max="6" type="number" value={item.rating} onChange={(event) => updateKnowledge(index, { rating: Number(event.target.value) })} />
+                </label>
+                <small>Linked attribute: {catalog.knowledgeCategories.find((category) => category.id === item.categoryId)?.linkedAttribute ?? 'unknown'}</small>
+                <input aria-label={`Knowledge skill ${index + 1} name`} placeholder="Subject (free text)" maxLength={120} value={item.name} onChange={(event) => updateKnowledge(index, { name: event.target.value })} />
+                <input aria-label={`Knowledge skill ${index + 1} rating`} min="1" max="6" type="number" value={item.rating} onChange={(event) => updateKnowledge(index, { rating: Math.max(1, Math.min(6, Number(event.target.value) || 1)) })} />
                 <input aria-label={`Knowledge skill ${index + 1} specialization`} placeholder="Specialization (optional)" maxLength={120} value={item.specialization ?? ''} onChange={(event) => updateKnowledge(index, { specialization: event.target.value || undefined })} />
                 <button type="button" onClick={() => removeKnowledge(index)} aria-label={`Remove knowledge skill ${index + 1}`}>Remove</button>
               </fieldset>
@@ -82,7 +87,7 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
               <fieldset className="creation-attribute creation-attribute--language" key={`language-${index}`}>
                 <legend><strong>Language {index + 1}</strong></legend>
                 <input aria-label={`Language ${index + 1} name`} placeholder="Language name" maxLength={120} value={item.name} onChange={(event) => updateLanguage(index, { name: event.target.value })} />
-                <input aria-label={`Language ${index + 1} rating`} min="1" max="6" type="number" value={item.rating} onChange={(event) => updateLanguage(index, { rating: Number(event.target.value) })} />
+                <input aria-label={`Language ${index + 1} rating`} min="1" max="6" type="number" value={item.rating} onChange={(event) => updateLanguage(index, { rating: Math.max(1, Math.min(6, Number(event.target.value) || 1)) })} />
                 <input aria-label={`Language ${index + 1} specialization`} placeholder="Specialization (optional)" maxLength={120} value={item.specialization ?? ''} onChange={(event) => updateLanguage(index, { specialization: event.target.value || undefined })} />
                 <button type="button" onClick={() => removeLanguage(index)} aria-label={`Remove language ${index + 1}`}>Remove</button>
               </fieldset>

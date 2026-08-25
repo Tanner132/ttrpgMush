@@ -56,6 +56,13 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
   const selection = document.magicResonance
   const path = catalog.creationPaths.find((item) => item.id === selection?.pathId)
   const grant = grants.find((item) => item.pathId === selection?.pathId)
+  const grantedSkillDomains = new Set(grant?.skillGrants.filter((item) => item.domain !== 'magical-group').map((item) => item.domain) ?? [])
+  const grantsSkillGroup = grant?.skillGrants.some((item) => item.domain === 'magical-group') ?? false
+  const staleSkillGrants = (selection?.skillGrants ?? []).filter((item) => {
+    const skill = catalog.skills.find((candidate) => candidate.id === item.skillId)
+    return !skill || !grantedSkillDomains.has(skill.domain)
+  })
+  const staleSkillGroupGrants = grantsSkillGroup ? [] : (selection?.skillGroupGrants ?? [])
   const magic = grant?.attributeRating ?? 0
   const special = document.specialAttributes?.values ?? {}
   const attributeValue = path?.attributeId ? magic + (special[path.attributeId] ?? 0) : 0
@@ -163,7 +170,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
   const sectionsAvailable: SectionId[] = ['path']
   if (path?.requiresTradition) sectionsAvailable.push('tradition')
   if (path?.kind === 'AspectedMagician') sectionsAvailable.push('aspect')
-  if (grant && grant.skillGrants.length > 0) sectionsAvailable.push('grants')
+  if (grant && (grant.skillGrants.length > 0 || staleSkillGrants.length > 0 || staleSkillGroupGrants.length > 0)) sectionsAvailable.push('grants')
   if (path?.kind === 'Magician' || path?.kind === 'MysticAdept' || path?.kind === 'AspectedMagician') {
     sectionsAvailable.push('spells', 'rituals', 'preparations')
   }
@@ -174,8 +181,9 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
   const traditionName = selection?.traditionId ? catalog.traditions.find(t => t.id === selection.traditionId)?.displayName : undefined
   const aspectName = selection?.aspectedValueId ? catalog.aspectedValues.find(a => a.id === selection.aspectedValueId)?.displayName : undefined
-  const grantsNeeded = grant?.skillGrants.length ?? 0
-  const grantsMade = (selection?.skillGroupGrants?.length ?? 0) + (selection?.skillGrants?.length ?? 0)
+  const grantsNeeded = grant?.skillGrants.reduce((sum, item) => sum + item.count, 0) ?? 0
+  const grantsMade = (selection?.skillGroupGrants?.length ?? 0) - staleSkillGroupGrants.length
+    + (selection?.skillGrants?.length ?? 0) - staleSkillGrants.length
   const mentorName = mentor?.mentorSpiritId ? catalog.mentorSpirits.find(s => s.id === mentor.mentorSpiritId)?.displayName : undefined
 
   const sectionValue: Record<SectionId, string> = {
@@ -251,7 +259,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
       <div className="console__main">
         <div className="console__header">
-          <span className="console__header-number">STEP 09</span>
+          <span className="console__header-number">STEP 07</span>
           <span className="console__header-title">AWAKENING</span>
           <span className="console__header-status">{path ? path.displayName.toUpperCase() : 'NO PATH SELECTED'}</span>
         </div>
@@ -359,6 +367,31 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {path && grant && activeSec === 'grants' && (
           <div className="console__list">
+            {(staleSkillGrants.length > 0 || staleSkillGroupGrants.length > 0) && (
+              <div>
+                <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}>
+                  <span>INCOMPATIBLE PRIOR SELECTIONS</span><span />
+                </div>
+                {staleSkillGrants.map((item) => {
+                  const skill = catalog.skills.find((candidate) => candidate.id === item.skillId)
+                  return (
+                    <div className="console__row console__row--taken" style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }} key={`stale-skill:${item.skillId}`}>
+                      <span className="console__row-name"><span className="console__row-name-text">{skill?.displayName ?? item.skillId}</span></span>
+                      <span className="console__row-end"><button type="button" className="console__toggle console__toggle--on" onClick={() => update({ skillGrants: (selection?.skillGrants ?? []).filter((candidate) => candidate.skillId !== item.skillId) })}>REMOVE</button></span>
+                    </div>
+                  )
+                })}
+                {staleSkillGroupGrants.map((item) => {
+                  const group = catalog.skillGroups.find((candidate) => candidate.id === item.skillGroupId)
+                  return (
+                    <div className="console__row console__row--taken" style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }} key={`stale-group:${item.skillGroupId}`}>
+                      <span className="console__row-name"><span className="console__row-name-text">{group?.displayName ?? item.skillGroupId}</span></span>
+                      <span className="console__row-end"><button type="button" className="console__toggle console__toggle--on" onClick={() => update({ skillGroupGrants: (selection?.skillGroupGrants ?? []).filter((candidate) => candidate.skillGroupId !== item.skillGroupId) })}>REMOVE</button></span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
             {grant.skillGrants.map(skillGrant => skillGrant.domain === 'magical-group' ? (
               <div key="magical-group">
                 <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}>
@@ -366,6 +399,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                 </div>
                 {catalog.skillGroups.filter(group => MAGICAL_GROUP_IDS.includes(group.id)).map(group => {
                   const selected = (selection?.skillGroupGrants ?? []).some(item => item.skillGroupId === group.id)
+                  const domainFull = (selection?.skillGroupGrants?.length ?? 0) >= skillGrant.count
                   return (
                     <div
                       key={group.id}
@@ -376,7 +410,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                       <span className="console__row-name"><span className="console__row-name-text">{group.displayName}</span></span>
                       <span className="console__row-end">
                         <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                          <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => update({ skillGroupGrants: selected
+                          <input type="checkbox" className="console__toggle-input" checked={selected} disabled={!selected && domainFull} onChange={() => update({ skillGroupGrants: selected
                             ? (selection?.skillGroupGrants ?? []).filter(item => item.skillGroupId !== group.id)
                             : [...(selection?.skillGroupGrants ?? []), { skillGroupId: group.id }] })} aria-label={group.displayName} />
                           {selected ? 'TAKEN ✓' : '+ SELECT'}
@@ -393,6 +427,8 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                 </div>
                 {catalog.skills.filter(skill => skill.domain === skillGrant.domain).map(skill => {
                   const selected = (selection?.skillGrants ?? []).some(item => item.skillId === skill.id)
+                  const selectedInDomain = (selection?.skillGrants ?? []).filter(item => catalog.skills.find(candidate => candidate.id === item.skillId)?.domain === skillGrant.domain).length
+                  const domainFull = selectedInDomain >= skillGrant.count
                   return (
                     <div
                       key={skill.id}
@@ -403,7 +439,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                       <span className="console__row-name"><span className="console__row-name-text">{skill.displayName}</span></span>
                       <span className="console__row-end">
                         <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                          <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => update({ skillGrants: selected
+                          <input type="checkbox" className="console__toggle-input" checked={selected} disabled={!selected && domainFull} onChange={() => update({ skillGrants: selected
                             ? (selection?.skillGrants ?? []).filter(item => item.skillId !== skill.id)
                             : [...(selection?.skillGrants ?? []), { skillId: skill.id }] })} aria-label={skill.displayName} />
                           {selected ? 'TAKEN ✓' : '+ SELECT'}

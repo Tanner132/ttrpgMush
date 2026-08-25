@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { SlotData } from '../../pages/CharactersPage.tsx'
 import type { DraftDetail } from '../../api/characterCreation.ts'
 import { Button } from '../ui/Button.tsx'
@@ -119,6 +120,12 @@ export function SlotCard({ slot, index, selectingId, onEnterWorld, draftDetail }
                     >
                         {selectingId === finalized.characterId ? 'Jacking in…' : 'Jack in ▸'}
                     </Button>
+                    <Link
+                        to={`/characters/${finalized.characterId}/sheet`}
+                        className="ui-button ui-button--neutral"
+                    >
+                        View Character Sheet
+                    </Link>
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-import type { Diagnostic, PriorityAssignment } from '../../api/characterCreation.ts'
+import type { Diagnostic, PriorityAssignment, PriorityLevel } from '../../api/characterCreation.ts'
 
 export interface CreationStep {
   id: string
@@ -13,9 +13,9 @@ export const CREATION_STEPS: readonly CreationStep[] = [
   { id: 'metatype', index: 4, label: 'Metatype & Special Attributes', available: true },
   { id: 'attributes', index: 5, label: 'Physical & Mental Attributes', available: true },
   { id: 'qualities', index: 6, label: 'Qualities', available: true },
-  { id: 'augmentations', index: 7, label: 'Augmentations & Essence', available: true },
-  { id: 'skills', index: 8, label: 'Active Skills & Groups', available: true },
-  { id: 'awakening', index: 9, label: 'Awakening / Emergence', available: true },
+  { id: 'awakening', index: 7, label: 'Awakening / Emergence', available: true },
+  { id: 'augmentations', index: 8, label: 'Augmentations & Essence', available: true },
+  { id: 'skills', index: 9, label: 'Active Skills & Groups', available: true },
   { id: 'knowledge', index: 10, label: 'Knowledge & Languages', available: true },
   { id: 'contacts', index: 11, label: 'Contacts', available: true },
   { id: 'resources', index: 12, label: 'Resources & Vehicles', available: true },
@@ -61,6 +61,15 @@ export function isPriorityAssignmentComplete(assignment: PriorityAssignment | nu
   if (!assignment) return false
   return Boolean(assignment.metatype && assignment.attributes && assignment.magicOrResonance
     && assignment.skills && assignment.resources)
+}
+
+export function sumToTenTotal(levels: PriorityLevel[], assignment: PriorityAssignment | null): number | null {
+  if (!isPriorityAssignmentComplete(assignment)) return null
+  const costs = new Map(levels.map((level) => [level.id, level.sumToTenCost]))
+  const selectedCosts = Object.values(assignment!).map((levelId) => costs.get(levelId))
+  return selectedCosts.some((cost) => cost == null)
+    ? null
+    : selectedCosts.reduce<number>((total, cost) => total + cost!, 0)
 }
 
 export function diagnosticStepIndex(diagnosticStep: string, fieldPath: string): number {

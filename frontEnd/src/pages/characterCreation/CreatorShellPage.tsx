@@ -24,7 +24,7 @@ import { getCatalogIndex } from '../../components/characterCreation/catalogIndex
 
 import { computeAttributeBudget } from '../../components/characterCreation/budgets.ts'
 
-import { CREATION_STEPS, FIRST_STEP_INDEX, LAST_STEP_INDEX, computeDraftProgress, diagnosticStepIndex, isPriorityAssignmentComplete, isStepAvailable, stepIdByIndex, stepLabel } from '../../components/characterCreation/steps.ts'
+import { CREATION_STEPS, FIRST_STEP_INDEX, LAST_STEP_INDEX, computeDraftProgress, diagnosticStepIndex, isPriorityAssignmentComplete, isStepAvailable, stepIdByIndex, stepLabel, sumToTenTotal } from '../../components/characterCreation/steps.ts'
 
 import '../../styles/characterCreation.css'
 
@@ -229,15 +229,18 @@ export default function CreatorShellPage() {
     setDiscardBusy(false)
   }, [discard, navigate])
 
-  // Guarded forward navigation: blocks leaving the priority step until all
-  // five priorities are assigned, and only then reveals why.
+  // Guarded forward navigation keeps incomplete and invalid Sum-to-Ten
+  // assignments on the step while revealing the authoritative diagnostics.
   const handleForward = useCallback(() => {
-    if (currentStepId === 'priority' && !isPriorityAssignmentComplete(draft?.document.priorityAssignment ?? null)) {
+    const assignment = draft?.document.priorityAssignment ?? null
+    const invalidPriority = !isPriorityAssignmentComplete(assignment)
+      || (draft?.creationMethodId === 'sum-to-ten' && sumToTenTotal(catalog?.priorityLevels ?? [], assignment) !== 10)
+    if (currentStepId === 'priority' && invalidPriority) {
       setPriorityAttemptedAdvance(true)
       return
     }
     nextStep()
-  }, [currentStepId, draft, nextStep])
+  }, [catalog, currentStepId, draft, nextStep])
 
   const handleFinalize = useCallback(async () => {
     const finalized = await finalize()
@@ -365,12 +368,6 @@ export default function CreatorShellPage() {
               Retry save
             </Button>
           )}
-        </StatusBanner>
-      )}
-
-      {!isEvaluationCurrent && saveState !== 'failed' && saveState !== 'conflict' && (
-        <StatusBanner tone="info" role="status" className="creator-shell__save-banner">
-          Validating latest changes…
         </StatusBanner>
       )}
 

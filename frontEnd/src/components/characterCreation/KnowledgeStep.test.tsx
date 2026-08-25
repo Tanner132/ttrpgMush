@@ -10,7 +10,10 @@ const source = { sourceId: 'sr5-core', printedPage: 1, pdfPage: 3 }
 const catalog: CatalogContract = {
   rulesetId: 'sr5-core', version: '1.0.0', semanticDigest: 'test', sources: [], creationMethods: [],
   priorityLevels: [], priorityCategories: [], priorityCells: [], metatypes: [], attributes: [], qualities: [],
-  skills: [], skillGroups: [], knowledgeCategories: [{ id: 'academic', displayName: 'Academic', linkedAttribute: 'logic', source }],
+  skills: [], skillGroups: [], knowledgeCategories: [
+    { id: 'academic', displayName: 'Academic', linkedAttribute: 'logic', source },
+    { id: 'street', displayName: 'Street', linkedAttribute: 'intuition', source },
+  ],
   creationPaths: [], aspectedValues: [], traditions: [], spells: [], rituals: [], adeptPowers: [], mentorSpirits: [],
   complexForms: [], spiritTypes: [], spriteTypes: [], foci: [], gear: [], weapons: [], armor: [], augmentationGrades: [],
   augmentations: [], vehicles: [], cyberdecks: [], weaponAccessories: [], armorModifications: [], cyberlimbEnhancements: [],
@@ -60,5 +63,16 @@ describe('KnowledgeStep', () => {
       { name: 'Matrix Theory', categoryId: 'academic', rating: 1 },
       { name: 'Magic Theory', categoryId: 'academic', rating: 1 },
     ])
+  })
+
+  it('provides category choices, linked attribute feedback, and a remaining-point readout', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+
+    await user.click(screen.getByRole('button', { name: 'Add knowledge skill' }))
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Knowledge skill 1 category' }), 'street')
+
+    expect(screen.getByText('Linked attribute: intuition')).toBeInTheDocument()
+    expect(screen.getByText(/free Knowledge\/Language points remaining/).closest('[role="status"]')).toHaveTextContent('0 free Knowledge/Language points remaining')
   })
 })

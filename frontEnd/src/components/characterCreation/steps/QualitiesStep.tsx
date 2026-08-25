@@ -15,17 +15,29 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
   const [focusedId, setFocusedId] = useState(catalog.qualities[0]?.id ?? '')
 
   const selectionOf = (qualityId: string) => selected.find((item) => item.qualityId === qualityId)
+  const selectionCount = (qualityId: string) => selected.filter((item) => item.qualityId === qualityId).length
 
-  const toggle = (quality: QualityDefinition) => {
-    const exists = selectionOf(quality.id)
+  const add = (quality: QualityDefinition) => {
     onChange({
       ...document,
-      qualities: exists
-        ? selected.filter((item) => item.qualityId !== quality.id)
-        : [...selected, { qualityId: quality.id, ...(quality.parameterized ? { rating: 1, parameters: {} } : {}) }],
+      qualities: [...selected, { qualityId: quality.id }],
     })
     setFocusedId(quality.id)
   }
+
+  const toggleSingle = (quality: QualityDefinition) => {
+    if (selectionOf(quality.id)) {
+      onChange({ ...document, qualities: selected.filter((item) => item.qualityId !== quality.id) })
+      setFocusedId(quality.id)
+      return
+    }
+    add(quality)
+  }
+
+  const removeAt = (selectionIndex: number) => onChange({
+    ...document,
+    qualities: selected.filter((_, index) => index !== selectionIndex),
+  })
 
   const positiveKarma = selected.reduce((sum, item) => {
     const definition = index.qualities.get(item.qualityId)
@@ -40,16 +52,17 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
   const focusedSelection = focused ? selectionOf(focused.id) : undefined
   const taken = focusedSelection !== undefined
 
-  const picked = selected.flatMap((item) => {
+  const picked = selected.flatMap((item, selectionIndex) => {
     const definition = index.qualities.get(item.qualityId)
     if (!definition) return []
+    const instanceNumber = selected.slice(0, selectionIndex + 1).filter((candidate) => candidate.qualityId === item.qualityId).length
     return [{
-      id: definition.id,
-      name: definition.displayName,
+      id: `${definition.id}:${selectionIndex}`,
+      name: definition.repeatable ? `${definition.displayName} ${instanceNumber}` : definition.displayName,
       badge: String((item.rating ?? 1) * definition.cost),
       active: focusedId === definition.id,
       onFocus: () => setFocusedId(definition.id),
-      onRemove: () => toggle(definition),
+      onRemove: () => removeAt(selectionIndex),
     }]
   })
 
@@ -81,7 +94,8 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
         </div>
         <div className="console__list">
           {catalog.qualities.map((quality) => {
-            const isSelected = selectionOf(quality.id) !== undefined
+            const count = selectionCount(quality.id)
+            const isSelected = count > 0
             const isFocused = focusedId === quality.id
             const positive = quality.polarity === 'positive'
             return (
@@ -94,16 +108,22 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
                 <span className="console__row-name"><span className="console__row-name-text">{quality.displayName}</span></span>
                 <span className="console__row-col">{quality.polarity}</span>
                 <span className="console__row-end">
-                  <label className={`console__toggle${isSelected ? ' console__toggle--on' : ''}`}>
-                    <input
-                      type="checkbox"
-                      className="console__toggle-input"
-                      checked={isSelected}
-                      onChange={() => toggle(quality)}
-                      aria-label={quality.displayName}
-                    />
-                    {isSelected ? 'TAKEN ✓' : (positive ? `−${quality.cost}` : `+${quality.cost}`)}
-                  </label>
+                  {quality.repeatable ? (
+                    <button type="button" className={`console__toggle${isSelected ? ' console__toggle--on' : ''}`} onClick={() => add(quality)} aria-label={isSelected ? `Add another ${quality.displayName}` : `Add ${quality.displayName}`}>
+                      {isSelected ? `TAKEN ${count} · + ADD` : (positive ? `−${quality.cost}` : `+${quality.cost}`)}
+                    </button>
+                  ) : (
+                    <label className={`console__toggle${isSelected ? ' console__toggle--on' : ''}`}>
+                      <input
+                        type="checkbox"
+                        className="console__toggle-input"
+                        checked={isSelected}
+                        onChange={() => toggleSingle(quality)}
+                        aria-label={quality.displayName}
+                      />
+                      {isSelected ? 'TAKEN ✓' : (positive ? `−${quality.cost}` : `+${quality.cost}`)}
+                    </label>
+                  )}
                 </span>
               </div>
             )
@@ -124,8 +144,8 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
           ]}
           text={`${describeQuality(focused.id)}${focused.parameterized ? ' Requires a bounded parameter once taken.' : ''}`}
           action={(
-            <button type="button" className={`readout__action${taken ? ' readout__action--remove' : ''}`} onClick={() => toggle(focused)}>
-              {taken ? 'REMOVE FROM DOSSIER' : 'ADD TO DOSSIER +'}
+            <button type="button" className={`readout__action${taken && !focused.repeatable ? ' readout__action--remove' : ''}`} onClick={() => focused.repeatable ? add(focused) : toggleSingle(focused)}>
+              {taken && focused.repeatable ? 'ADD ANOTHER +' : taken ? 'REMOVE FROM DOSSIER' : 'ADD TO DOSSIER +'}
             </button>
           )}
           rows={[

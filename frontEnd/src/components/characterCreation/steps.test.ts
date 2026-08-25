@@ -8,6 +8,7 @@ import {
   diagnosticStepIndex,
   isStepAvailable,
   stepLabel,
+  sumToTenTotal,
 } from './steps.ts'
 
 function diagnostic(overrides: Partial<Diagnostic>): Diagnostic {
@@ -45,10 +46,10 @@ describe('creation steps', () => {
   it('maps diagnostics to their attention step', () => {
     expect(diagnosticStepIndex('priority', 'priority')).toBe(3)
     expect(diagnosticStepIndex('qualities', 'qualities')).toBe(6)
-    expect(diagnosticStepIndex('skills', 'skills')).toBe(8)
-    expect(diagnosticStepIndex('awakening-emergence', 'magicResonance')).toBe(9)
+    expect(diagnosticStepIndex('skills', 'skills')).toBe(9)
+    expect(diagnosticStepIndex('awakening-emergence', 'magicResonance')).toBe(7)
     expect(diagnosticStepIndex('knowledge', 'knowledge')).toBe(10)
-    expect(diagnosticStepIndex('resources', 'resources[wired-reflexes]')).toBe(7)
+    expect(diagnosticStepIndex('resources', 'resources[wired-reflexes]')).toBe(8)
     expect(diagnosticStepIndex('contacts', 'contacts')).toBe(11)
     expect(diagnosticStepIndex('identities', 'identities[sin-1]')).toBe(12)
     expect(diagnosticStepIndex('lifestyle', 'lifestyle')).toBe(13)
@@ -58,6 +59,21 @@ describe('creation steps', () => {
   it('splits the shared metatype-and-attributes step by field path', () => {
     expect(diagnosticStepIndex('metatype-and-attributes', 'metatype.metatypeId')).toBe(4)
     expect(diagnosticStepIndex('metatype-and-attributes', 'attributes.values.agility')).toBe(5)
+  })
+})
+
+describe('sumToTenTotal', () => {
+  const levels = [
+    { id: 'a', displayName: 'A', sumToTenCost: 4, source: { sourceId: 'core', printedPage: 1, pdfPage: 1 } },
+    { id: 'b', displayName: 'B', sumToTenCost: 3, source: { sourceId: 'core', printedPage: 1, pdfPage: 1 } },
+    { id: 'c', displayName: 'C', sumToTenCost: 2, source: { sourceId: 'core', printedPage: 1, pdfPage: 1 } },
+    { id: 'd', displayName: 'D', sumToTenCost: 1, source: { sourceId: 'core', printedPage: 1, pdfPage: 1 } },
+    { id: 'e', displayName: 'E', sumToTenCost: 0, source: { sourceId: 'core', printedPage: 1, pdfPage: 1 } },
+  ]
+
+  it('counts repeated priorities and rejects incomplete assignments', () => {
+    expect(sumToTenTotal(levels, { metatype: 'a', attributes: 'a', magicOrResonance: 'd', skills: 'd', resources: 'e' })).toBe(10)
+    expect(sumToTenTotal(levels, { metatype: 'a', attributes: '', magicOrResonance: 'd', skills: 'd', resources: 'e' })).toBeNull()
   })
 })
 

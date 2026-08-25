@@ -125,6 +125,30 @@ public sealed class MagicResonanceEvaluatorTests
     }
 
     [Fact]
+    public void StaleSkillGrantsFromAnotherPathAreRejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new MagicResonanceEvaluator();
+        var individualDiagnostics = evaluator.Evaluate(catalog, MagicB, new CharacterCreationDraftDocument(
+            MagicB,
+            MagicResonance: new MagicResonanceSelection(
+                "aspected-magician",
+                TraditionId: "hermetic",
+                AspectedValueId: "sorcery",
+                SkillGrants: [new SkillGrantAllocation("archery")],
+                SkillGroupGrants: [new SkillGroupGrantAllocation("sorcery")]))).Diagnostics;
+        var groupDiagnostics = evaluator.Evaluate(catalog, MagicB, new CharacterCreationDraftDocument(
+            MagicB,
+            MagicResonance: new MagicResonanceSelection(
+                "adept",
+                SkillGrants: [new SkillGrantAllocation("archery")],
+                SkillGroupGrants: [new SkillGroupGrantAllocation("sorcery")]))).Diagnostics;
+
+        Assert.Contains(individualDiagnostics, item => item.Code == "magic.skill-grant.count" && item.FieldPath == "magicResonance.skillGrants");
+        Assert.Contains(groupDiagnostics, item => item.Code == "magic.skill-grant.count" && item.FieldPath == "magicResonance.skillGroupGrants");
+    }
+
+    [Fact]
     public void PathUnavailableAtAssignedLevelIsRejected()
     {
         var catalog = CatalogTestData.Catalog;

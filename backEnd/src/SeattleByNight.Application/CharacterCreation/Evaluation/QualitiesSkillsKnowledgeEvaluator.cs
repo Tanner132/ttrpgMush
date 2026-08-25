@@ -73,7 +73,7 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
                 Add(diagnostics, "quality.rating.invalid", "qualities", $"qualities[{selection.QualityId}].rating", selection.QualityId, quality.Source, "Qualities are selected once per entry; remove the unsupported rating.");
             if (quality.Conflicts.Any(conflict => qualities.Any(item => item.QualityId == conflict)))
                 Add(diagnostics, "quality.conflict", "qualities", "qualities", selection.QualityId, quality.Source, "Remove one of the conflicting qualities.");
-            if (quality.Parameterized && (selection.Parameters is null || selection.Parameters.Values.Any(string.IsNullOrWhiteSpace)))
+            if (quality.Parameterized && (selection.Parameters is null || selection.Parameters.Count == 0 || selection.Parameters.Values.Any(string.IsNullOrWhiteSpace)))
                 Add(diagnostics, "quality.parameter.required", "qualities", $"qualities[{selection.QualityId}].parameters", selection.QualityId, quality.Source, "Complete every required quality parameter.");
             if (selection.Parameters is not null && selection.Parameters.Values.Any(value => value is { Length: > MaxTextLength }))
                 Add(diagnostics, "creation.text.too-long", "qualities", $"qualities[{selection.QualityId}].parameters", selection.QualityId, quality.Source, "Use plain text of 120 characters or fewer.");
@@ -119,7 +119,7 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
             var cap = string.Equals(skill.SkillId, aptitudeSkillId, StringComparison.Ordinal) ? AptitudeRating : MaxCreationRating;
             var granted = grantedRatings.GetValueOrDefault(skill.SkillId);
             var total = granted + Math.Max(0, skill.Rating);
-            if (skill.Rating < 1 || total > cap)
+            if (skill.Rating < 0 || (skill.Rating == 0 && granted == 0) || total > cap)
                 Add(diagnostics, "skill.rating.invalid", "skills", $"skills[{skill.SkillId}].rating", skill.SkillId, definition.Source, $"Keep the skill's total creation rating (granted plus points) within {cap}.");
             var allocated = Math.Clamp(skill.Rating, 0, 20);
             for (var step = 1; step <= allocated; step++)
@@ -156,7 +156,8 @@ public sealed class QualitiesSkillsKnowledgeEvaluator
                 Add(diagnostics, "skill-group.unknown", "skills", $"skillGroups[{group.SkillGroupId}]", group.SkillGroupId, citation, "Choose a group from the core catalog.");
                 continue;
             }
-            if (group.Rating is < 1 or > MaxCreationRating) Add(diagnostics, "skill-group.rating.invalid", "skills", $"skillGroups[{group.SkillGroupId}].rating", group.SkillGroupId, definition.Source, "Use a creation rating from 1 through 6.");
+            var granted = grantedGroupRatings.GetValueOrDefault(group.SkillGroupId);
+            if (group.Rating < 1 || group.Rating + granted > MaxCreationRating) Add(diagnostics, "skill-group.rating.invalid", "skills", $"skillGroups[{group.SkillGroupId}].rating", group.SkillGroupId, definition.Source, "Keep the group's total creation rating (granted plus points) within 6.");
             var rating = Math.Clamp(group.Rating, 0, 20);
             for (var step = 1; step <= rating; step++)
             {

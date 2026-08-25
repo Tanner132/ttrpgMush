@@ -121,6 +121,42 @@ public sealed class QualitiesSkillsKnowledgeEvaluatorTests
     }
 
     [Fact]
+    public void Granted_skill_can_take_a_specialization_without_an_allocated_rank()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var assignment = new PriorityAssignment("a", "b", "b", "e", "d");
+        var document = new CharacterCreationDraftDocument(
+            assignment,
+            Skills: [new SkillAllocation("archery", 0, Specialization: "Bows")],
+            NativeLanguages: [new LanguageSelection("English")],
+            MagicResonance: new MagicResonanceSelection(
+                "adept", SkillGrants: [new SkillGrantAllocation("archery")]));
+
+        var evaluation = new QualitiesSkillsKnowledgeEvaluator().Evaluate(catalog, assignment, document);
+        var archery = Assert.Single(evaluation.Skills, item => item.Id == "archery");
+
+        Assert.DoesNotContain(evaluation.Diagnostics, item => item.Code == "skill.rating.invalid");
+        Assert.DoesNotContain(evaluation.Diagnostics, item => item.Code == "skill.specialization.requires-rating");
+        Assert.Equal("Bows", archery.Specialization);
+        Assert.Equal(archery.GrantedRating, archery.TotalRating);
+    }
+
+    [Fact]
+    public void Parameterized_quality_requires_at_least_one_nonblank_parameter()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var assignment = new PriorityAssignment("a", "b", "b", "e", "d");
+        var document = new CharacterCreationDraftDocument(
+            assignment,
+            Qualities: [new QualitySelection("addiction", Parameters: new Dictionary<string, string>())],
+            NativeLanguages: [new LanguageSelection("English")]);
+
+        var evaluation = new QualitiesSkillsKnowledgeEvaluator().Evaluate(catalog, assignment, document);
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "quality.parameter.required");
+    }
+
+    [Fact]
     public void Granted_group_blocks_member_allocations_and_is_canonical()
     {
         var catalog = CatalogTestData.Catalog;
@@ -142,6 +178,26 @@ public sealed class QualitiesSkillsKnowledgeEvaluatorTests
         Assert.True(group.GrantedRating > 0);
         Assert.Equal(group.GrantedRating, group.TotalRating);
         Assert.Equal(CanonicalProvenance.Grant, group.Provenance);
+    }
+
+    [Fact]
+    public void Granted_group_total_cannot_exceed_creation_cap()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var assignment = new PriorityAssignment("a", "b", "b", "a", "e");
+        var document = new CharacterCreationDraftDocument(
+            assignment,
+            SkillGroups: [new SkillGroupAllocation("sorcery", 3)],
+            NativeLanguages: [new LanguageSelection("English")],
+            MagicResonance: new MagicResonanceSelection(
+                "aspected-magician",
+                TraditionId: "hermetic",
+                AspectedValueId: "sorcery",
+                SkillGroupGrants: [new SkillGroupGrantAllocation("sorcery")]));
+
+        var evaluation = new QualitiesSkillsKnowledgeEvaluator().Evaluate(catalog, assignment, document);
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "skill-group.rating.invalid");
     }
 
     [Fact]

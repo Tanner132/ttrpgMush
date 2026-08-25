@@ -202,6 +202,20 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
         Assert.False(await db.CharacterCreationDrafts.AnyAsync(item => item.CharacterId == updated.CharacterId));
         Assert.Single(await new CharacterStore(db).ListByUserIdAsync(userId));
 
+        // Career state and its opening transactions are created atomically
+        // with finalization (SHEET-903).
+        var canonicalSheet = CharacterCreationDraftSerialization.DeserializeCanonicalSheet(result.Sheet!.CanonicalSheetJson);
+        var careerState = await db.CharacterCareerStates.SingleAsync(item => item.CharacterId == updated.CharacterId);
+        Assert.Equal(canonicalSheet.DerivedStatistics!.CarryoverKarma, careerState.CurrentKarma);
+        Assert.Equal(
+            canonicalSheet.DerivedStatistics.CarryoverNuyen + canonicalSheet.Lifestyles!.StartingCash!.Total,
+            careerState.CurrentNuyen);
+        var transactions = await db.CharacterResourceTransactions
+            .Where(item => item.CharacterId == updated.CharacterId)
+            .ToListAsync();
+        Assert.Equal(2, transactions.Count);
+        Assert.All(transactions, item => Assert.Equal(CharacterResourceTransactionType.Opening, item.TransactionType));
+
         var duplicate = await handler.Handle(
             new FinalizeCharacterCreationDraftCommand(userId, updated.CharacterId, updated.Version),
             CancellationToken.None);

@@ -19,6 +19,11 @@ public sealed class SeattleByNightDbContext : IdentityDbContext<ApplicationUser,
     public DbSet<Character> Characters => Set<Character>();
     public DbSet<CharacterCreationDraft> CharacterCreationDrafts => Set<CharacterCreationDraft>();
     public DbSet<CharacterSheet> CharacterSheets => Set<CharacterSheet>();
+    public DbSet<CharacterCareerState> CharacterCareerStates => Set<CharacterCareerState>();
+    public DbSet<CharacterResourceTransaction> CharacterResourceTransactions => Set<CharacterResourceTransaction>();
+    public DbSet<CharacterAdvancement> CharacterAdvancements => Set<CharacterAdvancement>();
+    public DbSet<CharacterInventoryItem> CharacterInventoryItems => Set<CharacterInventoryItem>();
+    public DbSet<CharacterActionReceipt> CharacterActionReceipts => Set<CharacterActionReceipt>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<PlaySession> PlaySessions => Set<PlaySession>();
     public DbSet<RoomVisit> RoomVisits => Set<RoomVisit>();

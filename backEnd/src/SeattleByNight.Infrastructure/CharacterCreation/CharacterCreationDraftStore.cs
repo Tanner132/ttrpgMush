@@ -3,6 +3,7 @@ using Npgsql;
 using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Domain.Entities;
 using SeattleByNight.Domain.Enums;
+using SeattleByNight.Infrastructure.CharacterCareer;
 using SeattleByNight.Infrastructure.Persistence;
 
 namespace SeattleByNight.Infrastructure.CharacterCreation;
@@ -232,6 +233,19 @@ public sealed class CharacterCreationDraftStore : ICharacterCreationDraftStore
         character.CurrentRoomId = request.StartingRoomId;
         db.CharacterCreationDrafts.Remove(draft);
         db.CharacterSheets.Add(sheet);
+
+        // Career state and its opening transactions are created in the same
+        // transaction as finalization (MILESTONE_09 "Balance Initialization").
+        // Deserializing the JSON we're about to persist (rather than reusing
+        // the caller's in-memory object) guarantees this matches exactly what
+        // a later CharacterCreationBaselineReader read would reconstruct.
+        var canonicalSheet = CharacterCreationDraftSerialization.DeserializeCanonicalSheet(request.CanonicalSheetJson);
+        var openingState = CareerStateFactory.TryBuildOpeningState(character.Id, canonicalSheet, now)
+            ?? throw new InvalidOperationException(
+                "A finalized character must have DerivedStatistics and Lifestyles.StartingCash to open career state.");
+        db.CharacterCareerStates.Add(openingState.State);
+        db.CharacterResourceTransactions.AddRange(openingState.KarmaTransaction, openingState.NuyenTransaction);
+
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 

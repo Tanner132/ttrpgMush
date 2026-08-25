@@ -247,6 +247,17 @@ public sealed class MagicResonanceEvaluator
         MagicResonancePathGrant grant,
         List<CharacterCreationDiagnostic> diagnostics)
     {
+        var expectsSkillGroups = grant.SkillGrants.Any(item => item.Domain == "magical-group");
+        var expectsIndividualSkills = grant.SkillGrants.Any(item => item.Domain != "magical-group");
+        if (!expectsSkillGroups && (selection.SkillGroupGrants?.Count ?? 0) > 0)
+        {
+            diagnostics.Add(SkillGrantCount("magical-group", 0, selection.SkillGroupGrants!.Count, "magicResonance.skillGroupGrants"));
+        }
+        if (!expectsIndividualSkills && (selection.SkillGrants?.Count ?? 0) > 0)
+        {
+            diagnostics.Add(SkillGrantCount("individual", 0, selection.SkillGrants!.Count, "magicResonance.skillGrants"));
+        }
+
         foreach (var skillGrant in grant.SkillGrants)
         {
             if (skillGrant.Domain == "magical-group")

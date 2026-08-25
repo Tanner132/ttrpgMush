@@ -18,6 +18,8 @@ import { TextField } from '../../components/ui/TextField.tsx'
 
 import { Button } from '../../components/ui/Button.tsx'
 
+import '../../styles/characterCreation.css'
+
 
 
 const METHODS: { id: CreationMethodId; label: string; description: string }[] = [

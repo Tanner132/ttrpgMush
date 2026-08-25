@@ -5,8 +5,12 @@ using SeattleByNight.Application.Characters;
 using SeattleByNight.Application.CharacterCreation.Catalog;
 using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Application.CharacterCreation.Evaluation;
+using SeattleByNight.Application.CharacterCreation.Sheets;
+using SeattleByNight.Application.Dice;
 using SeattleByNight.Domain.Entities;
 using SeattleByNight.Domain.Enums;
+using SeattleByNight.Infrastructure.CharacterCareer;
+using SeattleByNight.Infrastructure.Dice;
 using SeattleByNight.Infrastructure.Identity;
 
 namespace SeattleByNight.Infrastructure.Persistence.Seed;
@@ -211,6 +215,14 @@ public static class DevelopmentDataSeeder
         }
 
         await db.SaveChangesAsync(cancellationToken);
+
+        // Idempotent: backfills career state for the seeded dev character the
+        // same way it would for any pre-existing evaluated sheet, exercising
+        // the SHEET-903 backfill path on every dev/test startup.
+        await new CharacterCareerStateStore(
+            db,
+            new CharacterCreationBaselineReader(new EmbeddedRulesetCatalogProvider()),
+            TimeProvider.System).EnsureInitializedAsync(DevCharacterId, cancellationToken);
     }
 
     private static async Task SeedRolesAsync(
@@ -363,6 +375,35 @@ public static class DevelopmentDataSeeder
                 + string.Join("; ", details.Diagnostics.Select(item => item.Code)));
         }
 
-        return CharacterCreationDraftSerialization.SerializeCanonicalSheet(details.CanonicalSheet);
+        var canonicalSheet = RollStartingCash(catalog, details.CanonicalSheet);
+        return CharacterCreationDraftSerialization.SerializeCanonicalSheet(canonicalSheet);
+    }
+
+    // Mirrors FinalizeCharacterCreationDraftCommandHandler.RollStartingCash:
+    // starting cash is a finalize-only side effect that LifestyleEvaluator
+    // deliberately never produces (it must stay deterministic across
+    // previews), so a hand-run evaluation like this one has to roll it
+    // separately, the same way the real finalize command handler does, or the
+    // seeded sheet is missing StartingCash and career-state backfill fails
+    // against it with MissingStartingCash.
+    private static CanonicalCharacterSheet RollStartingCash(RulesetCatalog catalog, CanonicalCharacterSheet canonicalSheet)
+    {
+        var primary = canonicalSheet.Lifestyles?.Lifestyles.FirstOrDefault(item => item.IsPrimary);
+        if (primary is null || !catalog.LifestyleTiers.TryGetValue(primary.TierId, out var tier))
+        {
+            return canonicalSheet;
+        }
+
+        var diceEngine = new DiceEngine(new DiceOptions());
+        var dice = tier.StartingCashDice;
+        var rolls = diceEngine.Roll(new DiceExpression(dice.Count, dice.Sides, 0));
+        var diceTotal = rolls.Sum();
+        var startingCash = new CanonicalStartingCash(
+            dice.Count, dice.Sides, dice.Multiplier, rolls, diceTotal, diceTotal * dice.Multiplier);
+
+        return canonicalSheet with
+        {
+            Lifestyles = canonicalSheet.Lifestyles! with { StartingCash = startingCash },
+        };
     }
 }

@@ -1,0 +1,181 @@
+/* Career sheet — read-only composed sheet route (SHEET-905). */
+
+.career-sheet-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sb-space-5);
+    padding: var(--sb-space-5) var(--sb-space-6);
+}
+
+.career-sheet-page__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sb-space-4);
+}
+
+.career-sheet-page__title {
+    font-family: var(--sb-font-heading);
+    color: var(--sb-text);
+    margin: 0;
+}
+
+.career-sheet-page__error {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sb-space-3);
+    align-items: flex-start;
+    padding: var(--sb-space-5) var(--sb-space-6);
+}
+
+.career-sheet-overview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sb-space-4);
+}
+
+.career-sheet-overview__balances {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sb-space-4);
+}
+
+.career-sheet-overview__balance {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sb-space-1);
+    padding: var(--sb-space-3) var(--sb-space-4);
+    background: var(--sb-surface-raised);
+    border: 1px solid var(--sb-border);
+    min-width: 160px;
+}
+
+.career-sheet-overview__balance-label {
+    color: var(--sb-text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.career-sheet-overview__balance-value {
+    color: var(--sb-accent);
+    font-family: var(--sb-font-data);
+    font-size: 1.4rem;
+}
+
+.career-sheet-overview__identity {
+    color: var(--sb-text-faint);
+    font-size: 0.85rem;
+}
+
+.career-sheet-overview__eyebrow {
+    color: var(--sb-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+    margin: 0 0 var(--sb-space-2);
+}
+
+.career-sheet-overview__derived {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--sb-space-2) var(--sb-space-4);
+}
+
+.career-sheet-overview__stat {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sb-space-3);
+    color: var(--sb-text);
+    border-bottom: 1px solid var(--sb-border);
+    padding-bottom: var(--sb-space-1);
+}
+
+.career-sheet-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--sb-space-4);
+}
+
+.career-sheet-card {
+    background: var(--sb-surface-raised);
+    border: 1px solid var(--sb-border);
+    padding: var(--sb-space-3);
+}
+
+.career-sheet-card__label {
+    margin: 0 0 var(--sb-space-2);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sb-text-muted);
+}
+
+.career-sheet-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sb-space-1);
+}
+
+.career-sheet-card__empty {
+    color: var(--sb-text-faint);
+    font-style: italic;
+}
+
+.career-sheet-card__item {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sb-space-3);
+    color: var(--sb-text);
+}
+
+.career-sheet-card__item-badge {
+    color: var(--sb-text-muted);
+    font-family: var(--sb-font-data);
+}
+
+.career-sheet-history {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sb-space-5);
+}
+
+.career-sheet-history__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sb-space-1);
+}
+
+.career-sheet-history__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--sb-space-3);
+    padding: var(--sb-space-2) 0;
+    border-bottom: 1px solid var(--sb-border);
+    color: var(--sb-text);
+}
+
+.career-sheet-history__row-timestamp {
+    color: var(--sb-text-faint);
+    font-size: 0.8rem;
+}
+
+/* The shared Tabs primitive's default .ui-tabs__tab { flex: 1 } assumes a
+   small, fixed tab count (the login/register toggle). Eight sections don't
+   shrink to fit a narrow viewport under that rule and get clipped by .app's
+   overflow: hidden, so this scopes a horizontally scrollable strip to this
+   feature only rather than changing the shared primitive's default. */
+.career-sheet-content .ui-tabs__list {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: var(--sb-space-1);
+}
+
+.career-sheet-content .ui-tabs__tab {
+    flex: 0 0 auto;
+}

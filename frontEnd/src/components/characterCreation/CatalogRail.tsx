@@ -19,7 +19,7 @@ export interface CatalogPickedItem {
   badge: string
   active: boolean
   onFocus: () => void
-  onRemove: () => void
+  onRemove?: () => void
 }
 
 export interface CatalogSectionNavItem {
@@ -122,14 +122,16 @@ export function CatalogRail({ budgets, sectionLabel = 'SECTIONS', sections = [],
             >
               <span className="console__picked-name">{item.name}</span>
               <span className="console__picked-badge">{item.badge}</span>
-              <button
-                type="button"
-                className="console__picked-remove"
-                aria-label={`Remove ${item.name}`}
-                onClick={(event) => { event.stopPropagation(); item.onRemove() }}
-              >
-                ×
-              </button>
+              {item.onRemove && (
+                <button
+                  type="button"
+                  className="console__picked-remove"
+                  aria-label={`Remove ${item.name}`}
+                  onClick={(event) => { event.stopPropagation(); item.onRemove?.() }}
+                >
+                  ×
+                </button>
+              )}
             </div>
           ))}
         </div>

@@ -10,6 +10,10 @@ export function MetatypeStep({ catalog, document, onChange, diagnostics = [] }: 
   const selected = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
   const special = document.specialAttributes?.values ?? {}
   const specialLimit = selected && cell ? cell.metatypeSpecialAttributePoints?.[selected.id] ?? 0 : 0
+  const path = catalog.creationPaths.find((item) => item.id === document.magicResonance?.pathId)
+  const magicCell = catalog.priorityCells.find((item) => item.categoryId === 'magic-resonance' && item.levelId === document.priorityAssignment?.magicOrResonance)
+  const pathGrant = magicCell?.magicResonancePathGrants?.find((item) => item.pathId === path?.id)
+  const specialSpent = ['edge', 'magic', 'resonance'].reduce((sum, key) => sum + (special[key] ?? 0), 0)
   const updateSpecial = (key: string, value: number) => onChange({
     ...document,
     specialAttributes: { values: { ...special, [key]: Math.max(0, value) } },
@@ -56,14 +60,20 @@ export function MetatypeStep({ catalog, document, onChange, diagnostics = [] }: 
             <div>
               <p className="creation-step__eyebrow">SPECIAL POINTS</p>
               <h4>Edge and awakened potential</h4>
-              <p>{`${specialLimit} points available for ${selected.displayName}. Unspent points are lost.`}</p>
+              <p>{`${specialSpent} of ${specialLimit} points assigned for ${selected.displayName}. Unspent points are lost.`}</p>
             </div>
             <div className="creation-step__number-grid">
-              {['edge', 'magic', 'resonance'].map((key) => (
-                <label key={key}>{key}
-                  <input min="0" max={specialLimit} type="number" value={special[key] ?? 0} onChange={(event) => updateSpecial(key, Number(event.target.value))} />
-                </label>
-              ))}
+              {['edge', 'magic', 'resonance'].map((key) => {
+                const applicable = key === 'edge' || path?.attributeId === key
+                const base = key === 'edge' ? selected.attributes.edge?.minimum ?? 0 : path?.attributeId === key ? pathGrant?.attributeRating ?? 0 : 0
+                const allocated = special[key] ?? 0
+                const maximum = applicable ? specialLimit : allocated
+                return (
+                  <label key={key}>{key} · {base} + {allocated} = {base + allocated}
+                    <input min="0" max={maximum} type="number" disabled={!applicable && allocated === 0} value={allocated} onChange={(event) => updateSpecial(key, Math.min(maximum, Number(event.target.value)))} />
+                  </label>
+                )
+              })}
             </div>
           </div>
         )}

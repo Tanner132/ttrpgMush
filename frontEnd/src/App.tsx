@@ -15,6 +15,7 @@ const AdminAuditPage = lazy(() => import('./pages/admin/AdminAuditPage.tsx'))
 const WorldEditorPage = lazy(() => import('./pages/admin/WorldEditorPage.tsx'))
 const MethodSelectionPage = lazy(() => import('./components/characterCreation/MethodSelectionPage.tsx'))
 const CreatorShellPage = lazy(() => import('./pages/characterCreation/CreatorShellPage.tsx'))
+const CharacterSheetPage = lazy(() => import('./pages/CharacterSheetPage.tsx'))
 
 function RootRedirect() {
   const { account } = useAccount()
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/characters" element={<CharactersPage />} />
             <Route path="/characters/create" element={<MethodSelectionPage />} />
             <Route path="/characters/create/:characterId" element={<CreatorShellPage />} />
+            <Route path="/characters/:characterId/sheet" element={<CharacterSheetPage />} />
             <Route path="/play" element={<GameplayPage />} />
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<Navigate to="/admin/users" replace />} />

@@ -16,6 +16,13 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
   const budget = cell?.physicalMentalAttributePoints ?? 0
   const spent = NORMAL_ATTRIBUTE_IDS.reduce((sum, id) => sum + (allocations[id] ?? 0), 0)
   const karmaSpent = computeAttributeKarmaSpent(catalog, document)
+  const special = document.specialAttributes?.values ?? {}
+  const magicCell = catalog.priorityCells.find((item) => item.categoryId === 'magic-resonance' && item.levelId === document.priorityAssignment?.magicOrResonance)
+  const path = catalog.creationPaths.find((item) => item.id === document.magicResonance?.pathId)
+  const pathGrant = magicCell?.magicResonancePathGrants?.find((item) => item.pathId === path?.id)
+  const edge = (metatype?.attributes.edge?.minimum ?? 0) + (special.edge ?? 0)
+  const awakenedAttribute = path?.attributeId
+  const awakenedValue = awakenedAttribute ? (pathGrant?.attributeRating ?? 0) + (special[awakenedAttribute] ?? 0) : 0
   const update = (id: string, value: number) => onChange({
     ...document,
     attributes: { values: { ...allocations, [id]: Math.max(0, value) } },
@@ -38,6 +45,12 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
         </div>
         <div className="attribute-rows">
           {!metatype && <p className="creation-step__intro">Choose a metatype first — attribute ranges depend on it.</p>}
+          {metatype && (
+            <div className="creation-step__allocation-status" role="status">
+              <strong>Edge {edge}</strong>
+              <span> · Magic {awakenedAttribute === 'magic' ? awakenedValue : 0} · Resonance {awakenedAttribute === 'resonance' ? awakenedValue : 0}</span>
+            </div>
+          )}
           {NORMAL_ATTRIBUTE_IDS.map((id) => {
             const definition = catalog.attributes.find((item) => item.id === id)
             const range = metatype?.attributes[id]

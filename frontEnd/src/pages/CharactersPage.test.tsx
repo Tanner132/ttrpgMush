@@ -143,6 +143,15 @@ describe('CharactersPage', () => {
     expect(screen.queryByRole('link', { name: 'Create a new character' })).not.toBeInTheDocument()
   })
 
+  it('shows a View Character Sheet link for a finalized character', async () => {
+    vi.mocked(listFinalizedCharacters).mockResolvedValue([devRunner])
+
+    renderCharacters()
+
+    const link = await screen.findByRole('link', { name: 'View Character Sheet' })
+    expect(link).toHaveAttribute('href', `/characters/${devRunner.characterId}/sheet`)
+  })
+
   it('enters the world for a finalized character', async () => {
     vi.mocked(listFinalizedCharacters).mockResolvedValue([devRunner])
     vi.mocked(startPlaySession).mockResolvedValue(startInfo)

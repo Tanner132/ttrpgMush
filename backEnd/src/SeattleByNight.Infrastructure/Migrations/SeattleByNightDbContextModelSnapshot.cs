@@ -281,6 +281,152 @@ namespace SeattleByNight.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterActionReceipt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_id");
+
+                    b.Property<string>("ResultJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("result");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId", "RequestId")
+                        .IsUnique();
+
+                    b.ToTable("character_action_receipts", (string)null);
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterAdvancement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CatalogVersion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("catalog_version");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("category");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("DetailsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("details");
+
+                    b.Property<int>("KarmaCost")
+                        .HasColumnType("integer")
+                        .HasColumnName("karma_cost");
+
+                    b.Property<int?>("NewValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("new_value");
+
+                    b.Property<int?>("PreviousValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("previous_value");
+
+                    b.Property<string>("RulesetId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ruleset_id");
+
+                    b.Property<string>("TargetId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("target_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId", "CreatedAtUtc");
+
+                    b.ToTable("character_advancements", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_advancements_karma_cost", "karma_cost >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterCareerState", b =>
+                {
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<int>("CareerDocumentSchemaVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("career_document_schema_version");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<int>("CurrentKarma")
+                        .HasColumnType("integer")
+                        .HasColumnName("current_karma");
+
+                    b.Property<int>("CurrentNuyen")
+                        .HasColumnType("integer")
+                        .HasColumnName("current_nuyen");
+
+                    b.Property<int>("LifetimeKarmaEarned")
+                        .HasColumnType("integer")
+                        .HasColumnName("lifetime_karma_earned");
+
+                    b.Property<string>("ProgressionJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("progression");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("version");
+
+                    b.HasKey("CharacterId");
+
+                    b.ToTable("character_career_states", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_career_states_nonnegative", "current_karma >= 0 AND current_nuyen >= 0 AND lifetime_karma_earned >= 0");
+
+                            t.HasCheckConstraint("ck_character_career_states_schema_version", "career_document_schema_version > 0");
+                        });
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterCreationDraft", b =>
                 {
                     b.Property<Guid>("CharacterId")
@@ -340,6 +486,150 @@ namespace SeattleByNight.Infrastructure.Migrations
                             t.HasCheckConstraint("ck_character_creation_drafts_digest", "length(catalog_semantic_digest) = 64");
 
                             t.HasCheckConstraint("ck_character_creation_drafts_document_schema_version", "document_schema_version > 0");
+                        });
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterInventoryItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AcquiredAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("acquired_at_utc");
+
+                    b.Property<string>("AcquisitionSource")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("acquisition_source");
+
+                    b.Property<string>("CatalogCollection")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("catalog_collection");
+
+                    b.Property<string>("CatalogItemId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("catalog_item_id");
+
+                    b.Property<string>("CatalogSemanticDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("catalog_semantic_digest");
+
+                    b.Property<string>("CatalogVersion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("catalog_version");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("ParametersJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("parameters");
+
+                    b.Property<int>("PurchasePriceNuyen")
+                        .HasColumnType("integer")
+                        .HasColumnName("purchase_price_nuyen");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("integer")
+                        .HasColumnName("rating");
+
+                    b.Property<string>("RulesetId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ruleset_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId", "AcquiredAtUtc");
+
+                    b.ToTable("character_inventory_items", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_inventory_items_digest", "length(catalog_semantic_digest) = 64");
+
+                            t.HasCheckConstraint("ck_character_inventory_items_price", "purchase_price_nuyen >= 0");
+
+                            t.HasCheckConstraint("ck_character_inventory_items_quantity", "quantity > 0");
+                        });
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterResourceTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdvancementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("advancement_id");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer")
+                        .HasColumnName("amount");
+
+                    b.Property<int>("BalanceAfter")
+                        .HasColumnType("integer")
+                        .HasColumnName("balance_after");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid?>("InventoryItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("inventory_item_id");
+
+                    b.Property<string>("ResourceType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("resource_type");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("transaction_type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdvancementId");
+
+                    b.HasIndex("InventoryItemId");
+
+                    b.HasIndex("CharacterId", "CreatedAtUtc");
+
+                    b.ToTable("character_resource_transactions", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_resource_transactions_balance", "balance_after >= 0");
+
+                            t.HasCheckConstraint("ck_character_resource_transactions_single_reference", "NOT (advancement_id IS NOT NULL AND inventory_item_id IS NOT NULL)");
                         });
                 });
 
@@ -795,6 +1085,33 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterActionReceipt", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterAdvancement", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterCareerState", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithOne()
+                        .HasForeignKey("SeattleByNight.Domain.Entities.CharacterCareerState", "CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterCreationDraft", b =>
                 {
                     b.HasOne("SeattleByNight.Domain.Entities.Character", null)
@@ -802,6 +1119,34 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasForeignKey("SeattleByNight.Domain.Entities.CharacterCreationDraft", "CharacterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterInventoryItem", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterResourceTransaction", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.CharacterAdvancement", null)
+                        .WithMany()
+                        .HasForeignKey("AdvancementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SeattleByNight.Domain.Entities.CharacterInventoryItem", null)
+                        .WithMany()
+                        .HasForeignKey("InventoryItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterSheet", b =>

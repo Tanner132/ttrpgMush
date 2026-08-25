@@ -3,6 +3,7 @@ import type { CatalogContract, PriorityAssignment } from '../../../api/character
 import type { CreationStepProps } from './types.ts'
 import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
+import { sumToTenTotal } from '../steps.ts'
 
 const PRIORITY_FIELDS: { key: keyof PriorityAssignment; categoryId: string }[] = [
   { key: 'metatype', categoryId: 'metatype' },
@@ -87,6 +88,10 @@ export function PriorityAssignmentStep({ catalog, document, creationMethodId, on
   const selectedField = PRIORITY_FIELDS.find((field) => field.categoryId === selectedCategoryId) ?? PRIORITY_FIELDS[1]
   const selectedCategory = catalog.priorityCategories.find((item) => item.id === selectedCategoryId)
   const selectedLevel = values[selectedField.key]
+  const total = creationMethodId === 'sum-to-ten' ? sumToTenTotal(catalog.priorityLevels, assignment) : null
+  const displayedTotal = creationMethodId === 'sum-to-ten'
+    ? Object.values(values).reduce((sum, levelId) => sum + (catalog.priorityLevels.find((level) => level.id === levelId)?.sumToTenCost ?? 0), 0)
+    : null
 
   return (
     <div className="console console--allocate">
@@ -94,7 +99,9 @@ export function PriorityAssignmentStep({ catalog, document, creationMethodId, on
         <div className="console__header">
           <span className="console__header-number">STEP 03</span>
           <span className="console__header-title">PRIORITY</span>
-          <span className="console__header-status">{creationMethodId === 'sum-to-ten' ? 'SUM-TO-TEN' : 'STANDARD'}</span>
+          <span className="console__header-status" style={creationMethodId === 'sum-to-ten' && total !== 10 ? { color: 'var(--sb-warning)' } : undefined}>
+            {creationMethodId === 'sum-to-ten' ? `${displayedTotal} / 10 POINTS` : 'STANDARD'}
+          </span>
         </div>
         <div className="priority-grid">
           <div className="priority-grid__table">
@@ -131,6 +138,12 @@ export function PriorityAssignmentStep({ catalog, document, creationMethodId, on
               ? 'Each column takes exactly one priority level, and no level repeats across columns.'
               : 'Sum-to-Ten lets levels repeat across columns, but the total point cost must equal exactly 10.'}
           </p>
+          {creationMethodId === 'sum-to-ten' && (
+            <div className="creation-step__allocation-status" role="status">
+              <strong>{displayedTotal}</strong> / 10 priority points used
+              {total != null && total !== 10 && <span> · Adjust the assignments by {Math.abs(10 - total)} point{Math.abs(10 - total) === 1 ? '' : 's'}.</span>}
+            </div>
+          )}
           <Diagnostics diagnostics={diagnostics} boxed />
         </div>
       </div>
