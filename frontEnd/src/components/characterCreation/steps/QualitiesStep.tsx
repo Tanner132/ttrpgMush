@@ -5,10 +5,12 @@ import { CatalogRail } from '../CatalogRail.tsx'
 import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { describeQuality } from '../catalogDescriptions.ts'
+import { getCatalogIndex } from '../catalogIndex.ts'
 
 const KARMA_CAP = 25
 
 export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
+  const index = getCatalogIndex(catalog)
   const selected = document.qualities ?? []
   const [focusedId, setFocusedId] = useState(catalog.qualities[0]?.id ?? '')
 
@@ -26,20 +28,20 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
   }
 
   const positiveKarma = selected.reduce((sum, item) => {
-    const definition = catalog.qualities.find((quality) => quality.id === item.qualityId)
+    const definition = index.qualities.get(item.qualityId)
     return definition?.polarity === 'positive' ? sum + (item.rating ?? 1) * definition.cost : sum
   }, 0)
   const negativeKarma = selected.reduce((sum, item) => {
-    const definition = catalog.qualities.find((quality) => quality.id === item.qualityId)
+    const definition = index.qualities.get(item.qualityId)
     return definition?.polarity === 'negative' ? sum + (item.rating ?? 1) * definition.cost : sum
   }, 0)
 
-  const focused = catalog.qualities.find((item) => item.id === focusedId) ?? catalog.qualities[0]
+  const focused = index.qualities.get(focusedId) ?? catalog.qualities[0]
   const focusedSelection = focused ? selectionOf(focused.id) : undefined
   const taken = focusedSelection !== undefined
 
   const picked = selected.flatMap((item) => {
-    const definition = catalog.qualities.find((quality) => quality.id === item.qualityId)
+    const definition = index.qualities.get(item.qualityId)
     if (!definition) return []
     return [{
       id: definition.id,

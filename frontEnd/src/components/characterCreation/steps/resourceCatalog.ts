@@ -205,7 +205,7 @@ export function vehicleMountCapacity(item: Pick<VehicleDefinition, 'body'>): num
 // normalized to one shape.
 export function buildResourceLines(catalog: CatalogContract): ResourceLine[] {
   return [
-    ...catalog.gear.map((item) => ({
+    ...(catalog.gear ?? []).map((item) => ({
       id: item.id,
       displayName: item.displayName,
       groupKey: item.categoryId,
@@ -219,7 +219,7 @@ export function buildResourceLines(catalog: CatalogContract): ResourceLine[] {
       capacity: item.capacity,
       isCapacityHost: item.isCapacityHost,
     })),
-    ...catalog.weapons.map((item) => ({
+    ...(catalog.weapons ?? []).map((item) => ({
       id: item.id,
       displayName: item.displayName,
       groupKey: item.weaponCategoryId,
@@ -232,7 +232,7 @@ export function buildResourceLines(catalog: CatalogContract): ResourceLine[] {
       hostKind: 'weapon' as const,
       weaponCategoryId: item.weaponCategoryId,
     })),
-    ...catalog.armor.map((item) => ({
+    ...(catalog.armor ?? []).map((item) => ({
       id: item.id,
       displayName: item.displayName,
       groupKey: 'armor',
@@ -245,7 +245,7 @@ export function buildResourceLines(catalog: CatalogContract): ResourceLine[] {
       hostKind: item.capacity ? ('armor' as const) : undefined,
       capacity: item.capacity,
     })),
-    ...catalog.vehicles.map((item) => ({
+    ...(catalog.vehicles ?? []).map((item) => ({
       id: item.id,
       displayName: item.displayName,
       groupKey: item.vehicleCategoryId,
@@ -258,7 +258,7 @@ export function buildResourceLines(catalog: CatalogContract): ResourceLine[] {
       hostKind: item.body ? ('vehicle' as const) : undefined,
       body: item.body,
     })),
-    ...catalog.cyberdecks.map((item) => ({
+    ...(catalog.cyberdecks ?? []).map((item) => ({
       id: item.id,
       displayName: item.displayName,
       groupKey: 'cyberdeck',

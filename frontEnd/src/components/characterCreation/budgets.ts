@@ -5,7 +5,8 @@
 // authoritative — the server re-evaluates everything on save.
 import type { CatalogContract, CharacterCreationDocument } from '../../api/characterCreation.ts'
 import { augmentationUnitCost, augmentationUnitEssence, metatypeGearMultiplier, resolveNumber } from '../../api/characterCreation.ts'
-import { attachmentUnitCost, buildResourceLines } from './steps/resourceCatalog.ts'
+import { attachmentUnitCost } from './steps/resourceCatalog.ts'
+import { getCatalogIndex } from './catalogIndex.ts'
 
 const NORMAL_ATTRIBUTE_IDS = ['body', 'agility', 'reaction', 'strength', 'willpower', 'logic', 'intuition', 'charisma']
 
@@ -18,38 +19,33 @@ export interface Pool {
 }
 
 export function computeAttributeBudget(catalog: CatalogContract, document: CharacterCreationDocument): Pool {
-  const cell = catalog.priorityCells.find(
-    (item) => item.categoryId === 'attributes' && item.levelId === document.priorityAssignment?.attributes,
-  )
+  const cell = getCatalogIndex(catalog).priorityCells.get(`attributes:${document.priorityAssignment?.attributes}`)
   const values = document.attributes?.values ?? {}
   const spent = NORMAL_ATTRIBUTE_IDS.reduce((sum, id) => sum + (values[id] ?? 0), 0)
   return { spent, budget: cell?.physicalMentalAttributePoints ?? 0 }
 }
 
 export function computeSkillBudget(catalog: CatalogContract, document: CharacterCreationDocument): Pool {
-  const cell = catalog.priorityCells.find(
-    (item) => item.categoryId === 'skills' && item.levelId === document.priorityAssignment?.skills,
-  )
+  const cell = getCatalogIndex(catalog).priorityCells.get(`skills:${document.priorityAssignment?.skills}`)
   const spent = (document.skills ?? []).reduce((sum, item) => sum + item.rating, 0)
   return { spent, budget: cell?.individualSkillPoints ?? 0 }
 }
 
 export function computeSkillGroupBudget(catalog: CatalogContract, document: CharacterCreationDocument): Pool {
-  const cell = catalog.priorityCells.find(
-    (item) => item.categoryId === 'skills' && item.levelId === document.priorityAssignment?.skills,
-  )
+  const cell = getCatalogIndex(catalog).priorityCells.get(`skills:${document.priorityAssignment?.skills}`)
   const spent = (document.skillGroups ?? []).reduce((sum, item) => sum + item.rating, 0)
   return { spent, budget: cell?.skillGroupPoints ?? 0 }
 }
 
 // Mirrors AugmentationsStep's `essence` accumulator.
 export function computeEssenceSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
-  const standardGrade = catalog.augmentationGrades.find((grade) => grade.id === 'standard') ?? catalog.augmentationGrades[0]
+  const index = getCatalogIndex(catalog)
+  const standardGrade = index.augmentationGrades.get('standard') ?? catalog.augmentationGrades[0]
   let essence = 0
   for (const selection of document.resources ?? []) {
-    const aug = catalog.augmentations.find((item) => item.id === selection.itemId)
+    const aug = index.augmentations.get(selection.itemId)
     if (!aug) continue
-    const grade = catalog.augmentationGrades.find((item) => item.id === (selection.gradeId ?? 'standard')) ?? standardGrade
+    const grade = index.augmentationGrades.get(selection.gradeId ?? 'standard') ?? standardGrade
     if (!grade) continue
     essence += augmentationUnitEssence(aug, grade, selection.rating ?? null) * (selection.quantity ?? 1)
   }
@@ -59,19 +55,19 @@ export function computeEssenceSpent(catalog: CatalogContract, document: Characte
 // Mirrors ResourcesStep + AugmentationsStep + LifestyleStep's nuyen totals,
 // combined — the three tabs draw from the same pool.
 export function computeNuyenSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
-  const lines = buildResourceLines(catalog)
-  const standardGrade = catalog.augmentationGrades.find((grade) => grade.id === 'standard') ?? catalog.augmentationGrades[0]
+  const index = getCatalogIndex(catalog)
+  const standardGrade = index.augmentationGrades.get('standard') ?? catalog.augmentationGrades[0]
   const gearMultiplier = metatypeGearMultiplier(document.metatype?.metatypeId)
   let spent = 0
 
   for (const selection of document.resources ?? []) {
-    const aug = catalog.augmentations.find((item) => item.id === selection.itemId)
+    const aug = index.augmentations.get(selection.itemId)
     if (aug) {
-      const grade = catalog.augmentationGrades.find((item) => item.id === (selection.gradeId ?? 'standard')) ?? standardGrade
+      const grade = index.augmentationGrades.get(selection.gradeId ?? 'standard') ?? standardGrade
       if (grade) spent += augmentationUnitCost(aug, grade, selection.rating ?? null) * (selection.quantity ?? 1) * gearMultiplier
       continue
     }
-    const line = lines.find((item) => item.id === selection.itemId)
+    const line = index.resourceLineById.get(selection.itemId)
     if (!line) continue
     spent += resolveNumber(line.cost?.fixed, line.cost?.perRating, line.cost?.byRating, selection.rating ?? null)
       * gearMultiplier * (selection.quantity ?? 1)
@@ -81,13 +77,13 @@ export function computeNuyenSpent(catalog: CatalogContract, document: CharacterC
     spent += attachmentUnitCost(catalog, attachment)
   }
 
-  const sinLine = lines.find((item) => item.id === 'fake-sin')
+  const sinLine = index.resourceLineById.get('fake-sin')
   if (sinLine) {
     for (const identity of document.identities ?? []) {
       spent += resolveNumber(sinLine.cost?.fixed, sinLine.cost?.perRating, sinLine.cost?.byRating, identity.rating) * gearMultiplier
     }
   }
-  const licenseLine = lines.find((item) => item.id === 'fake-license')
+  const licenseLine = index.resourceLineById.get('fake-license')
   if (licenseLine) {
     for (const license of document.licenses ?? []) {
       spent += resolveNumber(licenseLine.cost?.fixed, licenseLine.cost?.perRating, licenseLine.cost?.byRating, license.rating) * gearMultiplier
@@ -99,9 +95,7 @@ export function computeNuyenSpent(catalog: CatalogContract, document: CharacterC
 }
 
 export function computeNuyenBudget(catalog: CatalogContract, document: CharacterCreationDocument): number {
-  const cell = catalog.priorityCells.find(
-    (item) => item.categoryId === 'resources' && item.levelId === document.priorityAssignment?.resources,
-  )
+  const cell = getCatalogIndex(catalog).priorityCells.get(`resources:${document.priorityAssignment?.resources}`)
   return (cell?.resourceNuyen ?? 0) + (document.nuyenFromKarma ?? 0) * 2000
 }
 
@@ -118,12 +112,13 @@ export function computeLifestyleSpent(catalog: CatalogContract, document: Charac
   const multiplier = document.metatype?.metatypeId === 'troll' ? 2 : document.metatype?.metatypeId === 'dwarf' ? 1.2 : 1
   let total = 0
   for (const selection of document.lifestyles ?? []) {
-    const tier = catalog.lifestyleTiers.find((item) => item.id === selection.tierId)
+    const index = getCatalogIndex(catalog)
+    const tier = index.lifestyleTiers.get(selection.tierId)
     if (!tier || tier.id === STREET_TIER_ID) continue
     let percent = 0
     let fixed = 0
     for (const optionId of selection.optionIds ?? []) {
-      const option = catalog.lifestyleOptions.find((item) => item.id === optionId)
+      const option = index.lifestyleOptions.get(optionId)
       if (!option) continue
       if (option.adjustmentPercent != null) percent += option.adjustmentPercent
       else fixed += option.fixedMonthlyAmount ?? 0
@@ -148,7 +143,7 @@ export function computeLifestyleSpent(catalog: CatalogContract, document: Charac
 const SPECIALIZATION_OVERFLOW_KARMA_COST = 7
 
 export function computeFreeKnowledgeLanguagePoints(catalog: CatalogContract, document: CharacterCreationDocument): number {
-  const metatype = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
+  const metatype = getCatalogIndex(catalog).metatypes.get(document.metatype?.metatypeId ?? '')
   const intuitionRange = metatype?.attributes['intuition']
   const logicRange = metatype?.attributes['logic']
   const intuition = (intuitionRange?.minimum ?? 0) + (document.attributes?.values['intuition'] ?? 0)
@@ -185,10 +180,9 @@ export function computeKnowledgeLanguageKarmaSpent(catalog: CatalogContract, doc
 const ATTRIBUTE_KARMA_PER_RATING = 5
 
 export function computeAttributeKarmaSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
-  const cell = catalog.priorityCells.find(
-    (item) => item.categoryId === 'attributes' && item.levelId === document.priorityAssignment?.attributes,
-  )
-  const metatype = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
+  const index = getCatalogIndex(catalog)
+  const cell = index.priorityCells.get(`attributes:${document.priorityAssignment?.attributes}`)
+  const metatype = index.metatypes.get(document.metatype?.metatypeId ?? '')
   const values = document.attributes?.values ?? {}
   let remainingFree = cell?.physicalMentalAttributePoints ?? 0
   let karmaSpent = 0
@@ -216,9 +210,7 @@ const ACTIVE_SKILL_KARMA_PER_RATING = 2
 const SKILL_GROUP_KARMA_PER_RATING = 5
 
 export function computeSkillKarmaSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
-  const cell = catalog.priorityCells.find(
-    (item) => item.categoryId === 'skills' && item.levelId === document.priorityAssignment?.skills,
-  )
+  const cell = getCatalogIndex(catalog).priorityCells.get(`skills:${document.priorityAssignment?.skills}`)
   let remainingIndividualFree = cell?.individualSkillPoints ?? 0
   let karmaSpent = 0
 
@@ -248,9 +240,10 @@ export function computeSkillKarmaSpent(catalog: CatalogContract, document: Chara
 
 // Mirrors MagicResonanceStep's netKarma accumulator.
 export function computeKarmaSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
+  const index = getCatalogIndex(catalog)
   let net = 0
   for (const item of document.qualities ?? []) {
-    const definition = catalog.qualities.find((quality) => quality.id === item.qualityId)
+    const definition = index.qualities.get(item.qualityId)
     if (!definition) continue
     const amount = (item.rating ?? 1) * definition.cost
     net += definition.polarity === 'positive' ? amount : -amount

@@ -33,6 +33,14 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         Assert.Equal(4, body.RootElement.GetProperty("vehicleModifications").GetArrayLength());
         Assert.Equal(6, body.RootElement.GetProperty("lifestyleTiers").GetArrayLength());
         Assert.Equal(5, body.RootElement.GetProperty("lifestyleOptions").GetArrayLength());
+        Assert.NotNull(response.Headers.ETag);
+        Assert.Contains("no-store", response.Headers.CacheControl?.ToString());
+
+        using var conditionalRequest = new HttpRequestMessage(
+            HttpMethod.Get, "/api/character-creation/catalogs/current?method=standard-priority");
+        conditionalRequest.Headers.IfNoneMatch.Add(response.Headers.ETag!);
+        var notModified = await client.SendAsync(conditionalRequest);
+        Assert.Equal(HttpStatusCode.NotModified, notModified.StatusCode);
 
         Assert.Equal(HttpStatusCode.BadRequest,
             (await client.GetAsync("/api/character-creation/catalogs/current?method=external-method")).StatusCode);

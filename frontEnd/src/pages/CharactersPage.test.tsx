@@ -68,6 +68,7 @@ function draftDetail(overrides: Partial<DraftDetail> = {}): DraftDetail {
     version: 'v1',
     diagnostics: [],
     isReadyToFinalize: false,
+    derivedStatistics: null,
     createdAtUtc: kestrel.createdAtUtc,
     updatedAtUtc: kestrel.updatedAtUtc,
     ...overrides,

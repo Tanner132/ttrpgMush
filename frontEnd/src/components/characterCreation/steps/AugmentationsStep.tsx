@@ -14,6 +14,7 @@ import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { ESSENCE_BUDGET } from '../budgets.ts'
 import { describeAugmentation } from '../catalogDescriptions.ts'
+import { getCatalogIndex } from '../catalogIndex.ts'
 
 const AUGMENTATION_CATEGORY_LABELS: Record<string, string> = {
   headware: 'Headware',
@@ -37,11 +38,12 @@ function money(amount: number): string {
 }
 
 export function AugmentationsStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
+  const index = getCatalogIndex(catalog)
   const resources = document.resources ?? []
   const grades = catalog.augmentationGrades.filter((grade) => grade.creationEligible)
   const standardGrade = grades.find((grade) => grade.id === 'standard') ?? grades[0]
 
-  const isAugmentation = (itemId: string) => catalog.augmentations.some((aug) => aug.id === itemId)
+  const isAugmentation = (itemId: string) => index.augmentations.has(itemId)
   const augSelections = resources.filter((item) => isAugmentation(item.itemId))
   const otherResources = resources.filter((item) => !isAugmentation(item.itemId))
   const attachments = document.attachments ?? []
@@ -58,15 +60,13 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
   const gradeFor = (selection?: ResourceSelection) =>
     grades.find((grade) => grade.id === (selection?.gradeId ?? 'standard')) ?? standardGrade
 
-  const cell = catalog.priorityCells.find(
-    (item) => item.categoryId === 'resources' && item.levelId === document.priorityAssignment?.resources,
-  )
+  const cell = index.priorityCells.get(`resources:${document.priorityAssignment?.resources}`)
   const nuyenBudget = (cell?.resourceNuyen ?? 0) + (document.nuyenFromKarma ?? 0) * 2000
 
   let spent = 0
   let essence = 0
   for (const selection of augSelections) {
-    const aug = catalog.augmentations.find((item) => item.id === selection.itemId)
+    const aug = index.augmentations.get(selection.itemId)
     if (!aug) continue
     const grade = gradeFor(selection)
     const rating = selection.rating ?? null
@@ -105,7 +105,7 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
       !(item.hostInstanceId === hostInstanceId && item.accessoryId === accessoryId)))
 
   const picked = augSelections.flatMap((selection) => {
-    const aug = catalog.augmentations.find((item) => item.id === selection.itemId)
+    const aug = index.augmentations.get(selection.itemId)
     if (!aug) return []
     const grade = gradeFor(selection)
     return [{
@@ -135,7 +135,7 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
   const openHost = openHostInstanceId
     ? augSelections.find((selection) => selection.instanceId === openHostInstanceId)
     : undefined
-  const openHostAug = openHost ? catalog.augmentations.find((aug) => aug.id === openHost.itemId) : undefined
+  const openHostAug = openHost ? index.augmentations.get(openHost.itemId) : undefined
 
   return (
     <div className="console console--catalog">

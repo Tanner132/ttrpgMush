@@ -37,6 +37,10 @@ interface UseDraftResult {
 
   saveError: string | null
 
+  isDirty: boolean
+
+  isEvaluationCurrent: boolean
+
   currentStep: number
 
   setLocalName: (name: string) => void
@@ -53,9 +57,9 @@ interface UseDraftResult {
 
   reload: () => Promise<void>
 
-  discard: () => Promise<void>
+  discard: () => Promise<boolean>
 
-  finalize: () => Promise<void>
+  finalize: () => Promise<boolean>
 
   discardError: string | null
 
@@ -78,6 +82,8 @@ export function useDraft(characterId: string): UseDraftResult {
     const [loadError, setLoadError] = useState<string | null>(null)
     const [saveState, setSaveState] = useState<SaveState>('idle')
     const [saveError, setSaveError] = useState<string | null>(null)
+    const [dirty, setDirty] = useState(false)
+    const [isEvaluationCurrent, setIsEvaluationCurrent] = useState(false)
     const [discardError, setDiscardError] = useState<string | null>(null)
     const [finalizing, setFinalizing] = useState(false)
     const [discarding, setDiscarding] = useState(false)
@@ -105,8 +111,15 @@ export function useDraft(characterId: string): UseDraftResult {
     const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     const isDirty = useRef(false)
     const editGeneration = useRef(0)
+    const loadGeneration = useRef(0)
 
     const load = useCallback(async () => {
+    const requestGeneration = ++loadGeneration.current
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current)
+      debounceTimer.current = null
+    }
 
     setLoading(true)
 
@@ -114,6 +127,7 @@ export function useDraft(characterId: string): UseDraftResult {
 
     try {
         const detail = await getDraft(characterId)
+        if (requestGeneration !== loadGeneration.current) return
     
         setDraft(detail)
         draftRef.current = detail
@@ -123,11 +137,16 @@ export function useDraft(characterId: string): UseDraftResult {
 
         setCurrentStep(FIRST_STEP_INDEX)
         setSaveState('idle')
+        setSaveError(null)
+        isDirty.current = false
+        setDirty(false)
+        setIsEvaluationCurrent(true)
 
     } catch (error) {
+        if (requestGeneration !== loadGeneration.current) return
         setLoadError(toErrorMessage(error))
     } finally {
-        setLoading(false)
+        if (requestGeneration === loadGeneration.current) setLoading(false)
     }
 
 }, [characterId])
@@ -146,6 +165,7 @@ export function useDraft(characterId: string): UseDraftResult {
         const next = previous.then(async () => {
 
         try {
+            if (draftRef.current?.characterId !== characterId) return false
             const requestGeneration = editGeneration.current
 
             const updated = await updateDraft(
@@ -156,26 +176,31 @@ export function useDraft(characterId: string): UseDraftResult {
             )
 
             const changedDuringRequest = editGeneration.current !== requestGeneration
+            if (draftRef.current?.characterId !== characterId) return false
             const reconciled = changedDuringRequest
               ? { ...updated, name: localName.current, document: localDocument.current }
               : updated
             setDraft(reconciled)
             draftRef.current = reconciled
             isDirty.current = changedDuringRequest
+            setDirty(changedDuringRequest)
+            setIsEvaluationCurrent(!changedDuringRequest)
             setSaveState(changedDuringRequest ? 'unsaved' : 'saved')
-            return true
+            return !changedDuringRequest
 
         } catch (error) {
 
         if (isConflictError(error)) {
 
           setSaveState('conflict')
+          setIsEvaluationCurrent(false)
 
           setSaveError('The draft was modified elsewhere. Reload to see the latest state.')
 
         } else {
 
           setSaveState('failed')
+          setIsEvaluationCurrent(false)
 
           setSaveError(toErrorMessage(error))
 
@@ -196,6 +221,8 @@ export function useDraft(characterId: string): UseDraftResult {
   const scheduleAutosave = useCallback(() => {
 
     isDirty.current = true
+    setDirty(true)
+    setIsEvaluationCurrent(false)
     setSaveState('unsaved')
 
     if (debounceTimer.current) {
@@ -298,9 +325,9 @@ export function useDraft(characterId: string): UseDraftResult {
 
   }, [])
 
-  const discard = useCallback(async () => {
+  const discard = useCallback(async (): Promise<boolean> => {
 
-    if (!draft) return
+    if (!draftRef.current) return false
 
     setDiscarding(true)
 
@@ -308,13 +335,14 @@ export function useDraft(characterId: string): UseDraftResult {
 
     try {
 
-      await discardDraft(characterId, draft.version)
+      await discardDraft(characterId, draftRef.current.version)
 
-      // Caller navigates away
+      return true
 
     } catch (error) {
 
       setDiscardError(toErrorMessage(error))
+      return false
 
     } finally {
 
@@ -322,13 +350,13 @@ export function useDraft(characterId: string): UseDraftResult {
 
     }
 
-  }, [characterId, draft])
+  }, [characterId])
 
 
 
-  const finalize = useCallback(async () => {
+  const finalize = useCallback(async (): Promise<boolean> => {
 
-    if (!draft) return
+    if (!draftRef.current) return false
 
     setFinalizing(true)
 
@@ -339,11 +367,11 @@ export function useDraft(characterId: string): UseDraftResult {
       // Ensure latest state is saved first
 
       const saved = await saveNow()
-      if (!saved || !draftRef.current) return
+      if (!saved || !draftRef.current) return false
 
       await finalizeDraft(characterId, draftRef.current.version)
 
-      // Caller navigates away
+      return true
 
     } catch (error) {
 
@@ -360,6 +388,7 @@ export function useDraft(characterId: string): UseDraftResult {
         setSaveError(toErrorMessage(error))
 
       }
+      return false
 
     } finally {
 
@@ -367,15 +396,28 @@ export function useDraft(characterId: string): UseDraftResult {
 
     }
 
-  }, [characterId, draft, saveNow])
+  }, [characterId, saveNow])
 
 
 
-  // Cleanup debounce on unmount
+  useEffect(() => {
+    const warnIfDirty = (event: BeforeUnloadEvent) => {
+      if (!isDirty.current) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', warnIfDirty)
+    return () => window.removeEventListener('beforeunload', warnIfDirty)
+  }, [])
+
+  // A route transition can unmount before the debounce fires. Queue a
+  // best-effort save; beforeunload handles browser exits where fetch is unsafe.
 
   useEffect(() => {
 
     return () => {
+      loadGeneration.current += 1
 
       if (debounceTimer.current) {
 
@@ -383,9 +425,11 @@ export function useDraft(characterId: string): UseDraftResult {
 
       }
 
+      if (isDirty.current) void performSave()
+
     }
 
-  }, [])
+  }, [performSave])
 
 
 
@@ -400,6 +444,10 @@ export function useDraft(characterId: string): UseDraftResult {
     saveState,
 
     saveError,
+
+    isDirty: dirty,
+
+    isEvaluationCurrent,
 
     currentStep,
 

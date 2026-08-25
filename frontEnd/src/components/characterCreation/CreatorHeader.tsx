@@ -123,6 +123,7 @@ export function CreatorHeader({
             {discardBusy ? 'Discarding…' : 'Yes, discard'}
           </Button>
           <Button intent="neutral" onClick={onDiscardCancel}>Cancel</Button>
+          {discardError && <span className="creator-header__discard-error" role="alert">{discardError}</span>}
         </span>
       ) : (
         <div className="creator-header__discard">

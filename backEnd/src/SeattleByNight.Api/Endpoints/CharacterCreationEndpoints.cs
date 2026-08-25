@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MediatR;
@@ -131,6 +132,7 @@ public sealed record FinalizedCharacterSheetResponse(
 
 public static class CharacterCreationEndpoints
 {
+    private static readonly ConcurrentDictionary<string, CatalogResponse> CatalogResponses = new(StringComparer.Ordinal);
     private static readonly JsonSerializerOptions CatalogJsonOptions = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() },
@@ -153,24 +155,46 @@ public static class CharacterCreationEndpoints
         return endpoints;
     }
 
-    private static IResult GetCurrentCatalog(string? method, IRulesetCatalogProvider catalogs)
+    private static IResult GetCurrentCatalog(string? method, IRulesetCatalogProvider catalogs, HttpContext context)
     {
         var catalog = catalogs.Current;
         return method is not null && !catalog.CreationMethods.ContainsKey(method)
             ? Problem(CharacterCreationDraftError.InvalidCreationMethod)
-            : Results.Json(ToResponse(catalog), CatalogJsonOptions);
+            : CatalogResult(catalog, context);
     }
 
-    private static IResult GetCatalog(string catalogId, string version, IRulesetCatalogProvider catalogs)
+    private static IResult GetCatalog(
+        string catalogId,
+        string version,
+        IRulesetCatalogProvider catalogs,
+        HttpContext context)
     {
         try
         {
-            return Results.Json(ToResponse(catalogs.Get(catalogId, version)), CatalogJsonOptions);
+            return CatalogResult(catalogs.Get(catalogId, version), context);
         }
         catch (KeyNotFoundException)
         {
             return Results.NotFound();
         }
+    }
+
+    private static IResult CatalogResult(RulesetCatalog catalog, HttpContext context)
+    {
+        var etag = $"\"{catalog.SemanticDigest}\"";
+        context.Response.OnStarting(() =>
+        {
+            context.Response.Headers.ETag = etag;
+            return Task.CompletedTask;
+        });
+        if (context.Request.Headers.IfNoneMatch.Any(value => value?.Contains(etag, StringComparison.Ordinal) == true))
+        {
+            return Results.StatusCode(StatusCodes.Status304NotModified);
+        }
+
+        var key = $"{catalog.RulesetId}\n{catalog.Version}\n{catalog.SemanticDigest}";
+        var response = CatalogResponses.GetOrAdd(key, _ => ToResponse(catalog));
+        return Results.Json(response, CatalogJsonOptions);
     }
 
     private static async Task<IResult> StartDraftAsync(

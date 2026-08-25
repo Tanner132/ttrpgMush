@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest'
-import { effectivePowerPointCost, metatypeGearMultiplier, type AdeptPowerDefinition } from './characterCreation.ts'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { effectivePowerPointCost, getCatalog, metatypeGearMultiplier, type AdeptPowerDefinition } from './characterCreation.ts'
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 const source = { sourceId: 'sr5-core', printedPage: 308, pdfPage: 310 }
 
@@ -47,5 +51,24 @@ describe('metatypeGearMultiplier', () => {
     expect(metatypeGearMultiplier('human')).toBe(1)
     expect(metatypeGearMultiplier('elf')).toBe(1)
     expect(metatypeGearMultiplier(undefined)).toBe(1)
+  })
+})
+
+describe('getCatalog', () => {
+  it('deduplicates catalog requests for the same creation method', async () => {
+    const response = { rulesetId: 'sr5-core', version: '1.0.0', semanticDigest: 'digest' }
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const [first, second] = await Promise.all([
+      getCatalog('sum-to-ten'),
+      getCatalog('sum-to-ten'),
+    ])
+
+    expect(first).toBe(second)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })

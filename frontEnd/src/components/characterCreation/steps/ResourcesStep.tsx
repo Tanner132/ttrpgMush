@@ -6,13 +6,13 @@ import { GearAttachmentModal } from './GearAttachmentModal.tsx'
 import {
   MOUNT_LABELS,
   attachmentUnitCost,
-  buildResourceLines,
   effectiveWeaponMount,
   gearHostCapacity,
   resolveAccessory,
   vehicleMountCapacity,
   type ResourceLine,
 } from './resourceCatalog.ts'
+import { getCatalogIndex } from '../catalogIndex.ts'
 import { CatalogRail } from '../CatalogRail.tsx'
 import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
@@ -36,23 +36,21 @@ function money(amount: number): string {
 }
 
 export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
+  const index = getCatalogIndex(catalog)
   const resources = document.resources ?? []
-  const augmentationIds = new Set(catalog.augmentations.map((aug) => aug.id))
-  const augSelections = resources.filter((item) => augmentationIds.has(item.itemId))
-  const itemSelections = resources.filter((item) => !augmentationIds.has(item.itemId))
+  const augSelections = resources.filter((item) => index.augmentations.has(item.itemId))
+  const itemSelections = resources.filter((item) => !index.augmentations.has(item.itemId))
   const gearMultiplier = metatypeGearMultiplier(document.metatype?.metatypeId)
 
-  const cell = catalog.priorityCells.find(
-    (item) => item.categoryId === 'resources' && item.levelId === document.priorityAssignment?.resources,
-  )
+  const cell = index.priorityCells.get(`resources:${document.priorityAssignment?.resources}`)
   const nuyenFromKarma = document.nuyenFromKarma ?? 0
   const nuyenBudget = (cell?.resourceNuyen ?? 0) + nuyenFromKarma * 2000
 
-  const lines = buildResourceLines(catalog)
+  const lines = index.resourceLines
 
   const purchasable = lines.filter((item) => PURCHASABLE.includes(item.classification) && !IDENTITY_GEAR_IDS.has(item.id))
   const groups = [...new Set(purchasable.map((item) => item.groupKey))]
-  const findLine = (itemId: string) => lines.find((item) => item.id === itemId)
+  const findLine = (itemId: string) => index.resourceLineById.get(itemId)
 
   const attachments = document.attachments ?? []
   const [openHostInstanceId, setOpenHostInstanceId] = useState<string | null>(null)

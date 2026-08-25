@@ -766,8 +766,19 @@ export async function finalizeDraft(characterId: string, expectedVersion: string
     await apiPost(`/api/character-creation/drafts/${characterId}/finalize`, { expectedVersion })
 }
 
+const catalogRequests = new Map<CreationMethodId, Promise<CatalogContract>>()
+
 export async function getCatalog(method: CreationMethodId): Promise<CatalogContract> {
-    return apiGet<CatalogContract>(`/api/character-creation/catalogs/current?method=${method}`)
+    const cached = catalogRequests.get(method)
+    if (cached) return cached
+
+    const request = apiGet<CatalogContract>(`/api/character-creation/catalogs/current?method=${method}`)
+        .catch((error) => {
+            catalogRequests.delete(method)
+            throw error
+        })
+    catalogRequests.set(method, request)
+    return request
 }
 
 export function isConflictError(error: unknown): boolean {

@@ -5,15 +5,15 @@ import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { describeSkillDomain } from '../catalogDescriptions.ts'
 import { computeSkillKarmaSpent } from '../budgets.ts'
+import { getCatalogIndex } from '../catalogIndex.ts'
 
 function clampRating(value: number): number {
   return Math.max(0, Math.min(6, value))
 }
 
 export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
-  const skillsCell = catalog.priorityCells.find(
-    (item) => item.categoryId === 'skills' && item.levelId === document.priorityAssignment?.skills,
-  )
+  const index = getCatalogIndex(catalog)
+  const skillsCell = index.priorityCells.get(`skills:${document.priorityAssignment?.skills}`)
   const individualBudget = skillsCell?.individualSkillPoints ?? 0
   const groupBudget = skillsCell?.skillGroupPoints ?? 0
 
@@ -23,13 +23,15 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
 
   const selectedSkills = document.skills ?? []
   const selectedGroups = document.skillGroups ?? []
+  const selectedSkillRatings = new Map(selectedSkills.map((item) => [item.skillId, item.rating]))
+  const selectedGroupRatings = new Map(selectedGroups.map((item) => [item.skillGroupId, item.rating]))
 
-  const groupRatingOf = (groupId: string) => selectedGroups.find((item) => item.skillGroupId === groupId)?.rating ?? 0
+  const groupRatingOf = (groupId: string) => selectedGroupRatings.get(groupId) ?? 0
   const fundedGroupIds = new Set(selectedGroups.filter((item) => item.rating > 0).map((item) => item.skillGroupId))
-  const ratingOf = (skillId: string) => selectedSkills.find((item) => item.skillId === skillId)?.rating ?? 0
+  const ratingOf = (skillId: string) => selectedSkillRatings.get(skillId) ?? 0
 
   const setRating = (skillId: string, rating: number) => {
-    const skill = catalog.skills.find((item) => item.id === skillId)
+    const skill = index.skills.get(skillId)
     if (skill?.groupId && fundedGroupIds.has(skill.groupId)) return
     const clamped = clampRating(rating)
     onChange({
@@ -43,7 +45,7 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
 
   const setGroupRating = (groupId: string, rating: number) => {
     const clamped = clampRating(rating)
-    const groupDefinition = catalog.skillGroups.find((item) => item.id === groupId)
+    const groupDefinition = index.skillGroups.get(groupId)
     const memberIds = new Set(groupDefinition?.skillIds ?? [])
     const nextSkills = clamped > 0
       ? selectedSkills.filter((item) => !memberIds.has(item.skillId))
@@ -60,18 +62,18 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
   const karmaSpent = computeSkillKarmaSpent(catalog, document)
 
   const pickedSkills = selectedSkills.flatMap((item) => {
-    const definition = catalog.skills.find((skill) => skill.id === item.skillId)
+    const definition = index.skills.get(item.skillId)
     if (!definition) return []
     return [{ id: definition.id, name: definition.displayName, badge: String(item.rating), active: sub === 'individual' && focusedSkillId === definition.id, onFocus: () => { setSub('individual'); setFocusedSkillId(definition.id) }, onRemove: () => setRating(definition.id, 0) }]
   })
   const pickedGroups = selectedGroups.filter((item) => item.rating > 0).flatMap((item) => {
-    const definition = catalog.skillGroups.find((group) => group.id === item.skillGroupId)
+    const definition = index.skillGroups.get(item.skillGroupId)
     if (!definition) return []
     return [{ id: definition.id, name: definition.displayName, badge: String(item.rating), active: sub === 'groups' && focusedGroupId === definition.id, onFocus: () => { setSub('groups'); setFocusedGroupId(definition.id) }, onRemove: () => setGroupRating(definition.id, 0) }]
   })
 
-  const focusedSkill = catalog.skills.find((item) => item.id === focusedSkillId)
-  const focusedGroup = catalog.skillGroups.find((item) => item.id === focusedGroupId)
+  const focusedSkill = index.skills.get(focusedSkillId)
+  const focusedGroup = index.skillGroups.get(focusedGroupId)
 
   return (
     <div className="console console--catalog">
@@ -223,7 +225,7 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
           ]}
           text="Funding this group sets every member skill at the same rating. Members cannot be raised individually until the group is broken."
           configureTitle="RATING"
-          rows={[{ label: 'MEMBER SKILLS', value: focusedGroup.skillIds.map((id) => catalog.skills.find((skill) => skill.id === id)?.displayName ?? id).join(', ') }]}
+          rows={[{ label: 'MEMBER SKILLS', value: focusedGroup.skillIds.map((id) => index.skills.get(id)?.displayName ?? id).join(', ') }]}
         >
           <div className="readout__field">
             <span className="readout__field-label">RATING <span className="readout__field-sub">(0–6)</span></span>

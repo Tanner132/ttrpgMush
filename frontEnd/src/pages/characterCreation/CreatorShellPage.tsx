@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -20,7 +20,7 @@ import { getCatalog, type CatalogContract, type Diagnostic } from '../../api/cha
 
 import { AttributeStep, AugmentationsStep, ContactsStep, IdentityStep, KnowledgeStep, LifestyleStep, MagicResonanceStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, ResourcesStep, ReviewStep, SkillsStep } from '../../components/characterCreation/steps/index.ts'
 
-import { buildResourceLines } from '../../components/characterCreation/steps/resourceCatalog.ts'
+import { getCatalogIndex } from '../../components/characterCreation/catalogIndex.ts'
 
 import { computeAttributeBudget } from '../../components/characterCreation/budgets.ts'
 
@@ -38,6 +38,7 @@ const PRIORITY_ASSIGNMENT_KEYS: Record<string, 'metatype' | 'attributes' | 'magi
 
 function buildDossierCards(catalog: CatalogContract | null, draft: NonNullable<ReturnType<typeof useDraft>['draft']>): DossierCard[] {
   const document = draft.document
+  const index = catalog ? getCatalogIndex(catalog) : null
   const attentionSteps = new Set(draft.diagnostics.map((d) => diagnosticStepIndex(d.step, d.fieldPath)))
   const blockingSteps = new Set(
     draft.diagnostics.filter((d) => d.severity === 'Error').map((d) => diagnosticStepIndex(d.step, d.fieldPath)),
@@ -62,7 +63,7 @@ function buildDossierCards(catalog: CatalogContract | null, draft: NonNullable<R
           })).filter((item) => item.badge)
           break
         case 'metatype': {
-          const metatype = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
+          const metatype = index?.metatypes.get(document.metatype?.metatypeId ?? '')
           items = metatype ? [{ name: metatype.displayName, badge: '' }] : []
           break
         }
@@ -73,27 +74,25 @@ function buildDossierCards(catalog: CatalogContract | null, draft: NonNullable<R
         }
         case 'qualities':
           items = (document.qualities ?? []).flatMap((item) => {
-            const definition = catalog.qualities.find((quality) => quality.id === item.qualityId)
+            const definition = index?.qualities.get(item.qualityId)
             if (!definition) return []
             return [{ name: definition.displayName, badge: String((item.rating ?? 1) * definition.cost) }]
           })
           break
         case 'augmentations': {
-          const augmentationIds = new Set(catalog.augmentations.map((item) => item.id))
           items = (document.resources ?? []).flatMap((item) => {
-            if (!augmentationIds.has(item.itemId)) return []
-            const definition = catalog.augmentations.find((aug) => aug.id === item.itemId)
+            const definition = index?.augmentations.get(item.itemId)
             return definition ? [{ name: definition.displayName, badge: '✓' }] : []
           })
           break
         }
         case 'skills': {
           const skillItems = (document.skills ?? []).flatMap((item) => {
-            const definition = catalog.skills.find((skill) => skill.id === item.skillId)
+            const definition = index?.skills.get(item.skillId)
             return definition ? [{ name: definition.displayName, badge: String(item.rating) }] : []
           })
           const groupItems = (document.skillGroups ?? []).flatMap((item) => {
-            const definition = catalog.skillGroups.find((group) => group.id === item.skillGroupId)
+            const definition = index?.skillGroups.get(item.skillGroupId)
             return definition ? [{ name: definition.displayName, badge: String(item.rating) }] : []
           })
           items = [...groupItems, ...skillItems]
@@ -114,18 +113,16 @@ function buildDossierCards(catalog: CatalogContract | null, draft: NonNullable<R
           items = (document.contacts ?? []).map((item) => ({ name: item.name || 'Unnamed contact', badge: `${item.connection}/${item.loyalty}` }))
           break
         case 'resources': {
-          const augmentationIds = new Set(catalog.augmentations.map((item) => item.id))
-          const lines = buildResourceLines(catalog)
           items = (document.resources ?? []).flatMap((item) => {
-            if (augmentationIds.has(item.itemId)) return []
-            const line = lines.find((entry) => entry.id === item.itemId)
+            if (index?.augmentations.has(item.itemId)) return []
+            const line = index?.resourceLineById.get(item.itemId)
             return line ? [{ name: line.displayName, badge: '' }] : []
           })
           break
         }
         case 'lifestyle':
           items = (document.lifestyles ?? []).flatMap((item) => {
-            const tier = catalog.lifestyleTiers.find((entry) => entry.id === item.tierId)
+            const tier = index?.lifestyleTiers.get(item.tierId)
             return tier ? [{ name: tier.displayName, badge: `${item.prepaidMonths} mo` }] : []
           })
           break
@@ -165,6 +162,7 @@ export default function CreatorShellPage() {
     loadError,
     saveState,
     saveError,
+    isEvaluationCurrent,
     currentStep,
     setLocalDocument,
     setLocalName,
@@ -176,12 +174,14 @@ export default function CreatorShellPage() {
     finalize,
     discardError,
     finalizing,
+    saveNow,
   } = useDraft(characterId ?? '')
 
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [discardBusy, setDiscardBusy] = useState(false)
   const [catalog, setCatalog] = useState<CatalogContract | null>(null)
   const [catalogError, setCatalogError] = useState<string | null>(null)
+  const catalogLoadGeneration = useRef(0)
   const [priorityAttemptedAdvance, setPriorityAttemptedAdvance] = useState(false)
   const [view, setView] = useState<'dossier' | 'console'>('dossier')
   const creationMethodId = draft?.creationMethodId
@@ -191,10 +191,23 @@ export default function CreatorShellPage() {
     setView('dossier')
   }, [characterId])
 
-  useEffect(() => {
+  const loadCatalog = useCallback(async () => {
     if (!creationMethodId) return
-    void getCatalog(creationMethodId).then(setCatalog).catch((error) => setCatalogError(toErrorMessage(error)))
+    const generation = ++catalogLoadGeneration.current
+    setCatalog(null)
+    setCatalogError(null)
+    try {
+      const loaded = await getCatalog(creationMethodId)
+      if (generation === catalogLoadGeneration.current) setCatalog(loaded)
+    } catch (error) {
+      if (generation === catalogLoadGeneration.current) setCatalogError(toErrorMessage(error))
+    }
   }, [creationMethodId])
+
+  useEffect(() => {
+    void loadCatalog()
+    return () => { catalogLoadGeneration.current += 1 }
+  }, [loadCatalog])
 
   // Only reveal the "assign all five priorities" errors once the user has
   // actually tried to leave the step incomplete — not on every edit.
@@ -208,15 +221,12 @@ export default function CreatorShellPage() {
 
   const handleDiscard = useCallback(async () => {
     setDiscardBusy(true)
-    try {
-      await discard()
+    const discarded = await discard()
+    if (discarded) {
       navigate('/characters', { replace: true })
-    } catch {
-      // discardError is set by the hook
-    } finally {
-      setDiscardBusy(false)
       setShowDiscardConfirm(false)
     }
+    setDiscardBusy(false)
   }, [discard, navigate])
 
   // Guarded forward navigation: blocks leaving the priority step until all
@@ -230,11 +240,9 @@ export default function CreatorShellPage() {
   }, [currentStepId, draft, nextStep])
 
   const handleFinalize = useCallback(async () => {
-    try {
-      await finalize()
+    const finalized = await finalize()
+    if (finalized) {
       navigate('/characters', { replace: true })
-    } catch {
-      // saveError is set by the hook
     }
   }, [finalize, navigate])
 
@@ -259,7 +267,8 @@ export default function CreatorShellPage() {
   // returns to the dossier index.
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+      const target = event.target instanceof Element ? event.target : null
+      if (target?.closest('input, textarea, select, button, a, [contenteditable="true"]')) {
         return
       }
       if (event.key === 'Escape') {
@@ -295,6 +304,11 @@ export default function CreatorShellPage() {
           {loadError ?? catalogError ?? 'Unable to load this draft.'}
         </StatusBanner>
         <div className="creator-shell__actions">
+          {catalogError && (
+            <Button intent="primary" onClick={() => void loadCatalog()}>
+              Retry catalog
+            </Button>
+          )}
           <Button intent="neutral" onClick={() => navigate('/characters')}>
             Back to characters
           </Button>
@@ -346,6 +360,17 @@ export default function CreatorShellPage() {
               Reload latest
             </Button>
           )}
+          {saveState === 'failed' && (
+            <Button intent="primary" onClick={() => void saveNow()} className="creator-shell__reload-btn">
+              Retry save
+            </Button>
+          )}
+        </StatusBanner>
+      )}
+
+      {!isEvaluationCurrent && saveState !== 'failed' && saveState !== 'conflict' && (
+        <StatusBanner tone="info" role="status" className="creator-shell__save-banner">
+          Validating latest changes…
         </StatusBanner>
       )}
 
@@ -394,7 +419,7 @@ export default function CreatorShellPage() {
         canGoForward={canGoForward}
         isFinalStep={isFinalStep}
         finalizing={finalizing}
-        canFinalize={draft.isReadyToFinalize}
+        canFinalize={draft.isReadyToFinalize && isEvaluationCurrent}
         prevStepLabel={canGoBack ? shortStepLabel(currentStep - 1) : null}
         nextStepLabel={canGoForward ? shortStepLabel(currentStep + 1) : null}
         onBack={prevStep}

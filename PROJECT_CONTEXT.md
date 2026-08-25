@@ -545,7 +545,22 @@ authenticated character-creation
   implemented; every creator step is available. There is no dedicated Karma
   step — Knowledge/Language points beyond the free pool draw extra Karma
   directly (sr5-core p. 107 Karma Advancement Table) rather than being
-  blocked, and the header's running Karma total already covers this.
+  blocked, and the header's running Karma total already covers this. Creator
+  autosave tracks whether diagnostics and derived statistics match the latest
+  local edit generation, disables finalization while evaluation is stale, and
+  reports explicit success/failure for finalize and discard before navigating.
+  Failed saves are retryable, dirty browser exits are guarded, and route
+  unmounts queue a best-effort save. Draft and catalog loads reject obsolete
+  responses. Knowledge skills and languages use explicit add/edit/remove rows,
+  including multiple entries in one Knowledge category, ratings, and
+  specializations. Immutable catalog transport projections are cached by semantic
+  digest and expose ETags; the authenticated API retains its security-middleware
+  `no-store` policy, while the SPA deduplicates catalog requests for its lifetime.
+  Creator lookups use a catalog-owned `WeakMap` index instead of rebuilding the
+  unified resource list and repeatedly scanning catalog arrays. Character creator
+  and administration routes are loaded as separate production chunks. Successful
+  draft creates and replacements return the already validated document rather than
+  deserializing the JSON that was just persisted.
 
 Backend endpoints:
 

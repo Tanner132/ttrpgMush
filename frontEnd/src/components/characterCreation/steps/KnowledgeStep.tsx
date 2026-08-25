@@ -16,6 +16,27 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
     else next.splice(index, 1)
     onChange({ ...document, nativeLanguages: next })
   }
+  const updateKnowledge = (index: number, patch: Partial<(typeof knowledge)[number]>) =>
+    onChange({
+      ...document,
+      knowledgeSkills: knowledge.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item),
+    })
+  const addKnowledge = () => {
+    const categoryId = catalog.knowledgeCategories[0]?.id
+    if (!categoryId) return
+    onChange({ ...document, knowledgeSkills: [...knowledge, { name: '', categoryId, rating: 1 }] })
+  }
+  const removeKnowledge = (index: number) =>
+    onChange({ ...document, knowledgeSkills: knowledge.filter((_, itemIndex) => itemIndex !== index) })
+  const updateLanguage = (index: number, patch: Partial<(typeof language)[number]>) =>
+    onChange({
+      ...document,
+      languages: language.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item),
+    })
+  const addLanguage = () =>
+    onChange({ ...document, languages: [...language, { name: '', rating: 1 }] })
+  const removeLanguage = (index: number) =>
+    onChange({ ...document, languages: language.filter((_, itemIndex) => itemIndex !== index) })
 
   return (
     <div className="console console--form">
@@ -41,19 +62,33 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
           ))}
 
           <div className="creation-step__attributes">
-            {catalog.knowledgeCategories.map((category) => {
-              const item = knowledge.find((entry) => entry.categoryId === category.id)
-              return (
-                <label className="creation-attribute" key={category.id}>
-                  <span><strong>{category.displayName}</strong><small>{category.linkedAttribute}</small></span>
-                  <input placeholder="Subject" maxLength={120} value={item?.name ?? ''} onChange={(event) => onChange({ ...document, knowledgeSkills: event.target.value ? [...knowledge.filter((entry) => entry.categoryId !== category.id), { name: event.target.value, categoryId: category.id, rating: item?.rating ?? 1 }] : knowledge.filter((entry) => entry.categoryId !== category.id) })} />
-                  <input aria-label={`${category.displayName} rating`} min="1" max="6" type="number" value={item?.rating ?? 1} onChange={(event) => onChange({ ...document, knowledgeSkills: [...knowledge.filter((entry) => entry.categoryId !== category.id), { name: item?.name ?? '', categoryId: category.id, rating: Number(event.target.value) }] })} />
-                </label>
-              )
-            })}
+            {knowledge.map((item, index) => (
+              <fieldset className="creation-attribute creation-attribute--knowledge" key={`knowledge-${index}`}>
+                <legend><strong>Knowledge skill {index + 1}</strong></legend>
+                <select aria-label={`Knowledge skill ${index + 1} category`} value={item.categoryId} onChange={(event) => updateKnowledge(index, { categoryId: event.target.value })}>
+                  {catalog.knowledgeCategories.map((category) => <option key={category.id} value={category.id}>{category.displayName}</option>)}
+                </select>
+                <input aria-label={`Knowledge skill ${index + 1} name`} placeholder="Subject" maxLength={120} value={item.name} onChange={(event) => updateKnowledge(index, { name: event.target.value })} />
+                <input aria-label={`Knowledge skill ${index + 1} rating`} min="1" max="6" type="number" value={item.rating} onChange={(event) => updateKnowledge(index, { rating: Number(event.target.value) })} />
+                <input aria-label={`Knowledge skill ${index + 1} specialization`} placeholder="Specialization (optional)" maxLength={120} value={item.specialization ?? ''} onChange={(event) => updateKnowledge(index, { specialization: event.target.value || undefined })} />
+                <button type="button" onClick={() => removeKnowledge(index)} aria-label={`Remove knowledge skill ${index + 1}`}>Remove</button>
+              </fieldset>
+            ))}
           </div>
+          <button type="button" onClick={addKnowledge} disabled={catalog.knowledgeCategories.length === 0}>Add knowledge skill</button>
 
-          <label className="creation-attribute"><span><strong>Language</strong><small>{language.length} authored language selections</small></span><input placeholder="Language name" maxLength={120} onChange={(event) => event.target.value && onChange({ ...document, languages: [...language, { name: event.target.value, rating: 1 }] })} /></label>
+          <div className="creation-step__attributes">
+            {language.map((item, index) => (
+              <fieldset className="creation-attribute creation-attribute--language" key={`language-${index}`}>
+                <legend><strong>Language {index + 1}</strong></legend>
+                <input aria-label={`Language ${index + 1} name`} placeholder="Language name" maxLength={120} value={item.name} onChange={(event) => updateLanguage(index, { name: event.target.value })} />
+                <input aria-label={`Language ${index + 1} rating`} min="1" max="6" type="number" value={item.rating} onChange={(event) => updateLanguage(index, { rating: Number(event.target.value) })} />
+                <input aria-label={`Language ${index + 1} specialization`} placeholder="Specialization (optional)" maxLength={120} value={item.specialization ?? ''} onChange={(event) => updateLanguage(index, { specialization: event.target.value || undefined })} />
+                <button type="button" onClick={() => removeLanguage(index)} aria-label={`Remove language ${index + 1}`}>Remove</button>
+              </fieldset>
+            ))}
+          </div>
+          <button type="button" onClick={addLanguage}>Add language</button>
 
           <Diagnostics diagnostics={diagnostics} boxed />
         </section>

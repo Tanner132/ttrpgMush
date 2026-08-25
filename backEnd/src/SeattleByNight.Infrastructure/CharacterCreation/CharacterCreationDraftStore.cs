@@ -80,7 +80,7 @@ public sealed class CharacterCreationDraftStore : ICharacterCreationDraftStore
             return new DraftStoreResult(CharacterCreationDraftError.NameTaken);
         }
 
-        return new DraftStoreResult(CharacterCreationDraftError.None, ToSnapshot(character, draft));
+        return new DraftStoreResult(CharacterCreationDraftError.None, ToSnapshot(character, draft, request.Document));
     }
 
     public async Task<IReadOnlyList<CharacterCreationDraftSummary>> ListAsync(
@@ -155,7 +155,7 @@ public sealed class CharacterCreationDraftStore : ICharacterCreationDraftStore
             return new DraftStoreResult(CharacterCreationDraftError.NameTaken);
         }
 
-        return new DraftStoreResult(CharacterCreationDraftError.None, ToSnapshot(character, draft));
+        return new DraftStoreResult(CharacterCreationDraftError.None, ToSnapshot(character, draft, request.Document));
     }
 
     public async Task<CharacterCreationDraftError> DiscardAsync(
@@ -299,7 +299,8 @@ public sealed class CharacterCreationDraftStore : ICharacterCreationDraftStore
 
     private static CharacterCreationDraftSnapshot ToSnapshot(
         Character character,
-        CharacterCreationDraft draft) =>
+        CharacterCreationDraft draft,
+        CharacterCreationDraftDocument? document = null) =>
         new(
             character.Id,
             character.UserId,
@@ -310,7 +311,7 @@ public sealed class CharacterCreationDraftStore : ICharacterCreationDraftStore
             draft.CatalogSemanticDigest,
             draft.CreationMethodId,
             draft.DocumentSchemaVersion,
-            CharacterCreationDraftSerialization.DeserializeDocument(draft.SelectionsJson),
+            document ?? CharacterCreationDraftSerialization.DeserializeDocument(draft.SelectionsJson),
             draft.Version,
             draft.CreatedAtUtc,
             draft.UpdatedAtUtc);
