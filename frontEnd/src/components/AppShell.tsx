@@ -29,7 +29,6 @@ export function AppShell() {
 
   const railItems: RailItem[] = [
     { to: '/characters', code: 'PS', label: 'Persona', name: 'Characters' },
-    { to: '/play', code: 'GR', label: 'Grid', name: 'World' },
     ...(canEditWorld ? [{ to: '/admin/world', code: 'WE', label: 'W.Edit', name: 'World editor' }] : []),
     ...(isAdmin ? [{ to: '/admin/users', code: 'AD', label: 'Admin', name: 'Admin' }] : []),
     ...(isAdmin ? [{ to: '/admin/audit', code: 'AU', label: 'Audit', name: 'Audit log' }] : []),

@@ -511,6 +511,62 @@
   height: 100%;
 }
 
+.console__rail-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+  padding: 6px var(--sb-space-3);
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-body);
+  font-size: 0.76rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.console__rail-nav-item:hover {
+  background: color-mix(in srgb, var(--sb-accent) 4%, transparent);
+}
+
+.console__rail-nav-item--active {
+  border-left-color: var(--sb-accent);
+  background: var(--sb-accent-wash);
+  color: var(--sb-text);
+}
+
+.console__rail-nav-glyph {
+  width: 12px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 0.72rem;
+}
+
+.console__rail-nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.console__rail-nav-value {
+  flex-shrink: 0;
+  max-width: 92px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  color: var(--sb-text-dim);
+}
+
+.console__rail-nav-item--active .console__rail-nav-value {
+  color: var(--sb-accent);
+}
+
 .console__facet {
   width: 100%;
   display: flex;
@@ -1458,171 +1514,6 @@
   font-size: 0.7rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-}
-
-/* ─── Slot dashboard (persona registry) ────────────────────────────────── */
-
-.slot-dashboard {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sb-space-4);
-  margin-bottom: var(--sb-space-4);
-}
-
-.slot-dashboard__cta {
-  text-align: center;
-  padding-top: var(--sb-space-3);
-}
-
-.slot-card {
-  display: flex;
-  flex-direction: column;
-  background: var(--sb-surface);
-  border: 1px solid var(--sb-border-strong);
-  min-height: 180px;
-}
-
-.slot-card--draft {
-  box-shadow: inset 3px 0 0 var(--sb-warning);
-}
-
-.slot-card--finalized {
-  box-shadow: inset 3px 0 0 var(--sb-accent);
-}
-
-.slot-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sb-space-3);
-  padding: var(--sb-space-2) var(--sb-space-3);
-  background: var(--sb-surface-sunken);
-  border-bottom: 1px solid var(--sb-border);
-}
-
-.slot-card__header-label {
-  font-family: var(--sb-font-data);
-  font-size: 0.68rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--sb-text-faint);
-}
-
-.slot-card__header-label--draft {
-  color: var(--sb-warning);
-}
-
-.slot-card__header-label--finalized {
-  color: var(--sb-accent);
-}
-
-.slot-card__header-status {
-  font-family: var(--sb-font-data);
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--sb-text-dim);
-}
-
-.slot-card__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: var(--sb-space-4);
-}
-
-.slot-card__body--empty {
-  align-items: center;
-  justify-content: center;
-  gap: var(--sb-space-2);
-  text-align: center;
-}
-
-.slot-card--empty {
-  border-style: dashed;
-  border-color: var(--sb-border);
-  opacity: 0.75;
-}
-
-.slot-card__icon {
-  font-family: var(--sb-font-heading);
-  font-size: 2rem;
-  color: var(--sb-text-faint);
-}
-
-.slot-card__label {
-  color: var(--sb-text-muted);
-  font-family: var(--sb-font-data);
-  font-size: 0.85rem;
-  margin: 0;
-}
-
-.slot-card__name {
-  font-family: var(--sb-font-heading);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin: 0;
-  color: var(--sb-text);
-}
-
-.slot-card__meta {
-  font-family: var(--sb-font-data);
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  color: var(--sb-text-muted);
-  margin: 4px 0 0;
-}
-
-.slot-card__meta--faint {
-  color: var(--sb-text-faint);
-}
-
-.slot-card__progress {
-  margin: var(--sb-space-4) 0;
-}
-
-.slot-card__progress-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--sb-text-muted);
-  margin-bottom: 6px;
-}
-
-.slot-card__progress-track {
-  height: 5px;
-  background: var(--sb-track);
-  border: 1px solid var(--sb-border);
-}
-
-.slot-card__progress-fill {
-  height: 100%;
-  background: var(--sb-warning);
-  box-shadow: var(--sb-glow-warning);
-}
-
-.slot-card__blocking {
-  margin: var(--sb-space-2) 0 0;
-  font-family: var(--sb-font-data);
-  font-size: 0.72rem;
-  letter-spacing: 0.03em;
-  color: var(--sb-danger);
-}
-
-.slot-card__actions {
-  margin-top: auto;
-  padding-top: var(--sb-space-4);
-  width: 100%;
-}
-
-.slot-card__actions .ui-button {
-  width: 100%;
-  height: 44px;
-  letter-spacing: 0.2em;
 }
 
 /* ─── Method selection ──────────────────────────────────────────────────── */

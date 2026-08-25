@@ -22,17 +22,40 @@ export interface CatalogPickedItem {
   onRemove: () => void
 }
 
+export interface CatalogSectionNavItem {
+  id: string
+  label: string
+  value?: string
+  status: 'done' | 'pending' | 'optional'
+  active: boolean
+  onSelect: () => void
+}
+
 interface CatalogRailProps {
   budgets: CatalogBudgetChip[]
+  sectionLabel?: string
+  sections?: CatalogSectionNavItem[]
   facetLabel?: string
   facets?: CatalogFacetChip[]
   picked: CatalogPickedItem[]
 }
 
+const SECTION_STATUS_GLYPH: Record<CatalogSectionNavItem['status'], string> = {
+  done: '✓',
+  pending: '○',
+  optional: '·',
+}
+const SECTION_STATUS_COLOR: Record<CatalogSectionNavItem['status'], string> = {
+  done: 'var(--sb-accent)',
+  pending: 'var(--sb-warning)',
+  optional: 'var(--sb-text-dim)',
+}
+
 // The rail's BUDGET and SELECTED sections are real and interactive (removing
 // a picked item here calls the same handler as the readout's remove action).
+// SECTIONS (when passed) is also real — it switches the middle catalog list.
 // CATEGORY is a visual-only mock — no click handler — per the design brief.
-export function CatalogRail({ budgets, facetLabel = 'CATEGORY', facets = [], picked }: CatalogRailProps) {
+export function CatalogRail({ budgets, sectionLabel = 'SECTIONS', sections = [], facetLabel = 'CATEGORY', facets = [], picked }: CatalogRailProps) {
   return (
     <aside className="console__rail">
       <div className="console__rail-section">
@@ -49,6 +72,25 @@ export function CatalogRail({ budgets, facetLabel = 'CATEGORY', facets = [], pic
           </div>
         ))}
       </div>
+
+      {sections.length > 0 && (
+        <div className="console__rail-section">
+          <div className="console__rail-heading">{sectionLabel}</div>
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              className={`console__rail-nav-item${section.active ? ' console__rail-nav-item--active' : ''}`}
+              onClick={section.onSelect}
+              aria-pressed={section.active}
+            >
+              <span className="console__rail-nav-glyph" style={{ color: SECTION_STATUS_COLOR[section.status] }}>{SECTION_STATUS_GLYPH[section.status]}</span>
+              <span className="console__rail-nav-label">{section.label}</span>
+              {section.value && <span className="console__rail-nav-value">{section.value}</span>}
+            </button>
+          ))}
+        </div>
+      )}
 
       {facets.length > 0 && (
         <div className="console__rail-section">

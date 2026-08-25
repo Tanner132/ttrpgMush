@@ -20,6 +20,26 @@ const ATTRIBUTE_DESCRIPTIONS: Record<string, string> = {
   resonance: 'A technomancer’s equivalent of Magic — the strength of their innate, toolless connection to the Matrix.',
 }
 
+const PATH_DESCRIPTIONS: Record<string, string> = {
+  Mundane: 'No connection to Magic or Resonance. The character relies entirely on skills, gear, and augmentation.',
+  Magician: 'Full sorcery and conjuring. Casts from the whole spell list, summons and binds spirits of a chosen tradition, and can perceive astrally at will.',
+  MysticAdept: 'Splits Magic between spellcasting and Power Points, bought separately with Karma. Flexible, but thinner in both directions than a pure Magician or Adept.',
+  Adept: 'No spellcasting. Every point of Magic buys Power Points spent on adept powers that sharpen the body and senses directly.',
+  AspectedMagician: 'Access to only one magical skill group — Sorcery, Conjuring, or Enchanting. Cheaper in priority than a full Magician, at the cost of the other two.',
+  Technomancer: 'A living connection to the Matrix in place of Magic. Resonance fuels sprites and complex forms instead of spirits and spells.',
+}
+
+const TRADITION_DESCRIPTIONS: Record<string, string> = {
+  hermetic: 'Magic treated as a formal, learned science. Drain resists on Logic + Willpower, and spirits summoned are drawn from the elemental list.',
+  shamanic: 'Magic practiced through relationship with totem spirits. Drain resists on Charisma + Willpower, and spirits summoned are drawn from the elemental list.',
+}
+
+const ASPECTED_VALUE_DESCRIPTIONS: Record<string, string> = {
+  sorcery: 'Spells and rituals, cast and resisted exactly as a full Magician would — but no conjuring or enchanting.',
+  conjuring: 'Summoning, binding, and banishing spirits — but no spellcasting or enchanting.',
+  enchanting: 'Crafting foci, alchemical preparations, and other enchanted items — but no spellcasting or conjuring.',
+}
+
 const QUALITY_DESCRIPTIONS: Record<string, string> = {
   addiction: 'Chemical, technological, or behavioral dependency. Skipping a fix risks a dice pool penalty (worse at higher severity) on Mental or Physical tests until the craving is fed, and severe cases bleed into Social tests too.',
   allergy: 'An allergic reaction to a substance or condition. Exposure imposes a dice pool penalty on Physical tests (or worse — ongoing damage at the top end) for as long as symptoms last.',
@@ -731,6 +751,18 @@ export function describeAttribute(id: string): string {
 
 export function describeQuality(id: string): string {
   return lookup(QUALITY_DESCRIPTIONS, id, 'A creation-time quality with a fixed Karma cost.')
+}
+
+export function describePath(kind: string): string {
+  return lookup(PATH_DESCRIPTIONS, kind, 'An awakened or resonant path with its own grants and restrictions.')
+}
+
+export function describeTradition(id: string): string {
+  return lookup(TRADITION_DESCRIPTIONS, id, 'A magical tradition setting the drain attribute and allowed spirit list.')
+}
+
+export function describeAspectedValue(id: string): string {
+  return lookup(ASPECTED_VALUE_DESCRIPTIONS, id, 'The single magical skill group an aspected magician has access to.')
 }
 
 export function describeMentorSpirit(id: string): string {

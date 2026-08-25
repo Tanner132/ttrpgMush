@@ -17,6 +17,7 @@ multi-slice milestone with a separately versioned rules contract.
 | 6 | [`roadmap/MILESTONE_06_ROOM_EDITOR.md`](roadmap/MILESTONE_06_ROOM_EDITOR.md) | Protected coordinate-and-exit editor without deletion |
 | 7 | [`roadmap/MILESTONE_07_CHARACTER_PROFILES.md`](roadmap/MILESTONE_07_CHARACTER_PROFILES.md) | Lightweight, non-mechanical character profiles |
 | 8 | [`roadmap/MILESTONE_08_SR5_CHARACTER_CREATION.md`](roadmap/MILESTONE_08_SR5_CHARACTER_CREATION.md) | Core SR5 Standard Priority and Sum-to-Ten character creation |
+| 9 | [`roadmap/MILESTONE_09_CAREER_CHARACTER_SHEETS.md`](roadmap/MILESTONE_09_CAREER_CHARACTER_SHEETS.md) | Owner-visible career sheets, advancement, and catalog purchases |
 
 ## Delivery Rules
 
@@ -51,6 +52,7 @@ npm --prefix frontEnd run build
 6. Release Milestone 6 behind the world-editor policy.
 7. Complete PROFILE-701, then release Milestone 7 independently of the future Shadowrun character domain.
 8. Complete CHAR-801 and approve the rules baseline before implementing Milestone 8 slices.
+9. Complete the Milestone 8 release gate, then freeze the career rules contract in SHEET-901 before implementing mutable character state.
 
 ## Next Build Ticket
 
