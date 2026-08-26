@@ -1,4 +1,5 @@
 using MediatR;
+using SeattleByNight.Application.CharacterCreation.Catalog;
 using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Application.CharacterCreation.Sheets;
 
@@ -16,17 +17,26 @@ public sealed class GetComposedCharacterSheetQueryHandler
     private readonly CharacterCreationBaselineReader baselineReader;
     private readonly ICharacterCareerStateStore careerStateStore;
     private readonly ICharacterCareerHistoryReader historyReader;
+    private readonly IRulesetCatalogProvider catalogProvider;
+    private readonly CareerSheetComposer composer;
+    private readonly AttributeAdvancementEvaluator attributeEvaluator;
 
     public GetComposedCharacterSheetQueryHandler(
         ICharacterCreationDraftStore draftStore,
         CharacterCreationBaselineReader baselineReader,
         ICharacterCareerStateStore careerStateStore,
-        ICharacterCareerHistoryReader historyReader)
+        ICharacterCareerHistoryReader historyReader,
+        IRulesetCatalogProvider catalogProvider,
+        CareerSheetComposer composer,
+        AttributeAdvancementEvaluator attributeEvaluator)
     {
         this.draftStore = draftStore;
         this.baselineReader = baselineReader;
         this.careerStateStore = careerStateStore;
         this.historyReader = historyReader;
+        this.catalogProvider = catalogProvider;
+        this.composer = composer;
+        this.attributeEvaluator = attributeEvaluator;
     }
 
     public async Task<ComposedCharacterSheetResult> Handle(
@@ -61,6 +71,10 @@ public sealed class GetComposedCharacterSheetQueryHandler
         var advancements = await historyReader.GetRecentAdvancementsAsync(request.CharacterId, RecentWindowSize, cancellationToken);
         var inventory = await historyReader.GetInventoryAsync(request.CharacterId, cancellationToken);
 
+        var catalog = catalogProvider.Get(baseline.Baseline.RulesetId, baseline.Baseline.CatalogVersion);
+        var composedSheet = composer.Compose(baseline.Baseline.Sheet, careerState.Progression);
+        var nextActions = attributeEvaluator.EvaluateAll(catalog, composedSheet, careerState.CurrentKarma);
+
         return ComposedCharacterSheetResult.Success(new ComposedCharacterSheet(
             baseline.Baseline.CharacterId,
             baseline.Baseline.Name,
@@ -72,10 +86,11 @@ public sealed class GetComposedCharacterSheetQueryHandler
             careerState.CurrentKarma,
             careerState.CurrentNuyen,
             careerState.LifetimeKarmaEarned,
-            baseline.Baseline.Sheet,
+            composedSheet,
             inventory,
             transactions,
             advancements,
+            nextActions,
             baseline.Baseline.FinalizedAtUtc,
             careerState.CreatedAtUtc,
             careerState.UpdatedAtUtc));

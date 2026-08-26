@@ -57,6 +57,42 @@ public sealed class ComposedCharacterSheetQueryHandlerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Handle_reflects_progression_and_eligibility_in_next_actions()
+    {
+        await using var db = CreateDbContext();
+        var (userId, characterId, canonicalSheet) = await CreateFinalizedCharacterAsync(db, rollStartingCash: true);
+        await new CharacterCareerStateStore(db, BuildBaselineReader(), TimeProvider.System)
+            .EnsureInitializedAsync(characterId);
+        var body = canonicalSheet.Attributes.Single(item => item.Id == "body");
+
+        // Directly commit an attribute advancement the way
+        // AdvanceAttributeCommandHandler would, so NextActions reflects a
+        // real, non-empty progression rather than the always-empty baseline.
+        var state = await db.CharacterCareerStates.SingleAsync(item => item.CharacterId == characterId);
+        state.CurrentKarma = 1_000;
+        await db.SaveChangesAsync();
+        var catalog = new EmbeddedRulesetCatalogProvider().Current;
+        await new CharacterCareerAdvancementStore(db, TimeProvider.System).CommitAttributeAdvancementAsync(
+            new AttributeAdvancementCommit(
+                characterId, state.Version, Guid.NewGuid(), "body", IsSpecialAttribute: false,
+                body.AbsoluteValue, body.AbsoluteValue + 1, (body.AbsoluteValue + 1) * 5,
+                catalog.RulesetId, catalog.Version));
+
+        var result = await CreateHandler(db).Handle(
+            new GetComposedCharacterSheetQuery(userId, characterId), CancellationToken.None);
+
+        Assert.True(result.Succeeded);
+        var sheet = result.Sheet!;
+        Assert.Equal(body.AbsoluteValue + 1, sheet.Sheet.Attributes.Single(item => item.Id == "body").AbsoluteValue);
+        Assert.Equal(1_000 - (body.AbsoluteValue + 1) * 5, sheet.CurrentKarma);
+
+        var bodyAction = sheet.NextActions.Single(item => item.AttributeId == "body");
+        var nextCost = (body.AbsoluteValue + 2) * 5;
+        Assert.Equal(nextCost, bodyAction.KarmaCost);
+        Assert.Equal(sheet.CurrentKarma >= nextCost, bodyAction.IsEligible);
+    }
+
+    [Fact]
     public async Task Handle_returns_not_found_for_a_nonexistent_character()
     {
         await using var db = CreateDbContext();
@@ -143,7 +179,10 @@ public sealed class ComposedCharacterSheetQueryHandlerTests : IAsyncLifetime
         new CharacterCreationDraftStore(db, TimeProvider.System),
         BuildBaselineReader(),
         new CharacterCareerStateStore(db, BuildBaselineReader(), TimeProvider.System),
-        new CharacterCareerHistoryReader(db));
+        new CharacterCareerHistoryReader(db),
+        new EmbeddedRulesetCatalogProvider(),
+        new CareerSheetComposer(),
+        new AttributeAdvancementEvaluator());
 
     private static readonly string[] GrantedSpellIds =
     [

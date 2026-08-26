@@ -5,10 +5,12 @@ import { SheetSectionCard } from './SheetSectionCard.tsx'
 import { buildCareerSheetSections, type SheetCard } from './buildCareerSheetSections.ts'
 import { CareerSheetOverview } from './CareerSheetOverview.tsx'
 import { CareerSheetHistory } from './CareerSheetHistory.tsx'
+import { AttributeAdvancementList } from './AttributeAdvancementList.tsx'
 
 export interface CareerSheetContentProps {
     sheet: ComposedCareerSheet
     catalog: CatalogContract | null
+    onAdvanced: () => void
 }
 
 function renderCards(cards: SheetCard[]) {
@@ -21,13 +23,17 @@ function renderCards(cards: SheetCard[]) {
     )
 }
 
-export function CareerSheetContent({ sheet, catalog }: CareerSheetContentProps) {
+export function CareerSheetContent({ sheet, catalog, onAdvanced }: CareerSheetContentProps) {
     const sections = buildCareerSheetSections(catalog, sheet)
     const hasMagicResonance = sections.magicResonance.length > 0
 
     const tabs: Tab[] = [
         { id: 'overview', label: 'Overview', panel: <CareerSheetOverview sheet={sheet} /> },
-        { id: 'attributes', label: 'Attributes', panel: renderCards(sections.attributes) },
+        {
+            id: 'attributes',
+            label: 'Attributes',
+            panel: <AttributeAdvancementList sheet={sheet} catalog={catalog} onAdvanced={onAdvanced} />,
+        },
         { id: 'skills', label: 'Skills & Languages', panel: renderCards(sections.skills) },
         { id: 'qualities', label: 'Qualities', panel: renderCards(sections.qualities) },
         ...(hasMagicResonance

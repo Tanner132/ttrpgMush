@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using SeattleByNight.Application.CharacterCareer;
 using SeattleByNight.Application.CharacterCreation.Catalog;
 using SeattleByNight.Application.CharacterCreation.Evaluation;
 using SeattleByNight.Application.CharacterCreation.Drafts;
@@ -27,6 +28,8 @@ public static class DependencyInjection
         services.AddSingleton<DerivedStatisticsEvaluator>();
         services.AddSingleton<CharacterCreationDraftEvaluator>();
         services.AddSingleton<CharacterCreationBaselineReader>();
+        services.AddSingleton<CareerSheetComposer>();
+        services.AddSingleton<AttributeAdvancementEvaluator>();
 
         return services;
     }

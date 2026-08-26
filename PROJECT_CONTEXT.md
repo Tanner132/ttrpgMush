@@ -588,6 +588,46 @@ authenticated character-creation
   draft creates and replacements return the already validated document rather than
   deserializing the JSON that was just persisted.
 
+Milestone 9 (Career Character Sheets) adds a mutable career layer on top of the
+immutable finalized sheet. `CharacterCareerState` (one per finalized character)
+holds current Karma, current nuyen, lifetime Karma earned, and a typed
+`CareerProgressionDocument` JSONB envelope for permanent post-creation changes
+(SHEET-903); opening Karma/nuyen are seeded once from
+`DerivedStatistics.CarryoverKarma`/`CarryoverNuyen` plus starting cash, and
+backfillable for pre-existing finalized sheets. Append-only
+`CharacterResourceTransaction` and `CharacterAdvancement` tables record every
+balance change and mechanical change respectively; `CharacterActionReceipt`
+(unique on character + client-generated request id) backs request idempotency
+for every career mutation. `GetComposedCharacterSheetQuery` (SHEET-904)
+composes the immutable baseline with career progression and acquired inventory
+into a `ComposedCharacterSheet` — current attributes/derived statistics,
+balances, bounded recent history, and server-derived `NextActions` (exact
+cost, eligibility, blocking reasons) — never mutating or reinitializing career
+state on read. The frontend's `/characters/:characterId/sheet` route
+(SHEET-905) renders this read-only, reusing character-creation catalog
+indexing/description helpers but never mounting the creator; finalized
+character slots expose a "View Character Sheet" link alongside "Jack in".
+SHEET-906 adds the first mutation: raising a Physical/Mental attribute, Edge,
+Magic, or Resonance by exactly one rating per request, at `new rating x 5`
+Karma (sr5-core p. 106), capped at each attribute's own metatype/metavariant
+natural maximum (+1 for the `exceptional-attribute` quality; Edge additionally
++1 for `lucky`; Magic/Resonance use a flat natural maximum of 6/7 since
+Initiation isn't implemented yet). A mundane character simply has no
+`magic`/`resonance` entry in the composed sheet's special attributes, so
+advancing either is rejected as an unknown attribute id with no separate
+"no post-creation awakening" gate needed. Every advancement is one atomic
+operation: version-checked against the caller's `expectedVersion` (an EF
+concurrency token, so a stale write fails at the database level),
+deduplicated by client-generated request id, and recorded as one
+`CharacterAdvancement` plus one `CharacterResourceTransaction` plus one action
+receipt. Derived statistics are never persisted on the mutable state; they're
+recomputed from baseline plus progression on every composed-sheet read via the
+same pure Inherent Limit/Condition Monitor/Initiative formulas creation uses
+(`DerivedStatisticsFormulas`, shared with `DerivedStatisticsEvaluator`). The
+routed sheet's Attributes tab is the only interactive section so far — each
+row shows the current value and cost, with an inline (non-modal) spend
+confirmation before calling the advancement endpoint and reloading.
+
 Backend endpoints:
 
 - `GET /health/live`: process liveness without a PostgreSQL dependency.
@@ -614,6 +654,14 @@ Backend endpoints:
   impact preview, discard, and atomic finalization operations.
 - `GET /api/characters/{characterId}/sheet`: owner-scoped immutable finalized
   sheet retrieval.
+- `GET /api/characters/{characterId}/career-sheet`: owner-scoped composed
+  career sheet (current permanent attributes/derived statistics, current
+  balances, bounded recent history, acquired inventory, and next-action
+  eligibility); non-enumerating `404` for unowned/nonexistent/unfinalized
+  characters, `409` if career state isn't initialized yet.
+- `POST /api/characters/{characterId}/advancements/attributes`:
+  antiforgery-protected, version-checked, idempotent single-rating attribute/
+  Edge/Magic/Resonance advancement.
 - `POST /api/play-session/start`, `GET /api/play-session/current`,
   `POST /api/play-session/activity`: start/resume, read, and renew play sessions.
 - `GET /api/admin/users`, `POST /api/admin/users/{userId}/roles`,

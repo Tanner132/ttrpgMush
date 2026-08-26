@@ -1,4 +1,4 @@
-import { apiGet, ApiError } from './client.ts'
+import { apiGet, apiPost, ApiError } from './client.ts'
 
 // ─── Canonical creation-baseline shapes ─────────────────────────────────────
 // Hand-mirrors backend\src\SeattleByNight.Application\CharacterCreation\Drafts\CanonicalCharacterSheet.cs.
@@ -386,5 +386,36 @@ export function isCareerStateNotInitializedError(error: unknown): boolean {
 }
 
 export function isUnsupportedCareerSheetError(error: unknown): boolean {
+    return error instanceof ApiError && error.status === 422
+}
+
+export interface AdvanceAttributeResult {
+    characterId: string
+    attributeId: string
+    previousValue: number
+    newValue: number
+    karmaCost: number
+    currentKarma: number
+    careerStateVersion: string
+    advancementId: string
+}
+
+export async function advanceAttribute(
+    characterId: string,
+    attributeId: string,
+    expectedVersion: string,
+): Promise<AdvanceAttributeResult> {
+    return apiPost<AdvanceAttributeResult>(`/api/characters/${characterId}/advancements/attributes`, {
+        expectedVersion,
+        requestId: crypto.randomUUID(),
+        attributeId,
+    })
+}
+
+export function isCareerAdvancementConflictError(error: unknown): boolean {
+    return error instanceof ApiError && error.status === 409
+}
+
+export function isCareerAdvancementRuleViolationError(error: unknown): boolean {
     return error instanceof ApiError && error.status === 422
 }

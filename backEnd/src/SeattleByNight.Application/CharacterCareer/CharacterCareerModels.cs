@@ -16,6 +16,13 @@ public static class CharacterCareerDocumentVersions
 // version, and JSON round-trip so those later additions are non-breaking.
 public sealed record CareerProgressionDocument
 {
+    // Keyed by attribute id (physical/mental attributes, edge, magic,
+    // resonance share one id namespace); value is the cumulative number of
+    // +1 career raises purchased for that attribute (SHEET-906). Current
+    // absolute value = baseline AbsoluteValue + this increase, applied by
+    // CareerSheetComposer and never written back into the immutable baseline.
+    public IReadOnlyDictionary<string, int> AttributeIncreases { get; init; } = new Dictionary<string, int>();
+
     public static readonly CareerProgressionDocument Empty = new();
 }
 
@@ -122,6 +129,7 @@ public sealed record ComposedCharacterSheet(
     IReadOnlyList<CharacterInventoryItemRecord> AcquiredInventory,
     IReadOnlyList<CharacterResourceTransactionRecord> RecentTransactions,
     IReadOnlyList<CharacterAdvancementRecord> RecentAdvancements,
+    IReadOnlyList<AttributeAdvancementEligibility> NextActions,
     DateTimeOffset FinalizedAtUtc,
     DateTimeOffset CareerStateCreatedAtUtc,
     DateTimeOffset CareerStateUpdatedAtUtc);

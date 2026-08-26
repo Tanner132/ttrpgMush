@@ -94,7 +94,14 @@ environment. In production, the first administrator must be granted explicitly
 by an operator; there is no default administrative credential or silent
 elevation.
 
-Bootstrap procedure (run once against the target database):
+In a container deployment, set `Bootstrap__AdministratorEmail` to the operator's
+address (`BOOTSTRAP_ADMINISTRATOR_EMAIL` in the Compose environment). Register
+that account through the normal flow, then restart the API: startup grants it the
+`Administrator` role and logs the grant. Until the account exists, startup logs a
+warning and continues. This is explicit operator configuration, not silent
+elevation, and it is a no-op once the grant has been made.
+
+Manual bootstrap procedure, if you would rather not configure the email:
 
 ```powershell
 # 1. Apply migrations to create the role definitions (idempotent).
@@ -161,6 +168,18 @@ header `X-XSRF-TOKEN` obtained from `GET /api/antiforgery/token`.
   create one — maximum two total drafts and finalized characters per user)
 - `GET /api/characters/{characterId}/sheet` — returns the owner's immutable
   finalized sheet
+- `GET /api/characters/{characterId}/career-sheet` — owner-scoped composed
+  career sheet: current permanent attributes/derived statistics (baseline +
+  career progression), current Karma/nuyen, bounded recent transaction/
+  advancement history, acquired inventory, and `nextActions` (exact cost,
+  eligibility, and blocking reasons for every advanceable attribute); `409`
+  if career state hasn't been initialized/backfilled yet
+- `POST /api/characters/{characterId}/advancements/attributes` — `{ expectedVersion,
+  requestId, attributeId }`; raises one Physical/Mental attribute, Edge, Magic,
+  or Resonance by exactly one rating at `new rating x 5` Karma, capped at that
+  attribute's natural maximum; version-checked (`409` on a stale
+  `expectedVersion`) and idempotent by client-generated `requestId` (a retried
+  request returns the original result rather than spending again)
 
 ### Character creation
 
@@ -340,6 +359,41 @@ npm --prefix frontEnd run build
 The current deployment target is a single application instance serving both the
 REST API and the built React frontend, backed by one PostgreSQL database. No
 Redis, load balancer, message broker, or multiple replicas are required yet.
+
+### Container deployment
+
+`compose.production.yaml` builds and runs the whole stack:
+
+```
+Cloudflare -> Nginx Proxy Manager -> (Tailscale) -> frontend nginx :8080
+                                                      |- /        static React build
+                                                      |- /api/    backend:8080
+                                                      '- /hubs/   backend:8080 (WebSockets)
+                                                                     |
+                                                                  postgres:5432
+```
+
+PostgreSQL sits on an `internal` network and publishes no port, so it is
+unreachable from the LAN, from Tailscale, and from the internet. The frontend
+binds only to the host's Tailscale address.
+
+```bash
+cp .env.production.example .env    # then fill in real values
+docker compose -f compose.production.yaml up -d --build
+```
+
+Operational notes:
+
+- Migrations are applied by the API at startup. Outside Development a failure
+  stops the app rather than serving requests against an unmigrated database.
+- The data protection key ring is persisted to the `dataprotection_keys` volume.
+  Losing it signs out every user and invalidates every issued antiforgery token.
+- The real client address reaches the rate limiter via Cloudflare's
+  `CF-Connecting-IP`, which the frontend nginx converts to `X-Forwarded-For`.
+  That is only trustworthy while the origin cannot be reached directly, so the
+  VPS firewall must restrict 80/443 to Cloudflare's published ranges (or use a
+  Cloudflare Tunnel). Cloudflare Access does not cover a direct-to-origin request.
+- `postgres_data` has no backup automation yet; schedule a `pg_dump` off-box.
 
 ## Security and hardening
 

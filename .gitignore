@@ -22,10 +22,11 @@ dist/
 .vite/
 *.tsbuildinfo
 
-# Environment files (keep .env.example)
+# Environment files (keep the examples)
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # Local secrets and deployment credentials
 appsettings.Local.json

@@ -4,13 +4,14 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 import CharacterSheetPage from './CharacterSheetPage.tsx'
-import { getCareerSheet, type ComposedCareerSheet } from '../api/careerSheet.ts'
+import { advanceAttribute, getCareerSheet, type ComposedCareerSheet } from '../api/careerSheet.ts'
 import { getCatalog, type CatalogContract } from '../api/characterCreation.ts'
 import { ApiError } from '../api/client.ts'
 
 vi.mock('../api/careerSheet.ts', async (importOriginal) => ({
     ...(await importOriginal<typeof import('../api/careerSheet.ts')>()),
     getCareerSheet: vi.fn(),
+    advanceAttribute: vi.fn(),
 }))
 
 vi.mock('../api/characterCreation.ts', async (importOriginal) => ({
@@ -164,5 +165,68 @@ describe('CharacterSheetPage', () => {
         expect(await screen.findByText('Kestrel')).toBeInTheDocument()
         await user.click(screen.getByRole('tab', { name: 'Attributes' }))
         expect(await screen.findByText('body')).toBeInTheDocument()
+    })
+
+    it('confirms and raises an eligible attribute, then reloads the sheet', async () => {
+        const initial = buildSheet({
+            currentKarma: 25,
+            nextActions: [{ category: 'attribute', targetId: 'body', karmaCost: 20, isEligible: true, blockingReasons: [] }],
+        })
+        const reloaded = buildSheet({
+            currentKarma: 5,
+            sheet: { ...initial.sheet, attributes: [{ ...initial.sheet.attributes[0], absoluteValue: 4 }] },
+            nextActions: [{ category: 'attribute', targetId: 'body', karmaCost: 25, isEligible: false, blockingReasons: ['Not enough Karma (needs 25, have 5).'] }],
+        })
+        vi.mocked(getCareerSheet).mockResolvedValueOnce(initial).mockResolvedValueOnce(reloaded)
+        vi.mocked(advanceAttribute).mockResolvedValue({
+            characterId: 'character-1', attributeId: 'body', previousValue: 3, newValue: 4,
+            karmaCost: 20, currentKarma: 5, careerStateVersion: 'version-2', advancementId: 'advancement-1',
+        })
+        const user = userEvent.setup()
+
+        renderPage()
+        await user.click(await screen.findByRole('tab', { name: 'Attributes' }))
+        await user.click(screen.getByRole('button', { name: 'Raise' }))
+
+        expect(screen.getByText(/Spend 20 Karma to raise Body to 4\? Resulting Karma: 5\./)).toBeInTheDocument()
+        await user.click(screen.getByRole('button', { name: 'Confirm' }))
+
+        expect(advanceAttribute).toHaveBeenCalledWith('character-1', 'body', 'version-1')
+        expect(await screen.findByText('4')).toBeInTheDocument()
+        expect(getCareerSheet).toHaveBeenCalledTimes(2)
+    })
+
+    it('shows the blocking reason and disables Raise when ineligible', async () => {
+        vi.mocked(getCareerSheet).mockResolvedValue(buildSheet({
+            nextActions: [{
+                category: 'attribute', targetId: 'body', karmaCost: 20, isEligible: false,
+                blockingReasons: ['Not enough Karma (needs 20, have 5).'],
+            }],
+        }))
+        const user = userEvent.setup()
+
+        renderPage()
+        await user.click(await screen.findByRole('tab', { name: 'Attributes' }))
+
+        expect(screen.getByRole('button', { name: 'Raise' })).toBeDisabled()
+        expect(screen.getByText('Not enough Karma (needs 20, have 5).')).toBeInTheDocument()
+    })
+
+    it('reloads instead of showing a raw error when confirming hits a version conflict', async () => {
+        const initial = buildSheet({
+            nextActions: [{ category: 'attribute', targetId: 'body', karmaCost: 20, isEligible: true, blockingReasons: [] }],
+        })
+        vi.mocked(getCareerSheet).mockResolvedValueOnce(initial).mockResolvedValueOnce(buildSheet())
+        vi.mocked(advanceAttribute).mockRejectedValue(new ApiError(409, 'This character’s career state was changed by another request.'))
+        const user = userEvent.setup()
+
+        renderPage()
+        await user.click(await screen.findByRole('tab', { name: 'Attributes' }))
+        await user.click(screen.getByRole('button', { name: 'Raise' }))
+        await user.click(screen.getByRole('button', { name: 'Confirm' }))
+
+        await screen.findByText('Kestrel')
+        expect(getCareerSheet).toHaveBeenCalledTimes(2)
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
 })

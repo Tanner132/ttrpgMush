@@ -38,15 +38,24 @@ public sealed record ComposedAdvancementResponse(
     int KarmaCost,
     DateTimeOffset CreatedAtUtc);
 
-// Always empty until SHEET-906 through SHEET-910 add advancement/purchase
-// evaluators; present now so the response shape is stable for SHEET-905's
-// frontend consumer.
 public sealed record ComposedNextActionResponse(
     string Category,
     string TargetId,
     int KarmaCost,
     bool IsEligible,
     IReadOnlyList<string> BlockingReasons);
+
+public sealed record AdvanceAttributeRequest(Guid ExpectedVersion, Guid RequestId, string AttributeId);
+
+public sealed record AdvanceAttributeResponse(
+    Guid CharacterId,
+    string AttributeId,
+    int PreviousValue,
+    int NewValue,
+    int KarmaCost,
+    int CurrentKarma,
+    Guid CareerStateVersion,
+    Guid AdvancementId);
 
 public sealed record ComposedCharacterSheetResponse(
     Guid CharacterId,
@@ -76,6 +85,7 @@ public static class CharacterEndpoints
 
         group.MapGet("", ListAsync);
         group.MapGet("{characterId:guid}/career-sheet", GetCareerSheetAsync);
+        group.MapPost("{characterId:guid}/advancements/attributes", AdvanceAttributeAsync).RequireAntiforgery();
 
         return endpoints;
     }
@@ -113,6 +123,33 @@ public static class CharacterEndpoints
         return result.Succeeded ? Results.Ok(ToResponse(result.Sheet!)) : Problem(result.Error);
     }
 
+    private static async Task<IResult> AdvanceAttributeAsync(
+        Guid characterId,
+        AdvanceAttributeRequest request,
+        UserManager<ApplicationUser> userManager,
+        IMediator mediator,
+        HttpContext httpContext)
+    {
+        var user = await userManager.GetUserAsync(httpContext.User);
+        if (user is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await mediator.Send(new AdvanceAttributeCommand(
+            user.Id, characterId, request.ExpectedVersion, request.RequestId, request.AttributeId));
+
+        if (!result.Succeeded)
+        {
+            return Problem(result.Error, result.BlockingReasons);
+        }
+
+        var committed = result.Committed!;
+        return Results.Ok(new AdvanceAttributeResponse(
+            characterId, committed.AttributeId, committed.PreviousValue, committed.NewValue,
+            committed.KarmaCost, committed.CurrentKarma, committed.CareerStateVersion, committed.AdvancementId));
+    }
+
     private static ComposedCharacterSheetResponse ToResponse(ComposedCharacterSheet sheet) => new(
         sheet.CharacterId,
         sheet.Name,
@@ -134,7 +171,9 @@ public static class CharacterEndpoints
         sheet.RecentAdvancements.Select(item => new ComposedAdvancementResponse(
             item.Id, item.Category.ToString(), item.TargetId, item.PreviousValue, item.NewValue,
             item.KarmaCost, item.CreatedAtUtc)).ToArray(),
-        Array.Empty<ComposedNextActionResponse>(),
+        sheet.NextActions.Select(item => new ComposedNextActionResponse(
+            sheet.Sheet.SpecialAttributes.Any(attribute => attribute.Id == item.AttributeId) ? "specialAttribute" : "attribute",
+            item.AttributeId, item.KarmaCost, item.IsEligible, item.BlockingReasons)).ToArray(),
         sheet.FinalizedAtUtc,
         sheet.CareerStateCreatedAtUtc,
         sheet.CareerStateUpdatedAtUtc);
@@ -163,5 +202,46 @@ public static class CharacterEndpoints
             _ => (500, "character-career-sheet.failed", "The career sheet could not be composed."),
         };
         return Results.Problem(statusCode: status, title: title, extensions: new Dictionary<string, object?> { ["code"] = code });
+    }
+
+    private static IResult Problem(AdvanceAttributeError error, IReadOnlyList<string>? reasons)
+    {
+        if (error == AdvanceAttributeError.NotFound)
+        {
+            return Results.NotFound();
+        }
+
+        var (status, code, title) = error switch
+        {
+            AdvanceAttributeError.CareerStateNotInitialized =>
+                (409, "character-career.not-initialized", "This character's career state has not been initialized yet."),
+            AdvanceAttributeError.VersionConflict =>
+                (409, "character-career.version-conflict", "This character's career state was changed by another request."),
+            AdvanceAttributeError.RequestIdReused =>
+                (409, "character-career.request-id-reused", "This request id was already used for a different action."),
+            AdvanceAttributeError.UnknownAttribute =>
+                (400, "character-career.attribute.unknown", "That attribute does not exist on this character."),
+            AdvanceAttributeError.RuleViolation =>
+                (422, "character-career.attribute.ineligible", "This attribute cannot be advanced right now."),
+            AdvanceAttributeError.UnsupportedSchemaVersion =>
+                (422, "character-career.unsupported-schema-version", "The finalized sheet uses an unsupported schema version."),
+            AdvanceAttributeError.MalformedDocument =>
+                (422, "character-career.malformed-document", "The finalized sheet is malformed."),
+            AdvanceAttributeError.RulesetCatalogUnavailable =>
+                (422, "character-career.catalog-unavailable", "The pinned ruleset catalog is unavailable."),
+            AdvanceAttributeError.CatalogDigestMismatch =>
+                (422, "character-career.catalog-digest-mismatch", "The finalized sheet's catalog digest no longer matches the pinned catalog."),
+            AdvanceAttributeError.IncompleteDocument =>
+                (422, "character-career.incomplete-document", "The finalized sheet is missing a required section."),
+            _ => (500, "character-career.failed", "The attribute could not be advanced."),
+        };
+
+        var extensions = new Dictionary<string, object?> { ["code"] = code };
+        if (reasons is { Count: > 0 })
+        {
+            extensions["reasons"] = reasons;
+        }
+
+        return Results.Problem(statusCode: status, title: title, extensions: extensions);
     }
 }

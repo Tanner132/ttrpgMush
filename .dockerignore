@@ -1,0 +1,32 @@
+# Version control and editor state
+.git
+.gitignore
+.claude
+.vs
+.vscode
+.idea
+*.user
+*.suo
+*.swp
+.aider*
+
+# Build output — rebuilt inside the image, and host binaries are the wrong platform
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/coverage
+**/.vite
+**/*.tsbuildinfo
+
+# Secrets. The example files are harmless and useful for reference.
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Source rulebook PDFs: ~123 MB that would be uploaded to the daemon on every build
+*.pdf
+
+# Planning documents, not needed to build either image
+roadmap/

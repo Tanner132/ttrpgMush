@@ -1,5 +1,7 @@
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -13,6 +15,7 @@ using SeattleByNight.Application.Characters;
 using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Infrastructure;
+using SeattleByNight.Infrastructure.Identity;
 using SeattleByNight.Infrastructure.Persistence;
 using SeattleByNight.Infrastructure.Persistence.Seed;
 
@@ -142,11 +145,44 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
     options.ValidationInterval = TimeSpan.Zero;
 });
 
+// Behind nginx (and NPM, and Cloudflare) the backend only ever sees the proxy as
+// the caller, which would collapse the authentication rate limiter onto a single
+// partition. The backend is published only on an internal Docker network, so every
+// forwarded value it receives has already passed through our own nginx, which
+// overwrites X-Forwarded-For rather than appending to it.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+// Identity's auth cookies and antiforgery tokens are encrypted with the data
+// protection key ring. Left at its default the ring lives inside the container and
+// is destroyed on every redeploy, silently signing out every user and invalidating
+// every issued antiforgery token.
+var dataProtectionKeyRingPath = builder.Configuration["DataProtection:KeyRingPath"];
+
+if (!string.IsNullOrWhiteSpace(dataProtectionKeyRingPath))
+{
+    Directory.CreateDirectory(dataProtectionKeyRingPath);
+
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyRingPath))
+        .SetApplicationName("SeattleByNight");
+}
+
 builder.Services.AddHealthChecks()
     .AddCheck("live", () => HealthCheckResult.Healthy("OK"), ["live"])
     .AddDbContextCheck<SeattleByNightDbContext>("db", tags: ["ready"]);
 
 var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseForwardedHeaders();
+}
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
@@ -179,11 +215,20 @@ app.MapHub<RoomChatHub>("/hubs/room-chat").RequireAuthorization();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+}
 
-    using (var scope = app.Services.CreateScope())
+// Migrations run on startup in every environment: this is a single-instance
+// deployment, so there is no second replica to race. Integration tests opt out and
+// prepare their own database.
+if (app.Configuration.GetValue("Database:MigrateOnStartup", true))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<SeattleByNightDbContext>();
+
+    if (app.Environment.IsDevelopment())
     {
-        var db = scope.ServiceProvider.GetRequiredService<SeattleByNightDbContext>();
-
+        // Development still starts without Postgres so the front end can be worked
+        // on against a stubbed API.
         try
         {
             await db.Database.MigrateAsync();
@@ -192,6 +237,26 @@ if (app.Environment.IsDevelopment())
         catch (Exception ex)
         {
             app.Logger.LogWarning(ex, "Development database initialization skipped.");
+        }
+    }
+    else
+    {
+        // Deliberately unguarded: serving requests against an unmigrated or
+        // unreachable database is worse than failing to start. Migrations also
+        // insert the role definitions and the starting room, so there is nothing
+        // further to seed here.
+        await db.Database.MigrateAsync();
+
+        var bootstrapAdministratorEmail = app.Configuration["Bootstrap:AdministratorEmail"];
+
+        if (!string.IsNullOrWhiteSpace(bootstrapAdministratorEmail))
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+            await AdministratorBootstrapper.PromoteAsync(
+                userManager,
+                bootstrapAdministratorEmail,
+                app.Logger);
         }
     }
 }

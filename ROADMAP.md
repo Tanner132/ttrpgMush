@@ -151,8 +151,48 @@ eligibility ledger (SHEET-910) resolves every catalog collection to
 eligible/excluded but still needs a mechanical per-SKU audit pass before
 implementation, per that document's Section 6.4.
 
-SHEET-902 (typed creation-baseline reading) is unblocked. Either resume with
-CHAR-812, or continue Milestone 9 with SHEET-902.
+**SHEET-902 through SHEET-906 are complete**, carrying Milestone 9 through its
+first Karma-spending release (Recommended Delivery Sequence items 1-3). In
+order: SHEET-902 added `CharacterCreationBaselineReader`, a typed reader that
+normalizes the current evaluated sheet schema version into a
+`CharacterCreationBaseline` and rejects unsupported/malformed/digest-mismatched
+sheets deterministically (legacy sheet support was dropped rather than built,
+per the 2026-08-25 project-owner scope note also recorded in
+`SHEET_901_CAREER_RULES_BASELINE.md` §7). SHEET-903 added the mutable career
+layer: `CharacterCareerState` (current Karma/nuyen, lifetime Karma earned, a
+JSONB `CareerProgressionDocument`), append-only `CharacterResourceTransaction`/
+`CharacterAdvancement` history, `CharacterInventoryItem`, and
+`CharacterActionReceipt` for request-id idempotency, plus an idempotent
+backfill for already-finalized characters and atomic opening-balance seeding
+(`CarryoverKarma`/`CarryoverNuyen` + starting cash) — verified with real
+PostgreSQL integration tests (Testcontainers), never invented values for
+malformed/legacy rows. SHEET-904 added the owner-scoped composed-sheet query
+(`GET /api/characters/{characterId}/career-sheet`), which overlays progression
+onto the baseline without ever mutating or reinitializing career state on
+read. SHEET-905 added the routed, read-only `/characters/:characterId/sheet`
+frontend page and a "View Character Sheet" link on finalized character slots,
+reusing character-creation catalog indexing/description helpers while never
+mounting the creator or touching draft/autosave/finalization state. SHEET-906
+added the milestone's first mutation — `POST
+/api/characters/{characterId}/advancements/attributes` raises one Physical/
+Mental attribute, Edge, Magic, or Resonance by exactly one rating per request
+at `new rating x 5` Karma, capped at each attribute's natural maximum (+1 for
+`exceptional-attribute`; Edge also +1 for `lucky`; Magic/Resonance flat 6/7
+since Initiation isn't implemented yet) — version-checked via an EF
+concurrency token and idempotent via the SHEET-903 action-receipt table, with
+derived statistics recomputed on every read (never persisted) through
+formulas now shared with creation's `DerivedStatisticsEvaluator`. The routed
+sheet's Attributes tab is now interactive (current value, cost, inline
+non-modal spend confirmation); every other section remains the SHEET-905
+read-only presentation. Verified via 472 backend tests (up from 443) including
+new PostgreSQL concurrency/idempotency coverage, 287 frontend tests (up from
+284), and both a `dotnet build`/`tsc -b` clean build.
+
+**Next**: SHEET-907 (Skill And Group Advancement), completing the milestone's
+"first broad Karma-spending release" alongside SHEET-906, per the milestone
+file's Recommended Delivery Sequence item 3. SHEET-911 (`/character` command
+and gameplay modal) can also start now that SHEET-905 is stable, per sequence
+item 4.
 
 CHAR-811 (Final Review And Atomic Finalization) is **complete**: finalization
 now genuinely requires a complete character. Previously, Metatype/Attributes,

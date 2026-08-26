@@ -16,8 +16,6 @@ public sealed class DerivedStatisticsEvaluator
     private const decimal StartingEssence = 6m;
     private const int MaxCarryoverKarma = 7;
     private const int MaxCarryoverNuyen = 5000;
-    private const int InitiativeDice = 1;
-    private const int ConditionMonitorBase = 8;
 
     public DerivedStatisticsEvaluation Evaluate(
         MetatypeAndAttributeEvaluation metatypeEvaluation,
@@ -45,12 +43,12 @@ public sealed class DerivedStatisticsEvaluator
 
         var essence = StartingEssence - (resourcesEvaluation.Resources?.TotalEssenceLoss ?? 0m);
 
-        var physicalLimit = CeilDiv3(strength * 2 + body + reaction);
-        var mentalLimit = CeilDiv3(logic * 2 + intuition + willpower);
-        var socialLimit = CeilDiv3(charisma * 2 + willpower + essence);
+        var physicalLimit = DerivedStatisticsFormulas.PhysicalLimit(strength, body, reaction);
+        var mentalLimit = DerivedStatisticsFormulas.MentalLimit(logic, intuition, willpower);
+        var socialLimit = DerivedStatisticsFormulas.SocialLimit(charisma, willpower, essence);
 
-        var physicalConditionMonitor = CeilDiv2(body) + ConditionMonitorBase;
-        var stunConditionMonitor = CeilDiv2(willpower) + ConditionMonitorBase;
+        var physicalConditionMonitor = DerivedStatisticsFormulas.PhysicalConditionMonitor(body);
+        var stunConditionMonitor = DerivedStatisticsFormulas.StunConditionMonitor(willpower);
 
         var karmaRemaining = Math.Max(0, karmaBudgetEvaluation.Pool - karmaBudgetEvaluation.Spent);
         var nuyenRemaining = resourcesEvaluation.Resources is null
@@ -66,8 +64,8 @@ public sealed class DerivedStatisticsEvaluator
             physicalLimit,
             mentalLimit,
             socialLimit,
-            reaction + intuition,
-            InitiativeDice,
+            DerivedStatisticsFormulas.InitiativeBase(reaction, intuition),
+            DerivedStatisticsFormulas.InitiativeDiceBase,
             physicalConditionMonitor,
             stunConditionMonitor,
             body,
@@ -76,8 +74,4 @@ public sealed class DerivedStatisticsEvaluator
 
         return new DerivedStatisticsEvaluation([], statistics);
     }
-
-    private static int CeilDiv3(decimal numerator) => (int)Math.Ceiling(numerator / 3m);
-
-    private static int CeilDiv2(int numerator) => (int)Math.Ceiling(numerator / 2m);
 }

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace SeattleByNight.Api.Tests;
 
@@ -36,7 +37,11 @@ public sealed class CharacterCareerSheetEndpointTests : IClassFixture<ApiTestFac
         Assert.Equal(2, body.GetProperty("recentTransactions").GetArrayLength());
         Assert.Empty(body.GetProperty("recentAdvancements").EnumerateArray());
         Assert.Empty(body.GetProperty("acquiredInventory").EnumerateArray());
-        Assert.Empty(body.GetProperty("nextActions").EnumerateArray());
+        var nextActions = body.GetProperty("nextActions").EnumerateArray().ToArray();
+        Assert.NotEmpty(nextActions);
+        var bodyAction = Assert.Single(nextActions, item => item.GetProperty("targetId").GetString() == "body");
+        Assert.Equal("attribute", bodyAction.GetProperty("category").GetString());
+        Assert.True(bodyAction.GetProperty("karmaCost").GetInt32() > 0);
 
         Assert.Equal(HttpStatusCode.NotFound,
             (await other.GetAsync($"/api/characters/{characterId}/career-sheet")).StatusCode);
@@ -52,10 +57,124 @@ public sealed class CharacterCareerSheetEndpointTests : IClassFixture<ApiTestFac
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Advancing_an_attribute_charges_karma_and_persists_across_reload()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Advancement Runner");
+        await GrantKarmaAsync(characterId, 1_000);
+        var before = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        var version = before.GetProperty("careerStateVersion").GetGuid();
+        var body = before.GetProperty("sheet").GetProperty("attributes").EnumerateArray()
+            .Single(item => item.GetProperty("id").GetString() == "body");
+        var karma = before.GetProperty("currentKarma").GetInt32();
+        var cost = (body.GetProperty("absoluteValue").GetInt32() + 1) * 5;
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/attributes", new
+        {
+            expectedVersion = version,
+            requestId = Guid.NewGuid(),
+            attributeId = "body",
+        });
+
+        response.EnsureSuccessStatusCode();
+        var result = await ReadObjectAsync(response);
+        Assert.Equal(karma - cost, result.GetProperty("currentKarma").GetInt32());
+        Assert.NotEqual(version, result.GetProperty("careerStateVersion").GetGuid());
+
+        var after = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        Assert.Equal(karma - cost, after.GetProperty("currentKarma").GetInt32());
+        Assert.Equal(
+            body.GetProperty("absoluteValue").GetInt32() + 1,
+            after.GetProperty("sheet").GetProperty("attributes").EnumerateArray()
+                .Single(item => item.GetProperty("id").GetString() == "body").GetProperty("absoluteValue").GetInt32());
+    }
+
+    [Fact]
+    public async Task Advancing_with_a_stale_version_returns_conflict()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Stale Version Runner");
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/attributes", new
+        {
+            expectedVersion = Guid.NewGuid(),
+            requestId = Guid.NewGuid(),
+            attributeId = "body",
+        });
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Replaying_the_same_request_id_returns_the_same_result_without_spending_twice()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Idempotent Runner");
+        await GrantKarmaAsync(characterId, 1_000);
+        var before = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        var version = before.GetProperty("careerStateVersion").GetGuid();
+        var requestId = Guid.NewGuid();
+        var request = new { expectedVersion = version, requestId, attributeId = "body" };
+
+        var first = await ReadObjectAsync(await owner.PostAsJsonAsync(
+            $"/api/characters/{characterId}/advancements/attributes", request));
+        var second = await ReadObjectAsync(await owner.PostAsJsonAsync(
+            $"/api/characters/{characterId}/advancements/attributes", request));
+
+        Assert.Equal(first.GetProperty("currentKarma").GetInt32(), second.GetProperty("currentKarma").GetInt32());
+        var after = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        Assert.Equal(first.GetProperty("currentKarma").GetInt32(), after.GetProperty("currentKarma").GetInt32());
+    }
+
+    [Fact]
+    public async Task Advancing_an_unknown_attribute_returns_bad_request()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Unknown Attribute Runner");
+        var before = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/attributes", new
+        {
+            expectedVersion = before.GetProperty("careerStateVersion").GetGuid(),
+            requestId = Guid.NewGuid(),
+            attributeId = "not-a-real-attribute",
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Advancing_an_attribute_requires_authentication()
+    {
+        var anonymous = factory.CreateClient();
+
+        var response = await anonymous.PostAsJsonAsync($"/api/characters/{Guid.NewGuid()}/advancements/attributes", new
+        {
+            expectedVersion = Guid.NewGuid(),
+            requestId = Guid.NewGuid(),
+            attributeId = "body",
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     private async Task<HttpClient> CreatePlayerAsync()
     {
         var username = $"career-{Guid.NewGuid():N}";
         return await factory.RegisterAndLoginAsync(username, $"{username}@test.local", Password);
+    }
+
+    // Opening Karma is capped at 7 (MaxCarryoverKarma), too little to test a
+    // realistic advancement cost against; bump it directly through the DB the
+    // way an award/correction ticket would, since no HTTP surface grants
+    // Karma in this milestone.
+    private async Task GrantKarmaAsync(Guid characterId, int karma)
+    {
+        await using var db = factory.CreateDbContext();
+        var state = await db.CharacterCareerStates.SingleAsync(item => item.CharacterId == characterId);
+        state.CurrentKarma = karma;
+        await db.SaveChangesAsync();
     }
 
     private static async Task<Guid> FinalizeRunnerAsync(HttpClient client, string name)

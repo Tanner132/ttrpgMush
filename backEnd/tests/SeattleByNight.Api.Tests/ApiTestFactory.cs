@@ -45,6 +45,8 @@ public sealed class ApiTestFactory : IAsyncLifetime
             {
                 builder.UseEnvironment("Testing");
                 builder.UseSetting("ConnectionStrings:SeattleByNight", ConnectionString);
+                // The fixture migrates and seeds the container above; startup must not repeat it.
+                builder.UseSetting("Database:MigrateOnStartup", "false");
                 builder.UseSetting("Authentication:RateLimit:PermitLimit", "1000");
                 builder.UseSetting("Authentication:RateLimit:WindowSeconds", "60");
                 builder.UseSetting("PlaySession:ExpirationScanInterval", "00:00:01");

@@ -1,0 +1,38 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+
+WORKDIR /src
+
+# Copies the whole backend tree rather than restoring project-by-project. Layer
+# caching is worse, but the build is obvious and correct; optimize when it hurts.
+COPY backEnd/ ./backEnd/
+
+RUN dotnet restore backEnd/src/SeattleByNight.Api/SeattleByNight.Api.csproj
+
+RUN dotnet publish backEnd/src/SeattleByNight.Api/SeattleByNight.Api.csproj \
+    -c Release \
+    -o /app/publish \
+    --no-restore
+
+
+# Alpine: smaller, and its busybox wget makes the Compose healthcheck possible
+# without installing anything. It runs with invariant globalization, which is safe
+# here because the code only ever formats with CultureInfo.InvariantCulture.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+# The data protection key ring lives on a named volume. Creating the directory with
+# the app user's ownership here means Docker seeds the volume with those permissions
+# the first time it is mounted, so the non-root user can write to it.
+RUN mkdir -p /keys && chown -R $APP_UID:$APP_UID /keys
+
+USER $APP_UID
+
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://+:8080
+
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "SeattleByNight.Api.dll"]

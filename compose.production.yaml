@@ -1,0 +1,94 @@
+# The project name namespaces containers, volumes and networks as
+# seattlebynight-*, keeping this stack clear of the dev compose.yaml stack
+# (which claims the fixed name seattlebynight-postgres on the same host).
+name: seattlebynight
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    # No published port and an internal network: the database is unreachable from
+    # the LAN, from Tailscale, and from the internet. Only the backend can see it.
+    networks:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+
+    restart: unless-stopped
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__SeattleByNight: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      DataProtection__KeyRingPath: /keys
+      # Grants the Administrator role to this account at startup once it has
+      # registered through the app. Safe to leave set; it is a no-op afterwards.
+      Bootstrap__AdministratorEmail: ${BOOTSTRAP_ADMINISTRATOR_EMAIL:-}
+
+    volumes:
+      # Without this, every redeploy generates a fresh key ring and signs out
+      # every user and invalidates every issued antiforgery token.
+      - dataprotection_keys:/keys
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # Generous: the first start of a new deployment runs migrations.
+      start_period: 40s
+
+    networks:
+      - backend
+      - frontend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+
+    restart: unless-stopped
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    # Bound to the Tailscale address only, so nothing on the LAN or any other
+    # host interface can reach it. NPM proxies to mush:8080 over Tailscale.
+    ports:
+      - "${TAILSCALE_IP}:8080:80"
+
+    networks:
+      - frontend
+
+volumes:
+  postgres_data:
+  dataprotection_keys:
+
+networks:
+  frontend:
+  backend:
+    internal: true

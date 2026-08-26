@@ -9,7 +9,6 @@ export interface SheetCard {
 }
 
 export interface CareerSheetSections {
-    attributes: SheetCard[]
     skills: SheetCard[]
     qualities: SheetCard[]
     magicResonance: SheetCard[]
@@ -24,23 +23,6 @@ function nameOf<T extends { displayName: string }>(index: Map<string, T> | undef
 export function buildCareerSheetSections(catalog: CatalogContract | null, composed: ComposedCareerSheet): CareerSheetSections {
     const index: CatalogIndex | null = catalog ? getCatalogIndex(catalog) : null
     const sheet = composed.sheet
-
-    const attributes: SheetCard[] = [
-        {
-            label: 'Attributes',
-            items: sheet.attributes.map((attribute): DossierCardItem => ({
-                name: nameOf(index?.attributes, attribute.id),
-                badge: String(attribute.absoluteValue),
-            })),
-        },
-        {
-            label: 'Special attributes',
-            items: sheet.specialAttributes.map((attribute): DossierCardItem => ({
-                name: nameOf(index?.attributes, attribute.id),
-                badge: String(attribute.absoluteValue),
-            })),
-        },
-    ]
 
     const skills: SheetCard[] = [
         {
@@ -174,5 +156,5 @@ export function buildCareerSheetSections(catalog: CatalogContract | null, compos
         },
     ]
 
-    return { attributes, skills, qualities, magicResonance, contactsLifestyles, inventory }
+    return { skills, qualities, magicResonance, contactsLifestyles, inventory }
 }

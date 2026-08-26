@@ -118,7 +118,7 @@ export default function CharacterSheetPage() {
                 </div>
 
                 {profile?.shortDescription && <p className="career-dossier__summary">“{profile.shortDescription}”</p>}
-                <CareerSheetContent sheet={sheet} catalog={catalog} />
+                <CareerSheetContent sheet={sheet} catalog={catalog} onAdvanced={reload} />
 
                 <footer className="career-dossier__footer">
                     <span>END OF VERIFIED CONTRACTOR RECORD</span>
