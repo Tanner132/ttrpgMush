@@ -15,22 +15,34 @@ public sealed record CatalogVersionPin(
     string RulesetId,
     string Version,
     string ResourceName,
-    string SemanticDigest);
+    string SemanticDigest,
+    string? BaseResourceName = null);
 
 public sealed class EmbeddedRulesetCatalogProvider : IRulesetCatalogProvider
 {
     public const string CurrentRulesetId = "sr5-core";
-    public const string CurrentVersion = "1.0.0";
-    public const string CurrentSemanticDigest = "3A30336A6001916ADC3D69C4D613BFCF3DDC3AEDAAC941858FD7659FF858A3D8";
+    public const string CurrentVersion = "1.2.0";
+    public const string CurrentSemanticDigest = "AB964A3911536A0FFD6BADAD942EC32DD1E2A2ACC387E6DC7B315E3439FF248A";
+    private const string VersionOneSemanticDigest = "C943E1DB4DC510AEE2BDE33372323A96140B51F95980D57630F9EB7DFC6FE44E";
+    private const string VersionOneOneSemanticDigest = "81468BD05315418B475C50EFE840042C2CD5068606D65F87612E574AB2B41ECA";
 
     private const string ResourcePrefix = "SeattleByNight.Application.CharacterCreation.Catalog.Resources.";
 
     // Append-only lockfile of published catalog versions. The last entry is the
     // current catalog. Released versions are never edited; new content becomes a
     // new resource plus a new pin rather than a mutation of an earlier entry.
+    // Every overlay pin's BaseResourceName must reference a complete, standalone
+    // (non-overlay) catalog document -- LoadOverlay reads it as raw bytes rather
+    // than resolving its own overlay chain -- so every overlay here bases
+    // directly on sr5-core-1.0.0.json and republishes any earlier overlay's
+    // additive content it still needs.
     public static readonly IReadOnlyList<CatalogVersionPin> RetainedVersions =
     [
-        new(CurrentRulesetId, CurrentVersion, $"{ResourcePrefix}sr5-core-1.0.0.json", CurrentSemanticDigest),
+        new(CurrentRulesetId, "1.0.0", $"{ResourcePrefix}sr5-core-1.0.0.json", VersionOneSemanticDigest),
+        new(CurrentRulesetId, "1.1.0", $"{ResourcePrefix}sr5-core-1.1.0.json", VersionOneOneSemanticDigest,
+            $"{ResourcePrefix}sr5-core-1.0.0.json"),
+        new(CurrentRulesetId, CurrentVersion, $"{ResourcePrefix}sr5-core-1.2.0.json", CurrentSemanticDigest,
+            $"{ResourcePrefix}sr5-core-1.0.0.json"),
     ];
 
     private readonly IReadOnlyDictionary<(string RulesetId, string Version), RulesetCatalog> catalogs =
@@ -67,9 +79,18 @@ public sealed class EmbeddedRulesetCatalogProvider : IRulesetCatalogProvider
 
     private static RulesetCatalog Load(string resourceName, string expectedSemanticDigest)
     {
+        var pin = RetainedVersions.Single(item => item.ResourceName == resourceName);
+        var json = ReadResource(resourceName);
+        return pin.BaseResourceName is null
+            ? RulesetCatalogLoader.Load(json, expectedSemanticDigest)
+            : RulesetCatalogLoader.LoadOverlay(ReadResource(pin.BaseResourceName), json, expectedSemanticDigest);
+    }
+
+    private static string ReadResource(string resourceName)
+    {
         using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)
             ?? throw new RulesetCatalogException($"Embedded catalog resource '{resourceName}' was not found.");
         using var reader = new StreamReader(stream);
-        return RulesetCatalogLoader.Load(reader.ReadToEnd(), expectedSemanticDigest);
+        return reader.ReadToEnd();
     }
 }

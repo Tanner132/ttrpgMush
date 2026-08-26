@@ -9,8 +9,11 @@ export interface CatalogBudgetChip {
 }
 
 export interface CatalogFacetChip {
+  id: string
   label: string
   count: number
+  active: boolean
+  onSelect: () => void
 }
 
 export interface CatalogPickedItem {
@@ -51,10 +54,6 @@ const SECTION_STATUS_COLOR: Record<CatalogSectionNavItem['status'], string> = {
   optional: 'var(--sb-text-dim)',
 }
 
-// The rail's BUDGET and SELECTED sections are real and interactive (removing
-// a picked item here calls the same handler as the readout's remove action).
-// SECTIONS (when passed) is also real — it switches the middle catalog list.
-// CATEGORY is a visual-only mock — no click handler — per the design brief.
 export function CatalogRail({ budgets, sectionLabel = 'SECTIONS', sections = [], facetLabel = 'CATEGORY', facets = [], picked }: CatalogRailProps) {
   return (
     <aside className="console__rail">
@@ -96,10 +95,17 @@ export function CatalogRail({ budgets, sectionLabel = 'SECTIONS', sections = [],
         <div className="console__rail-section">
           <div className="console__rail-heading">{facetLabel}</div>
           {facets.map((facet) => (
-            <div className="console__facet" key={facet.label}>
+            <button
+              type="button"
+              className={`console__facet${facet.active ? ' console__facet--active' : ''}`}
+              key={facet.id}
+              aria-label={`${facet.label} (${facet.count})`}
+              aria-pressed={facet.active}
+              onClick={facet.onSelect}
+            >
               <span>{facet.label}</span>
               <span className="console__facet-count">{facet.count}</span>
-            </div>
+            </button>
           ))}
         </div>
       )}

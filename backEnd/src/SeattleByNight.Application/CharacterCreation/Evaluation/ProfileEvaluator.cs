@@ -22,7 +22,13 @@ public sealed class ProfileEvaluator
     public ProfileEvaluation Evaluate(RulesetCatalog catalog, CharacterCreationDraftDocument document)
     {
         var diagnostics = new List<CharacterCreationDiagnostic>();
+        var hasAmbidextrousQuality = document.Qualities?.Any(quality => quality.QualityId == "ambidextrous") == true;
         var identity = document.Identity;
+        if (identity is null && hasAmbidextrousQuality)
+        {
+            identity = new CharacterIdentity(Handedness: "Ambidextrous");
+        }
+
         if (identity is null)
         {
             return new ProfileEvaluation(diagnostics, null);
@@ -42,6 +48,18 @@ public sealed class ProfileEvaluator
         CheckLength(identity.ShortDescription, "shortDescription", source, diagnostics);
         CheckLength(identity.Description, "description", source, diagnostics, MaxDescriptionLength);
 
+        var handedness = hasAmbidextrousQuality ? "Ambidextrous" : identity.Handedness;
+        if (handedness is not null && handedness is not ("Left" or "Right") && !hasAmbidextrousQuality)
+        {
+            diagnostics.Add(CharacterCreationDiagnosticFactory.Error(
+                Step,
+                "identity.handedness.invalid",
+                "identity.handedness",
+                [],
+                catalog.Qualities["ambidextrous"].Source,
+                "Choose Left or Right. Ambidextrous requires the Ambidextrous quality."));
+        }
+
         var profile = new CanonicalCharacterProfile(
             identity.Gender,
             identity.Age,
@@ -50,7 +68,7 @@ public sealed class ProfileEvaluator
             identity.Height,
             identity.Weight,
             identity.SkinTone,
-            identity.Handedness,
+            handedness,
             identity.Concept,
             identity.ShortDescription,
             identity.Description);

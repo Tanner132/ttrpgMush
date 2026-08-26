@@ -35,7 +35,7 @@ public sealed class ResourcesEssenceEvaluator
         var metatype = document.Metatype is null
             ? null
             : catalog.Metatypes.GetValueOrDefault(document.Metatype.MetatypeId);
-        var gearMultiplier = GearCostMultiplier(metatype);
+        var gearMultiplier = GearCostMultiplier(metatype, document.Metatype?.MetavariantId);
 
         var spent = 0m;
         var totalEssenceLoss = 0m;
@@ -297,9 +297,14 @@ public sealed class ResourcesEssenceEvaluator
         return path.AttributeId == "magic" ? (loss, (int?)null) : ((int?)null, loss);
     }
 
-    private static decimal GearCostMultiplier(MetatypeDefinition? metatype)
+    // Run Faster metavariants (CHAR-813) replace their parent metatype's gear
+    // multiplier entirely rather than inheriting it: none of the 17 approved
+    // metavariants' racial-trait bundles mention a gear cost surcharge, so a
+    // selected metavariant always uses the unmodified 1x multiplier here,
+    // even for Dwarf/Troll metavariants whose parent metatype has one.
+    private static decimal GearCostMultiplier(MetatypeDefinition? metatype, string? metavariantId)
     {
-        if (metatype is null)
+        if (metatype is null || metavariantId is not null)
         {
             return 1m;
         }

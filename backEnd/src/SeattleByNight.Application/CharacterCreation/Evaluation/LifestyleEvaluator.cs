@@ -40,7 +40,7 @@ public sealed class LifestyleEvaluator
         var metatype = document.Metatype is null
             ? null
             : catalog.Metatypes.GetValueOrDefault(document.Metatype.MetatypeId);
-        var lifestyleMultiplier = LifestyleCostMultiplier(metatype);
+        var lifestyleMultiplier = LifestyleCostMultiplier(metatype, document.Metatype?.MetavariantId);
 
         var canonical = new List<CanonicalLifestyle>();
         var instanceIds = new HashSet<string>(StringComparer.Ordinal);
@@ -184,8 +184,23 @@ public sealed class LifestyleEvaluator
         return monthly * selection.PrepaidMonths;
     }
 
-    private static decimal LifestyleCostMultiplier(MetatypeDefinition? metatype)
+    // Run Faster metavariants (CHAR-813, run-faster p. 104, PDF 106) replace
+    // their parent metatype's lifestyle multiplier entirely with their own
+    // racial-trait bundle's cost modifier, when it declares one.
+    private static decimal LifestyleCostMultiplier(MetatypeDefinition? metatype, string? metavariantId)
     {
+        if (metavariantId is not null)
+        {
+            return metavariantId switch
+            {
+                "gnome" or "hanuman" or "koborokuru" or "menehune" => 1.20m,
+                "cyclops" or "fomorian" or "giant" or "minotaur" => 2.00m,
+                "ogre" => 0.80m,
+                "xapiri-thepe" => 0.90m,
+                _ => 1m,
+            };
+        }
+
         if (metatype is null)
         {
             return 1m;

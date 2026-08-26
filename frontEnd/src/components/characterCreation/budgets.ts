@@ -4,9 +4,9 @@
 // client-side previews in this feature (see LifestyleStep), they are not
 // authoritative — the server re-evaluates everything on save.
 import type { CatalogContract, CharacterCreationDocument } from '../../api/characterCreation.ts'
-import { augmentationUnitCost, augmentationUnitEssence, metatypeGearMultiplier, resolveNumber } from '../../api/characterCreation.ts'
+import { augmentationUnitCost, augmentationUnitEssence, lifestyleCostMultiplier, metatypeGearMultiplier, resolveNumber } from '../../api/characterCreation.ts'
 import { attachmentUnitCost } from './steps/resourceCatalog.ts'
-import { getCatalogIndex } from './catalogIndex.ts'
+import { effectiveMetatypeAttributes, getCatalogIndex } from './catalogIndex.ts'
 
 const NORMAL_ATTRIBUTE_IDS = ['body', 'agility', 'reaction', 'strength', 'willpower', 'logic', 'intuition', 'charisma']
 
@@ -57,7 +57,7 @@ export function computeEssenceSpent(catalog: CatalogContract, document: Characte
 export function computeNuyenSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
   const index = getCatalogIndex(catalog)
   const standardGrade = index.augmentationGrades.get('standard') ?? catalog.augmentationGrades[0]
-  const gearMultiplier = metatypeGearMultiplier(document.metatype?.metatypeId)
+  const gearMultiplier = metatypeGearMultiplier(document.metatype?.metatypeId, document.metatype?.metavariantId)
   let spent = 0
 
   for (const selection of document.resources ?? []) {
@@ -109,7 +109,7 @@ const PERMANENT_MONTHS_EQUIVALENT = 100
 const TEAM_PERSON_SURCHARGE = 0.1
 
 export function computeLifestyleSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
-  const multiplier = document.metatype?.metatypeId === 'troll' ? 2 : document.metatype?.metatypeId === 'dwarf' ? 1.2 : 1
+  const multiplier = lifestyleCostMultiplier(document.metatype?.metatypeId, document.metatype?.metavariantId)
   let total = 0
   for (const selection of document.lifestyles ?? []) {
     const index = getCatalogIndex(catalog)
@@ -143,9 +143,9 @@ export function computeLifestyleSpent(catalog: CatalogContract, document: Charac
 const SPECIALIZATION_OVERFLOW_KARMA_COST = 7
 
 export function computeFreeKnowledgeLanguagePoints(catalog: CatalogContract, document: CharacterCreationDocument): number {
-  const metatype = getCatalogIndex(catalog).metatypes.get(document.metatype?.metatypeId ?? '')
-  const intuitionRange = metatype?.attributes['intuition']
-  const logicRange = metatype?.attributes['logic']
+  const attributes = effectiveMetatypeAttributes(getCatalogIndex(catalog), document)
+  const intuitionRange = attributes?.['intuition']
+  const logicRange = attributes?.['logic']
   const intuition = (intuitionRange?.minimum ?? 0) + (document.attributes?.values['intuition'] ?? 0)
   const logic = (logicRange?.minimum ?? 0) + (document.attributes?.values['logic'] ?? 0)
   return (intuition + logic) * 2
@@ -182,18 +182,29 @@ const ATTRIBUTE_KARMA_PER_RATING = 5
 export function computeAttributeKarmaSpent(catalog: CatalogContract, document: CharacterCreationDocument): number {
   const index = getCatalogIndex(catalog)
   const cell = index.priorityCells.get(`attributes:${document.priorityAssignment?.attributes}`)
-  const metatype = index.metatypes.get(document.metatype?.metatypeId ?? '')
+  const attributes = effectiveMetatypeAttributes(index, document)
   const values = document.attributes?.values ?? {}
   let remainingFree = cell?.physicalMentalAttributePoints ?? 0
   let karmaSpent = 0
 
   for (const id of [...NORMAL_ATTRIBUTE_IDS].sort()) {
-    const minimum = metatype?.attributes[id]?.minimum ?? 0
+    const minimum = attributes?.[id]?.minimum ?? 0
     const allocated = Math.max(0, values[id] ?? 0)
     for (let step = 1; step <= allocated; step++) {
       if (remainingFree > 0) remainingFree--
       else karmaSpent += ATTRIBUTE_KARMA_PER_RATING * (minimum + step)
     }
+  }
+
+  // Mirrors MetatypeAndAttributeEvaluator: a selected metavariant's flat
+  // Extended-Priority-Chart Karma surcharge is folded into the same Karma
+  // total as attribute overflow, not tracked as a separate pool.
+  const metavariantId = document.metatype?.metavariantId
+  const priorityLevel = document.priorityAssignment?.metatype
+  if (metavariantId) {
+    const metavariant = index.metavariants.get(metavariantId)
+    const grant = metavariant?.priorityGrants.find((item) => item.levelId === priorityLevel)
+    if (grant) karmaSpent += grant.additionalKarmaCost
   }
 
   return karmaSpent

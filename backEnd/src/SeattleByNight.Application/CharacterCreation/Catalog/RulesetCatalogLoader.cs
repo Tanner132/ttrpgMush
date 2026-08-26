@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
@@ -52,11 +53,14 @@ public static partial class RulesetCatalogLoader
             document.PriorityCategories!.ToImmutableArray(),
             ToDictionary(document.PriorityCells!, item => item.Id),
             ToDictionary(document.Metatypes!, item => item.Id),
+            ToDictionary(document.Metavariants ?? [], item => item.Id),
             ToDictionary(document.Attributes!, item => item.Id),
             ToDictionary(document.Qualities!, item => item.Id),
             ToDictionary(document.Skills!, item => item.Id),
             ToDictionary(document.SkillGroups!, item => item.Id),
             ToDictionary(document.KnowledgeCategories!, item => item.Id),
+            ToDictionary(document.KnowledgeSkillSuggestions ?? [], item => item.Id),
+            ToDictionary(document.LanguageSuggestions ?? [], item => item.Id),
             ToDictionary(document.CreationPaths!, item => item.Id),
             ToDictionary(document.AspectedValues!, item => item.Id),
             ToDictionary(document.Traditions!, item => item.Id),
@@ -81,6 +85,44 @@ public static partial class RulesetCatalogLoader
             ToDictionary(document.VehicleModifications!, item => item.Id),
             ToDictionary(document.LifestyleTiers!, item => item.Id),
             ToDictionary(document.LifestyleOptions!, item => item.Id));
+    }
+
+    public static RulesetCatalog LoadOverlay(
+        string baseJson,
+        string overlayJson,
+        string? expectedSemanticDigest = null)
+    {
+        ArgumentNullException.ThrowIfNull(baseJson);
+        ArgumentNullException.ThrowIfNull(overlayJson);
+
+        var baseDocument = JsonNode.Parse(baseJson)?.AsObject()
+            ?? throw new RulesetCatalogException("The base catalog document is empty.");
+        var overlayDocument = JsonNode.Parse(overlayJson)?.AsObject()
+            ?? throw new RulesetCatalogException("The catalog overlay document is empty.");
+        var baseVersion = baseDocument["version"]?.GetValue<string>();
+        var requiredBaseVersion = overlayDocument["baseVersion"]?.GetValue<string>();
+        if (string.IsNullOrWhiteSpace(requiredBaseVersion)
+            || !string.Equals(baseVersion, requiredBaseVersion, StringComparison.Ordinal))
+        {
+            throw new RulesetCatalogException(
+                $"Catalog overlay requires base version '{requiredBaseVersion}', but received '{baseVersion}'.");
+        }
+
+        if (!string.Equals(
+            baseDocument["rulesetId"]?.GetValue<string>(),
+            overlayDocument["rulesetId"]?.GetValue<string>(),
+            StringComparison.Ordinal))
+        {
+            throw new RulesetCatalogException("Catalog overlay ruleset does not match its base catalog.");
+        }
+
+        foreach (var property in overlayDocument)
+        {
+            if (property.Key == "baseVersion") continue;
+            baseDocument[property.Key] = property.Value?.DeepClone();
+        }
+
+        return Load(baseDocument.ToJsonString(), expectedSemanticDigest);
     }
 
     public static string ComputeSemanticDigest(string json)
@@ -159,6 +201,9 @@ public static partial class RulesetCatalogLoader
         ValidateUnique(document.Skills, item => item.Id, "skill");
         ValidateUnique(document.SkillGroups, item => item.Id, "skill group");
         ValidateUnique(document.KnowledgeCategories, item => item.Id, "knowledge category");
+        ValidateUnique(document.KnowledgeSkillSuggestions ?? [], item => item.Id, "knowledge skill suggestion");
+        ValidateUnique(document.LanguageSuggestions ?? [], item => item.Id, "language suggestion");
+        ValidateUnique(document.Metavariants ?? [], item => item.Id, "metavariant");
         ValidateUnique(document.CreationPaths, item => item.Id, "creation path");
         ValidateUnique(document.AspectedValues, item => item.Id, "aspected value");
         ValidateUnique(document.Traditions, item => item.Id, "tradition");
@@ -240,6 +285,36 @@ public static partial class RulesetCatalogLoader
             }
         }
 
+        var metatypeIds = document.Metatypes.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var priorityLevelIds = document.PriorityLevels.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        foreach (var metavariant in document.Metavariants ?? [])
+        {
+            ValidateCommonEntry(metavariant.Id, metavariant.DisplayName, metavariant.Source, sourceIds, "metavariant");
+            if (!metatypeIds.Contains(metavariant.ParentMetatypeId))
+                throw new RulesetCatalogException($"Metavariant '{metavariant.Id}' has a dangling parent metatype reference.");
+            if (metavariant.Attributes is null || metavariant.Attributes.Count != 9
+                || metavariant.Attributes.Keys.Any(id => !attributeIds.Contains(id)))
+                throw new RulesetCatalogException($"Metavariant '{metavariant.Id}' must define all normal attributes.");
+            foreach (var range in metavariant.Attributes)
+            {
+                if (range.Value.Minimum < 1 || range.Value.Maximum < range.Value.Minimum)
+                    throw new RulesetCatalogException($"Metavariant '{metavariant.Id}' has an invalid range for '{range.Key}'.");
+            }
+
+            if (metavariant.PriorityGrants is null || metavariant.PriorityGrants.Count == 0)
+                throw new RulesetCatalogException($"Metavariant '{metavariant.Id}' must define at least one priority grant.");
+            var grantLevelIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var grant in metavariant.PriorityGrants)
+            {
+                if (!priorityLevelIds.Contains(grant.LevelId))
+                    throw new RulesetCatalogException($"Metavariant '{metavariant.Id}' has a dangling priority level reference.");
+                if (!grantLevelIds.Add(grant.LevelId))
+                    throw new RulesetCatalogException($"Metavariant '{metavariant.Id}' has more than one grant for level '{grant.LevelId}'.");
+                if (grant.SpecialAttributePoints < 0 || grant.AdditionalKarmaCost < 0)
+                    throw new RulesetCatalogException($"Metavariant '{metavariant.Id}' has a negative priority grant value.");
+            }
+        }
+
         var skillIds = document.Skills.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         var skillGroupIds = document.SkillGroups.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         var qualityIds = document.Qualities.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
@@ -281,6 +356,23 @@ public static partial class RulesetCatalogLoader
             ValidateCommonEntry(category.Id, category.DisplayName, category.Source, sourceIds, "knowledge category");
             if (!attributeIds.Contains(category.LinkedAttribute))
                 throw new RulesetCatalogException($"Knowledge category '{category.Id}' has a dangling linked attribute.");
+        }
+
+        var knowledgeCategoryIds = document.KnowledgeCategories.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        foreach (var suggestion in document.KnowledgeSkillSuggestions ?? [])
+        {
+            ValidateCommonEntry(suggestion.Id, suggestion.DisplayName, suggestion.Source, sourceIds, "knowledge skill suggestion");
+            if (!knowledgeCategoryIds.Contains(suggestion.CategoryId))
+                throw new RulesetCatalogException($"Knowledge skill suggestion '{suggestion.Id}' has a dangling category reference.");
+            if (suggestion.Specializations is null
+                || suggestion.Specializations.Any(item => string.IsNullOrWhiteSpace(item) || item.Length > 120)
+                || suggestion.Specializations.Distinct(StringComparer.OrdinalIgnoreCase).Count() != suggestion.Specializations.Count)
+                throw new RulesetCatalogException($"Knowledge skill suggestion '{suggestion.Id}' has invalid specializations.");
+        }
+
+        foreach (var suggestion in document.LanguageSuggestions ?? [])
+        {
+            ValidateCommonEntry(suggestion.Id, suggestion.DisplayName, suggestion.Source, sourceIds, "language suggestion");
         }
 
         foreach (var path in document.CreationPaths)
@@ -743,11 +835,14 @@ public static partial class RulesetCatalogLoader
         PriorityCategoryDefinition[]? PriorityCategories,
         PriorityCellDefinition[]? PriorityCells,
         MetatypeDefinition[]? Metatypes,
+        MetavariantDefinition[]? Metavariants,
         AttributeDefinition[]? Attributes,
         QualityDefinition[]? Qualities,
         SkillDefinition[]? Skills,
         SkillGroupDefinition[]? SkillGroups,
         KnowledgeCategoryDefinition[]? KnowledgeCategories,
+        KnowledgeSkillSuggestionDefinition[]? KnowledgeSkillSuggestions,
+        LanguageSuggestionDefinition[]? LanguageSuggestions,
         CreationPathDefinition[]? CreationPaths,
         AspectedValueDefinition[]? AspectedValues,
         TraditionDefinition[]? Traditions,

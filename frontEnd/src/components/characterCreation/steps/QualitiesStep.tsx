@@ -13,31 +13,45 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
   const index = getCatalogIndex(catalog)
   const selected = document.qualities ?? []
   const [focusedId, setFocusedId] = useState(catalog.qualities[0]?.id ?? '')
+  const [query, setQuery] = useState('')
+  const [polarityFilter, setPolarityFilter] = useState<string | null>(null)
 
   const selectionOf = (qualityId: string) => selected.find((item) => item.qualityId === qualityId)
   const selectionCount = (qualityId: string) => selected.filter((item) => item.qualityId === qualityId).length
+  const updateSelected = (qualities: typeof selected) => onChange({
+    ...document,
+    qualities,
+    ...(qualities.some((item) => item.qualityId === 'ambidextrous')
+      ? { identity: { ...document.identity, handedness: 'Ambidextrous' } }
+      : document.identity?.handedness === 'Ambidextrous'
+        ? { identity: { ...document.identity, handedness: null } }
+        : {}),
+  })
 
   const add = (quality: QualityDefinition) => {
-    onChange({
-      ...document,
-      qualities: [...selected, { qualityId: quality.id }],
-    })
+    updateSelected([...selected, { qualityId: quality.id }])
     setFocusedId(quality.id)
   }
 
   const toggleSingle = (quality: QualityDefinition) => {
     if (selectionOf(quality.id)) {
-      onChange({ ...document, qualities: selected.filter((item) => item.qualityId !== quality.id) })
+      updateSelected(selected.filter((item) => item.qualityId !== quality.id))
       setFocusedId(quality.id)
       return
     }
     add(quality)
   }
 
-  const removeAt = (selectionIndex: number) => onChange({
-    ...document,
-    qualities: selected.filter((_, index) => index !== selectionIndex),
-  })
+  const removeAt = (selectionIndex: number) => updateSelected(selected.filter((_, index) => index !== selectionIndex))
+
+  const removeOneInstance = (qualityId: string) => {
+    for (let index = selected.length - 1; index >= 0; index -= 1) {
+      if (selected[index].qualityId === qualityId) {
+        removeAt(index)
+        return
+      }
+    }
+  }
 
   const positiveKarma = selected.reduce((sum, item) => {
     const definition = index.qualities.get(item.qualityId)
@@ -51,18 +65,28 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
   const focused = index.qualities.get(focusedId) ?? catalog.qualities[0]
   const focusedSelection = focused ? selectionOf(focused.id) : undefined
   const taken = focusedSelection !== undefined
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const visibleQualities = catalog.qualities.filter((quality) =>
+    (!polarityFilter || quality.polarity === polarityFilter)
+    && (!normalizedQuery || `${quality.displayName} ${quality.id} ${quality.polarity}`.toLocaleLowerCase().includes(normalizedQuery)))
 
-  const picked = selected.flatMap((item, selectionIndex) => {
-    const definition = index.qualities.get(item.qualityId)
+  const pickedQualityIds: string[] = []
+  const pickedCounts = new Map<string, number>()
+  for (const item of selected) {
+    if (!pickedCounts.has(item.qualityId)) pickedQualityIds.push(item.qualityId)
+    pickedCounts.set(item.qualityId, (pickedCounts.get(item.qualityId) ?? 0) + 1)
+  }
+  const picked = pickedQualityIds.flatMap((qualityId) => {
+    const definition = index.qualities.get(qualityId)
     if (!definition) return []
-    const instanceNumber = selected.slice(0, selectionIndex + 1).filter((candidate) => candidate.qualityId === item.qualityId).length
+    const count = pickedCounts.get(qualityId) ?? 0
     return [{
-      id: `${definition.id}:${selectionIndex}`,
-      name: definition.repeatable ? `${definition.displayName} ${instanceNumber}` : definition.displayName,
-      badge: String((item.rating ?? 1) * definition.cost),
+      id: qualityId,
+      name: definition.repeatable ? `${definition.displayName} (${count})` : definition.displayName,
+      badge: String(count * definition.cost),
       active: focusedId === definition.id,
       onFocus: () => setFocusedId(definition.id),
-      onRemove: () => removeAt(selectionIndex),
+      onRemove: () => removeOneInstance(qualityId),
     }]
   })
 
@@ -75,8 +99,11 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
         ]}
         facetLabel="POLARITY"
         facets={['positive', 'negative'].map((polarity) => ({
+          id: polarity,
           label: polarity.toUpperCase(),
           count: catalog.qualities.filter((quality) => quality.polarity === polarity).length,
+          active: polarityFilter === polarity,
+          onSelect: () => setPolarityFilter(polarityFilter === polarity ? null : polarity),
         }))}
         picked={picked}
       />
@@ -84,16 +111,17 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
       <div className="console__main">
         <div className="console__header">
           <span className="console__header-prompt">catalog:qualities&gt;</span>
-          <input className="console__header-input" placeholder="filter (visual only)" readOnly />
-          <span className="console__header-count">{catalog.qualities.length} entries</span>
+          <input type="search" aria-label="Search qualities" className="console__header-input" placeholder="name · polarity" value={query} onChange={(event) => setQuery(event.target.value)} />
+          <span className="console__header-count">{visibleQualities.length} / {catalog.qualities.length} entries</span>
         </div>
-        <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 74px' }}>
+        <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 90px' }}>
           <span>QUALITY</span>
           <span>POLARITY</span>
           <span>KARMA</span>
         </div>
         <div className="console__list">
-          {catalog.qualities.map((quality) => {
+          {visibleQualities.length === 0 && <div className="console__empty">No qualities match these filters.</div>}
+          {visibleQualities.map((quality) => {
             const count = selectionCount(quality.id)
             const isSelected = count > 0
             const isFocused = focusedId === quality.id
@@ -102,16 +130,24 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
               <div
                 key={quality.id}
                 className={`console__row${isFocused ? ' console__row--active' : ''}${isSelected ? ' console__row--taken' : ''}`}
-                style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 74px' }}
+                style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 90px' }}
                 onClick={() => setFocusedId(quality.id)}
               >
                 <span className="console__row-name"><span className="console__row-name-text">{quality.displayName}</span></span>
                 <span className="console__row-col">{quality.polarity}</span>
                 <span className="console__row-end">
                   {quality.repeatable ? (
-                    <button type="button" className={`console__toggle${isSelected ? ' console__toggle--on' : ''}`} onClick={() => add(quality)} aria-label={isSelected ? `Add another ${quality.displayName}` : `Add ${quality.displayName}`}>
-                      {isSelected ? `TAKEN ${count} · + ADD` : (positive ? `−${quality.cost}` : `+${quality.cost}`)}
-                    </button>
+                    isSelected ? (
+                      <span className="console__stepper" onClick={(event) => event.stopPropagation()}>
+                        <button type="button" className="console__stepper-btn" aria-label={`Remove ${quality.displayName}`} onClick={() => removeOneInstance(quality.id)}>−</button>
+                        <span className="console__stepper-value console__stepper-value--active">{count}</span>
+                        <button type="button" className="console__stepper-btn" aria-label={`Add another ${quality.displayName}`} onClick={() => add(quality)}>+</button>
+                      </span>
+                    ) : (
+                      <button type="button" className="console__toggle" onClick={(event) => { event.stopPropagation(); add(quality) }} aria-label={`Add ${quality.displayName}`}>
+                        {positive ? `−${quality.cost}` : `+${quality.cost}`}
+                      </button>
+                    )
                   ) : (
                     <label className={`console__toggle${isSelected ? ' console__toggle--on' : ''}`}>
                       <input
@@ -139,7 +175,7 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
           name={focused.displayName.toUpperCase()}
           meta={`${focused.polarity.toUpperCase()} · ${focused.cost} KARMA`}
           stats={[
-            { label: 'KARMA', value: String(focused.cost * (focusedSelection?.rating ?? 1)), tone: focused.polarity === 'positive' ? 'warning' : 'info' },
+            { label: 'KARMA', value: String(focused.cost * (focused.repeatable ? Math.max(1, selectionCount(focused.id)) : 1)), tone: focused.polarity === 'positive' ? 'warning' : 'info' },
             { label: 'POLARITY', value: focused.polarity.toUpperCase() },
           ]}
           text={`${describeQuality(focused.id)}${focused.parameterized ? ' Requires a bounded parameter once taken.' : ''}`}

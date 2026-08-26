@@ -1,17 +1,20 @@
 import { useState } from 'react'
-import type { Metatype } from '../../../api/characterCreation.ts'
 import type { CreationStepProps } from './types.ts'
 import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { describeAttribute } from '../catalogDescriptions.ts'
 import { computeAttributeKarmaSpent } from '../budgets.ts'
+import { effectiveMetatypeAttributes, getCatalogIndex } from '../catalogIndex.ts'
 
 const NORMAL_ATTRIBUTE_IDS = ['body', 'agility', 'reaction', 'strength', 'willpower', 'logic', 'intuition', 'charisma']
 
 export function AttributeStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
   const priority = document.priorityAssignment?.attributes
   const cell = catalog.priorityCells.find((item) => item.categoryId === 'attributes' && item.levelId === priority)
-  const metatype: Metatype | undefined = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
+  const metatype = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
+  // Effective ranges: a selected Run Faster metavariant (CHAR-813) replaces
+  // the parent metatype's attribute ranges outright.
+  const attributes = effectiveMetatypeAttributes(getCatalogIndex(catalog), document)
   const allocations = document.attributes?.values ?? {}
   const budget = cell?.physicalMentalAttributePoints ?? 0
   const spent = NORMAL_ATTRIBUTE_IDS.reduce((sum, id) => sum + (allocations[id] ?? 0), 0)
@@ -20,7 +23,7 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
   const magicCell = catalog.priorityCells.find((item) => item.categoryId === 'magic-resonance' && item.levelId === document.priorityAssignment?.magicOrResonance)
   const path = catalog.creationPaths.find((item) => item.id === document.magicResonance?.pathId)
   const pathGrant = magicCell?.magicResonancePathGrants?.find((item) => item.pathId === path?.id)
-  const edge = (metatype?.attributes.edge?.minimum ?? 0) + (special.edge ?? 0)
+  const edge = (attributes?.edge?.minimum ?? 0) + (special.edge ?? 0)
   const awakenedAttribute = path?.attributeId
   const awakenedValue = awakenedAttribute ? (pathGrant?.attributeRating ?? 0) + (special[awakenedAttribute] ?? 0) : 0
   const update = (id: string, value: number) => onChange({
@@ -30,7 +33,7 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
 
   const [selectedId, setSelectedId] = useState(NORMAL_ATTRIBUTE_IDS[0])
   const selectedDefinition = catalog.attributes.find((item) => item.id === selectedId)
-  const selectedRange = metatype?.attributes[selectedId]
+  const selectedRange = attributes?.[selectedId]
   const selectedValue = (selectedRange?.minimum ?? 0) + (allocations[selectedId] ?? 0)
 
   return (
@@ -53,7 +56,7 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
           )}
           {NORMAL_ATTRIBUTE_IDS.map((id) => {
             const definition = catalog.attributes.find((item) => item.id === id)
-            const range = metatype?.attributes[id]
+            const range = attributes?.[id]
             const allocation = allocations[id] ?? 0
             const value = range ? range.minimum + allocation : 0
             const pipCount = range ? Math.max(range.maximum, 1) : 6

@@ -96,6 +96,19 @@ describe('LifestyleStep', () => {
     expect(document.lifestyles![1].isPrimary).toBe(true)
   })
 
+  it('selects a tier from the visual tier registry', () => {
+    let document: CharacterCreationDocument = {
+      ...baseDocument,
+      lifestyles: [{ instanceId: 'life-1', tierId: 'street-lifestyle', isPrimary: true, prepaidMonths: 1 }],
+    }
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    renderLifestyleStep(document, onChange)
+
+    fireEvent.click(screen.getByRole('button', { name: /Low.*2,000/i }))
+
+    expect(document.lifestyles![0].tierId).toBe('low-lifestyle')
+  })
+
   it('street lifestyle hides the options fieldset and prices at zero', () => {
     const document: CharacterCreationDocument = {
       ...baseDocument,

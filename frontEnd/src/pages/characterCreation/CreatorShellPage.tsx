@@ -64,7 +64,8 @@ function buildDossierCards(catalog: CatalogContract | null, draft: NonNullable<R
           break
         case 'metatype': {
           const metatype = index?.metatypes.get(document.metatype?.metatypeId ?? '')
-          items = metatype ? [{ name: metatype.displayName, badge: '' }] : []
+          const metavariant = index?.metavariants.get(document.metatype?.metavariantId ?? '')
+          items = metatype ? [{ name: metavariant?.displayName ?? metatype.displayName, badge: '' }] : []
           break
         }
         case 'attributes': {
@@ -138,7 +139,7 @@ function buildDossierCards(catalog: CatalogContract | null, draft: NonNullable<R
 
     return {
       index: step.index,
-      label: `${String(step.index).padStart(2, '0')} ${step.label.toUpperCase()}`,
+      label: step.label.toUpperCase(),
       status,
       statusTone,
       locked,
@@ -375,6 +376,7 @@ export default function CreatorShellPage() {
         {view === 'dossier' && (
           <DossierIndex
             cards={dossierCards}
+            subjectName={draft.name}
             progressLabel={progressLabel}
             resumeLabel={shortStepLabel(currentStep)}
             onResume={() => setView('console')}

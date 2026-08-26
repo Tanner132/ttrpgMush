@@ -95,6 +95,27 @@ export interface Metatype {
     source: SourceCitation
 }
 
+// A parameterized sub-choice of picking its parentMetatypeId at a Metatype
+// priority level (CHAR-813): its attributes/traits replace the parent
+// metatype's own values outright, and its matching priorityGrants entry
+// (keyed by priority level id) replaces the priority cell's special
+// attribute point grant and adds a flat Karma surcharge.
+export interface MetavariantPriorityGrant {
+    levelId: string
+    specialAttributePoints: number
+    additionalKarmaCost: number
+}
+
+export interface Metavariant {
+    id: string
+    displayName: string
+    parentMetatypeId: string
+    attributes: Record<string, MetatypeAttributeRange>
+    traits: string
+    source: SourceCitation
+    priorityGrants: MetavariantPriorityGrant[]
+}
+
 export interface AttributeDefinition {
     id: string
     displayName: string
@@ -112,7 +133,7 @@ export interface PriorityAssignment {
 
 export interface CharacterCreationDocument {
     priorityAssignment: PriorityAssignment | null
-    metatype: { metatypeId: string } | null
+    metatype: { metatypeId: string; metavariantId?: string | null } | null
     attributes: { values: Record<string, number> } | null
     specialAttributes: { values: Record<string, number> } | null
     qualities?: QualitySelection[] | null
@@ -214,6 +235,8 @@ export interface QualityDefinition { id: string; displayName: string; polarity: 
 export interface SkillDefinition { id: string; displayName: string; category: string; linkedAttribute: string; groupId?: string; parameterized: boolean; domain: string; source: SourceCitation }
 export interface SkillGroupDefinition { id: string; displayName: string; skillIds: string[]; source: SourceCitation }
 export interface KnowledgeCategoryDefinition { id: string; displayName: string; linkedAttribute: string; source: SourceCitation }
+export interface KnowledgeSkillSuggestionDefinition { id: string; displayName: string; categoryId: string; specializations: string[]; source: SourceCitation }
+export interface LanguageSuggestionDefinition { id: string; displayName: string; source: SourceCitation }
 
 export type CreationPathKind = 'Mundane' | 'Magician' | 'MysticAdept' | 'Adept' | 'AspectedMagician' | 'Technomancer'
 
@@ -350,15 +373,41 @@ export function augmentationAvailability(
     return base === null ? null : base + grade.availabilityModifier
 }
 
-export function metatypeGearMultiplier(metatypeId: string | null | undefined): number {
+// Mirrors ResourcesEssenceEvaluator.GearCostMultiplier. A selected Run Faster
+// metavariant (CHAR-813) always replaces its parent metatype's gear
+// multiplier with the unmodified 1x rate: none of the 17 approved
+// metavariants' racial-trait bundles mention a gear cost surcharge.
+export function metatypeGearMultiplier(metatypeId: string | null | undefined, metavariantId?: string | null): number {
+    if (metavariantId) return 1
     if (metatypeId === 'dwarf') return 1.1
     if (metatypeId === 'troll') return 1.5
     return 1
 }
 
 // Mirrors LifestyleEvaluator.LifestyleCostMultiplier — a different table from
-// metatypeGearMultiplier, so don't conflate the two.
-export function lifestyleCostMultiplier(metatypeId: string | null | undefined): number {
+// metatypeGearMultiplier, so don't conflate the two. A selected metavariant
+// replaces the parent metatype's lifestyle multiplier with its own, when its
+// racial-trait bundle declares one.
+export function lifestyleCostMultiplier(metatypeId: string | null | undefined, metavariantId?: string | null): number {
+    switch (metavariantId) {
+        case 'gnome':
+        case 'hanuman':
+        case 'koborokuru':
+        case 'menehune':
+            return 1.2
+        case 'cyclops':
+        case 'fomorian':
+        case 'giant':
+        case 'minotaur':
+            return 2.0
+        case 'ogre':
+            return 0.8
+        case 'xapiri-thepe':
+            return 0.9
+        default:
+            if (metavariantId) return 1
+    }
+
     if (metatypeId === 'dwarf') return 1.2
     if (metatypeId === 'troll') return 2.0
     return 1
@@ -688,11 +737,14 @@ export interface CatalogContract {
     priorityCategories: PriorityCategory[]
     priorityCells: PriorityCell[]
     metatypes: Metatype[]
+    metavariants?: Metavariant[]
     attributes: AttributeDefinition[]
     qualities: QualityDefinition[]
     skills: SkillDefinition[]
     skillGroups: SkillGroupDefinition[]
     knowledgeCategories: KnowledgeCategoryDefinition[]
+    knowledgeSkillSuggestions?: KnowledgeSkillSuggestionDefinition[]
+    languageSuggestions?: LanguageSuggestionDefinition[]
     creationPaths: CreationPathDefinition[]
     aspectedValues: AspectedValueDefinition[]
     traditions: TraditionDefinition[]

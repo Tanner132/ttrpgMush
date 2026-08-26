@@ -40,7 +40,7 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
   const resources = document.resources ?? []
   const augSelections = resources.filter((item) => index.augmentations.has(item.itemId))
   const itemSelections = resources.filter((item) => !index.augmentations.has(item.itemId))
-  const gearMultiplier = metatypeGearMultiplier(document.metatype?.metatypeId)
+  const gearMultiplier = metatypeGearMultiplier(document.metatype?.metatypeId, document.metatype?.metavariantId)
 
   const cell = index.priorityCells.get(`resources:${document.priorityAssignment?.resources}`)
   const nuyenFromKarma = document.nuyenFromKarma ?? 0
@@ -54,6 +54,8 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
 
   const attachments = document.attachments ?? []
   const [openHostInstanceId, setOpenHostInstanceId] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [groupFilter, setGroupFilter] = useState<string | null>(null)
   // Defaults to whatever's already purchased so a pre-populated draft shows
   // its attachments button immediately, without requiring a click first.
   const [focusedId, setFocusedId] = useState(() => itemSelections[0]?.itemId ?? purchasable[0]?.id ?? '')
@@ -163,6 +165,10 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
     ? attachments.filter((entry) => entry.hostInstanceId === focusedSelection.instanceId)
     : []
   const focusedAvailability = focused ? resolveAvailabilityNumber(focused.availability, focusedSelection?.rating ?? null) : null
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const visibleItems = purchasable.filter((item) =>
+    (!groupFilter || item.groupKey === groupFilter)
+    && (!normalizedQuery || `${item.displayName} ${item.id} ${item.groupLabel} ${item.groupKey}`.toLocaleLowerCase().includes(normalizedQuery)))
 
   return (
     <div className="console console--catalog">
@@ -171,8 +177,11 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
           { label: 'NUYEN', spent: money(spent), budget: money(nuyenBudget), pct: (spent / (nuyenBudget || 1)) * 100, tone: spent > nuyenBudget ? 'danger' : 'accent' },
         ]}
         facets={groups.map((groupKey) => ({
+          id: groupKey,
           label: (purchasable.find((item) => item.groupKey === groupKey)?.groupLabel ?? groupKey).toUpperCase(),
           count: purchasable.filter((item) => item.groupKey === groupKey).length,
+          active: groupFilter === groupKey,
+          onSelect: () => setGroupFilter(groupFilter === groupKey ? null : groupKey),
         }))}
         picked={picked}
       />
@@ -180,8 +189,8 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
       <div className="console__main">
         <div className="console__header">
           <span className="console__header-prompt">catalog:resources&gt;</span>
-          <input className="console__header-input" placeholder="pistol · armor · deck (visual only)" readOnly />
-          <span className="console__header-count">{purchasable.length} entries</span>
+          <input type="search" aria-label="Search resources" className="console__header-input" placeholder="name · category" value={query} onChange={(event) => setQuery(event.target.value)} />
+          <span className="console__header-count">{visibleItems.length} / {purchasable.length} entries</span>
         </div>
         <div className="creation-step__allocation-status" role="status" style={{ margin: 0, borderRadius: 0 }}>
           <strong>{spent.toLocaleString()}</strong> / {nuyenBudget.toLocaleString()} nuyen
@@ -190,7 +199,8 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
           <span>ITEM</span><span>CATEGORY</span><span>AVAIL</span><span />
         </div>
         <div className="console__list">
-          {purchasable.map((item) => {
+          {visibleItems.length === 0 && <div className="console__empty">No resources match these filters.</div>}
+          {visibleItems.map((item) => {
             const selection = itemSelections.find((entry) => entry.itemId === item.id)
             const isTaken = selection !== undefined
             const availability = resolveAvailabilityNumber(item.availability, selection?.rating ?? null)

@@ -40,6 +40,14 @@ function buildSheet(overrides: Partial<ComposedCareerSheet> = {}): ComposedCaree
             knowledgeSkills: [],
             languages: [],
             nativeLanguages: [],
+            profile: {
+                concept: 'Covert retrieval specialist',
+                shortDescription: 'Quiet, precise, and professionally deniable.',
+                description: 'A disciplined operator built for discreet acquisition work.',
+                age: '29',
+                height: '178 cm',
+                handedness: 'Right',
+            },
         },
         acquiredInventory: [],
         recentTransactions: [],
@@ -62,7 +70,7 @@ function buildCatalog(): CatalogContract {
         priorityLevels: [],
         priorityCategories: [],
         priorityCells: [],
-        metatypes: [],
+        metatypes: [{ id: 'human', displayName: 'Human', attributes: {}, traits: '', source: { sourceId: 'core', printedPage: 1, pdfPage: 1 } }],
         attributes: [{ id: 'body', displayName: 'Body', group: 'physical', source: { sourceId: 'core', printedPage: 1, pdfPage: 1 } }],
         qualities: [],
         skills: [],
@@ -119,6 +127,9 @@ describe('CharacterSheetPage', () => {
         renderPage()
 
         expect(await screen.findByText('Kestrel')).toBeInTheDocument()
+        expect(screen.getByRole('img', { name: 'Mugshot unavailable' })).toBeInTheDocument()
+        expect(screen.getByText('Covert retrieval specialist')).toBeInTheDocument()
+        expect(screen.getByText('Human')).toBeInTheDocument()
         expect(screen.getByText('5')).toBeInTheDocument()
         expect(screen.getByText('1,000¥')).toBeInTheDocument()
 

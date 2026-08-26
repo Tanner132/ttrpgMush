@@ -54,7 +54,6 @@ public sealed class MetatypeAndAttributeEvaluator
             }
             else
             {
-                canonicalMetatype = new CanonicalMetatype(selected.Id, CanonicalProvenance.Priority);
                 if (metatypeCell.AvailableMetatypeIds is null
                     || !metatypeCell.AvailableMetatypeIds.Contains(selected.Id, StringComparer.Ordinal))
                 {
@@ -65,8 +64,48 @@ public sealed class MetatypeAndAttributeEvaluator
                         "Choose a metatype available at the assigned Metatype priority."));
                 }
 
+                // A metavariant (CHAR-813, run-faster pp. 87-109) is a
+                // parameterized sub-choice of the parent metatype: its
+                // attribute ranges and priority-level grant replace, rather
+                // than augment, the parent metatype's own values.
+                MetavariantDefinition? selectedMetavariant = null;
+                MetavariantPriorityGrant? metavariantGrant = null;
+                if (metatype.MetavariantId is not null)
+                {
+                    if (!catalog.Metavariants.TryGetValue(metatype.MetavariantId, out selectedMetavariant))
+                    {
+                        diagnostics.Add(Unknown(metatype.MetavariantId, catalog, "metatype"));
+                    }
+                    else if (!string.Equals(selectedMetavariant.ParentMetatypeId, selected.Id, StringComparison.Ordinal))
+                    {
+                        diagnostics.Add(new CharacterCreationDiagnostic(
+                            "metatype.metavariant-parent-mismatch", CharacterCreationDiagnosticSeverity.Error, Step,
+                            "metatype.metavariantId", [selectedMetavariant.Id, selected.Id], selectedMetavariant.Source,
+                            new Dictionary<string, string>(),
+                            "Choose a metavariant of the selected metatype."));
+                        selectedMetavariant = null;
+                    }
+                    else
+                    {
+                        metavariantGrant = selectedMetavariant.PriorityGrants
+                            .FirstOrDefault(grant => grant.LevelId == metatypeCell.LevelId);
+                        if (metavariantGrant is null)
+                        {
+                            diagnostics.Add(new CharacterCreationDiagnostic(
+                                "metatype.metavariant-priority-unavailable", CharacterCreationDiagnosticSeverity.Error, Step,
+                                "metatype.metavariantId", [selectedMetavariant.Id], selectedMetavariant.Source,
+                                new Dictionary<string, string> { ["priorityLevel"] = metatypeCell.LevelId },
+                                "Choose a metavariant available at the assigned Metatype priority."));
+                            selectedMetavariant = null;
+                        }
+                    }
+                }
+
+                canonicalMetatype = new CanonicalMetatype(selected.Id, CanonicalProvenance.Priority, selectedMetavariant?.Id);
+                var effectiveAttributes = selectedMetavariant?.Attributes ?? selected.Attributes;
+
                 var edgeAllocated = specialAttributes?.Values?.GetValueOrDefault("edge") ?? 0;
-                if (selected.Attributes.TryGetValue("edge", out var edgeRange))
+                if (effectiveAttributes.TryGetValue("edge", out var edgeRange))
                 {
                     canonicalSpecialAttributes.Add(new CanonicalAttribute(
                         "edge", edgeRange.Minimum, edgeAllocated, edgeRange.Minimum + edgeAllocated,
@@ -86,7 +125,8 @@ public sealed class MetatypeAndAttributeEvaluator
                             "Keep Edge within the metatype's racial range."));
                 }
 
-                var allowed = metatypeCell.MetatypeSpecialAttributePoints?.GetValueOrDefault(selected.Id) ?? 0;
+                var allowed = metavariantGrant?.SpecialAttributePoints
+                    ?? metatypeCell.MetatypeSpecialAttributePoints?.GetValueOrDefault(selected.Id) ?? 0;
                 var spent = specialAttributes?.Values?.Where(item => item.Key is "edge" or "magic" or "resonance")
                     .Sum(item => item.Value) ?? 0;
                 if (spent > allowed)
@@ -101,6 +141,11 @@ public sealed class MetatypeAndAttributeEvaluator
                         "specialAttributes", [selected.Id], metatypeCell.Source,
                         new Dictionary<string, string> { ["available"] = allowed.ToString(), ["spent"] = spent.ToString() },
                         "Allocate all special attribute points granted by the metatype priority."));
+
+                if (metavariantGrant is not null)
+                {
+                    attributeKarmaSpent += metavariantGrant.AdditionalKarmaCost;
+                }
             }
         }
         else
@@ -134,12 +179,17 @@ public sealed class MetatypeAndAttributeEvaluator
 
             if (canonicalMetatype is not null && catalog.Metatypes.TryGetValue(canonicalMetatype.Id, out var selected))
             {
+                var effectiveAttributes = canonicalMetatype.MetavariantId is not null
+                    && catalog.Metavariants.TryGetValue(canonicalMetatype.MetavariantId, out var canonicalMetavariant)
+                        ? canonicalMetavariant.Attributes
+                        : selected.Attributes;
+
                 var remainingFreeAttributePoints = expected;
                 foreach (var attribute in catalog.Attributes.Values
                     .Where(item => item.Group is "physical" or "mental")
                     .OrderBy(item => item.Id, StringComparer.Ordinal))
                 {
-                    if (!selected.Attributes.TryGetValue(attribute.Id, out var attributeRange)) continue;
+                    if (!effectiveAttributes.TryGetValue(attribute.Id, out var attributeRange)) continue;
                     var allocated = Math.Clamp(attributes?.Values?.GetValueOrDefault(attribute.Id) ?? 0, 0, 20);
                     for (var step = 1; step <= allocated; step++)
                     {
@@ -149,7 +199,7 @@ public sealed class MetatypeAndAttributeEvaluator
                 }
                 foreach (var item in attributes?.Values ?? new Dictionary<string, int>())
                 {
-                    if (!selected.Attributes.TryGetValue(item.Key, out var range)) continue;
+                    if (!effectiveAttributes.TryGetValue(item.Key, out var range)) continue;
                     var value = range.Minimum + item.Value;
                     var maximum = NaturalMaximum(document, item.Key, range);
                     if (value > maximum)
@@ -160,7 +210,7 @@ public sealed class MetatypeAndAttributeEvaluator
                             "Reduce the allocation to the metatype natural maximum."));
                 }
                 var atMaximum = (attributes?.Values ?? new Dictionary<string, int>()).Count(item =>
-                    selected.Attributes.TryGetValue(item.Key, out var range)
+                    effectiveAttributes.TryGetValue(item.Key, out var range)
                     && range.Minimum + item.Value == NaturalMaximum(document, item.Key, range));
                 if (atMaximum > 1)
                     diagnostics.Add(new CharacterCreationDiagnostic(
@@ -172,7 +222,7 @@ public sealed class MetatypeAndAttributeEvaluator
                     .Where(item => item.Group is "physical" or "mental")
                     .OrderBy(item => item.Id, StringComparer.Ordinal))
                 {
-                    if (!selected.Attributes.TryGetValue(attribute.Id, out var range)) continue;
+                    if (!effectiveAttributes.TryGetValue(attribute.Id, out var range)) continue;
                     var allocated = attributes?.Values?.GetValueOrDefault(attribute.Id) ?? 0;
                     canonicalAttributes.Add(new CanonicalAttribute(
                         attribute.Id, range.Minimum, allocated, range.Minimum + allocated,

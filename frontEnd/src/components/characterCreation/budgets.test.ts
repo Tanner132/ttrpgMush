@@ -22,6 +22,42 @@ const catalog = {
       traits: '',
       source,
     },
+    {
+      id: 'dwarf',
+      displayName: 'Dwarf',
+      attributes: {
+        body: { minimum: 3, maximum: 8 },
+        agility: { minimum: 1, maximum: 6 },
+        reaction: { minimum: 1, maximum: 5 },
+        strength: { minimum: 3, maximum: 8 },
+        willpower: { minimum: 2, maximum: 7 },
+        logic: { minimum: 1, maximum: 6 },
+        intuition: { minimum: 1, maximum: 6 },
+        charisma: { minimum: 1, maximum: 6 },
+      },
+      traits: '',
+      source,
+    },
+  ],
+  metavariants: [
+    {
+      id: 'gnome',
+      displayName: 'Gnome',
+      parentMetatypeId: 'dwarf',
+      traits: '',
+      source: { sourceId: 'run-faster', printedPage: 87, pdfPage: 89 },
+      attributes: {
+        body: { minimum: 1, maximum: 4 },
+        agility: { minimum: 2, maximum: 7 },
+        reaction: { minimum: 1, maximum: 6 },
+        strength: { minimum: 1, maximum: 4 },
+        willpower: { minimum: 2, maximum: 7 },
+        logic: { minimum: 2, maximum: 7 },
+        intuition: { minimum: 1, maximum: 6 },
+        charisma: { minimum: 1, maximum: 6 },
+      },
+      priorityGrants: [{ levelId: 'a', specialAttributePoints: 7, additionalKarmaCost: 7 }],
+    },
   ],
   priorityCells: [
     { id: 'attributes-b', categoryId: 'attributes', levelId: 'b', source, physicalMentalAttributePoints: 24 },
@@ -44,6 +80,17 @@ describe('computeFreeKnowledgeLanguagePoints', () => {
     }
     // Human base 1 + allocated 3 = natural 4 each; free pool = (4 + 4) * 2 = 16.
     expect(computeFreeKnowledgeLanguagePoints(catalog, document)).toBe(16)
+  })
+
+  it('uses the selected metavariant attribute ranges instead of the parent metatype', () => {
+    const document: CharacterCreationDocument = {
+      ...baseDocument,
+      metatype: { metatypeId: 'dwarf', metavariantId: 'gnome' },
+      // Gnome base Logic 2, Intuition 1 (vs. Dwarf's 1 and 1); +3 each allocated.
+      attributes: { values: { intuition: 3, logic: 3 } },
+    }
+    // Natural Intuition = 1 + 3 = 4; natural Logic = 2 + 3 = 5; free pool = (4 + 5) * 2 = 18.
+    expect(computeFreeKnowledgeLanguagePoints(catalog, document)).toBe(18)
   })
 })
 
@@ -101,6 +148,18 @@ describe('computeAttributeKarmaSpent', () => {
       attributes: { values: { body: 4, agility: 4, charisma: 4, intuition: 4, logic: 4, reaction: 4, willpower: 2 } },
     }
     expect(computeAttributeKarmaSpent(catalog, document)).toBe(25)
+  })
+
+  it('adds the selected metavariant priority-level Karma surcharge', () => {
+    const document: CharacterCreationDocument = {
+      ...baseDocument,
+      priorityAssignment: { metatype: 'a', attributes: 'b', magicOrResonance: 'c', skills: 'd', resources: 'e' },
+      metatype: { metatypeId: 'dwarf', metavariantId: 'gnome' },
+      attributes: { values: {} },
+    }
+    // No attribute points allocated, so only Gnome's flat 7-Karma priority-a
+    // surcharge (from its priorityGrants) applies.
+    expect(computeAttributeKarmaSpent(catalog, document)).toBe(7)
   })
 })
 

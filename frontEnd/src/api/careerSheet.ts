@@ -19,6 +19,7 @@ export type CanonicalProvenance =
 export interface CanonicalMetatype {
     id: string
     provenance: CanonicalProvenance
+    metavariantId?: string | null
 }
 
 export interface CanonicalAttribute {

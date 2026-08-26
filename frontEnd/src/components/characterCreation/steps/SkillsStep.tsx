@@ -22,6 +22,8 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
   const [sub, setSub] = useState<'individual' | 'groups'>('individual')
   const [focusedSkillId, setFocusedSkillId] = useState(catalog.skills[0]?.id ?? '')
   const [focusedGroupId, setFocusedGroupId] = useState(catalog.skillGroups[0]?.id ?? '')
+  const [query, setQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
 
   const selectedSkills = document.skills ?? []
   const selectedGroups = document.skillGroups ?? []
@@ -106,6 +108,18 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
 
   const focusedSkill = index.skills.get(focusedSkillId)
   const focusedGroup = index.skillGroups.get(focusedGroupId)
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const visibleSkills = catalog.skills.filter((skill) => {
+    const groupName = skill.groupId ? index.skillGroups.get(skill.groupId)?.displayName ?? '' : ''
+    return (!categoryFilter || skill.category === categoryFilter)
+      && (!normalizedQuery || `${skill.displayName} ${skill.id} ${skill.category} ${skill.linkedAttribute} ${skill.groupId ?? ''} ${groupName} ${skill.domain}`.toLocaleLowerCase().includes(normalizedQuery))
+  })
+  const visibleGroups = catalog.skillGroups.filter((group) => {
+    const memberNames = group.skillIds.map((id) => index.skills.get(id)?.displayName ?? id).join(' ')
+    return !normalizedQuery || `${group.displayName} ${group.id} ${memberNames}`.toLocaleLowerCase().includes(normalizedQuery)
+  })
+  const visibleEntries = sub === 'individual' ? visibleSkills.length : visibleGroups.length
+  const totalEntries = sub === 'individual' ? catalog.skills.length : catalog.skillGroups.length
 
   return (
     <div className="console console--catalog">
@@ -118,27 +132,30 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
             : []),
         ]}
         facetLabel="CATEGORY"
-        facets={Array.from(new Set(catalog.skills.map((skill) => skill.category))).sort().map((category) => ({
+        facets={sub === 'individual' ? Array.from(new Set(catalog.skills.map((skill) => skill.category))).sort().map((category) => ({
+          id: category,
           label: category.toUpperCase(),
           count: catalog.skills.filter((skill) => skill.category === category).length,
-        }))}
+          active: categoryFilter === category,
+          onSelect: () => setCategoryFilter(categoryFilter === category ? null : category),
+        })) : []}
         picked={[...pickedGroups, ...pickedSkills]}
       />
 
       <div className="console__main">
         <div className="console__subtabs">
-          <button type="button" className={`console__subtab${sub === 'individual' ? ' console__subtab--active' : ''}`} onClick={() => setSub('individual')}>
+          <button type="button" aria-pressed={sub === 'individual'} className={`console__subtab${sub === 'individual' ? ' console__subtab--active' : ''}`} onClick={() => setSub('individual')}>
             INDIVIDUAL <span className="console__subtab-count">{selectedSkills.length ? `· ${selectedSkills.length}` : ''}</span>
           </button>
-          <button type="button" className={`console__subtab${sub === 'groups' ? ' console__subtab--active' : ''}`} onClick={() => setSub('groups')}>
+          <button type="button" aria-pressed={sub === 'groups'} className={`console__subtab${sub === 'groups' ? ' console__subtab--active' : ''}`} onClick={() => setSub('groups')}>
             GROUPS <span className="console__subtab-count">{pickedGroups.length ? `· ${pickedGroups.length}` : ''}</span>
           </button>
         </div>
 
         <div className="console__header">
           <span className="console__header-prompt">catalog:{sub}&gt;</span>
-          <input className="console__header-input" placeholder="hack · agi · cracking (visual only)" readOnly />
-          <span className="console__header-count">{sub === 'individual' ? catalog.skills.length : catalog.skillGroups.length} entries</span>
+          <input type="search" aria-label={`Search ${sub === 'individual' ? 'skills' : 'skill groups'}`} className="console__header-input" placeholder={sub === 'individual' ? 'name · attribute · category · group' : 'name · member skill'} value={query} onChange={(event) => setQuery(event.target.value)} />
+          <span className="console__header-count">{visibleEntries} / {totalEntries} entries</span>
         </div>
 
         {sub === 'individual' ? (
@@ -147,7 +164,8 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
               <span>SKILL</span><span>GROUP</span><span>ATTR</span><span>RATING</span>
             </div>
             <div className="console__list">
-              {catalog.skills.map((skill) => {
+              {visibleSkills.length === 0 && <div className="console__empty">No skills match these filters.</div>}
+              {visibleSkills.map((skill) => {
                 const rating = ratingOf(skill.id)
                 const grantedRating = grantedSkillRatings.get(skill.id) ?? 0
                 const maximum = skillCap(skill.id)
@@ -185,7 +203,8 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
               <span>SKILL GROUP</span><span>MEMBERS</span><span>RATING</span>
             </div>
             <div className="console__list">
-              {catalog.skillGroups.map((group) => {
+              {visibleGroups.length === 0 && <div className="console__empty">No skill groups match this search.</div>}
+              {visibleGroups.map((group) => {
                 const rating = groupRatingOf(group.id)
                 const allocatedRating = selectedGroupRatings.get(group.id) ?? 0
                 return (

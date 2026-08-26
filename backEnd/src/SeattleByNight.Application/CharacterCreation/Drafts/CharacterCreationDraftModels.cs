@@ -14,7 +14,7 @@ public static class CharacterCreationDocumentVersions
     public const int Sheet = 3;
 }
 
-public sealed record MetatypeSelection(string MetatypeId);
+public sealed record MetatypeSelection(string MetatypeId, string? MetavariantId = null);
 
 public sealed record AttributeAllocation(IReadOnlyDictionary<string, int> Values);
 

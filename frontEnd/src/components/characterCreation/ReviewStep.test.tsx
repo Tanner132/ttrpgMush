@@ -62,5 +62,18 @@ describe('ReviewStep', () => {
     render(<ReviewStep diagnostics={[]} derivedStatistics={null} isReadyToFinalize={false} />)
 
     expect(screen.queryByText('Final calculations')).not.toBeInTheDocument()
+    expect(screen.getByText(/calculation feed offline/i)).toBeInTheDocument()
+  })
+
+  it('separates blocking findings from advisories in the authorization summary', () => {
+    render(<ReviewStep diagnostics={[
+      diagnostic({}),
+      diagnostic({ code: 'test.warning', severity: 'Warning', step: 'contacts', fieldPath: 'contacts' }),
+    ]} derivedStatistics={stats} isReadyToFinalize={false} />)
+
+    const status = screen.getByRole('status', { name: /blocking diagnostic count/i })
+    expect(status).toHaveTextContent('BLOCKING FINDINGS1')
+    expect(status).toHaveTextContent('ADVISORIES1')
+    expect(screen.getByText('WARNING')).toBeInTheDocument()
   })
 })

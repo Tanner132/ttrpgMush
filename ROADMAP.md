@@ -56,6 +56,38 @@ npm --prefix frontEnd run build
 
 ## Next Build Ticket
 
+**CHAR-813** (Run Faster Metavariants) is a project-owner-approved catalog
+expansion (2026-08-25/26) started ahead of CHAR-812/Milestone 9 sequencing, the
+same kind of recorded process exception as Milestone 9's early start below. Its
+ledger (`roadmap/sr5-catalog/RUN_FASTER_METATYPES.md`) and all four gating
+decisions are approved. Backend is complete: `RulesetCatalog`/
+`RulesetCatalogLoader` gained a `Metavariants` collection (a metavariant is a
+parameterized sub-choice of its parent metatype, not an independent priority
+option), catalog version `sr5-core` `1.2.0` adds the 17 metavariants plus the
+new "Poor Self Control (Vindictive)" quality, `MetatypeAndAttributeEvaluator`
+resolves the selection (attribute-range override, priority-level-specific
+special-attribute-point grant, and flat Karma surcharge from the Extended
+Priority Charts), and `ResourcesEssenceEvaluator`/`LifestyleEvaluator` no
+longer apply a Dwarf/Troll gear or lifestyle multiplier when a metavariant is
+selected, using the metavariant's own lifestyle multiplier instead where the
+book specifies one. Verified via 195 Application-layer tests (4 new).
+
+The creator UI is also complete: the Metatype step offers an optional
+metavariant picker (a card row below the parent metatype's own card,
+disabled when unavailable at the assigned priority level) showing each
+option's special-attribute grant and Karma cost, the dossier index and
+finalized character sheet resolve the metavariant's display name in place of
+the parent metatype's, and every other step/preview helper that reads
+metatype attribute ranges (Attributes, Knowledge, Contacts, the header Karma
+totals, gear/lifestyle cost multipliers) now resolves through a shared
+`effectiveMetatypeAttributes` helper instead of the base metatype directly.
+Verified via 284 frontend tests (9 new plus updated fixtures), a clean
+`tsc -b` build, and a live manual walkthrough in the browser (logged in as
+`devuser`, an existing Elf draft correctly rendered all four Elf metavariants
+with their exact trait text and Karma costs, and correctly rejected selecting
+one because that draft is pinned to a catalog version published before
+CHAR-813 — confirming catalog-version immutability holds).
+
 CHAR-812 (Milestone 8's completeness/accessibility/release gate) has not been
 started; CHAR-801 through CHAR-811 are complete. Normal sequencing is to
 complete CHAR-812 before Milestone 9 (see Release Sequence item 9). The

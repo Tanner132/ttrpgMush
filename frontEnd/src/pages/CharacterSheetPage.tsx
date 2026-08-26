@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 import { useCareerSheet } from '../hooks/useCareerSheet.ts'
 import { getCatalog, type CatalogContract } from '../api/characterCreation.ts'
@@ -12,6 +12,10 @@ import '../styles/careerSheet.css'
 // by creation method — only priority-assignment framing does — so any valid
 // method id fetches the same reusable catalog for display-name resolution.
 const CATALOG_METHOD = 'standard-priority'
+
+function formatDate(value: string) {
+    return new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' })
+}
 
 export default function CharacterSheetPage() {
     const { characterId } = useParams<{ characterId: string }>()
@@ -69,15 +73,58 @@ export default function CharacterSheetPage() {
         )
     }
 
+    const profile = sheet.sheet.profile
+    const metatypeId = sheet.sheet.metatype?.id
+    const metavariantId = sheet.sheet.metatype?.metavariantId
+    const metatypeName = (metavariantId && catalog?.metavariants?.find((item) => item.id === metavariantId)?.displayName)
+        ?? catalog?.metatypes.find((item) => item.id === metatypeId)?.displayName
+        ?? metatypeId
+        ?? 'Unclassified'
+    const fileCode = sheet.characterId.slice(0, 8).toUpperCase()
+
     return (
         <div className="career-sheet-page">
-            <div className="career-sheet-page__header">
-                <h1 className="career-sheet-page__title">{sheet.name}</h1>
-                <Link to="/characters" className="ui-button ui-button--neutral">
-                    Back to characters
-                </Link>
-            </div>
-            <CareerSheetContent sheet={sheet} catalog={catalog} />
+            <main className="career-dossier">
+                <header className="career-dossier__masthead">
+                    <div className="career-dossier__identity">
+                        <span className="career-dossier__eyebrow">CONFIDENTIAL // CANDIDATE DOSSIER</span>
+                        <h1>{sheet.name}</h1>
+                        <p>{profile?.concept || 'Independent shadow operative'}</p>
+                        <div className="career-dossier__identity-grid">
+                            <span><small>METATYPE</small><strong>{metatypeName}</strong></span>
+                            <span><small>FILE</small><strong>SEA-{fileCode}</strong></span>
+                            <span><small>FINALIZED</small><strong>{formatDate(sheet.finalizedAtUtc)}</strong></span>
+                            <span><small>STATUS</small><strong>VERIFIED</strong></span>
+                        </div>
+                    </div>
+                    <aside className="career-dossier__mugshot" aria-label="Mugshot unavailable" role="img">
+                        <div className="career-dossier__photo-frame" aria-hidden="true">
+                            <span className="career-dossier__photo-scan" />
+                            <span className="career-dossier__silhouette-head" />
+                            <span className="career-dossier__silhouette-body" />
+                            <small>IMAGE NOT ON FILE</small>
+                        </div>
+                        <div className="career-dossier__photo-meta"><span>MUGSHOT // PENDING</span><span>VISUAL ID UNAVAILABLE</span></div>
+                    </aside>
+                </header>
+
+                <div className="career-dossier__record-strip" aria-label="Candidate profile details">
+                    <span><small>PRONOUNCED</small> {profile?.gender || 'Not recorded'}</span>
+                    <span><small>AGE</small> {profile?.age || 'Not recorded'}</span>
+                    <span><small>HEIGHT</small> {profile?.height || 'Not recorded'}</span>
+                    <span><small>BUILD</small> {profile?.weight || 'Not recorded'}</span>
+                    <span><small>HANDEDNESS</small> {profile?.handedness || 'Not recorded'}</span>
+                    <span><small>CATALOG</small> {sheet.catalogVersion}</span>
+                </div>
+
+                {profile?.shortDescription && <p className="career-dossier__summary">“{profile.shortDescription}”</p>}
+                <CareerSheetContent sheet={sheet} catalog={catalog} />
+
+                <footer className="career-dossier__footer">
+                    <span>END OF VERIFIED CONTRACTOR RECORD</span>
+                    <span>STATE {sheet.careerStateVersion.slice(0, 8).toUpperCase()} // UPDATED {formatDate(sheet.careerStateUpdatedAtUtc)}</span>
+                </footer>
+            </main>
         </div>
     )
 }

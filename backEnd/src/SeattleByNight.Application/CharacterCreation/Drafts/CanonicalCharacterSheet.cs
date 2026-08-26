@@ -70,7 +70,7 @@ public sealed record CanonicalDerivedStatistics(
     int CarryoverKarma,
     int CarryoverNuyen);
 
-public sealed record CanonicalMetatype(string Id, CanonicalProvenance Provenance);
+public sealed record CanonicalMetatype(string Id, CanonicalProvenance Provenance, string? MetavariantId = null);
 
 public sealed record CanonicalAttribute(
     string Id,

@@ -48,6 +48,8 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
   const otherResources = resources.filter((item) => !isAugmentation(item.itemId))
   const attachments = document.attachments ?? []
   const [openHostInstanceId, setOpenHostInstanceId] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
 
   const purchasable = catalog.augmentations.filter((aug) => PURCHASABLE.includes(aug.classification))
   // Defaults to whatever's already purchased so a pre-populated draft shows
@@ -71,7 +73,7 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
     const grade = gradeFor(selection)
     const rating = selection.rating ?? null
     spent += augmentationUnitCost(aug, grade, rating) * (selection.quantity ?? 1)
-      * metatypeGearMultiplier(document.metatype?.metatypeId)
+      * metatypeGearMultiplier(document.metatype?.metatypeId, document.metatype?.metavariantId)
     essence += augmentationUnitEssence(aug, grade, rating) * (selection.quantity ?? 1)
   }
   essence = Math.round(essence * 100) / 100
@@ -136,6 +138,12 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
     ? augSelections.find((selection) => selection.instanceId === openHostInstanceId)
     : undefined
   const openHostAug = openHost ? index.augmentations.get(openHost.itemId) : undefined
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const visibleAugmentations = purchasable.filter((aug) => {
+    const categoryLabel = AUGMENTATION_CATEGORY_LABELS[aug.augmentationCategoryId] ?? aug.augmentationCategoryId
+    return (!categoryFilter || aug.augmentationCategoryId === categoryFilter)
+      && (!normalizedQuery || `${aug.displayName} ${aug.id} ${categoryLabel} ${aug.augmentationCategoryId}`.toLocaleLowerCase().includes(normalizedQuery))
+  })
 
   return (
     <div className="console console--catalog">
@@ -145,8 +153,11 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
           { label: 'NUYEN', spent: money(spent), budget: money(nuyenBudget), pct: (spent / (nuyenBudget || 1)) * 100, tone: spent > nuyenBudget ? 'danger' : 'accent' },
         ]}
         facets={Object.entries(AUGMENTATION_CATEGORY_LABELS).map(([id, label]) => ({
+          id,
           label: label.toUpperCase(),
           count: purchasable.filter((aug) => aug.augmentationCategoryId === id).length,
+          active: categoryFilter === id,
+          onSelect: () => setCategoryFilter(categoryFilter === id ? null : id),
         })).filter((facet) => facet.count > 0)}
         picked={picked}
       />
@@ -154,14 +165,15 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
       <div className="console__main">
         <div className="console__header">
           <span className="console__header-prompt">catalog:augmentations&gt;</span>
-          <input className="console__header-input" placeholder="eye · reflex · bioware (visual only)" readOnly />
-          <span className="console__header-count">{purchasable.length} entries</span>
+          <input type="search" aria-label="Search augmentations" className="console__header-input" placeholder="name · category" value={query} onChange={(event) => setQuery(event.target.value)} />
+          <span className="console__header-count">{visibleAugmentations.length} / {purchasable.length} entries</span>
         </div>
         <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 60px 96px' }}>
           <span>AUGMENTATION</span><span>SLOT</span><span>ESS</span><span />
         </div>
         <div className="console__list">
-          {purchasable.map((aug) => {
+          {visibleAugmentations.length === 0 && <div className="console__empty">No augmentations match these filters.</div>}
+          {visibleAugmentations.map((aug) => {
             const selection = augSelections.find((item) => item.itemId === aug.id)
             const isTaken = selection !== undefined
             const grade = gradeFor(selection)

@@ -231,9 +231,18 @@ transport or domain code.
 Initial Shadowrun Fifth Edition character creation uses only the two approved
 local PDFs at the repository root: the SR5 core rulebook and Run Faster. It
 supports Standard Priority and the Sum-to-Ten method from Run Faster. Run Faster
-is used only for Sum-to-Ten allocation and its priority-grant clarification that
+is used for Sum-to-Ten allocation, its priority-grant clarification that
 magician and mystic-adept spell grants may be selected as spells, rituals, and/or
-alchemical preparations; all selectable character options remain
+alchemical preparations, and (CHAR-813, approved by the project owner
+2026-08-26) its 17 metavariants of the five core metatypes. A metavariant is a
+parameterized sub-choice of picking its parent metatype at a Standard Priority
+or Sum-to-Ten Metatype level: it replaces the parent's natural attribute
+ranges and racial-trait text outright and adds a flat Karma surcharge from
+Run Faster's Extended Priority Charts. See
+`roadmap/sr5-catalog/RUN_FASTER_METATYPES.md` for the full citation ledger.
+Run Faster's Point Buy and Life Modules creation methods, its metasapients
+(Centaur, Naga, Pixie, Sasquatch), its shapeshifters, and its Changelings/
+SURGE system remain excluded; all other selectable character options remain
 core-rulebook-only. Do not use external rules summaries, implementations,
 catalogs, errata documents, or other books as rules or completeness references
 unless the project owner explicitly adds them to the approved source set.
@@ -412,12 +421,12 @@ No credentials or chat messages are seeded.
 
 ## Current Implemented Surface
 
-The Application layer includes the first immutable SR5 catalog foundation for
-`sr5-core` version `1.0.0`, pinned by a semantic SHA-256 digest. All catalog
+The Application layer includes the immutable SR5 catalog foundation for
+`sr5-core`, pinned by semantic SHA-256 digests. All catalog
 option facts — qualities, skills, skill groups, knowledge categories, creation
 paths, aspected values, traditions, spells, rituals, adept powers, mentor
 spirits, complex forms, spirit/sprite types, foci, and the per-priority skill
-and Magic/Resonance grants — live in the pinned JSON resource, so the semantic
+and Magic/Resonance grants — live in append-only pinned JSON resources, so the semantic
 digest changes whenever any catalog fact changes. The loader validates unique
 IDs, bounded display names, citations, and cross-references, plus all 25
 priority cells, at startup. Its pure evaluator returns structured diagnostics and
@@ -434,7 +443,10 @@ ranges. CHAR-807 adds typed immutable catalog surfaces for 31 positive and 28
   free Knowledge/Language points derived from natural Intuition and Logic,
   specialization prerequisites, skill/group budgets and overlap, and
   native-language `N` semantics. The creator UI now exposes Qualities, Active
-  Skills & Groups, and Knowledge & Languages. CHAR-808 adds typed immutable
+  Skills & Groups, and Knowledge & Languages. The Knowledge step keeps subjects
+  and languages open-authored while offering cited core-book examples as catalog
+  prefills, including category and specialization suggestions; its dossier view
+  shows linked attributes and live base/specialized dice pools. CHAR-808 adds typed immutable
   catalog surfaces for the six creation paths (Mundane, Magician, Mystic Adept,
   Adept, Aspected Magician, Technomancer), 3 aspected values, 2 traditions, 84
   spells, 9 rituals, 25 adept powers, 16 mentor spirits, 20 complex forms, 6

@@ -214,6 +214,17 @@ function renderResourcesStep(document: CharacterCreationDocument, onChange: (nex
 }
 
 describe('ResourcesStep attachments', () => {
+  it('filters the resource catalog by category and search text', () => {
+    renderResourcesStep(baseDocument, () => {})
+
+    fireEvent.click(screen.getByRole('button', { name: /ASSAULT RIFLES \(1\)/i }))
+    expect(screen.getByRole('checkbox', { name: /ak-97/i })).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: /goggles/i })).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search resources' }), { target: { value: 'armor' } })
+    expect(screen.getByText('No resources match these filters.')).toBeInTheDocument()
+  })
+
   it('shows no attachment button until a host item is purchased', () => {
     renderResourcesStep(baseDocument, () => {})
     expect(screen.queryByRole('button', { name: /manage attachments/i })).not.toBeInTheDocument()

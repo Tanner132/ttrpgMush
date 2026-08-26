@@ -247,6 +247,32 @@ public sealed class CanonicalCharacterSheetTests
     }
 
     [Fact]
+    public void Ambidextrous_quality_controls_canonical_handedness()
+    {
+        var document = new CharacterCreationDraftDocument(
+            null,
+            Qualities: [new QualitySelection("ambidextrous")],
+            Identity: new CharacterIdentity(Handedness: "Left"));
+
+        var result = new ProfileEvaluator().Evaluate(CatalogTestData.Catalog, document);
+
+        Assert.Empty(result.Diagnostics);
+        Assert.Equal("Ambidextrous", result.Profile!.Handedness);
+    }
+
+    [Fact]
+    public void Ambidextrous_handedness_without_quality_is_rejected()
+    {
+        var document = new CharacterCreationDraftDocument(
+            null,
+            Identity: new CharacterIdentity(Handedness: "Ambidextrous"));
+
+        var result = new ProfileEvaluator().Evaluate(CatalogTestData.Catalog, document);
+
+        Assert.Contains(result.Diagnostics, item => item.Code == "identity.handedness.invalid");
+    }
+
+    [Fact]
     public void Oversized_profile_text_produces_a_diagnostic_without_blocking_other_sections()
     {
         var catalog = CatalogTestData.Catalog;

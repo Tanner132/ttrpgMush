@@ -56,11 +56,22 @@ Included:
 - The five core metatypes and core-only character options.
 - The same downstream core creation rules for both allocation methods.
 
+Included (CHAR-813, project owner, 2026-08-26):
+
+- Run Faster's 17 metavariants of the five core metatypes, selectable as a
+  parameterized sub-choice of their parent metatype under both Standard
+  Priority and Sum-to-Ten. See
+  [`sr5-catalog/RUN_FASTER_METATYPES.md`](sr5-catalog/RUN_FASTER_METATYPES.md).
+- "Poor Self Control (Vindictive)", the one Run Faster quality that bundle
+  requires (`run-faster` p. 158 (PDF 160)).
+
 Excluded:
 
 - Core Street-Level and Prime Runner variants (`sr5-core` p. 64 (PDF 66)).
 - Run Faster Point Buy and Life Modules (`run-faster` p. 62 (PDF 64)).
-- Every Run Faster metatype, quality, skill, spell, item, and other option.
+- Every other Run Faster metatype, quality, skill, spell, item, and other
+  option: metasapients (Centaur, Naga, Pixie, Sasquatch), shapeshifters, and
+  the Changelings/SURGE system, including its Metagenic Qualities catalog.
 - Campaign-specific generation variants and custom GM-authored catalogs.
 - Rules or corrections whose only authority is outside the approved PDFs.
 

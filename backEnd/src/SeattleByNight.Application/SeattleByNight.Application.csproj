@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.0.0.json" />
+    <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.1.0.json" />
+    <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.2.0.json" />
   </ItemGroup>
 
   <PropertyGroup>

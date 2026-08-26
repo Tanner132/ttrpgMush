@@ -56,6 +56,10 @@ public sealed class RulesetCatalogLoaderTests
         var catalog = new EmbeddedRulesetCatalogProvider().Current;
 
         Assert.Equal(EmbeddedRulesetCatalogProvider.CurrentSemanticDigest, catalog.SemanticDigest);
+        Assert.Equal(21, catalog.KnowledgeSkillSuggestions.Count);
+        Assert.Equal(9, catalog.LanguageSuggestions.Count);
+        Assert.Equal("academic", catalog.KnowledgeSkillSuggestions["biology"].CategoryId);
+        Assert.Contains("Genetics", catalog.KnowledgeSkillSuggestions["biology"].Specializations);
     }
 
     [Fact]
@@ -66,8 +70,17 @@ public sealed class RulesetCatalogLoaderTests
             using var stream = typeof(RulesetCatalog).Assembly.GetManifestResourceStream(pin.ResourceName)
                 ?? throw new InvalidOperationException($"Embedded catalog resource '{pin.ResourceName}' was not found.");
             using var reader = new StreamReader(stream);
+            var json = reader.ReadToEnd();
+            if (pin.BaseResourceName is null)
+            {
+                Assert.Equal(pin.SemanticDigest, RulesetCatalogLoader.ComputeSemanticDigest(json));
+                continue;
+            }
 
-            Assert.Equal(pin.SemanticDigest, RulesetCatalogLoader.ComputeSemanticDigest(reader.ReadToEnd()));
+            using var baseStream = typeof(RulesetCatalog).Assembly.GetManifestResourceStream(pin.BaseResourceName)
+                ?? throw new InvalidOperationException($"Embedded base catalog resource '{pin.BaseResourceName}' was not found.");
+            using var baseReader = new StreamReader(baseStream);
+            Assert.Equal(pin.SemanticDigest, RulesetCatalogLoader.LoadOverlay(baseReader.ReadToEnd(), json).SemanticDigest);
         }
     }
 
@@ -78,6 +91,8 @@ public sealed class RulesetCatalogLoaderTests
 
         var current = provider.Get(EmbeddedRulesetCatalogProvider.CurrentRulesetId, EmbeddedRulesetCatalogProvider.CurrentVersion);
         Assert.Equal(EmbeddedRulesetCatalogProvider.CurrentSemanticDigest, current.SemanticDigest);
+        Assert.Equal("C943E1DB4DC510AEE2BDE33372323A96140B51F95980D57630F9EB7DFC6FE44E",
+            provider.Get("sr5-core", "1.0.0").SemanticDigest);
 
         Assert.Throws<KeyNotFoundException>(() => provider.Get("sr5-core", "0.0.0"));
         Assert.Throws<KeyNotFoundException>(() => provider.Get("other-book", "1.0.0"));
@@ -95,6 +110,53 @@ public sealed class RulesetCatalogLoaderTests
         Assert.Equal(5, catalog.PriorityCategories.Count);
         Assert.Equal(25, catalog.PriorityCells.Count);
         Assert.All(catalog.PriorityCells.Values, cell => Assert.True(cell.Source.PrintedPage > 0));
+    }
+
+    [Fact]
+    public void Metatype_priority_grants_match_the_core_priority_table()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var expected = new Dictionary<string, IReadOnlyDictionary<string, int>>
+        {
+            ["a"] = new Dictionary<string, int> { ["human"] = 9, ["elf"] = 8, ["dwarf"] = 7, ["ork"] = 7, ["troll"] = 5 },
+            ["b"] = new Dictionary<string, int> { ["human"] = 7, ["elf"] = 6, ["dwarf"] = 4, ["ork"] = 4, ["troll"] = 0 },
+            ["c"] = new Dictionary<string, int> { ["human"] = 5, ["elf"] = 3, ["dwarf"] = 1, ["ork"] = 0 },
+            ["d"] = new Dictionary<string, int> { ["human"] = 3, ["elf"] = 0 },
+            ["e"] = new Dictionary<string, int> { ["human"] = 1 },
+        };
+
+        foreach (var (level, grants) in expected)
+        {
+            var cell = Assert.IsType<PriorityCellDefinition>(catalog.GetPriorityCell("metatype", level));
+            Assert.Equal(grants, cell.MetatypeSpecialAttributePoints);
+            Assert.Equal(grants.Keys, cell.AvailableMetatypeIds);
+        }
+    }
+
+    [Fact]
+    public void Metatype_attribute_ranges_match_the_core_metatype_table()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var expected = new Dictionary<string, int[]>
+        {
+            ["human"] = [1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 2, 7],
+            ["elf"] = [1, 6, 2, 7, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 3, 8, 1, 6],
+            ["dwarf"] = [3, 8, 1, 6, 1, 5, 3, 8, 2, 7, 1, 6, 1, 6, 1, 6, 1, 6],
+            ["ork"] = [4, 9, 1, 6, 1, 6, 3, 8, 1, 6, 1, 5, 1, 6, 1, 5, 1, 6],
+            ["troll"] = [5, 10, 1, 5, 1, 6, 5, 10, 1, 6, 1, 5, 1, 5, 1, 4, 1, 6],
+        };
+        string[] attributeIds = ["body", "agility", "reaction", "strength", "willpower", "logic", "intuition", "charisma", "edge"];
+
+        foreach (var (metatypeId, ranges) in expected)
+        {
+            var metatype = catalog.Metatypes[metatypeId];
+            for (var index = 0; index < attributeIds.Length; index++)
+            {
+                var range = metatype.Attributes[attributeIds[index]];
+                Assert.Equal(ranges[index * 2], range.Minimum);
+                Assert.Equal(ranges[(index * 2) + 1], range.Maximum);
+            }
+        }
     }
 
     [Fact]

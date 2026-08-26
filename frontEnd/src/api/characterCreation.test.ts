@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { effectivePowerPointCost, getCatalog, metatypeGearMultiplier, type AdeptPowerDefinition } from './characterCreation.ts'
+import { effectivePowerPointCost, getCatalog, lifestyleCostMultiplier, metatypeGearMultiplier, type AdeptPowerDefinition } from './characterCreation.ts'
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -51,6 +51,27 @@ describe('metatypeGearMultiplier', () => {
     expect(metatypeGearMultiplier('human')).toBe(1)
     expect(metatypeGearMultiplier('elf')).toBe(1)
     expect(metatypeGearMultiplier(undefined)).toBe(1)
+  })
+
+  it('drops the parent metatype surcharge once a metavariant is selected', () => {
+    expect(metatypeGearMultiplier('dwarf', 'gnome')).toBe(1)
+    expect(metatypeGearMultiplier('troll', 'cyclops')).toBe(1)
+  })
+})
+
+describe('lifestyleCostMultiplier', () => {
+  it('charges the printed metatype lifestyle surcharges', () => {
+    expect(lifestyleCostMultiplier('dwarf')).toBe(1.2)
+    expect(lifestyleCostMultiplier('troll')).toBe(2.0)
+    expect(lifestyleCostMultiplier('human')).toBe(1)
+  })
+
+  it('uses the selected metavariant lifestyle surcharge instead of the parent metatype', () => {
+    expect(lifestyleCostMultiplier('dwarf', 'gnome')).toBe(1.2)
+    expect(lifestyleCostMultiplier('troll', 'cyclops')).toBe(2.0)
+    expect(lifestyleCostMultiplier('ork', 'ogre')).toBe(0.8)
+    expect(lifestyleCostMultiplier('elf', 'xapiri-thepe')).toBe(0.9)
+    expect(lifestyleCostMultiplier('ork', 'hobgoblin')).toBe(1)
   })
 })
 

@@ -117,6 +117,16 @@ function renderAugmentationsStep(document: CharacterCreationDocument, onChange: 
 }
 
 describe('AugmentationsStep attachments', () => {
+  it('filters augmentations by category and search text', () => {
+    renderAugmentationsStep(baseDocument, () => {})
+
+    fireEvent.click(screen.getByRole('button', { name: /CYBERLIMBS \(1\)/i }))
+    expect(screen.getByRole('checkbox', { name: /obvious full arm/i })).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search augmentations' }), { target: { value: 'reflex' } })
+    expect(screen.getByText('No augmentations match these filters.')).toBeInTheDocument()
+  })
+
   it('shows the plus button once a cyberlimb is purchased and opens the enhancement modal', () => {
     let document = baseDocument
     const onChange = (next: CharacterCreationDocument) => { document = next }

@@ -23,16 +23,30 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         response.EnsureSuccessStatusCode();
         using var body = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
         Assert.Equal("sr5-core", body.RootElement.GetProperty("rulesetId").GetString());
-        Assert.Equal("1.0.0", body.RootElement.GetProperty("version").GetString());
+        Assert.Equal("1.1.0", body.RootElement.GetProperty("version").GetString());
         Assert.Equal(64, body.RootElement.GetProperty("semanticDigest").GetString()!.Length);
         Assert.Equal(2, body.RootElement.GetProperty("creationMethods").GetArrayLength());
         Assert.Equal(25, body.RootElement.GetProperty("priorityCells").GetArrayLength());
+        Assert.Equal(21, body.RootElement.GetProperty("knowledgeSkillSuggestions").GetArrayLength());
+        Assert.Equal(9, body.RootElement.GetProperty("languageSuggestions").GetArrayLength());
         Assert.Equal(17, body.RootElement.GetProperty("weaponAccessories").GetArrayLength());
         Assert.Equal(7, body.RootElement.GetProperty("armorModifications").GetArrayLength());
         Assert.Equal(3, body.RootElement.GetProperty("cyberlimbEnhancements").GetArrayLength());
         Assert.Equal(4, body.RootElement.GetProperty("vehicleModifications").GetArrayLength());
         Assert.Equal(6, body.RootElement.GetProperty("lifestyleTiers").GetArrayLength());
         Assert.Equal(5, body.RootElement.GetProperty("lifestyleOptions").GetArrayLength());
+
+        var metatypeE = body.RootElement.GetProperty("priorityCells").EnumerateArray()
+            .Single(cell => cell.GetProperty("categoryId").GetString() == "metatype"
+                && cell.GetProperty("levelId").GetString() == "e");
+        Assert.Equal(1, metatypeE.GetProperty("metatypeSpecialAttributePoints").GetProperty("human").GetInt32());
+
+        var human = body.RootElement.GetProperty("metatypes").EnumerateArray()
+            .Single(metatype => metatype.GetProperty("id").GetString() == "human");
+        var humanEdge = human.GetProperty("attributes").GetProperty("edge");
+        Assert.Equal(2, humanEdge.GetProperty("minimum").GetInt32());
+        Assert.Equal(7, humanEdge.GetProperty("maximum").GetInt32());
+
         Assert.NotNull(response.Headers.ETag);
         Assert.Contains("no-store", response.Headers.CacheControl?.ToString());
 

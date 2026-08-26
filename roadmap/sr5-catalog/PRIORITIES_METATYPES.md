@@ -220,7 +220,7 @@ p. 101 (PDF 103).
 | `prime-runner-creation` | Prime Runner Creation | `excluded` | Alternate higher-powered core creation tier; outside the approved experienced-runner baseline. | `sr5-core` p. 64 (PDF 66) |
 | `point-buy` | Point Buy | `excluded` | Run Faster creation method outside approved scope. | `run-faster` p. 62 (PDF 64) |
 | `life-modules` | Life Modules | `excluded` | Run Faster creation method outside approved scope. | `run-faster` p. 62 (PDF 64) |
-| `run-faster-option-catalogs` | Run Faster Option Catalogs | `excluded` | Every Run Faster metatype, quality, skill, spell, item, and other option is excluded; only Sum-to-Ten and approved formula-grant wording are admitted. | `run-faster` pp. 62-63 (PDF 64-65) |
+| `run-faster-option-catalogs` | Run Faster Option Catalogs | `excluded` | Every Run Faster metatype, quality, skill, spell, item, and other option is excluded except the 17 metavariants and one quality approved by CHAR-813 (see [`RUN_FASTER_METATYPES.md`](RUN_FASTER_METATYPES.md)); only Sum-to-Ten, approved formula-grant wording, and that CHAR-813 content are admitted. | `run-faster` pp. 62-63 (PDF 64-65) |
 
 ## Source Discrepancies And Decisions
 

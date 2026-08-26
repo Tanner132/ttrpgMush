@@ -20,6 +20,7 @@ const catalog: CatalogContract = {
   ],
   qualities: [
     { id: 'addiction', displayName: 'Addiction', polarity: 'negative', cost: 4, parameterized: true, repeatable: false, conflicts: [], source },
+    { id: 'ambidextrous', displayName: 'Ambidextrous', polarity: 'positive', cost: 4, parameterized: false, repeatable: false, conflicts: [], source },
     { id: 'home-ground', displayName: 'Home Ground', polarity: 'positive', cost: 10, parameterized: true, repeatable: true, conflicts: [], source },
   ],
   skills: [
@@ -59,6 +60,41 @@ function GrantedGroupHarness() {
 }
 
 describe('reported character creation issues', () => {
+  it('filters qualities by search and polarity together', async () => {
+    const user = userEvent.setup()
+    render(<QualityHarness />)
+
+    await user.click(screen.getByRole('button', { name: /POSITIVE \(2\)/ }))
+    expect(screen.queryByRole('checkbox', { name: 'Addiction' })).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Ambidextrous' })).toBeInTheDocument()
+
+    await user.type(screen.getByRole('searchbox', { name: 'Search qualities' }), 'home')
+    expect(screen.queryByRole('checkbox', { name: 'Ambidextrous' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add Home Ground' })).toBeInTheDocument()
+  })
+
+  it('filters individual skills by category and searchable metadata', async () => {
+    const user = userEvent.setup()
+    render(<SkillHarness />)
+
+    await user.click(screen.getByRole('button', { name: /COMBAT \(1\)/ }))
+    expect(screen.getByRole('button', { name: 'Increase Archery' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Increase Spellcasting' })).not.toBeInTheDocument()
+
+    await user.type(screen.getByRole('searchbox', { name: 'Search skills' }), 'magic')
+    expect(screen.getByText('No skills match these filters.')).toBeInTheDocument()
+  })
+
+  it('searches skill groups by their member skill names', async () => {
+    const user = userEvent.setup()
+    render(<SkillHarness />)
+
+    await user.click(screen.getByRole('button', { name: /GROUPS/ }))
+    await user.type(screen.getByRole('searchbox', { name: 'Search skill groups' }), 'spellcasting')
+
+    expect(screen.getByRole('button', { name: 'Increase Sorcery group' })).toBeInTheDocument()
+  })
+
   it('shows a granted skill rating and allows a specialization without buying a rank', async () => {
     const user = userEvent.setup()
     render(<SkillHarness />)
@@ -79,6 +115,22 @@ describe('reported character creation issues', () => {
     const document = JSON.parse(screen.getByTestId('document').textContent ?? '{}') as CharacterCreationDocument
     expect(document.qualities).toEqual([{ qualityId: 'addiction' }])
     expect(screen.getByRole('checkbox', { name: 'Addiction' })).toBeChecked()
+    expect(screen.getByText('POSITIVE KARMA')).toBeInTheDocument()
+    expect(screen.getByLabelText('Selection details')).toBeInTheDocument()
+    expect(screen.getByText('ADDICTION')).toBeInTheDocument()
+  })
+
+  it('sets and clears gated handedness with the Ambidextrous quality', async () => {
+    const user = userEvent.setup()
+    render(<QualityHarness />)
+
+    await user.click(screen.getByRole('checkbox', { name: 'Ambidextrous' }))
+    let document = JSON.parse(screen.getByTestId('document').textContent ?? '{}') as CharacterCreationDocument
+    expect(document.identity?.handedness).toBe('Ambidextrous')
+
+    await user.click(screen.getByRole('checkbox', { name: 'Ambidextrous' }))
+    document = JSON.parse(screen.getByTestId('document').textContent ?? '{}') as CharacterCreationDocument
+    expect(document.identity?.handedness).toBeNull()
   })
 
   it('keeps granted group totals separate from purchased ratings', async () => {
@@ -103,10 +155,9 @@ describe('reported character creation issues', () => {
 
     let document = JSON.parse(screen.getByTestId('document').textContent ?? '{}') as CharacterCreationDocument
     expect(document.qualities).toEqual([{ qualityId: 'home-ground' }, { qualityId: 'home-ground' }])
-    expect(screen.getByText('Home Ground 1')).toBeInTheDocument()
-    expect(screen.getByText('Home Ground 2')).toBeInTheDocument()
+    expect(screen.getByText('Home Ground (2)')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Remove Home Ground 1' }))
+    await user.click(screen.getByRole('button', { name: 'Remove Home Ground' }))
     document = JSON.parse(screen.getByTestId('document').textContent ?? '{}') as CharacterCreationDocument
     expect(document.qualities).toEqual([{ qualityId: 'home-ground' }])
   })

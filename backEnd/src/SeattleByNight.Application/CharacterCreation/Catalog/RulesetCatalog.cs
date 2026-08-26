@@ -80,6 +80,18 @@ public sealed record KnowledgeCategoryDefinition(
     string LinkedAttribute,
     SourceCitation Source);
 
+public sealed record KnowledgeSkillSuggestionDefinition(
+    string Id,
+    string DisplayName,
+    string CategoryId,
+    IReadOnlyList<string> Specializations,
+    SourceCitation Source);
+
+public sealed record LanguageSuggestionDefinition(
+    string Id,
+    string DisplayName,
+    SourceCitation Source);
+
 public sealed record MetatypeAttributeRange(int Minimum, int Maximum);
 
 public sealed record MetatypeDefinition(
@@ -94,6 +106,26 @@ public sealed record AttributeDefinition(
     string DisplayName,
     string Group,
     SourceCitation Source);
+
+// A metavariant is a parameterized sub-choice of picking its parent metatype
+// at a Metatype priority level (CHAR-813 decision `metavariant.selection-
+// architecture`), not an independent priority-cell option. Selecting one
+// replaces the parent metatype's natural attribute ranges and cost/trait text
+// entirely (the bundle is exhaustive, not additive) and adds the matching
+// PriorityGrants entry's AdditionalKarmaCost on top of normal creation Karma.
+public sealed record MetavariantPriorityGrant(
+    string LevelId,
+    int SpecialAttributePoints,
+    int AdditionalKarmaCost);
+
+public sealed record MetavariantDefinition(
+    string Id,
+    string DisplayName,
+    string ParentMetatypeId,
+    IReadOnlyDictionary<string, MetatypeAttributeRange> Attributes,
+    string Traits,
+    SourceCitation Source,
+    IReadOnlyList<MetavariantPriorityGrant> PriorityGrants);
 
 public enum CreationPathKind
 {
@@ -440,11 +472,14 @@ public sealed class RulesetCatalog
         ImmutableArray<PriorityCategoryDefinition> priorityCategories,
         ImmutableDictionary<string, PriorityCellDefinition> priorityCells,
         ImmutableDictionary<string, MetatypeDefinition> metatypes,
+        ImmutableDictionary<string, MetavariantDefinition> metavariants,
         ImmutableDictionary<string, AttributeDefinition> attributes,
         ImmutableDictionary<string, QualityDefinition> qualities,
         ImmutableDictionary<string, SkillDefinition> skills,
         ImmutableDictionary<string, SkillGroupDefinition> skillGroups,
         ImmutableDictionary<string, KnowledgeCategoryDefinition> knowledgeCategories,
+        ImmutableDictionary<string, KnowledgeSkillSuggestionDefinition> knowledgeSkillSuggestions,
+        ImmutableDictionary<string, LanguageSuggestionDefinition> languageSuggestions,
         ImmutableDictionary<string, CreationPathDefinition> creationPaths,
         ImmutableDictionary<string, AspectedValueDefinition> aspectedValues,
         ImmutableDictionary<string, TraditionDefinition> traditions,
@@ -482,11 +517,14 @@ public sealed class RulesetCatalog
             cell => (cell.CategoryId, cell.LevelId),
             cell => cell);
         Metatypes = metatypes;
+        Metavariants = metavariants;
         Attributes = attributes;
         Qualities = qualities;
         Skills = skills;
         SkillGroups = skillGroups;
         KnowledgeCategories = knowledgeCategories;
+        KnowledgeSkillSuggestions = knowledgeSkillSuggestions;
+        LanguageSuggestions = languageSuggestions;
         CreationPaths = creationPaths;
         AspectedValues = aspectedValues;
         Traditions = traditions;
@@ -522,11 +560,14 @@ public sealed class RulesetCatalog
     public IReadOnlyList<PriorityCategoryDefinition> PriorityCategories { get; }
     public IReadOnlyDictionary<string, PriorityCellDefinition> PriorityCells { get; }
     public IReadOnlyDictionary<string, MetatypeDefinition> Metatypes { get; }
+    public IReadOnlyDictionary<string, MetavariantDefinition> Metavariants { get; }
     public IReadOnlyDictionary<string, AttributeDefinition> Attributes { get; }
     public IReadOnlyDictionary<string, QualityDefinition> Qualities { get; }
     public IReadOnlyDictionary<string, SkillDefinition> Skills { get; }
     public IReadOnlyDictionary<string, SkillGroupDefinition> SkillGroups { get; }
     public IReadOnlyDictionary<string, KnowledgeCategoryDefinition> KnowledgeCategories { get; }
+    public IReadOnlyDictionary<string, KnowledgeSkillSuggestionDefinition> KnowledgeSkillSuggestions { get; }
+    public IReadOnlyDictionary<string, LanguageSuggestionDefinition> LanguageSuggestions { get; }
     public IReadOnlyDictionary<string, CreationPathDefinition> CreationPaths { get; }
     public IReadOnlyDictionary<string, AspectedValueDefinition> AspectedValues { get; }
     public IReadOnlyDictionary<string, TraditionDefinition> Traditions { get; }

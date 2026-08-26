@@ -109,4 +109,28 @@ describe('ContactsStep', () => {
 
     expect(document.contacts).toHaveLength(0)
   })
+
+  it('shows when one contact exceeds the combined creation cap', () => {
+    renderContactsStep({
+      ...baseDocument,
+      contacts: [{ instanceId: 'contact-1', name: 'High Friend', role: 'Executive', connection: 6, loyalty: 2 }],
+    }, () => {})
+
+    expect(screen.getByText('REDUCE RATINGS')).toBeInTheDocument()
+    expect(screen.getByText('8')).toBeInTheDocument()
+  })
+
+  it('separates dedicated Contact Karma from general Karma overflow', () => {
+    renderContactsStep({
+      ...baseDocument,
+      contacts: [
+        { instanceId: 'contact-1', name: 'Fixer', role: '', connection: 4, loyalty: 3 },
+        { instanceId: 'contact-2', name: 'Street Doc', role: '', connection: 2, loyalty: 2 },
+      ],
+    }, () => {})
+
+    const status = screen.getByRole('status')
+    expect(status).toHaveTextContent('9 / 9')
+    expect(status).toHaveTextContent('2spent beyond free pool')
+  })
 })
