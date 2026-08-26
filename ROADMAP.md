@@ -88,6 +88,45 @@ with their exact trait text and Karma costs, and correctly rejected selecting
 one because that draft is pinned to a catalog version published before
 CHAR-813 — confirming catalog-version immutability holds).
 
+**CHAR-814** (Run Faster Qualities) is a project-owner-approved catalog
+expansion (2026-08-26) in the same recorded-exception lane as CHAR-813. Its
+ledger (`roadmap/sr5-catalog/RUN_FASTER_QUALITIES.md`) and both gating
+decisions (including it and Rank, and finishing the Poor Self Control
+family CHAR-813 deliberately left out) are approved. It publishes catalog
+version `sr5-core` `1.3.0` (an overlay on `1.0.0` republishing `1.1.0`'s
+Knowledge/Language suggestions and `1.2.0`'s metavariants, so nothing from
+either intermediate overlay is lost) with 84 new quality entries: Rank, all
+42 Run Faster positive qualities, all 37 Run Faster negative qualities minus
+the already-published Poor Self Control heading, and its four remaining
+variants (Braggart, Thrill-Seeker, Compulsive, Combat Monster) alongside the
+existing Vindictive. No new evaluator logic was needed — like most
+`sr5-core` qualities, their mechanical prose is descriptive rather than
+code-enforced — except one new bidirectional `conflicts` link between
+`erased` and `records-on-file`. The frontend's `catalogDescriptions.ts`
+gained a paraphrased description for every new entry (plus the
+previously-undescribed `poor-self-control-vindictive`); `QualitiesStep.tsx`
+needed no changes, since it already renders generically from
+`catalog.qualities`. Verified via 6 new backend tests (`RunFasterQualitiesTests`,
+covering total/by-source counts, Rank, Fame's flat-step tiering, all five
+Poor Self Control variants, the `erased`/`records-on-file` conflict, and the
+Spike Resistance/Dimmer Bulb repeatable-rating pattern) — full suite 443
+backend tests and 284 frontend tests all pass — and a live authenticated
+browser check against the running app confirmed the `/catalogs/current`
+endpoint now serves version `1.3.0` with 144 total qualities (85 sourced to
+`run-faster`) and the expected `rank`/`fame`/conflict shapes. A pre-existing
+player draft pinned to an earlier, uncommitted local catalog state failed to
+evaluate (`RulesetCatalogException`, digest mismatch against its own pinned
+version); this is unrelated to CHAR-814 — every currently-committed catalog
+version's digest still resolves exactly as pinned per
+`Retained_catalog_digests_match_the_committed_pins` — and was not
+investigated further as out of scope for this ticket. Fixed in passing: a
+stale `"1.1.0"` version assertion in
+`CharacterCreationEndpointTests.Catalogs_require_authentication_and_return_the_pinned_contract`
+that CHAR-813 left unbumped when it moved `CurrentVersion` to `1.2.0`,
+which meant `SeattleByNight.Api.Tests` had been failing outright since that
+change (a locked build output from a stale running dev server had been
+masking this before now).
+
 CHAR-812 (Milestone 8's completeness/accessibility/release gate) has not been
 started; CHAR-801 through CHAR-811 are complete. Normal sequencing is to
 complete CHAR-812 before Milestone 9 (see Release Sequence item 9). The

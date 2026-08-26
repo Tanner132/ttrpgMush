@@ -198,7 +198,7 @@ listed choice; they do not spend Power Points. Custom archetypes are excluded by
 
 | Item | Treatment | Source |
 | --- | --- | --- |
-| Run Faster qualities | Excluded in full. Run Faster contributes no quality or quality sub-option. | `../SR5_RULESET_MANIFEST.md` Scope |
+| Run Faster qualities | Excluded from this ledger's own review scope (`sr5-core` and this book's approved decisions only). Run Faster's own qualities are now in scope under CHAR-814; see [`RUN_FASTER_QUALITIES.md`](RUN_FASTER_QUALITIES.md). | `../SR5_RULESET_MANIFEST.md` Scope |
 | Street-Level/Prime Runner quality budgets | Excluded generation variants; only experienced-runner separate 25/25 ceilings are cataloged. | `sr5-core` p. 64 (PDF 66); manifest Scope |
 | Custom mentor archetypes | Excluded because the core allows GM creation but supplies no construction rules; only 16 printed profiles are closed options. | `sr5-core` p. 320 (PDF 322); `mentor.custom-archetypes` |
 | Custom Code of Honor mechanics | Excluded. The protected-group rule and two fully defined alternative examples are cataloged; prose says other forms can exist but gives no construction/valuation rule. A text field cannot invent mechanical effects. | `sr5-core` pp. 79-80 (PDF 81-82); `quality.open-parameters` |

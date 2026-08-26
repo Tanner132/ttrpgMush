@@ -65,13 +65,22 @@ Included (CHAR-813, project owner, 2026-08-26):
 - "Poor Self Control (Vindictive)", the one Run Faster quality that bundle
   requires (`run-faster` p. 158 (PDF 160)).
 
+Included (CHAR-814, project owner, 2026-08-26):
+
+- Every quality and quality variant printed in Run Faster's "New Quality"
+  (Rank, `run-faster` p. 86, PDF 88) and "Qualities for Good or Ill"
+  (`run-faster` pp. 144-159, PDF 146-161) material, including the four
+  remaining Poor Self Control variants CHAR-813 left out of its own scope.
+  See [`sr5-catalog/RUN_FASTER_QUALITIES.md`](sr5-catalog/RUN_FASTER_QUALITIES.md).
+
 Excluded:
 
 - Core Street-Level and Prime Runner variants (`sr5-core` p. 64 (PDF 66)).
 - Run Faster Point Buy and Life Modules (`run-faster` p. 62 (PDF 64)).
-- Every other Run Faster metatype, quality, skill, spell, item, and other
-  option: metasapients (Centaur, Naga, Pixie, Sasquatch), shapeshifters, and
-  the Changelings/SURGE system, including its Metagenic Qualities catalog.
+- Every other Run Faster metatype, skill, spell, item, and other option not
+  listed above as included: metasapients (Centaur, Naga, Pixie, Sasquatch),
+  shapeshifters, and the Changelings/SURGE system, including its Metagenic
+  Qualities catalog and every Infected quality and critter power.
 - Campaign-specific generation variants and custom GM-authored catalogs.
 - Rules or corrections whose only authority is outside the approved PDFs.
 

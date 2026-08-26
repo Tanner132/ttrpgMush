@@ -21,10 +21,11 @@ public sealed record CatalogVersionPin(
 public sealed class EmbeddedRulesetCatalogProvider : IRulesetCatalogProvider
 {
     public const string CurrentRulesetId = "sr5-core";
-    public const string CurrentVersion = "1.2.0";
-    public const string CurrentSemanticDigest = "AB964A3911536A0FFD6BADAD942EC32DD1E2A2ACC387E6DC7B315E3439FF248A";
+    public const string CurrentVersion = "1.3.0";
+    public const string CurrentSemanticDigest = "D6D60E0C44412873F28F6F0FC80E1525C3F17BD01DBA29B1938D5E7079CD7AF8";
     private const string VersionOneSemanticDigest = "C943E1DB4DC510AEE2BDE33372323A96140B51F95980D57630F9EB7DFC6FE44E";
     private const string VersionOneOneSemanticDigest = "81468BD05315418B475C50EFE840042C2CD5068606D65F87612E574AB2B41ECA";
+    private const string VersionOneTwoSemanticDigest = "AB964A3911536A0FFD6BADAD942EC32DD1E2A2ACC387E6DC7B315E3439FF248A";
 
     private const string ResourcePrefix = "SeattleByNight.Application.CharacterCreation.Catalog.Resources.";
 
@@ -41,7 +42,9 @@ public sealed class EmbeddedRulesetCatalogProvider : IRulesetCatalogProvider
         new(CurrentRulesetId, "1.0.0", $"{ResourcePrefix}sr5-core-1.0.0.json", VersionOneSemanticDigest),
         new(CurrentRulesetId, "1.1.0", $"{ResourcePrefix}sr5-core-1.1.0.json", VersionOneOneSemanticDigest,
             $"{ResourcePrefix}sr5-core-1.0.0.json"),
-        new(CurrentRulesetId, CurrentVersion, $"{ResourcePrefix}sr5-core-1.2.0.json", CurrentSemanticDigest,
+        new(CurrentRulesetId, "1.2.0", $"{ResourcePrefix}sr5-core-1.2.0.json", VersionOneTwoSemanticDigest,
+            $"{ResourcePrefix}sr5-core-1.0.0.json"),
+        new(CurrentRulesetId, CurrentVersion, $"{ResourcePrefix}sr5-core-1.3.0.json", CurrentSemanticDigest,
             $"{ResourcePrefix}sr5-core-1.0.0.json"),
     ];
 

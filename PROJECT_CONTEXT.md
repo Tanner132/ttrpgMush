@@ -240,6 +240,16 @@ or Sum-to-Ten Metatype level: it replaces the parent's natural attribute
 ranges and racial-trait text outright and adds a flat Karma surcharge from
 Run Faster's Extended Priority Charts. See
 `roadmap/sr5-catalog/RUN_FASTER_METATYPES.md` for the full citation ledger.
+Run Faster's qualities are also in scope (CHAR-814, approved by the project
+owner 2026-08-26): the single "Rank" quality and the full "Qualities for
+Good or Ill" chapter, 84 new catalog entries published as `sr5-core` catalog
+version `1.3.0` (an overlay on `1.0.0` republishing every earlier overlay's
+additive content) alongside the 60 `sr5-core`/CHAR-807 qualities and the
+`poor-self-control-vindictive` quality CHAR-813 already added. None of these
+qualities needed bespoke evaluator logic; like most `sr5-core` qualities,
+their mechanical prose is documentation only (recorded in
+`roadmap/sr5-catalog/RUN_FASTER_QUALITIES.md`), not code-enforced, except for
+the one new bidirectional conflict between `erased` and `records-on-file`.
 Run Faster's Point Buy and Life Modules creation methods, its metasapients
 (Centaur, Naga, Pixie, Sasquatch), its shapeshifters, and its Changelings/
 SURGE system remain excluded; all other selectable character options remain

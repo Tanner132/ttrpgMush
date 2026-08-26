@@ -21,7 +21,7 @@ substitute for a full CHAR-812 reconciliation pass.
 | Category | Approved-PDF identity review | Detailed fact review | Runtime catalog | Reconciliation |
 | --- | --- | --- | --- | --- |
 | Priority rows and metatypes | Complete | Complete | Methods, levels, categories, 25 cell identities, and 5 metatypes published | Reconciled (CHAR-806 complete) |
-| Qualities | Complete: 31 positive, 28 negative | Complete | 59 qualities published | Reconciled (CHAR-807 complete) |
+| Qualities | Complete: 31 positive, 28 negative (`sr5-core`); 43 positive, 41 negative (`run-faster`) | Complete | 144 qualities published: 59 `sr5-core` (CHAR-807), 85 `run-faster` (1 `poor-self-control-vindictive` under CHAR-813, 84 new under CHAR-814) | Reconciled (CHAR-807, CHAR-813, CHAR-814 complete) |
 | Active skills and groups | Complete: 75 skills, 15 groups | Complete | 75 skills, 15 groups published | Reconciled (CHAR-807 complete) |
 | Knowledge and languages | Complete as open-authored categories | Complete | 4 open categories published | Reconciled (CHAR-807 complete) |
 | Magic and Resonance | Complete identity pass | Complete | 6 paths, 3 aspected values, 2 traditions, 84 spells, 9 rituals, 25 adept powers, 16 mentor spirits, 20 complex forms, 6 spirit types, 5 sprite types published | Reconciled (CHAR-808 complete) |
@@ -91,6 +91,37 @@ weak-immune-system
 
 Open parameters such as a prejudice target or code are typed bounded text, not
 new catalog options. Closed subtypes and ratings remain catalog facts.
+
+`run-faster` positive quality inventory (CHAR-813's `poor-self-control-vindictive`
+plus CHAR-814): `run-faster` p. 86 (PDF 88), pp. 145-151 (PDF 147-153).
+
+```text
+rank, adrenaline-surge, animal-empathy, black-market-pipeline, born-rich,
+city-slicker, college-education, common-sense, daredevil,
+digital-doppelganger, disgraced, erased, fame, friends-in-high-places,
+hawk-eye, inspired, jack-of-all-trades, lightning-reflexes, linguist,
+made-man, night-vision, outdoorsman, overclocker, perceptive, perfect-time,
+poor-link, privileged-family-name, restricted-gear, school-of-hard-knocks,
+sense-of-direction, sensei, solid-legendary-rep, speed-reading,
+spike-resistance, spirit-whisperer, steely-eyed-wheelman,
+technical-school-education, tough-as-nails, trust-fund, trustworthy,
+vehicle-empathy, water-sprite, witness-my-hate
+```
+
+`run-faster` negative quality inventory: `run-faster` pp. 151-159 (PDF 153-161).
+
+```text
+albinism, amnesia, asthma, bi-polar, big-regret, blind, borrowed-time,
+computer-illiterate, creature-of-comfort, day-job, deaf,
+did-you-just-call-me-dumb, dimmer-bulb, driven, emotional-attachment,
+ex-con, flashbacks, hobo-with-a-shotgun, hung-out-to-dry, illiterate,
+in-debt, incomplete-deprogramming, infirm, liar, night-blindness,
+oblivious, pacifist, paranoia, paraplegic, phobia, pie-iesu-domine,
+poor-self-control-braggart, poor-self-control-thrill-seeker,
+poor-self-control-compulsive, poor-self-control-vindictive,
+poor-self-control-combat-monster, records-on-file, reduced-sense,
+sensory-overload-syndrome, signature, vendetta, wanted
+```
 
 ## Skills
 
