@@ -8,6 +8,7 @@ import { useRoomChat } from '../realtime/useRoomChat.ts'
 import { useGameplayCommands } from '../commands/useGameplayCommands.ts'
 import type { RoomSession } from '../api/roomSession.ts'
 import { Composer } from '../components/Composer.tsx'
+import { CharacterSheetModal } from '../components/careerSheet/CharacterSheetModal.tsx'
 import { ConnectionStatus } from '../components/ConnectionStatus.tsx'
 import { IdleWarning } from '../components/IdleWarning.tsx'
 import { OccupantList } from '../components/OccupantList.tsx'
@@ -100,6 +101,10 @@ export default function GameplayPage() {
 
   const { idleWarning, dismissIdleWarning } = useIdleWarning(expiresAtUtc)
 
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const handleOpenCharacterSheet = useCallback(() => setSheetOpen(true), [])
+  const handleCloseCharacterSheet = useCallback(() => setSheetOpen(false), [])
+
   const { submit } = useGameplayCommands({
     session,
     occupants,
@@ -110,6 +115,7 @@ export default function GameplayPage() {
     moveThroughExit,
     queryOnlineCharacters,
     appendLocal,
+    onOpenCharacterSheet: handleOpenCharacterSheet,
   })
 
   const handleRemainSignedIn = useCallback(async () => {
@@ -145,6 +151,7 @@ export default function GameplayPage() {
   const room = session?.room
   const composerEnabled = joined && chatState === 'connected'
   const canMove = composerEnabled && !moving
+  const composerInteractive = session !== null
 
   return (
     <div className="grid-screen">
@@ -170,7 +177,8 @@ export default function GameplayPage() {
             onLoadOlder={loadOlder}
           />
           <Composer
-            enabled={composerEnabled}
+            interactive={composerInteractive}
+            connected={composerEnabled}
             sending={sending || rolling}
             sendError={sendError}
             characterName={session?.character.name ?? null}
@@ -190,6 +198,10 @@ export default function GameplayPage() {
           <OccupantList occupants={occupants} onlineCharacters={onlineCharacters} />
         </aside>
       </div>
+
+      {sheetOpen && session && (
+        <CharacterSheetModal characterId={session.character.id} onClose={handleCloseCharacterSheet} />
+      )}
     </div>
   )
 }

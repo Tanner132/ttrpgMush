@@ -17,6 +17,7 @@ export interface UseGameplayCommandsOptions {
   moveThroughExit: (exitId: string) => Promise<boolean>
   queryOnlineCharacters: () => Promise<CharacterSummary[]>
   appendLocal: (kind: LocalEntryKind, text: string) => void
+  onOpenCharacterSheet: () => void
 }
 
 export interface UseGameplayCommandsResult {
@@ -34,6 +35,7 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
     moveThroughExit,
     queryOnlineCharacters,
     appendLocal,
+    onOpenCharacterSheet,
   } = options
 
   const submit = useCallback(
@@ -78,6 +80,14 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
             return false
           }
           appendLocal('info', renderLook(session, occupants, onlineCharacters))
+          return true
+        }
+        case 'character': {
+          if (!session) {
+            appendLocal('error', 'The current room is not available.')
+            return false
+          }
+          onOpenCharacterSheet()
           return true
         }
         case 'who': {
@@ -134,7 +144,7 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
 
       return false
     },
-    [session, occupants, onlineCharacters, joined, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, appendLocal],
+    [session, occupants, onlineCharacters, joined, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, appendLocal, onOpenCharacterSheet],
   )
 
   return { submit }

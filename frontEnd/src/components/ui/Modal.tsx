@@ -5,12 +5,21 @@ interface ModalProps {
   children: ReactNode
   onClose: () => void
   initialFocusRef?: RefObject<HTMLElement | null>
+  size?: 'default' | 'wide'
 }
 
-export function Modal({ title, children, onClose, initialFocusRef }: ModalProps) {
+export function Modal({ title, children, onClose, initialFocusRef, size = 'default' }: ModalProps) {
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
   const close = useEffectEvent(onClose)
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [])
 
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -46,7 +55,7 @@ export function Modal({ title, children, onClose, initialFocusRef }: ModalProps)
 
   return (
     <div className="ui-modal__overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <div ref={dialogRef} className="ui-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
+      <div ref={dialogRef} className={size === 'wide' ? 'ui-modal ui-modal--wide' : 'ui-modal'} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
         <div className="ui-modal__header">
           <h2 id={titleId}>{title}</h2>
           <button type="button" className="ui-modal__close" aria-label="Close dialog" onClick={onClose}>X</button>

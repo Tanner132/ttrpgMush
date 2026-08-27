@@ -12,6 +12,7 @@ export const COMMANDS: CommandMetadata[] = [
   { name: 'help', usage: '/help', description: 'List available commands.' },
   { name: 'who', usage: '/who', description: 'List characters online right now.' },
   { name: 'look', usage: '/look', description: 'Describe the current room.' },
+  { name: 'character', usage: '/character', description: 'Open your character sheet.' },
   { name: 'go', usage: '/go <direction>', description: 'Move through a visible exit.', requiresArgument: true },
 ]
 

@@ -26,12 +26,14 @@ describe('parseCommand', () => {
     expect(parseCommand('/help')).toEqual({ kind: 'help' })
     expect(parseCommand('/who')).toEqual({ kind: 'who' })
     expect(parseCommand('/look')).toEqual({ kind: 'look' })
+    expect(parseCommand('/character')).toEqual({ kind: 'character' })
   })
 
   it('is case-insensitive for command names', () => {
     expect(parseCommand('/HELP')).toEqual({ kind: 'help' })
     expect(parseCommand('/WhO')).toEqual({ kind: 'who' })
     expect(parseCommand('/Look')).toEqual({ kind: 'look' })
+    expect(parseCommand('/CHARACTER')).toEqual({ kind: 'character' })
   })
 
   it('parses /go with a selector preserving casing', () => {
@@ -93,6 +95,11 @@ describe('parseCommand', () => {
       kind: 'usage-error',
       command: 'look',
       message: '/look does not accept arguments. Usage: /look',
+    })
+    expect(parseCommand('/character foo')).toEqual({
+      kind: 'usage-error',
+      command: 'character',
+      message: '/character does not accept arguments. Usage: /character',
     })
   })
 

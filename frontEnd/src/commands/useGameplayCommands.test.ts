@@ -29,6 +29,7 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
   const queryOnlineCharacters = vi
     .fn<() => Promise<Array<{ id: string; name: string }>>>()
     .mockResolvedValue([{ id: 'c1', name: 'Ace' }, { id: 'c2', name: 'Byte' }])
+  const onOpenCharacterSheet = vi.fn()
 
   const options: UseGameplayCommandsOptions = {
     session,
@@ -40,12 +41,13 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
     moveThroughExit,
     queryOnlineCharacters,
     appendLocal,
+    onOpenCharacterSheet,
     ...overrides,
   }
 
   const { result } = renderHook(() => useGameplayCommands(options))
 
-  return { result, appendLocal, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters }
+  return { result, appendLocal, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, onOpenCharacterSheet }
 }
 
 describe('useGameplayCommands', () => {
@@ -150,6 +152,44 @@ describe('useGameplayCommands', () => {
     })
 
     expect(ok).toBe(false)
+    expect(appendLocal).toHaveBeenCalledWith('error', expect.stringContaining('not available'))
+  })
+
+  it('opens the character sheet and clears the draft', async () => {
+    const { result, onOpenCharacterSheet, appendLocal } = createHarness()
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/character')
+    })
+
+    expect(ok).toBe(true)
+    expect(onOpenCharacterSheet).toHaveBeenCalledTimes(1)
+    expect(appendLocal).not.toHaveBeenCalled()
+  })
+
+  it('opens the character sheet even while not connected, as long as a session is loaded', async () => {
+    const { result, onOpenCharacterSheet } = createHarness({ joined: false })
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/character')
+    })
+
+    expect(ok).toBe(true)
+    expect(onOpenCharacterSheet).toHaveBeenCalledTimes(1)
+  })
+
+  it('fails /character without an active session without clearing the draft', async () => {
+    const { result, appendLocal, onOpenCharacterSheet } = createHarness({ session: null })
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/character')
+    })
+
+    expect(ok).toBe(false)
+    expect(onOpenCharacterSheet).not.toHaveBeenCalled()
     expect(appendLocal).toHaveBeenCalledWith('error', expect.stringContaining('not available'))
   })
 
@@ -261,6 +301,17 @@ describe('useGameplayCommands', () => {
     })
 
     expect(appendLocal).toHaveBeenCalledWith('error', expect.stringContaining('/help does not accept arguments.'))
+  })
+
+  it('rejects /character with an argument as a usage error', async () => {
+    const { result, appendLocal, onOpenCharacterSheet } = createHarness()
+
+    await act(async () => {
+      await result.current.submit('/character foo')
+    })
+
+    expect(onOpenCharacterSheet).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith('error', expect.stringContaining('/character does not accept arguments.'))
   })
 
   it('fails locally for connection-required commands while not joined', async () => {

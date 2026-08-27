@@ -3,14 +3,15 @@ import { TextArea } from './ui/TextArea.tsx'
 import { Button } from './ui/Button.tsx'
 
 const MAX_MESSAGE_LENGTH = 4000
-const SLASH_HINTS = ['/say', '/emote', '/roll', '/look', '/go', '/who', '/help']
+const SLASH_HINTS = ['/say', '/emote', '/roll', '/look', '/character', '/go', '/who', '/help']
 
 function slugify(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, '-') || 'grid'
 }
 
 interface ComposerProps {
-  enabled: boolean
+  interactive: boolean
+  connected: boolean
   sending: boolean
   sendError: string | null
   characterName: string | null
@@ -18,11 +19,11 @@ interface ComposerProps {
   onSend: (content: string) => Promise<boolean>
 }
 
-export function Composer({ enabled, sending, sendError, characterName, roomName, onSend }: ComposerProps) {
+export function Composer({ interactive, connected, sending, sendError, characterName, roomName, onSend }: ComposerProps) {
   const [draft, setDraft] = useState('')
 
   const trimmedDraft = draft.trim()
-  const canSend = enabled && !sending && trimmedDraft.length > 0 && trimmedDraft.length <= MAX_MESSAGE_LENGTH
+  const canSend = interactive && !sending && trimmedDraft.length > 0 && trimmedDraft.length <= MAX_MESSAGE_LENGTH
   const prompt = `${slugify(characterName ?? 'runner')}@${slugify(roomName ?? 'grid')}:~$`
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -53,10 +54,10 @@ export function Composer({ enabled, sending, sendError, characterName, roomName,
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={enabled ? 'speak, or /emote /roll 2d6+3 /go north /who' : 'Reconnecting…'}
+            placeholder={connected ? 'speak, or /emote /roll 2d6+3 /go north /who' : 'Reconnecting… /help, /look, and /character still work'}
             rows={1}
             maxLength={MAX_MESSAGE_LENGTH}
-            disabled={!enabled}
+            disabled={!interactive}
           />
           <Button type="submit" intent="primary" className="composer__send" disabled={!canSend}>
             {sending ? 'Sending…' : 'Send ⏎'}

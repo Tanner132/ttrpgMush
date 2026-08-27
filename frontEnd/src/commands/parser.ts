@@ -7,6 +7,7 @@ export type ParsedCommand =
   | { kind: 'help' }
   | { kind: 'who' }
   | { kind: 'look' }
+  | { kind: 'character' }
   | { kind: 'go'; selector: string }
   | { kind: 'unknown'; command: string }
   | { kind: 'usage-error'; command: string; message: string }
@@ -29,7 +30,7 @@ export function parseCommand(raw: string): ParsedCommand {
     return { kind: 'unknown', command: '' }
   }
 
-  if (command === 'help' || command === 'who' || command === 'look') {
+  if (command === 'help' || command === 'who' || command === 'look' || command === 'character') {
     if (argument.length > 0) {
       return {
         kind: 'usage-error',

@@ -47,6 +47,26 @@
     scrollbar-width: thin;
 }
 
+/*
+ * Inside the gameplay modal, .career-dossier's parent is .ui-modal, which
+ * (unlike .career-sheet-page) only sets max-height, not height — so the
+ * dossier's `max-height: 100%` above never resolves against a definite
+ * containing-block height, and its overflow-y: auto never engages. Give
+ * .ui-modal a flex layout with the dossier as the sole flexible, shrinkable
+ * child so it gets a real height to scroll within, while the modal header
+ * stays pinned above it.
+ */
+.ui-modal:has(.career-dossier) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ui-modal:has(.career-dossier) .career-dossier {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
 .career-dossier::before,
 .career-dossier::after {
     position: absolute;

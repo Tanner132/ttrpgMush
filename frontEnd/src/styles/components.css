@@ -1971,6 +1971,10 @@ textarea.composer__input:focus-visible {
   box-shadow: var(--sb-shadow-2), var(--sb-glow-info);
 }
 
+.ui-modal--wide {
+  width: min(96vw, 1600px);
+}
+
 .ui-modal__header {
   display: flex;
   align-items: center;
@@ -2061,6 +2065,17 @@ textarea.composer__input:focus-visible {
 
   .world-map {
     min-height: 330px;
+  }
+
+  .ui-modal__overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .ui-modal {
+    width: 100%;
+    max-height: 100vh;
+    height: 100%;
   }
 
   .world-editor__coordinate-fields {

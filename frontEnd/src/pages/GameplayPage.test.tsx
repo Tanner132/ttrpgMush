@@ -7,6 +7,103 @@ import type { RoomMessage, RoomSession } from '../api/roomSession.ts'
 import { getRoomSession, MessageType } from '../api/roomSession.ts'
 import type { RoomPresence, RoomCharacterEvent } from '../realtime/presence.ts'
 import type { RoomChatConnectionState } from '../realtime/roomChat.ts'
+import { getCareerSheet, type ComposedCareerSheet } from '../api/careerSheet.ts'
+import { getCatalog, type CatalogContract } from '../api/characterCreation.ts'
+
+vi.mock('../api/careerSheet.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api/careerSheet.ts')>()),
+  getCareerSheet: vi.fn(),
+}))
+
+vi.mock('../api/characterCreation.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api/characterCreation.ts')>()),
+  getCatalog: vi.fn(),
+}))
+
+function buildCareerSheet(overrides: Partial<ComposedCareerSheet> = {}): ComposedCareerSheet {
+  return {
+    characterId: 'char-1',
+    name: 'Dev Runner',
+    rulesetId: 'sr5-core',
+    catalogVersion: '1.0.0',
+    catalogSemanticDigest: 'digest',
+    careerDocumentSchemaVersion: 1,
+    careerStateVersion: 'version-1',
+    currentKarma: 5,
+    currentNuyen: 1000,
+    lifetimeKarmaEarned: 0,
+    sheet: {
+      metatype: { id: 'human', provenance: 'priority' },
+      attributes: [],
+      specialAttributes: [],
+      qualities: [],
+      skills: [],
+      skillGroups: [],
+      knowledgeSkills: [],
+      languages: [],
+      nativeLanguages: [],
+      profile: {
+        concept: 'Covert retrieval specialist',
+        shortDescription: 'Quiet, precise, and professionally deniable.',
+        description: 'A disciplined operator built for discreet acquisition work.',
+        age: '29',
+        height: '178 cm',
+        handedness: 'Right',
+      },
+    },
+    acquiredInventory: [],
+    recentTransactions: [],
+    recentAdvancements: [],
+    nextActions: [],
+    finalizedAtUtc: '2026-08-01T00:00:00Z',
+    careerStateCreatedAtUtc: '2026-08-01T00:00:00Z',
+    careerStateUpdatedAtUtc: '2026-08-01T00:00:00Z',
+    ...overrides,
+  }
+}
+
+function buildCatalog(): CatalogContract {
+  return {
+    rulesetId: 'sr5-core',
+    version: '1.0.0',
+    semanticDigest: 'digest',
+    sources: [],
+    creationMethods: [],
+    priorityLevels: [],
+    priorityCategories: [],
+    priorityCells: [],
+    metatypes: [{ id: 'human', displayName: 'Human', attributes: {}, traits: '', source: { sourceId: 'core', printedPage: 1, pdfPage: 1 } }],
+    attributes: [],
+    qualities: [],
+    skills: [],
+    skillGroups: [],
+    knowledgeCategories: [],
+    creationPaths: [],
+    aspectedValues: [],
+    traditions: [],
+    spells: [],
+    rituals: [],
+    adeptPowers: [],
+    mentorSpirits: [],
+    complexForms: [],
+    spiritTypes: [],
+    spriteTypes: [],
+    foci: [],
+    gear: [],
+    weapons: [],
+    armor: [],
+    augmentationGrades: [],
+    augmentations: [],
+    vehicles: [],
+    cyberdecks: [],
+    weaponAccessories: [],
+    armorModifications: [],
+    cyberlimbEnhancements: [],
+    vehicleModifications: [],
+    lifestyleTiers: [],
+    lifestyleOptions: [],
+  }
+}
 
 interface RealtimeHandlers {
   onMessage: (message: RoomMessage) => void
@@ -99,6 +196,8 @@ beforeEach(() => {
   realtime.moveThroughExit.mockResolvedValue(true)
   realtime.queryOnlineCharacters.mockResolvedValue([{ id: 'char-2', name: 'Street Sam' }])
   realtime.recordActivity.mockResolvedValue(true)
+  vi.mocked(getCareerSheet).mockResolvedValue(buildCareerSheet())
+  vi.mocked(getCatalog).mockResolvedValue(buildCatalog())
 })
 
 async function renderPlaying(session: RoomSession = emptySession) {
@@ -138,14 +237,24 @@ describe('realtime chat', () => {
     expect(screen.getAllByText('hello there')).toHaveLength(1)
   })
 
-  it('disables the composer while not connected and joined', async () => {
+  it('keeps the composer usable for local commands while not connected and joined', async () => {
     realtime.joined = false
     realtime.state = 'connecting'
 
     await renderPlaying()
 
-    expect(screen.getByLabelText('Message')).toBeDisabled()
-    expect(screen.getByRole('button', { name: /send/i })).toBeDisabled()
+    expect(screen.getByLabelText('Message')).toBeEnabled()
+
+    const user = userEvent.setup()
+    const composer = screen.getByLabelText('Message')
+    await user.type(composer, 'hello world')
+
+    expect(screen.getByRole('button', { name: /send/i })).toBeEnabled()
+
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    expect(realtime.sendMessage).not.toHaveBeenCalled()
+    expect((await screen.findAllByText('You are not connected.')).length).toBeGreaterThan(0)
   })
 
   it('enables the composer and clears the draft on send', async () => {
@@ -416,6 +525,81 @@ describe('commands', () => {
     expect((await screen.findAllByText(/Unknown command:/)).length).toBeGreaterThan(0)
     expect(composer).toHaveValue('/dance')
     expect(realtime.sendMessage).not.toHaveBeenCalled()
+  })
+})
+
+describe('character sheet modal', () => {
+  it('opens the character sheet with /character and shows the live sheet', async () => {
+    await renderPlaying()
+
+    const user = userEvent.setup()
+    const composer = screen.getByLabelText('Message')
+
+    await user.type(composer, '/character')
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    expect(await screen.findByRole('dialog', { name: 'Character Sheet' })).toBeInTheDocument()
+    expect(await screen.findByText('Covert retrieval specialist')).toBeInTheDocument()
+    expect(composer).toHaveValue('')
+  })
+
+  it('is case-insensitive', async () => {
+    await renderPlaying()
+
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText('Message'), '/CHARACTER')
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    expect(await screen.findByRole('dialog', { name: 'Character Sheet' })).toBeInTheDocument()
+  })
+
+  it('rejects arguments and does not open the modal', async () => {
+    await renderPlaying()
+
+    const user = userEvent.setup()
+    const composer = screen.getByLabelText('Message')
+    await user.type(composer, '/character foo')
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    expect((await screen.findAllByText(/does not accept arguments/)).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('dialog', { name: 'Character Sheet' })).not.toBeInTheDocument()
+    expect(composer).toHaveValue('/character foo')
+  })
+
+  it('opens the sheet while SignalR is disconnected, as long as the room session is loaded', async () => {
+    realtime.joined = false
+    realtime.state = 'connecting'
+
+    await renderPlaying()
+
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText('Message'), '/character')
+    await user.click(screen.getByRole('button', { name: /send/i }))
+
+    expect(await screen.findByRole('dialog', { name: 'Character Sheet' })).toBeInTheDocument()
+  })
+
+  it('closes on Escape and returns focus to the composer without navigating, chatting, or moving', async () => {
+    await renderPlaying()
+
+    const user = userEvent.setup()
+    const composer = screen.getByLabelText('Message')
+    // Submit via Enter (the composer's own send gesture) rather than clicking
+    // the Send button, since clicking would move DOM focus to the button
+    // itself before the modal ever captures it.
+    await user.type(composer, '/character{Enter}')
+
+    await screen.findByRole('dialog', { name: 'Character Sheet' })
+    const roomSessionCallsBeforeClose = vi.mocked(getRoomSession).mock.calls.length
+
+    await user.keyboard('{Escape}')
+
+    expect(screen.queryByRole('dialog', { name: 'Character Sheet' })).not.toBeInTheDocument()
+    expect(document.activeElement).toBe(composer)
+    expect(screen.getByText('Downtown Street', { selector: '.room-plate__name' })).toBeInTheDocument()
+    expect(realtime.sendMessage).not.toHaveBeenCalled()
+    expect(realtime.moveThroughExit).not.toHaveBeenCalled()
+    expect(vi.mocked(getRoomSession).mock.calls.length).toBe(roomSessionCallsBeforeClose)
   })
 })
 
