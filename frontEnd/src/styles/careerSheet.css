@@ -656,6 +656,76 @@
     font-size: var(--career-type-small);
 }
 
+.skill-advancement-row__specialization {
+    color: var(--sb-text-faint);
+    font-style: italic;
+}
+
+.skill-advancement-row__specialize-label {
+    display: grid;
+    gap: 0.2rem;
+    color: var(--sb-text-faint);
+    font-family: var(--sb-font-data);
+    font-size: var(--career-type-small);
+    letter-spacing: 0.08em;
+}
+
+.skill-advancement-row__specialize-input {
+    padding: var(--sb-space-2);
+    border: 1px solid var(--sb-border);
+    background: var(--sb-bg-inset);
+    color: var(--sb-text);
+    font-size: var(--career-type-body);
+}
+
+.skill-advancement-list__group {
+    display: grid;
+    gap: var(--sb-space-1);
+    padding-bottom: var(--sb-space-1);
+}
+
+.skill-advancement-list__break-notice {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--sb-danger);
+    font-size: var(--career-type-small);
+}
+
+.skill-advancement-list__learn {
+    grid-column: 1 / -1;
+}
+
+.skill-advancement-learn {
+    display: grid;
+    gap: var(--sb-space-3);
+}
+
+.skill-advancement-learn__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--sb-space-3);
+}
+
+.skill-advancement-learn__field {
+    display: grid;
+    min-width: 10rem;
+    gap: 0.2rem;
+    color: var(--sb-text-faint);
+    font-family: var(--sb-font-data);
+    font-size: var(--career-type-small);
+    letter-spacing: 0.08em;
+}
+
+.skill-advancement-learn__field select,
+.skill-advancement-learn__field input {
+    padding: var(--sb-space-2);
+    border: 1px solid var(--sb-border);
+    background: var(--sb-bg-inset);
+    color: var(--sb-text);
+    font-size: var(--career-type-body);
+}
+
 .career-dossier__footer {
     display: flex;
     justify-content: space-between;
@@ -747,5 +817,10 @@
 
     .career-dossier__footer {
         flex-direction: column;
+    }
+
+    .skill-advancement-learn__row {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

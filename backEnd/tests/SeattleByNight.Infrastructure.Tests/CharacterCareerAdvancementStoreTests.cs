@@ -174,6 +174,134 @@ public sealed class CharacterCareerAdvancementStoreTests : IAsyncLifetime
         Assert.Equal(state.CurrentKarma - 20, reloaded.CurrentKarma);
     }
 
+    [Fact]
+    public async Task CommitSkillAdvancementAsync_raises_an_individually_owned_skill()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+
+        var result = await CreateStore(db).CommitSkillAdvancementAsync(new SkillAdvancementCommit(
+            characterId, state.Version, Guid.NewGuid(), CareerSkillKind.ActiveSkill, "pistols", Parameter: null,
+            NewSkillGrant: null, NewKnowledgeCategoryId: null, BrokenGroupId: null, BrokenGroupReason: null,
+            PreviousValue: 2, NewValue: 3, KarmaCost: 6, CharacterAdvancementCategory.Skill, "sr5-core", state.CareerDocumentSchemaVersion.ToString()));
+
+        Assert.Equal(SkillAdvancementCommitError.None, result.Error);
+        Assert.Equal(state.CurrentKarma - 6, result.Committed!.CurrentKarma);
+
+        var reloaded = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        var progression = CharacterCareerSerialization.DeserializeProgression(reloaded.ProgressionJson);
+        Assert.Equal(3, progression.SkillRatings["pistols"]);
+        Assert.Empty(progression.NewSkills);
+
+        var advancement = await db.CharacterAdvancements.SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(CharacterAdvancementCategory.Skill, advancement.Category);
+        Assert.Equal("pistols", advancement.TargetId);
+    }
+
+    [Fact]
+    public async Task CommitSkillAdvancementAsync_records_the_grant_identity_for_a_brand_new_skill()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+
+        var result = await CreateStore(db).CommitSkillAdvancementAsync(new SkillAdvancementCommit(
+            characterId, state.Version, Guid.NewGuid(), CareerSkillKind.ActiveSkill, "sneaking", Parameter: null,
+            NewSkillGrant: new CareerSkillGrant("sneaking", null), NewKnowledgeCategoryId: null,
+            BrokenGroupId: null, BrokenGroupReason: null,
+            PreviousValue: 0, NewValue: 1, KarmaCost: 2, CharacterAdvancementCategory.Skill, "sr5-core", state.CareerDocumentSchemaVersion.ToString()));
+
+        Assert.Equal(SkillAdvancementCommitError.None, result.Error);
+
+        var reloaded = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        var progression = CharacterCareerSerialization.DeserializeProgression(reloaded.ProgressionJson);
+        Assert.Equal(1, progression.SkillRatings["sneaking"]);
+        Assert.Equal("sneaking", progression.NewSkills["sneaking"].Id);
+    }
+
+    [Fact]
+    public async Task CommitSkillAdvancementAsync_breaks_the_owning_group_when_a_member_is_raised()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+
+        var result = await CreateStore(db).CommitSkillAdvancementAsync(new SkillAdvancementCommit(
+            characterId, state.Version, Guid.NewGuid(), CareerSkillKind.ActiveSkill, "running", Parameter: null,
+            NewSkillGrant: new CareerSkillGrant("running", null), NewKnowledgeCategoryId: null,
+            BrokenGroupId: "athletics", BrokenGroupReason: SkillGroupBreakReason.Raise,
+            PreviousValue: 2, NewValue: 3, KarmaCost: 6, CharacterAdvancementCategory.Skill, "sr5-core", state.CareerDocumentSchemaVersion.ToString()));
+
+        Assert.Equal(SkillAdvancementCommitError.None, result.Error);
+
+        var reloaded = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        var progression = CharacterCareerSerialization.DeserializeProgression(reloaded.ProgressionJson);
+        Assert.Equal(SkillGroupBreakReason.Raise, progression.BrokenSkillGroups["athletics"]);
+    }
+
+    [Fact]
+    public async Task CommitSkillSpecializationAsync_permanently_breaks_the_owning_group()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+
+        var result = await CreateStore(db).CommitSkillSpecializationAsync(new SkillSpecializationCommit(
+            characterId, state.Version, Guid.NewGuid(), CareerSkillKind.ActiveSkill, "gymnastics", Parameter: null,
+            SeedSkillGrant: new CareerSkillGrant("gymnastics", null), SeedRating: 2, Specialization: "Parkour",
+            BrokenGroupId: "athletics", BrokenGroupReason: SkillGroupBreakReason.Specialization,
+            KarmaCost: 7, "sr5-core", state.CareerDocumentSchemaVersion.ToString()));
+
+        Assert.Equal(SkillAdvancementCommitError.None, result.Error);
+        Assert.Equal(state.CurrentKarma - 7, result.Committed!.CurrentKarma);
+
+        var reloaded = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        var progression = CharacterCareerSerialization.DeserializeProgression(reloaded.ProgressionJson);
+        Assert.Equal("Parkour", progression.SkillSpecializations["gymnastics"]);
+        Assert.Equal(2, progression.SkillRatings["gymnastics"]);
+        Assert.Equal(SkillGroupBreakReason.Specialization, progression.BrokenSkillGroups["athletics"]);
+
+        var advancement = await db.CharacterAdvancements.SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(CharacterAdvancementCategory.Specialization, advancement.Category);
+        Assert.Contains("Parkour", advancement.DetailsJson);
+    }
+
+    [Fact]
+    public async Task Duplicate_skill_advancement_request_id_returns_the_cached_result_without_spending_again()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+        var requestId = Guid.NewGuid();
+        var store = CreateStore(db);
+        var commit = new SkillAdvancementCommit(
+            characterId, state.Version, requestId, CareerSkillKind.ActiveSkill, "pistols", Parameter: null,
+            NewSkillGrant: null, NewKnowledgeCategoryId: null, BrokenGroupId: null, BrokenGroupReason: null,
+            PreviousValue: 2, NewValue: 3, KarmaCost: 6, CharacterAdvancementCategory.Skill, "sr5-core", state.CareerDocumentSchemaVersion.ToString());
+
+        var first = await store.CommitSkillAdvancementAsync(commit);
+        var lookup = await store.FindSkillAdvancementReceiptAsync(characterId, requestId, CharacterCareerSkillActionKinds.SkillAdvancement);
+
+        Assert.True(lookup.Found);
+        Assert.False(lookup.KindMismatch);
+        Assert.Equal(first.Committed, lookup.Committed);
+        var reloaded = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(state.CurrentKarma - 6, reloaded.CurrentKarma);
+    }
+
+    [Fact]
+    public async Task CommitSkillAdvancementAsync_rejects_a_stale_expected_version_without_mutating()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+
+        var result = await CreateStore(db).CommitSkillAdvancementAsync(new SkillAdvancementCommit(
+            characterId, Guid.NewGuid(), Guid.NewGuid(), CareerSkillKind.ActiveSkill, "pistols", Parameter: null,
+            NewSkillGrant: null, NewKnowledgeCategoryId: null, BrokenGroupId: null, BrokenGroupReason: null,
+            PreviousValue: 2, NewValue: 3, KarmaCost: 6, CharacterAdvancementCategory.Skill, "sr5-core", "1"));
+
+        Assert.Equal(SkillAdvancementCommitError.VersionConflict, result.Error);
+        var reloaded = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(state.CurrentKarma, reloaded.CurrentKarma);
+        Assert.Equal(state.Version, reloaded.Version);
+    }
+
     private static CharacterCareerAdvancementStore CreateStore(SeattleByNightDbContext db) => new(db, TimeProvider.System);
 
     // Carryover Karma is capped at 7 (MaxCarryoverKarma), too little to test a

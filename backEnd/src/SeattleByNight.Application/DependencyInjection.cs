@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddSingleton<CharacterCreationBaselineReader>();
         services.AddSingleton<CareerSheetComposer>();
         services.AddSingleton<AttributeAdvancementEvaluator>();
+        services.AddSingleton<SkillAdvancementEvaluator>();
 
         return services;
     }

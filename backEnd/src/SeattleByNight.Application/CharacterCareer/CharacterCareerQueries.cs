@@ -20,6 +20,7 @@ public sealed class GetComposedCharacterSheetQueryHandler
     private readonly IRulesetCatalogProvider catalogProvider;
     private readonly CareerSheetComposer composer;
     private readonly AttributeAdvancementEvaluator attributeEvaluator;
+    private readonly SkillAdvancementEvaluator skillEvaluator;
 
     public GetComposedCharacterSheetQueryHandler(
         ICharacterCreationDraftStore draftStore,
@@ -28,7 +29,8 @@ public sealed class GetComposedCharacterSheetQueryHandler
         ICharacterCareerHistoryReader historyReader,
         IRulesetCatalogProvider catalogProvider,
         CareerSheetComposer composer,
-        AttributeAdvancementEvaluator attributeEvaluator)
+        AttributeAdvancementEvaluator attributeEvaluator,
+        SkillAdvancementEvaluator skillEvaluator)
     {
         this.draftStore = draftStore;
         this.baselineReader = baselineReader;
@@ -37,6 +39,7 @@ public sealed class GetComposedCharacterSheetQueryHandler
         this.catalogProvider = catalogProvider;
         this.composer = composer;
         this.attributeEvaluator = attributeEvaluator;
+        this.skillEvaluator = skillEvaluator;
     }
 
     public async Task<ComposedCharacterSheetResult> Handle(
@@ -74,6 +77,7 @@ public sealed class GetComposedCharacterSheetQueryHandler
         var catalog = catalogProvider.Get(baseline.Baseline.RulesetId, baseline.Baseline.CatalogVersion);
         var composedSheet = composer.Compose(baseline.Baseline.Sheet, careerState.Progression);
         var nextActions = attributeEvaluator.EvaluateAll(catalog, composedSheet, careerState.CurrentKarma);
+        var skillNextActions = skillEvaluator.EvaluateAll(catalog, composedSheet, careerState.CurrentKarma);
 
         return ComposedCharacterSheetResult.Success(new ComposedCharacterSheet(
             baseline.Baseline.CharacterId,
@@ -91,6 +95,7 @@ public sealed class GetComposedCharacterSheetQueryHandler
             transactions,
             advancements,
             nextActions,
+            skillNextActions,
             baseline.Baseline.FinalizedAtUtc,
             careerState.CreatedAtUtc,
             careerState.UpdatedAtUtc));

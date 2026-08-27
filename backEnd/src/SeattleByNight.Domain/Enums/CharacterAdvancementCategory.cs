@@ -22,3 +22,17 @@ public enum CharacterAdvancementCategory
     Submersion,
     Contact,
 }
+
+// SHEET-907: why a skill group can no longer be raised as a group. "Raise"
+// is a rebuildable break caused by individually raising one member's rating
+// above the group's floor; "Specialization" is a permanent break — once any
+// member takes a specialization the group can never be rebuilt, regardless
+// of whether member ratings later match again. Lives in Domain (not
+// Application.CharacterCareer) so the shared CanonicalSkillGroup record in
+// CharacterCreation.Drafts can carry it without CharacterCreation depending
+// on CharacterCareer.
+public enum SkillGroupBreakReason
+{
+    Raise,
+    Specialization,
+}

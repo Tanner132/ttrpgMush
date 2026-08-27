@@ -57,6 +57,58 @@ public sealed record AdvanceAttributeResponse(
     Guid CareerStateVersion,
     Guid AdvancementId);
 
+// SHEET-907. Kind is one of "ActiveSkill", "SkillGroup", "KnowledgeSkill",
+// "Language" (CareerSkillKind.ToString(), matching this file's existing
+// Category/ResourceType/TransactionType/AcquisitionSource convention of
+// echoing a domain enum's PascalCase member name verbatim rather than a
+// hand-picked camelCase literal). Id addresses ActiveSkill/SkillGroup by
+// catalog id; Name addresses KnowledgeSkill/Language by player-authored
+// text. CategoryId is only used (and only required) for a brand-new
+// KnowledgeSkill.
+public sealed record AdvanceSkillRequest(
+    Guid ExpectedVersion, Guid RequestId, string Kind, string? Id, string? Name, string? Parameter, string? CategoryId);
+
+public sealed record AdvanceSkillResponse(
+    Guid CharacterId,
+    string Kind,
+    string Key,
+    string? Parameter,
+    string? CategoryId,
+    int PreviousValue,
+    int NewValue,
+    int KarmaCost,
+    int CurrentKarma,
+    Guid CareerStateVersion,
+    Guid AdvancementId);
+
+public sealed record PreviewSkillAdvancementRequest(string Kind, string? Id, string? Name, string? Parameter, string? CategoryId);
+
+public sealed record PreviewSkillAdvancementResponse(
+    string Kind,
+    string Key,
+    string? Parameter,
+    string? CategoryId,
+    int CurrentValue,
+    int NewValue,
+    int KarmaCost,
+    int Ceiling,
+    bool IsEligible,
+    IReadOnlyList<string> BlockingReasons);
+
+public sealed record AddSkillSpecializationRequest(
+    Guid ExpectedVersion, Guid RequestId, string Kind, string? Id, string? Name, string? Parameter, string Specialization);
+
+public sealed record AddSkillSpecializationResponse(
+    Guid CharacterId,
+    string Kind,
+    string Key,
+    string? Parameter,
+    string Specialization,
+    int KarmaCost,
+    int CurrentKarma,
+    Guid CareerStateVersion,
+    Guid AdvancementId);
+
 public sealed record ComposedCharacterSheetResponse(
     Guid CharacterId,
     string Name,
@@ -86,6 +138,9 @@ public static class CharacterEndpoints
         group.MapGet("", ListAsync);
         group.MapGet("{characterId:guid}/career-sheet", GetCareerSheetAsync);
         group.MapPost("{characterId:guid}/advancements/attributes", AdvanceAttributeAsync).RequireAntiforgery();
+        group.MapPost("{characterId:guid}/advancements/skills", AdvanceSkillAsync).RequireAntiforgery();
+        group.MapPost("{characterId:guid}/advancements/skills/preview", PreviewSkillAdvancementAsync);
+        group.MapPost("{characterId:guid}/advancements/specializations", AddSkillSpecializationAsync).RequireAntiforgery();
 
         return endpoints;
     }
@@ -150,6 +205,107 @@ public static class CharacterEndpoints
             committed.KarmaCost, committed.CurrentKarma, committed.CareerStateVersion, committed.AdvancementId));
     }
 
+    private static async Task<IResult> AdvanceSkillAsync(
+        Guid characterId,
+        AdvanceSkillRequest request,
+        UserManager<ApplicationUser> userManager,
+        IMediator mediator,
+        HttpContext httpContext)
+    {
+        var user = await userManager.GetUserAsync(httpContext.User);
+        if (user is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!Enum.TryParse<CareerSkillKind>(request.Kind, ignoreCase: true, out var kind))
+        {
+            return Results.Problem(statusCode: 400, title: "That advancement kind is not recognized.",
+                extensions: new Dictionary<string, object?> { ["code"] = "character-career.skill.unknown-kind" });
+        }
+
+        var result = await mediator.Send(new AdvanceSkillCommand(
+            user.Id, characterId, request.ExpectedVersion, request.RequestId, kind, request.Id, request.Name, request.Parameter, request.CategoryId));
+
+        if (!result.Succeeded)
+        {
+            return Problem(result.Error, result.BlockingReasons);
+        }
+
+        var committed = result.Committed!;
+        return Results.Ok(new AdvanceSkillResponse(
+            characterId, committed.Kind.ToString(), committed.Key, committed.Parameter, committed.CategoryId,
+            committed.PreviousValue, committed.NewValue, committed.KarmaCost, committed.CurrentKarma,
+            committed.CareerStateVersion, committed.AdvancementId));
+    }
+
+    private static async Task<IResult> PreviewSkillAdvancementAsync(
+        Guid characterId,
+        PreviewSkillAdvancementRequest request,
+        UserManager<ApplicationUser> userManager,
+        IMediator mediator,
+        HttpContext httpContext)
+    {
+        var user = await userManager.GetUserAsync(httpContext.User);
+        if (user is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!Enum.TryParse<CareerSkillKind>(request.Kind, ignoreCase: true, out var kind))
+        {
+            return Results.Problem(statusCode: 400, title: "That advancement kind is not recognized.",
+                extensions: new Dictionary<string, object?> { ["code"] = "character-career.skill.unknown-kind" });
+        }
+
+        var result = await mediator.Send(new PreviewSkillAdvancementQuery(
+            user.Id, characterId, kind, request.Id, request.Name, request.Parameter, request.CategoryId));
+
+        if (!result.Succeeded)
+        {
+            return Problem(result.Error, null);
+        }
+
+        var eligibility = result.Eligibility!;
+        return Results.Ok(new PreviewSkillAdvancementResponse(
+            eligibility.Kind.ToString(), eligibility.Key, eligibility.Parameter, eligibility.CategoryId,
+            eligibility.CurrentValue, eligibility.NewValue, eligibility.KarmaCost, eligibility.Ceiling,
+            eligibility.IsEligible, eligibility.BlockingReasons));
+    }
+
+    private static async Task<IResult> AddSkillSpecializationAsync(
+        Guid characterId,
+        AddSkillSpecializationRequest request,
+        UserManager<ApplicationUser> userManager,
+        IMediator mediator,
+        HttpContext httpContext)
+    {
+        var user = await userManager.GetUserAsync(httpContext.User);
+        if (user is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!Enum.TryParse<CareerSkillKind>(request.Kind, ignoreCase: true, out var kind))
+        {
+            return Results.Problem(statusCode: 400, title: "That advancement kind is not recognized.",
+                extensions: new Dictionary<string, object?> { ["code"] = "character-career.skill.unknown-kind" });
+        }
+
+        var result = await mediator.Send(new AddSkillSpecializationCommand(
+            user.Id, characterId, request.ExpectedVersion, request.RequestId, kind, request.Id, request.Name, request.Parameter, request.Specialization));
+
+        if (!result.Succeeded)
+        {
+            return Problem(result.Error, result.BlockingReasons);
+        }
+
+        var committed = result.Committed!;
+        return Results.Ok(new AddSkillSpecializationResponse(
+            characterId, committed.Kind.ToString(), committed.Key, committed.Parameter, committed.Specialization,
+            committed.KarmaCost, committed.CurrentKarma, committed.CareerStateVersion, committed.AdvancementId));
+    }
+
     private static ComposedCharacterSheetResponse ToResponse(ComposedCharacterSheet sheet) => new(
         sheet.CharacterId,
         sheet.Name,
@@ -172,11 +328,27 @@ public static class CharacterEndpoints
             item.Id, item.Category.ToString(), item.TargetId, item.PreviousValue, item.NewValue,
             item.KarmaCost, item.CreatedAtUtc)).ToArray(),
         sheet.NextActions.Select(item => new ComposedNextActionResponse(
-            sheet.Sheet.SpecialAttributes.Any(attribute => attribute.Id == item.AttributeId) ? "specialAttribute" : "attribute",
-            item.AttributeId, item.KarmaCost, item.IsEligible, item.BlockingReasons)).ToArray(),
+                sheet.Sheet.SpecialAttributes.Any(attribute => attribute.Id == item.AttributeId) ? "specialAttribute" : "attribute",
+                item.AttributeId, item.KarmaCost, item.IsEligible, item.BlockingReasons))
+            .Concat(sheet.SkillNextActions.Select(item => new ComposedNextActionResponse(
+                SkillNextActionCategory(item.Kind), item.Key, item.KarmaCost, item.IsEligible, item.BlockingReasons)))
+            .ToArray(),
         sheet.FinalizedAtUtc,
         sheet.CareerStateCreatedAtUtc,
         sheet.CareerStateUpdatedAtUtc);
+
+    // Matches this response's existing hand-written camelCase convention for
+    // NextActionResponse.Category ("attribute"/"specialAttribute" above)
+    // rather than the PascalCase CareerSkillKind.ToString() used elsewhere
+    // in this file for a plain echoed enum.
+    private static string SkillNextActionCategory(CareerSkillKind kind) => kind switch
+    {
+        CareerSkillKind.ActiveSkill => "activeSkill",
+        CareerSkillKind.SkillGroup => "skillGroup",
+        CareerSkillKind.KnowledgeSkill => "knowledgeSkill",
+        CareerSkillKind.Language => "language",
+        _ => kind.ToString(),
+    };
 
     private static IResult Problem(ComposedCharacterSheetError error)
     {
@@ -234,6 +406,47 @@ public static class CharacterEndpoints
             AdvanceAttributeError.IncompleteDocument =>
                 (422, "character-career.incomplete-document", "The finalized sheet is missing a required section."),
             _ => (500, "character-career.failed", "The attribute could not be advanced."),
+        };
+
+        var extensions = new Dictionary<string, object?> { ["code"] = code };
+        if (reasons is { Count: > 0 })
+        {
+            extensions["reasons"] = reasons;
+        }
+
+        return Results.Problem(statusCode: status, title: title, extensions: extensions);
+    }
+
+    private static IResult Problem(AdvanceSkillError error, IReadOnlyList<string>? reasons)
+    {
+        if (error == AdvanceSkillError.NotFound)
+        {
+            return Results.NotFound();
+        }
+
+        var (status, code, title) = error switch
+        {
+            AdvanceSkillError.CareerStateNotInitialized =>
+                (409, "character-career.not-initialized", "This character's career state has not been initialized yet."),
+            AdvanceSkillError.VersionConflict =>
+                (409, "character-career.version-conflict", "This character's career state was changed by another request."),
+            AdvanceSkillError.RequestIdReused =>
+                (409, "character-career.request-id-reused", "This request id was already used for a different action."),
+            AdvanceSkillError.UnknownTarget =>
+                (400, "character-career.skill.unknown-target", "That skill, group, Knowledge skill, or language does not exist."),
+            AdvanceSkillError.RuleViolation =>
+                (422, "character-career.skill.ineligible", "This advancement cannot be made right now."),
+            AdvanceSkillError.UnsupportedSchemaVersion =>
+                (422, "character-career.unsupported-schema-version", "The finalized sheet uses an unsupported schema version."),
+            AdvanceSkillError.MalformedDocument =>
+                (422, "character-career.malformed-document", "The finalized sheet is malformed."),
+            AdvanceSkillError.RulesetCatalogUnavailable =>
+                (422, "character-career.catalog-unavailable", "The pinned ruleset catalog is unavailable."),
+            AdvanceSkillError.CatalogDigestMismatch =>
+                (422, "character-career.catalog-digest-mismatch", "The finalized sheet's catalog digest no longer matches the pinned catalog."),
+            AdvanceSkillError.IncompleteDocument =>
+                (422, "character-career.incomplete-document", "The finalized sheet is missing a required section."),
+            _ => (500, "character-career.failed", "The advancement could not be made."),
         };
 
         var extensions = new Dictionary<string, object?> { ["code"] = code };

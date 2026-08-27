@@ -159,6 +159,146 @@ public sealed class CharacterCareerSheetEndpointTests : IClassFixture<ApiTestFac
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Advancing_a_skill_charges_karma_and_persists_across_reload()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Skill Advancement Runner");
+        await GrantKarmaAsync(characterId, 1_000);
+        var before = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        var version = before.GetProperty("careerStateVersion").GetGuid();
+        var karma = before.GetProperty("currentKarma").GetInt32();
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/skills", new
+        {
+            expectedVersion = version,
+            requestId = Guid.NewGuid(),
+            kind = "ActiveSkill",
+            id = "pistols",
+        });
+
+        response.EnsureSuccessStatusCode();
+        var result = await ReadObjectAsync(response);
+        Assert.Equal(karma - 2, result.GetProperty("currentKarma").GetInt32());
+        Assert.Equal("pistols", result.GetProperty("key").GetString());
+        Assert.Equal(1, result.GetProperty("newValue").GetInt32());
+
+        var after = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        Assert.Equal(karma - 2, after.GetProperty("currentKarma").GetInt32());
+        Assert.Equal(1,
+            after.GetProperty("sheet").GetProperty("skills").EnumerateArray()
+                .Single(item => item.GetProperty("id").GetString() == "pistols").GetProperty("totalRating").GetInt32());
+    }
+
+    [Fact]
+    public async Task Previewing_a_skill_advancement_never_charges_karma()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Skill Preview Runner");
+        await GrantKarmaAsync(characterId, 1_000);
+        var before = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        var karma = before.GetProperty("currentKarma").GetInt32();
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/skills/preview", new
+        {
+            kind = "ActiveSkill",
+            id = "pistols",
+        });
+
+        response.EnsureSuccessStatusCode();
+        var result = await ReadObjectAsync(response);
+        Assert.Equal(2, result.GetProperty("karmaCost").GetInt32());
+        Assert.True(result.GetProperty("isEligible").GetBoolean());
+
+        var after = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        Assert.Equal(karma, after.GetProperty("currentKarma").GetInt32());
+    }
+
+    [Fact]
+    public async Task Adding_a_specialization_costs_a_flat_seven_karma()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Specialization Runner");
+        await GrantKarmaAsync(characterId, 1_000);
+
+        var learn = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/skills", new
+        {
+            expectedVersion = (await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet")))
+                .GetProperty("careerStateVersion").GetGuid(),
+            requestId = Guid.NewGuid(),
+            kind = "ActiveSkill",
+            id = "pistols",
+        });
+        learn.EnsureSuccessStatusCode();
+        var afterLearn = await ReadObjectAsync(learn);
+        var karmaAfterLearn = afterLearn.GetProperty("currentKarma").GetInt32();
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/specializations", new
+        {
+            expectedVersion = afterLearn.GetProperty("careerStateVersion").GetGuid(),
+            requestId = Guid.NewGuid(),
+            kind = "ActiveSkill",
+            id = "pistols",
+            specialization = "Semi-Automatics",
+        });
+
+        response.EnsureSuccessStatusCode();
+        var result = await ReadObjectAsync(response);
+        Assert.Equal(karmaAfterLearn - 7, result.GetProperty("currentKarma").GetInt32());
+        Assert.Equal("Semi-Automatics", result.GetProperty("specialization").GetString());
+    }
+
+    [Fact]
+    public async Task Advancing_an_unknown_skill_returns_bad_request()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Unknown Skill Runner");
+        var before = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/skills", new
+        {
+            expectedVersion = before.GetProperty("careerStateVersion").GetGuid(),
+            requestId = Guid.NewGuid(),
+            kind = "ActiveSkill",
+            id = "not-a-real-skill",
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Advancing_a_skill_with_a_stale_version_returns_conflict()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Stale Skill Version Runner");
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/skills", new
+        {
+            expectedVersion = Guid.NewGuid(),
+            requestId = Guid.NewGuid(),
+            kind = "ActiveSkill",
+            id = "pistols",
+        });
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Advancing_a_skill_requires_authentication()
+    {
+        var anonymous = factory.CreateClient();
+
+        var response = await anonymous.PostAsJsonAsync($"/api/characters/{Guid.NewGuid()}/advancements/skills", new
+        {
+            expectedVersion = Guid.NewGuid(),
+            requestId = Guid.NewGuid(),
+            kind = "ActiveSkill",
+            id = "pistols",
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     private async Task<HttpClient> CreatePlayerAsync()
     {
         var username = $"career-{Guid.NewGuid():N}";

@@ -9,7 +9,6 @@ export interface SheetCard {
 }
 
 export interface CareerSheetSections {
-    skills: SheetCard[]
     qualities: SheetCard[]
     magicResonance: SheetCard[]
     contactsLifestyles: SheetCard[]
@@ -23,40 +22,6 @@ function nameOf<T extends { displayName: string }>(index: Map<string, T> | undef
 export function buildCareerSheetSections(catalog: CatalogContract | null, composed: ComposedCareerSheet): CareerSheetSections {
     const index: CatalogIndex | null = catalog ? getCatalogIndex(catalog) : null
     const sheet = composed.sheet
-
-    const skills: SheetCard[] = [
-        {
-            label: 'Skill groups',
-            items: sheet.skillGroups.map((group): DossierCardItem => ({
-                name: nameOf(index?.skillGroups, group.id),
-                badge: String(group.totalRating),
-            })),
-        },
-        {
-            label: 'Active skills',
-            items: sheet.skills.map((skill): DossierCardItem => ({
-                name: skill.specialization ? `${nameOf(index?.skills, skill.id)} (${skill.specialization})` : nameOf(index?.skills, skill.id),
-                badge: String(skill.totalRating),
-            })),
-        },
-        {
-            label: 'Knowledge skills',
-            items: sheet.knowledgeSkills.map((skill): DossierCardItem => ({
-                name: skill.specialization ? `${skill.name} (${skill.specialization})` : skill.name,
-                badge: String(skill.rating),
-            })),
-        },
-        {
-            label: 'Languages',
-            items: [
-                ...sheet.nativeLanguages.map((language): DossierCardItem => ({ name: language.name, badge: 'Native' })),
-                ...sheet.languages.map((language): DossierCardItem => ({
-                    name: language.specialization ? `${language.name} (${language.specialization})` : language.name,
-                    badge: String(language.rating),
-                })),
-            ],
-        },
-    ]
 
     const qualities: SheetCard[] = [
         {
@@ -156,5 +121,5 @@ export function buildCareerSheetSections(catalog: CatalogContract | null, compos
         },
     ]
 
-    return { skills, qualities, magicResonance, contactsLifestyles, inventory }
+    return { qualities, magicResonance, contactsLifestyles, inventory }
 }

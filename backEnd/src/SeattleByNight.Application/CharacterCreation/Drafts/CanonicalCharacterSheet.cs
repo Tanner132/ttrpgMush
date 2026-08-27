@@ -1,4 +1,5 @@
 using SeattleByNight.Application.CharacterCreation.Evaluation;
+using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Application.CharacterCreation.Drafts;
 
@@ -95,12 +96,19 @@ public sealed record CanonicalSkill(
     string? Parameter,
     CanonicalProvenance Provenance);
 
+// BreakReason is always null on the immutable creation baseline; SHEET-907's
+// CareerSheetComposer is the only writer, using it to record why a group can
+// no longer be raised as a group (SkillGroupBreakReason). Kept on the shared
+// Canonical* record rather than a career-only side table so
+// SkillAdvancementEvaluator can decide group eligibility purely from the
+// composed sheet, matching AttributeAdvancementEvaluator's signature style.
 public sealed record CanonicalSkillGroup(
     string Id,
     int Rating,
     CanonicalProvenance Provenance,
     int GrantedRating = 0,
-    int TotalRating = 0);
+    int TotalRating = 0,
+    SkillGroupBreakReason? BreakReason = null);
 
 public sealed record CanonicalKnowledgeSkill(
     string Name,

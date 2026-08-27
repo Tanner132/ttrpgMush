@@ -182,7 +182,8 @@ public sealed class ComposedCharacterSheetQueryHandlerTests : IAsyncLifetime
         new CharacterCareerHistoryReader(db),
         new EmbeddedRulesetCatalogProvider(),
         new CareerSheetComposer(),
-        new AttributeAdvancementEvaluator());
+        new AttributeAdvancementEvaluator(),
+        new SkillAdvancementEvaluator());
 
     private static readonly string[] GrantedSpellIds =
     [

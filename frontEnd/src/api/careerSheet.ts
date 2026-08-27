@@ -48,12 +48,15 @@ export interface CanonicalSkill {
     provenance: CanonicalProvenance
 }
 
+export type SkillGroupBreakReason = 'raise' | 'specialization'
+
 export interface CanonicalSkillGroup {
     id: string
     rating: number
     provenance: CanonicalProvenance
     grantedRating: number
     totalRating: number
+    breakReason?: SkillGroupBreakReason | null
 }
 
 export interface CanonicalKnowledgeSkill {
@@ -418,4 +421,106 @@ export function isCareerAdvancementConflictError(error: unknown): boolean {
 
 export function isCareerAdvancementRuleViolationError(error: unknown): boolean {
     return error instanceof ApiError && error.status === 422
+}
+
+// ─── SHEET-907: skill / group / Knowledge skill / language advancement ──────
+// Kind mirrors the backend's CareerSkillKind.ToString() (PascalCase) — see
+// CharacterEndpoints.cs's AdvanceSkillRequest doc comment for why this file
+// echoes that casing here rather than inventing a camelCase union.
+
+export type CareerSkillKind = 'ActiveSkill' | 'SkillGroup' | 'KnowledgeSkill' | 'Language'
+
+export interface CareerSkillTarget {
+    id?: string
+    name?: string
+    parameter?: string
+    categoryId?: string
+}
+
+export interface SkillAdvancementPreview {
+    kind: CareerSkillKind
+    key: string
+    parameter?: string | null
+    categoryId?: string | null
+    currentValue: number
+    newValue: number
+    karmaCost: number
+    ceiling: number
+    isEligible: boolean
+    blockingReasons: string[]
+}
+
+export async function previewSkillAdvancement(
+    characterId: string,
+    kind: CareerSkillKind,
+    target: CareerSkillTarget,
+): Promise<SkillAdvancementPreview> {
+    return apiPost<SkillAdvancementPreview>(`/api/characters/${characterId}/advancements/skills/preview`, {
+        kind,
+        id: target.id ?? null,
+        name: target.name ?? null,
+        parameter: target.parameter ?? null,
+        categoryId: target.categoryId ?? null,
+    })
+}
+
+export interface AdvanceSkillResult {
+    characterId: string
+    kind: CareerSkillKind
+    key: string
+    parameter?: string | null
+    categoryId?: string | null
+    previousValue: number
+    newValue: number
+    karmaCost: number
+    currentKarma: number
+    careerStateVersion: string
+    advancementId: string
+}
+
+export async function advanceSkill(
+    characterId: string,
+    kind: CareerSkillKind,
+    expectedVersion: string,
+    target: CareerSkillTarget,
+): Promise<AdvanceSkillResult> {
+    return apiPost<AdvanceSkillResult>(`/api/characters/${characterId}/advancements/skills`, {
+        expectedVersion,
+        requestId: crypto.randomUUID(),
+        kind,
+        id: target.id ?? null,
+        name: target.name ?? null,
+        parameter: target.parameter ?? null,
+        categoryId: target.categoryId ?? null,
+    })
+}
+
+export interface AddSkillSpecializationResult {
+    characterId: string
+    kind: CareerSkillKind
+    key: string
+    parameter?: string | null
+    specialization: string
+    karmaCost: number
+    currentKarma: number
+    careerStateVersion: string
+    advancementId: string
+}
+
+export async function addSkillSpecialization(
+    characterId: string,
+    kind: CareerSkillKind,
+    expectedVersion: string,
+    target: CareerSkillTarget,
+    specialization: string,
+): Promise<AddSkillSpecializationResult> {
+    return apiPost<AddSkillSpecializationResult>(`/api/characters/${characterId}/advancements/specializations`, {
+        expectedVersion,
+        requestId: crypto.randomUUID(),
+        kind,
+        id: target.id ?? null,
+        name: target.name ?? null,
+        parameter: target.parameter ?? null,
+        specialization,
+    })
 }

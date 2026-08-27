@@ -17,6 +17,7 @@ function buildCatalogIndex(catalog: CatalogContract) {
     qualities: byId(catalog.qualities ?? []),
     skills: byId(catalog.skills ?? []),
     skillGroups: byId(catalog.skillGroups ?? []),
+    knowledgeCategories: byId(catalog.knowledgeCategories ?? []),
     creationPaths: byId(catalog.creationPaths ?? []),
     traditions: byId(catalog.traditions ?? []),
     aspectedValues: byId(catalog.aspectedValues ?? []),
