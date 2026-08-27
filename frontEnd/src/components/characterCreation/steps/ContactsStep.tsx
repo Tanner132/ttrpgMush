@@ -1,5 +1,6 @@
 import type { ContactSelection } from '../../../api/characterCreation.ts'
 import { Diagnostics } from '../Diagnostics.tsx'
+import { Stepper } from '../Stepper.tsx'
 import type { CreationStepProps } from './types.ts'
 import { effectiveMetatypeAttributes, getCatalogIndex } from '../catalogIndex.ts'
 
@@ -88,14 +89,26 @@ export function ContactsStep({ catalog, document, onChange, diagnostics = [] }: 
                       <label><span>ROLE / ACCESS</span><input aria-label={`${contact.name || `Contact ${index + 1}`} role`} maxLength={120} placeholder="Fixer, talismonger, street doc..." value={contact.role ?? ''} onChange={(event) => updateContact(contact.instanceId, { role: event.target.value })} /></label>
                     </div>
                     <div className="contact-card__ratings">
-                      <label className="contact-rating">
+                      <div className="contact-rating">
                         <span><strong>CONNECTION</strong><small>Reach, resources, and influence</small></span>
-                        <input aria-label={`${contact.name || 'Contact'} connection`} type="number" min={MIN_CONNECTION} max={MAX_CONNECTION} value={contact.connection} onChange={(event) => updateContact(contact.instanceId, { connection: Number(event.target.value) })} />
-                      </label>
-                      <label className="contact-rating">
+                        <Stepper
+                          label={`${contact.name || 'Contact'} connection`}
+                          min={MIN_CONNECTION}
+                          max={MAX_CONNECTION}
+                          value={contact.connection}
+                          onChange={(connection) => updateContact(contact.instanceId, { connection })}
+                        />
+                      </div>
+                      <div className="contact-rating">
                         <span><strong>LOYALTY</strong><small>Trust and personal commitment</small></span>
-                        <input aria-label={`${contact.name || 'Contact'} loyalty`} type="number" min={MIN_LOYALTY} max={MAX_LOYALTY} value={contact.loyalty} onChange={(event) => updateContact(contact.instanceId, { loyalty: Number(event.target.value) })} />
-                      </label>
+                        <Stepper
+                          label={`${contact.name || 'Contact'} loyalty`}
+                          min={MIN_LOYALTY}
+                          max={MAX_LOYALTY}
+                          value={contact.loyalty}
+                          onChange={(loyalty) => updateContact(contact.instanceId, { loyalty })}
+                        />
+                      </div>
                       <div className="contact-card__cost">
                         <span>KARMA COST</span>
                         <strong>{cost}<small> / {MAX_CREATION_COST}</small></strong>

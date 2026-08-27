@@ -1,6 +1,7 @@
 import type { LifestyleOptionDefinition, LifestyleSelection, LifestyleTierDefinition } from '../../../api/characterCreation.ts'
 import { lifestyleCostMultiplier } from '../../../api/characterCreation.ts'
 import { Diagnostics } from '../Diagnostics.tsx'
+import { Stepper } from '../Stepper.tsx'
 import type { CreationStepProps } from './types.ts'
 
 const STREET_TIER_ID = 'street-lifestyle'
@@ -141,9 +142,9 @@ export function LifestyleStep({ catalog, document, onChange, diagnostics = [] }:
 
                     <div className="lifestyle-card__terms">
                       <div className="lifestyle-card__payment">
-                        <label><span>PAYMENT FORM</span><select aria-label="Payment form" value={selection.paymentFormId ?? ''} disabled={isStreet} onChange={(event) => updateLifestyle(selection.instanceId, { paymentFormId: event.target.value || undefined })}><option value="">Standard / prepaid</option><option value={PERMANENT_PAYMENT_FORM_ID}>Permanent / ×100 months</option><option value={TEAM_PAYMENT_FORM_ID}>Team / shared cost</option></select></label>
-                        {!isStreet && selection.paymentFormId !== PERMANENT_PAYMENT_FORM_ID ? <label><span>PREPAID MONTHS</span><input aria-label="Prepaid months" type="number" min="0" value={selection.prepaidMonths} onChange={(event) => updateLifestyle(selection.instanceId, { prepaidMonths: Number(event.target.value) })} /></label> : null}
-                        {selection.paymentFormId === TEAM_PAYMENT_FORM_ID ? <label><span>ADDITIONAL PERSONS</span><input aria-label="Additional persons" type="number" min="0" value={selection.additionalPersons ?? 0} onChange={(event) => updateLifestyle(selection.instanceId, { additionalPersons: Number(event.target.value) })} /></label> : null}
+                        <label><span>PAYMENT FORM</span><select className="creation-select" aria-label="Payment form" value={selection.paymentFormId ?? ''} disabled={isStreet} onChange={(event) => updateLifestyle(selection.instanceId, { paymentFormId: event.target.value || undefined })}><option value="">Standard / prepaid</option><option value={PERMANENT_PAYMENT_FORM_ID}>Permanent / ×100 months</option><option value={TEAM_PAYMENT_FORM_ID}>Team / shared cost</option></select></label>
+                        {!isStreet && selection.paymentFormId !== PERMANENT_PAYMENT_FORM_ID ? <div className="lifestyle-card__field"><span>PREPAID MONTHS</span><Stepper label="Prepaid months" min={0} value={selection.prepaidMonths} onChange={(prepaidMonths) => updateLifestyle(selection.instanceId, { prepaidMonths })} /></div> : null}
+                        {selection.paymentFormId === TEAM_PAYMENT_FORM_ID ? <div className="lifestyle-card__field"><span>ADDITIONAL PERSONS</span><Stepper label="Additional persons" min={0} value={selection.additionalPersons ?? 0} onChange={(additionalPersons) => updateLifestyle(selection.instanceId, { additionalPersons })} /></div> : null}
                       </div>
                       <div className="lifestyle-card__cost">
                         <span>TOTAL COMMITMENT</span><strong>{formatNuyen(cost.total)}</strong>

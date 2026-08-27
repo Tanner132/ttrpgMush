@@ -1576,7 +1576,7 @@
 
 .metatype-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: var(--sb-space-4);
   align-content: start;
 }
@@ -1933,13 +1933,14 @@
   font: inherit;
 }
 
-.creation-card--choice:hover:not(:disabled),
+.creation-card--choice:hover:not(:disabled):not([aria-disabled="true"]),
 .creation-card--selected {
   border-color: var(--sb-accent);
   box-shadow: inset 3px 0 0 var(--sb-accent), var(--sb-glow-accent);
 }
 
-.creation-card--choice:disabled {
+.creation-card--choice:disabled,
+.creation-card--choice[aria-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.46;
 }
@@ -2034,7 +2035,7 @@
 }
 
 .creation-attribute {
-  grid-template-columns: minmax(140px, 1fr) 90px 45px;
+  grid-template-columns: minmax(140px, 1fr) auto 45px;
   align-items: center;
   padding: var(--sb-space-3);
   background: var(--sb-surface);
@@ -2137,6 +2138,7 @@
 .knowledge-section__count,
 .native-language-card small,
 .knowledge-record label > span,
+.knowledge-record__rating > span,
 .knowledge-record__pool > span,
 .knowledge-picker label > span {
   color: var(--sb-text);
@@ -2294,17 +2296,18 @@
 
 .knowledge-record__body {
   display: grid;
-  grid-template-columns: minmax(180px, 1.25fr) minmax(120px, 0.7fr) 70px minmax(170px, 1fr) minmax(110px, 0.55fr);
+  grid-template-columns: minmax(180px, 1.25fr) minmax(120px, 0.7fr) 116px minmax(170px, 1fr) minmax(110px, 0.55fr);
   gap: var(--sb-space-3);
   align-items: end;
   padding: var(--sb-space-3);
 }
 
 .knowledge-record__body--language {
-  grid-template-columns: minmax(180px, 1.25fr) 70px minmax(170px, 1fr) minmax(110px, 0.55fr);
+  grid-template-columns: minmax(180px, 1.25fr) 116px minmax(170px, 1fr) minmax(110px, 0.55fr);
 }
 
 .knowledge-record label,
+.knowledge-record__rating,
 .knowledge-record__pool,
 .knowledge-picker__search {
   display: grid;
@@ -2832,6 +2835,7 @@
 .lifestyle-budget span,
 .lifestyle-budget small,
 .lifestyle-card__payment label > span,
+.lifestyle-card__field > span,
 .lifestyle-card__cost > span,
 .lifestyle-card__cash > span,
 .lifestyle-options legend,
@@ -3053,7 +3057,8 @@
   min-width: 0;
 }
 
-.lifestyle-card__payment label {
+.lifestyle-card__payment label,
+.lifestyle-card__field {
   display: grid;
   gap: var(--sb-space-1);
   min-width: 0;
@@ -3658,7 +3663,8 @@
 
 .creation-card__attribute small {
   color: var(--sb-text-faint);
-  font-size: 0.56rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
 }
 
 .creation-card__attribute strong {
@@ -4357,4 +4363,528 @@
 .creation-attachment-modal__option input,
 .creation-attachment-modal__option select {
   width: 5rem;
+}
+
+/* ─── Metatype step ────────────────────────────────────────────────────── */
+
+/* The console body is clipped, not scrollable, so the step owns exactly one
+   scroll region and every section lives inside it. */
+.metatype-dossier {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: clamp(var(--sb-space-4), 2.4vw, var(--sb-space-5));
+}
+
+.metatype-section + .metatype-section {
+  margin-top: var(--sb-space-5);
+  border-top: 1px solid var(--sb-border-strong);
+}
+
+.metatype-section__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sb-space-4);
+  padding: var(--sb-space-3) 0 var(--sb-space-4);
+}
+
+.metatype-section__heading > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sb-space-3);
+  min-width: 0;
+}
+
+.metatype-section__index {
+  flex-shrink: 0;
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+}
+
+.metatype-section__heading h4 {
+  margin: 0;
+  color: var(--sb-text);
+  font-family: var(--sb-font-heading);
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metatype-section__heading p {
+  max-width: 74ch;
+  margin: 0.2rem 0 0;
+  color: var(--sb-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.metatype-section__heading .creation-step__eyebrow {
+  margin-bottom: 0.15rem;
+  font-size: 0.62rem;
+}
+
+.metatype-section__tag {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--sb-border-strong);
+  color: var(--sb-text-faint);
+  background: var(--sb-bg-inset);
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+/* Card chrome: a topline that keeps the SELECTED flag off the title's
+   baseline, and a foot that pins the grant/variant row to the card bottom. */
+.creation-card__topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sb-space-2);
+}
+
+.creation-card__flag,
+.creation-card__variants {
+  flex-shrink: 0;
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.creation-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-2);
+  margin-top: auto;
+  padding-top: var(--sb-space-2);
+}
+
+.creation-card__meter {
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+}
+
+.creation-card--selected .creation-card__meter {
+  color: var(--sb-accent);
+}
+
+.creation-card__variants {
+  color: var(--sb-text-faint);
+}
+
+.creation-card--selected .creation-card__variants {
+  color: var(--sb-info);
+}
+
+/* Budget strip — same read as the knowledge step's, so the two steps state
+   their remaining-points story the same way. */
+.metatype-budget {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  margin-bottom: var(--sb-space-4);
+  border: 1px solid var(--sb-border);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sb-accent) 7%, transparent), transparent 60%);
+}
+
+.metatype-budget > div {
+  display: grid;
+  gap: 0.15rem;
+  padding: var(--sb-space-3) var(--sb-space-4);
+}
+
+.metatype-budget > div + div {
+  border-left: 1px solid var(--sb-border);
+}
+
+.metatype-budget span {
+  color: var(--sb-text);
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+}
+
+.metatype-budget strong {
+  color: var(--sb-text);
+  font-family: var(--sb-font-heading);
+  font-size: 1.2rem;
+}
+
+.metatype-budget__cell--warn strong {
+  color: var(--sb-warning);
+}
+
+.special-attributes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--sb-space-3);
+  align-items: start;
+}
+
+.special-attribute {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-3);
+  border: 1px solid var(--sb-border);
+  background: var(--sb-surface);
+}
+
+.special-attribute__readout {
+  min-width: 0;
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-data);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.special-attributes__note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+/* Metavariant picker — lives in the readout's configure slot, so it inherits
+   that panel's chrome and only needs its row treatment. */
+.metavariant-picker {
+  display: grid;
+  gap: 3px;
+}
+
+.metavariant-picker__note {
+  margin: 0 0 var(--sb-space-2);
+  color: var(--sb-text-faint);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.metavariant-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+  padding: 7px var(--sb-space-2);
+  border: 1px solid transparent;
+  color: var(--sb-text-muted);
+  background: var(--sb-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.metavariant-option:hover:not([aria-disabled='true']) {
+  border-color: var(--sb-border-strong);
+  color: var(--sb-text);
+}
+
+.metavariant-option[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.metavariant-option--active {
+  border-color: var(--sb-accent);
+  color: var(--sb-text);
+  background: color-mix(in srgb, var(--sb-accent) 8%, var(--sb-surface));
+}
+
+.metavariant-option__dot {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--sb-border-strong);
+  border-radius: 50%;
+}
+
+.metavariant-option--active .metavariant-option__dot {
+  border-color: var(--sb-accent);
+  background: var(--sb-accent);
+  box-shadow: var(--sb-glow-accent);
+}
+
+.metavariant-option__name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--sb-font-heading);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metavariant-option__karma {
+  flex-shrink: 0;
+  color: var(--sb-warning);
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
+.metavariant-option__karma--locked {
+  color: var(--sb-danger);
+}
+
+.metavariant-option--active .metavariant-option__karma {
+  color: var(--sb-accent);
+}
+
+.metavariant-picker__detail {
+  display: grid;
+  gap: var(--sb-space-2);
+  margin-top: var(--sb-space-2);
+  padding-top: var(--sb-space-2);
+  border-top: 1px solid var(--sb-border);
+}
+
+.metavariant-picker__grant {
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+}
+
+.metavariant-picker__same {
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.66rem;
+}
+
+.metavariant-picker__deltas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+@media (max-width: 900px) {
+  .metatype-section__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--sb-space-2);
+  }
+
+  .metatype-budget {
+    grid-template-columns: 1fr;
+  }
+
+  .metatype-budget > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--sb-border);
+  }
+}
+
+/* ─── Quality parameters (readout configure slot) ──────────────────────── */
+
+.quality-parameters {
+  display: grid;
+  gap: var(--sb-space-3);
+}
+
+/* Rating that comes from repeated selections rather than an editable field. */
+.quality-parameters__derived {
+  display: grid;
+  gap: 2px;
+  padding: var(--sb-space-2);
+  border: 1px solid var(--sb-border);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sb-accent) 8%, transparent), transparent 70%);
+}
+
+.quality-parameters__rating {
+  color: var(--sb-accent);
+  font-family: var(--sb-font-heading);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.quality-parameters__rating small {
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.66rem;
+  font-weight: 400;
+}
+
+.quality-parameters__derived p {
+  margin: 2px 0 0;
+  color: var(--sb-text-faint);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.quality-parameters__instance {
+  display: grid;
+  gap: var(--sb-space-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.quality-parameters__instance + .quality-parameters__instance {
+  padding-top: var(--sb-space-3);
+  border-top: 1px solid var(--sb-border);
+}
+
+.quality-parameters__legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-2);
+  width: 100%;
+  padding: 0;
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+}
+
+.quality-parameters__drop {
+  border: 0;
+  padding: 0;
+  color: var(--sb-text-faint);
+  background: transparent;
+  font-family: var(--sb-font-data);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.quality-parameters__drop:hover {
+  color: var(--sb-danger);
+}
+
+/* Selects and text inputs read as one control family, matching
+   .readout__input-row's inset field treatment. */
+.quality-parameters__input {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--sb-border);
+  border-radius: 0;
+  color: var(--sb-text);
+  background: var(--sb-bg);
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+}
+
+.readout__input-row .quality-parameters__input {
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+select.quality-parameters__input {
+  appearance: none;
+  padding-right: 26px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--sb-text-faint) 50%), linear-gradient(135deg, var(--sb-text-faint) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 14px, calc(100% - 9px) 14px;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.quality-parameters__input:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: -1px;
+  border-color: var(--sb-accent);
+}
+
+.quality-parameters__hint {
+  margin: 0;
+  color: var(--sb-text-faint);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+/* ─── Shared numeric stepper ───────────────────────────────────────────── */
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+}
+
+.stepper .stepper__input {
+  flex: none;
+  width: 52px;
+  min-width: 0;
+  min-height: 2.2rem;
+  padding: 0 var(--sb-space-1);
+  border: 1px solid var(--sb-border-strong);
+  border-radius: 0;
+  color: var(--sb-text);
+  background: var(--sb-bg-inset);
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+/* The step buttons replace the native spinner, which otherwise renders as an
+   unstyled control against the console chrome. */
+.stepper .stepper__input::-webkit-outer-spin-button,
+.stepper .stepper__input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.stepper .stepper__input[type='number'] {
+  appearance: textfield;
+}
+
+.stepper .stepper__input:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 0;
+  border-color: var(--sb-accent);
+}
+
+.stepper .stepper__input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── Shared select treatment ──────────────────────────────────────────── */
+
+/* Matches the stepper's field chrome so a dropdown never reads as a raw
+   browser control next to one. */
+.creation-select {
+  min-width: 0;
+  min-height: 2.2rem;
+  padding: 0 26px 0 var(--sb-space-2);
+  border: 1px solid var(--sb-border-strong);
+  border-radius: 0;
+  color: var(--sb-text);
+  background-color: var(--sb-bg-inset);
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--sb-text-faint) 50%), linear-gradient(135deg, var(--sb-text-faint) 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% + 2px), calc(100% - 9px) calc(50% + 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.creation-select:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 0;
+  border-color: var(--sb-accent);
+}
+
+.creation-select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

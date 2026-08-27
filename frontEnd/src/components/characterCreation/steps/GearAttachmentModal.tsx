@@ -11,6 +11,7 @@ import type {
 import { resolveNumber } from '../../../api/characterCreation.ts'
 import { Button } from '../../ui/Button.tsx'
 import { Modal } from '../../ui/Modal.tsx'
+import { Stepper } from '../Stepper.tsx'
 import {
   MOUNTS_BY_WEAPON_CATEGORY,
   MOUNT_LABELS,
@@ -94,12 +95,16 @@ export function GearAttachmentModal({
                     <small>{cost.toLocaleString()}¥ · {MOUNT_LABELS[accessory.mount]}</small>
                   </span>
                   {accessory.ratingRange && (
-                    <input aria-label={`${accessory.displayName} rating`} type="number"
-                      min={accessory.ratingRange.minimum} max={Math.min(accessory.ratingRange.maximum, 6)}
-                      value={rating} onChange={(event) => setPendingRatings((prev) => ({ ...prev, [accessory.id]: Number(event.target.value) }))} />
+                    <Stepper
+                      label={`${accessory.displayName} rating`}
+                      min={accessory.ratingRange.minimum}
+                      max={Math.min(accessory.ratingRange.maximum, 6)}
+                      value={rating}
+                      onChange={(next) => setPendingRatings((prev) => ({ ...prev, [accessory.id]: next }))}
+                    />
                   )}
                   {accessory.mount === 'TopOrUnderbarrel' && (
-                    <select aria-label={`${accessory.displayName} mount`} value={chosenMount}
+                    <select className="creation-select" aria-label={`${accessory.displayName} mount`} value={chosenMount}
                       onChange={(event) => setPendingMounts((prev) => ({ ...prev, [accessory.id]: event.target.value as WeaponMount }))}>
                       {availableMounts.includes('Top') && !occupied.has('Top') && <option value="Top">Top</option>}
                       {availableMounts.includes('Underbarrel') && !occupied.has('Underbarrel') && <option value="Underbarrel">Underbarrel</option>}
@@ -239,9 +244,13 @@ export function GearAttachmentModal({
                   <small>{cost.toLocaleString()}¥ · {capacityCost} Capacity</small>
                 </span>
                 {modification.ratingRange && (
-                  <input aria-label={`${modification.displayName} rating`} type="number"
-                    min={modification.ratingRange.minimum} max={Math.min(modification.ratingRange.maximum, 6)}
-                    value={rating} onChange={(event) => setPendingRatings((prev) => ({ ...prev, [modification.id]: Number(event.target.value) }))} />
+                  <Stepper
+                    label={`${modification.displayName} rating`}
+                    min={modification.ratingRange.minimum}
+                    max={Math.min(modification.ratingRange.maximum, 6)}
+                    value={rating}
+                    onChange={(next) => setPendingRatings((prev) => ({ ...prev, [modification.id]: next }))}
+                  />
                 )}
                 <Button intent="primary" disabled={capacityCost > remaining} onClick={() => onAdd({
                   hostInstanceId, accessoryId: modification.id, rating: rating ?? undefined,

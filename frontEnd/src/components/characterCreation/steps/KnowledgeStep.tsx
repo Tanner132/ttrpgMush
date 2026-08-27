@@ -4,6 +4,7 @@ import { Modal } from '../../ui/Modal.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { computeFreeKnowledgeLanguagePoints, computeKnowledgeLanguageKarmaSpent } from '../budgets.ts'
 import { effectiveMetatypeAttributes, getCatalogIndex } from '../catalogIndex.ts'
+import { Stepper } from '../Stepper.tsx'
 import type { CreationStepProps } from './types.ts'
 
 type AddMode = 'knowledge' | 'language'
@@ -143,8 +144,8 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
                           const match = knowledgeSuggestions.find((entry) => entry.displayName.toLocaleLowerCase() === event.target.value.toLocaleLowerCase())
                           updateKnowledge(index, { name: event.target.value, ...(match ? { categoryId: match.categoryId } : {}) })
                         }} /></label>
-                        <label><span>TYPE</span><select aria-label={`${item.name || `Knowledge skill ${index + 1}`} category`} value={item.categoryId} onChange={(event) => updateKnowledge(index, { categoryId: event.target.value })}>{catalog.knowledgeCategories.map((entry) => <option value={entry.id} key={entry.id}>{entry.displayName}</option>)}</select></label>
-                        <label><span>RATING</span><input aria-label={`${item.name || `Knowledge skill ${index + 1}`} rating`} type="number" min={MIN_RATING} max={MAX_RATING} value={item.rating} onChange={(event) => updateKnowledge(index, { rating: Number(event.target.value) })} /></label>
+                        <label><span>TYPE</span><select className="creation-select" aria-label={`${item.name || `Knowledge skill ${index + 1}`} category`} value={item.categoryId} onChange={(event) => updateKnowledge(index, { categoryId: event.target.value })}>{catalog.knowledgeCategories.map((entry) => <option value={entry.id} key={entry.id}>{entry.displayName}</option>)}</select></label>
+                        <div className="knowledge-record__rating"><span>RATING</span><Stepper label={`${item.name || `Knowledge skill ${index + 1}`} rating`} min={MIN_RATING} max={MAX_RATING} value={item.rating} onChange={(rating) => updateKnowledge(index, { rating })} /></div>
                         <label className="knowledge-record__specialization"><span>SPECIALIZATION <small>OPTIONAL</small></span><input aria-label={`${item.name || `Knowledge skill ${index + 1}`} specialization`} list={`knowledge-specializations-${index}`} maxLength={120} placeholder="Narrow field (+2)" value={item.specialization ?? ''} onChange={(event) => updateKnowledge(index, { specialization: event.target.value || undefined })} /><datalist id={`knowledge-specializations-${index}`}>{suggestion?.specializations.map((specialization) => <option value={specialization} key={specialization} />)}</datalist></label>
                         <div className="knowledge-record__pool"><span>DICE POOL</span><strong>{pool}{item.specialization ? <small> ({pool + 2})</small> : null}</strong><small>{item.rating} + {linkedValue}{item.specialization ? ' // specialized' : ''}</small></div>
                       </div>
@@ -169,7 +170,7 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
                       <div className="knowledge-record__topline"><span>LANGUAGE // INT</span><button type="button" aria-label={`Remove ${item.name || 'language'}`} onClick={() => onChange({ ...document, languages: languages.filter((_, itemIndex) => itemIndex !== index) })}>REMOVE</button></div>
                       <div className="knowledge-record__body knowledge-record__body--language">
                         <label className="knowledge-record__name"><span>LANGUAGE</span><input aria-label={`Language ${index + 1} name`} list="language-suggestions" maxLength={120} value={item.name} onChange={(event) => updateLanguage(index, { name: event.target.value })} /></label>
-                        <label><span>RATING</span><input aria-label={`${item.name || `Language ${index + 1}`} rating`} type="number" min={MIN_RATING} max={MAX_RATING} value={item.rating} onChange={(event) => updateLanguage(index, { rating: Number(event.target.value) })} /></label>
+                        <div className="knowledge-record__rating"><span>RATING</span><Stepper label={`${item.name || `Language ${index + 1}`} rating`} min={MIN_RATING} max={MAX_RATING} value={item.rating} onChange={(rating) => updateLanguage(index, { rating })} /></div>
                         <label className="knowledge-record__specialization"><span>SPECIALIZATION <small>OPTIONAL</small></span><input aria-label={`${item.name || `Language ${index + 1}`} specialization`} maxLength={120} placeholder="Dialect or vocabulary (+2)" value={item.specialization ?? ''} onChange={(event) => updateLanguage(index, { specialization: event.target.value || undefined })} /></label>
                         <div className="knowledge-record__pool"><span>DICE POOL</span><strong>{pool}{item.specialization ? <small> ({pool + 2})</small> : null}</strong><small>{item.rating} + {intuition}{item.specialization ? ' // specialized' : ''}</small></div>
                       </div>

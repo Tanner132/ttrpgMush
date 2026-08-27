@@ -4,6 +4,7 @@ import { effectivePowerPointCost } from '../../../api/characterCreation.ts'
 import type { CreationStepProps } from './types.ts'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { Readout } from '../Readout.tsx'
+import { Stepper } from '../Stepper.tsx'
 import { CatalogRail, type CatalogSectionNavItem } from '../CatalogRail.tsx'
 import {
   describeAdeptPower,
@@ -534,14 +535,19 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                   style={{ gridTemplateColumns: 'minmax(140px,1fr) 110px 110px 60px', cursor: 'default' }}
                   onClick={() => setFocused({ kind: 'preparation', id: preparation.spellId })}
                 >
-                  <select value={preparation.spellId} onChange={event => { updatePreparation(index, { spellId: event.target.value }); setFocused({ kind: 'preparation', id: event.target.value }) }}>
+                  <select className="creation-select" aria-label="Preparation spell" value={preparation.spellId} onChange={event => { updatePreparation(index, { spellId: event.target.value }); setFocused({ kind: 'preparation', id: event.target.value }) }}>
                     {catalog.spells.map(spell => <option key={spell.id} value={spell.id}>{spell.displayName}</option>)}
                   </select>
-                  <select value={preparation.trigger} onChange={event => updatePreparation(index, { trigger: event.target.value })}>
+                  <select className="creation-select" aria-label="Preparation trigger" value={preparation.trigger} onChange={event => updatePreparation(index, { trigger: event.target.value })}>
                     {PREPARATION_TRIGGERS.map(trigger => <option key={trigger} value={trigger}>{trigger}</option>)}
                   </select>
                   {preparation.trigger === 'time' ? (
-                    <input aria-label="Delay hours" min="1" type="number" value={preparation.delayHours ?? ''} onChange={event => updatePreparation(index, { delayHours: Number(event.target.value) })} />
+                    <Stepper
+                      label="Delay hours"
+                      min={1}
+                      value={preparation.delayHours}
+                      onChange={delayHours => updatePreparation(index, { delayHours })}
+                    />
                   ) : <span />}
                   <span className="console__row-end">
                     <button type="button" className="console__picked-remove" aria-label="Remove preparation" onClick={(event) => { event.stopPropagation(); removePreparation(index) }}>×</button>
@@ -564,7 +570,13 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
               <div style={{ padding: 'var(--sb-space-2) var(--sb-space-4)' }}>
                 <label className="creation-attribute">
                   <span><strong>Purchased Power Points</strong><small>5 Karma each, up to Magic</small></span>
-                  <input min="0" max={attributeValue} type="number" value={selection?.purchasedPowerPoints ?? 0} onChange={event => update({ purchasedPowerPoints: Number(event.target.value) })} />
+                  <Stepper
+                    label="Purchased Power Points"
+                    min={0}
+                    max={attributeValue}
+                    value={selection?.purchasedPowerPoints ?? 0}
+                    onChange={purchasedPowerPoints => update({ purchasedPowerPoints })}
+                  />
                 </label>
               </div>
             )}
@@ -591,7 +603,13 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     {(power.ranked || power.parameterized) && selectedPower && (
                       <div style={{ padding: '0 var(--sb-space-4) 8px', display: 'flex', gap: 'var(--sb-space-2)' }}>
                         {power.ranked && (
-                          <input aria-label={`${power.displayName} rank`} min="1" max={power.maxRank ?? attributeValue} type="number" value={selectedPower.rank ?? 1} onChange={event => updatePower(power.id, { rank: Number(event.target.value) })} />
+                          <Stepper
+                            label={`${power.displayName} rank`}
+                            min={1}
+                            max={power.maxRank ?? attributeValue}
+                            value={selectedPower.rank ?? 1}
+                            onChange={(rank) => updatePower(power.id, { rank })}
+                          />
                         )}
                         {power.parameterized && (
                           <input aria-label={`${power.displayName} parameter`} placeholder="Required parameter" maxLength={120} value={selectedPower.parameter ?? ''} onChange={event => updatePower(power.id, { parameter: event.target.value })} />

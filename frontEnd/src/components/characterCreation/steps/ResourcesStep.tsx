@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { AttachmentSelection, IdentitySelection, LicenseSelection, ResourceSelection } from '../../../api/characterCreation.ts'
 import { metatypeGearMultiplier, resolveAvailabilityNumber, resolveNumber } from '../../../api/characterCreation.ts'
+import { Stepper } from '../Stepper.tsx'
 import type { CreationStepProps } from './types.ts'
 import { GearAttachmentModal } from './GearAttachmentModal.tsx'
 import {
@@ -225,11 +226,10 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
           })}
 
           <div className="creation-step__attributes" style={{ padding: 'var(--sb-space-3) var(--sb-space-4)' }}>
-            <label className="creation-attribute">
+            <div className="creation-attribute">
               <span><strong>Karma → nuyen</strong><small>Convert up to 10 Karma at 2,000¥ each</small></span>
-              <input aria-label="Karma converted to nuyen" type="number" min="0" max="10" value={nuyenFromKarma}
-                onChange={(event) => updateNuyenFromKarma(Math.min(10, Math.max(0, Number(event.target.value) || 0)))} />
-            </label>
+              <Stepper label="Karma converted to nuyen" min={0} max={10} value={nuyenFromKarma} onChange={updateNuyenFromKarma} />
+            </div>
           </div>
 
           {sinLine && (
@@ -238,11 +238,10 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
               <ul className="creation-contacts">
                 {identities.map((identity) => (
                   <li className="creation-resource-line" key={identity.instanceId}>
-                    <label className="creation-attribute">
+                    <div className="creation-attribute">
                       <span><strong>Rating</strong></span>
-                      <input aria-label="Fake SIN rating" type="number" min={MIN_RATING} max={MAX_RATING} value={identity.rating}
-                        onChange={(event) => updateIdentity(identity.instanceId, { rating: Number(event.target.value) })} />
-                    </label>
+                      <Stepper label="Fake SIN rating" min={MIN_RATING} max={MAX_RATING} value={identity.rating} onChange={(rating) => updateIdentity(identity.instanceId, { rating })} />
+                    </div>
                     <label className="creation-attribute">
                       <span><strong>Details</strong><small>{unitCost(sinLine, identity.rating).toLocaleString()}¥</small></span>
                       <input aria-label="Fake SIN details" maxLength={120} value={identity.details}
@@ -264,7 +263,7 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
                   <li className="creation-resource-line" key={license.instanceId}>
                     <label className="creation-attribute">
                       <span><strong>Fake SIN</strong></span>
-                      <select aria-label="License SIN" value={license.sinInstanceId}
+                      <select className="creation-select" aria-label="License SIN" value={license.sinInstanceId}
                         onChange={(event) => updateLicense(license.instanceId, { sinInstanceId: event.target.value })}>
                         <option value="">Select a fake SIN</option>
                         {identities.map((identity) => (
@@ -274,11 +273,10 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
                         ))}
                       </select>
                     </label>
-                    <label className="creation-attribute">
+                    <div className="creation-attribute">
                       <span><strong>Rating</strong></span>
-                      <input aria-label="License rating" type="number" min={MIN_RATING} max={MAX_RATING} value={license.rating}
-                        onChange={(event) => updateLicense(license.instanceId, { rating: Number(event.target.value) })} />
-                    </label>
+                      <Stepper label="License rating" min={MIN_RATING} max={MAX_RATING} value={license.rating} onChange={(rating) => updateLicense(license.instanceId, { rating })} />
+                    </div>
                     <label className="creation-attribute">
                       <span><strong>Subject</strong><small>{unitCost(licenseLine, license.rating).toLocaleString()}¥</small></span>
                       <input aria-label="License subject" maxLength={120} value={license.subject}
