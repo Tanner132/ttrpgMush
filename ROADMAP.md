@@ -322,6 +322,3 @@ draw from the same catalog.gear/nuyen mechanism. Verified via 147
 Application-layer backend tests (25 new) and 225 frontend tests (15 new), and
 live manual exercise of contacts, fake SIN + license linkage, and lifestyle
 selection through the creator UI.
-
-CHAR-811 (Final Review And Atomic Finalization) and CHAR-812 (release gate)
-have not been started.

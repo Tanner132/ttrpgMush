@@ -625,11 +625,16 @@ non-issues already covered by existing approved decisions
 (`vehicle-modification.manual-operation-absolute-values`,
 `gear.helmet-availability`, `gear.smoke-area`), and one flagged gap
 (Biometric Reader) was already present and correct in the base catalog. A
-new Cyberlimb Customization gap and a Gas Grenade cross-item cost reference
-were each excluded per new decisions in `SR5_RULE_DECISIONS.md`
-(`ware.cyberlimb-customization-unmodeled`, `gear.gas-grenade-chemical-payload-cost`),
-matching the existing `gear.focus-formula-cost-reference` precedent of
-excluding rather than fabricating a cross-item price. The new content
+Gas Grenade cross-item cost reference was excluded per
+`gear.gas-grenade-chemical-payload-cost` in `SR5_RULE_DECISIONS.md`, matching
+the existing `gear.focus-formula-cost-reference` precedent of excluding
+rather than fabricating a cross-item price. A separately flagged Cyberlimb
+Customization gap (`ware.cyberlimb-customization-unmodeled`) was implemented
+rather than excluded: `ResourcesEssenceEvaluator.EvaluateCyberlimbCustomization`
+lets a purchased cyberlimb's inherent Strength/Agility be raised above the
+base 3, at `+5,000¥`/`+1 Availability` per point, capped at the character's
+natural metatype maximum, with matching STR/AGI steppers in
+`AugmentationsStep.tsx`. The new content
 shipped as a `sr5-core-1.4.0.json` overlay (196 gear items, 12 armor, 95
 augmentations, 16 priced foci) pinned in `EmbeddedRulesetCatalogProvider`
 with a computed semantic digest.

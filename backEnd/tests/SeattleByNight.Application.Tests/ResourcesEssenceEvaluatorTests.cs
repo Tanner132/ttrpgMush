@@ -176,6 +176,64 @@ public sealed class ResourcesEssenceEvaluatorTests
     }
 
     [Fact]
+    public void In_debt_quality_adds_five_thousand_nuyen_per_level_to_the_budget()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Qualities: [new QualitySelection("in-debt"), new QualitySelection("in-debt")]));
+
+        Assert.Equal(460000, evaluation.Resources!.NuyenBudget);
+    }
+
+    [Fact]
+    public void Restricted_gear_quality_exempts_one_item_per_level_from_the_availability_cap()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Qualities: [new QualitySelection("restricted-gear", Parameters: new Dictionary<string, string> { ["item"] = "Wired Reflexes 3" })],
+            Resources: [new ResourceSelection("wired-reflexes", Rating: 3)]));
+
+        Assert.DoesNotContain(evaluation.Diagnostics, item => item.Code == "resource.availability.exceeded");
+    }
+
+    [Fact]
+    public void A_second_over_cap_item_beyond_restricted_gear_levels_taken_is_still_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Qualities: [new QualitySelection("restricted-gear", Parameters: new Dictionary<string, string> { ["item"] = "Wired Reflexes 3" })],
+            Resources:
+            [
+                new ResourceSelection("wired-reflexes", Rating: 3, InstanceId: "a"),
+                new ResourceSelection("wired-reflexes", Rating: 3, InstanceId: "b"),
+            ]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.availability.exceeded");
+    }
+
+    [Fact]
+    public void Without_restricted_gear_the_availability_cap_is_still_enforced()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("wired-reflexes", Rating: 3)]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.availability.exceeded");
+    }
+
+    [Fact]
     public void Decker_loadout_fits_the_resources_budget()
     {
         var catalog = CatalogTestData.Catalog;

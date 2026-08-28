@@ -94,9 +94,14 @@ export function computeNuyenSpent(catalog: CatalogContract, document: CharacterC
   return spent
 }
 
+// In Debt (run-faster p. 156): each level trades for 5,000 nuyen of extra
+// starting funds. Mirrors ResourcesEssenceEvaluator's budget calculation.
+const IN_DEBT_NUYEN_PER_LEVEL = 5000
+
 export function computeNuyenBudget(catalog: CatalogContract, document: CharacterCreationDocument): number {
   const cell = getCatalogIndex(catalog).priorityCells.get(`resources:${document.priorityAssignment?.resources}`)
-  return (cell?.resourceNuyen ?? 0) + (document.nuyenFromKarma ?? 0) * 2000
+  const inDebtLevels = (document.qualities ?? []).filter((item) => item.qualityId === 'in-debt').length
+  return (cell?.resourceNuyen ?? 0) + inDebtLevels * IN_DEBT_NUYEN_PER_LEVEL + (document.nuyenFromKarma ?? 0) * 2000
 }
 
 // Mirrors LifestyleStep's estimateCost — kept independent rather than shared

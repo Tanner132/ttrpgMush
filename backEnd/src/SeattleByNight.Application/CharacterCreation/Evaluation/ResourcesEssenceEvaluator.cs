@@ -16,6 +16,14 @@ public sealed class ResourcesEssenceEvaluator
     private const int MaxKarmaConversion = 10;
     private const decimal StartingEssence = 6m;
 
+    // In Debt (run-faster p. 156): each level trades for 5,000 nuyen of extra
+    // starting funds.
+    private const int InDebtNuyenPerLevel = 5000;
+
+    // Restricted Gear (run-faster p. 149): each level lets you buy one item
+    // above the normal creation Availability limit, up to Availability 24.
+    private const int MaxRestrictedGearAvailability = 24;
+
     // Cyberlimb Customization (sr5-core p. 456-457, PDF 458-459): a cyberlimb
     // ships with Strength/Agility of 3; raising either above that base, one
     // point at a time and only at purchase time, costs +5,000nuyen and
@@ -36,9 +44,12 @@ public sealed class ResourcesEssenceEvaluator
             return new ResourcesEssenceEvaluation(diagnostics, null);
         }
 
-        var budget = resourceCell.ResourceNuyen ?? 0;
+        var inDebtLevels = (document.Qualities ?? []).Count(item => item.QualityId == "in-debt");
+        var budget = (resourceCell.ResourceNuyen ?? 0) + inDebtLevels * InDebtNuyenPerLevel;
         var nuyenFromKarma = EvaluateNuyenConversion(document.NuyenFromKarma, resourceCell.Source, diagnostics);
         var totalBudget = budget + nuyenFromKarma;
+        var restrictedGearLevels = (document.Qualities ?? []).Count(item => item.QualityId == "restricted-gear");
+        var restrictedGearExemptionsUsed = 0;
 
         var metatype = document.Metatype is null
             ? null
@@ -90,14 +101,21 @@ public sealed class ResourcesEssenceEvaluator
 
             if (availability is not null && availability > MaxCreationAvailability)
             {
-                diagnostics.Add(Error("resource.availability.exceeded", $"resources[{selection.ItemId}]",
-                    [selection.ItemId], item.Source,
-                    new Dictionary<string, string>
-                    {
-                        ["actual"] = availability.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                        ["maximum"] = MaxCreationAvailability.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    },
-                    "Choose an item whose numeric Availability is 12 or lower at creation."));
+                if (restrictedGearExemptionsUsed < restrictedGearLevels && availability <= MaxRestrictedGearAvailability)
+                {
+                    restrictedGearExemptionsUsed++;
+                }
+                else
+                {
+                    diagnostics.Add(Error("resource.availability.exceeded", $"resources[{selection.ItemId}]",
+                        [selection.ItemId], item.Source,
+                        new Dictionary<string, string>
+                        {
+                            ["actual"] = availability.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            ["maximum"] = MaxCreationAvailability.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        },
+                        "Choose an item whose numeric Availability is 12 or lower at creation, or take a level of Restricted Gear to raise it to 24 for one item."));
+                }
             }
 
             if (item.RequiresParameter && string.IsNullOrWhiteSpace(selection.Parameter))

@@ -14,6 +14,7 @@ import {
   type ResourceLine,
 } from './resourceCatalog.ts'
 import { getCatalogIndex } from '../catalogIndex.ts'
+import { computeNuyenBudget, computeNuyenSpent } from '../budgets.ts'
 import { CatalogRail } from '../CatalogRail.tsx'
 import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
@@ -44,9 +45,7 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
   const itemSelections = resources.filter((item) => !index.augmentations.has(item.itemId))
   const gearMultiplier = metatypeGearMultiplier(document.metatype?.metatypeId, document.metatype?.metavariantId)
 
-  const cell = index.priorityCells.get(`resources:${document.priorityAssignment?.resources}`)
   const nuyenFromKarma = document.nuyenFromKarma ?? 0
-  const nuyenBudget = (cell?.resourceNuyen ?? 0) + nuyenFromKarma * 2000
 
   const lines = index.resourceLines
 
@@ -88,6 +87,12 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
   if (licenseLine) {
     for (const license of licenses) spent += unitCost(licenseLine, license.rating)
   }
+
+  // The catalog's total nuyen budget minus whatever augmentations and
+  // lifestyles have already committed elsewhere, so this tab's readout
+  // shows the same true remaining nuyen as the header's NUYEN chip instead
+  // of the full, un-shrunk pool (see budgets.ts's computeNuyenSpent).
+  const nuyenBudget = computeNuyenBudget(catalog, document) - (computeNuyenSpent(catalog, document) - spent)
 
   // A host-kind line (weapon, armor, or Capacity-host gear) can be bought
   // more than once, and each unit must stay its own quantity-1 line so it

@@ -15,7 +15,7 @@ import { attachmentCapacityCost, augmentationHostCapacity, resolveAccessory } fr
 import { CatalogRail } from '../CatalogRail.tsx'
 import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
-import { ESSENCE_BUDGET } from '../budgets.ts'
+import { computeNuyenBudget, computeNuyenSpent, ESSENCE_BUDGET } from '../budgets.ts'
 import { describeAugmentation } from '../catalogDescriptions.ts'
 import { getCatalogIndex } from '../catalogIndex.ts'
 import { onKeyActivate } from '../../ui/keyboardActivation.ts'
@@ -85,9 +85,6 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
     return range.maximum + (hasExceptionalAttribute ? 1 : 0)
   }
 
-  const cell = index.priorityCells.get(`resources:${document.priorityAssignment?.resources}`)
-  const nuyenBudget = (cell?.resourceNuyen ?? 0) + (document.nuyenFromKarma ?? 0) * 2000
-
   let spent = 0
   let essence = 0
   for (const selection of augSelections) {
@@ -100,6 +97,12 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
     essence += augmentationUnitEssence(aug, grade, rating) * (selection.quantity ?? 1)
   }
   essence = Math.round(essence * 100) / 100
+
+  // The catalog's total nuyen budget minus whatever gear and lifestyles
+  // have already committed elsewhere, so this tab's readout shows the same
+  // true remaining nuyen as the header's NUYEN chip instead of the full,
+  // un-shrunk pool (see budgets.ts's computeNuyenSpent).
+  const nuyenBudget = computeNuyenBudget(catalog, document) - (computeNuyenSpent(catalog, document) - spent)
 
   // A Capacity-bearing augmentation (cyberlimb/cybereye/cyberear) can be
   // bought more than once, and each unit must stay its own quantity-1 line
