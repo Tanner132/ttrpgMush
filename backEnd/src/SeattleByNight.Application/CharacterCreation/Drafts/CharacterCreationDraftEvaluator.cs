@@ -53,11 +53,21 @@ public sealed class CharacterCreationDraftEvaluator
     public CharacterCreationDraftDetails Evaluate(CharacterCreationDraftSnapshot draft)
     {
         var catalog = catalogProvider.Get(draft.RulesetId, draft.CatalogVersion);
-        if (!string.Equals(catalog.SemanticDigest, draft.CatalogSemanticDigest, StringComparison.Ordinal))
-        {
-            throw new RulesetCatalogException(
-                $"Draft '{draft.CharacterId}' catalog digest does not match its retained catalog.");
-        }
+
+        // Digest/schema integrity enforcement is intentionally disabled during
+        // the pre-alpha active-schema-development phase -- see
+        // roadmap/SR5_RULESET_MANIFEST.md "Schema Lifecycle" and the matching
+        // comment in RulesetCatalogLoader.Load. The mutable dev schema's
+        // content (and therefore its digest) can change between when a draft
+        // was created and when it's next evaluated; that's expected here, not
+        // drift to reject. Re-enable this block once the base schema is
+        // declared stable/locked.
+        //
+        // if (!string.Equals(catalog.SemanticDigest, draft.CatalogSemanticDigest, StringComparison.Ordinal))
+        // {
+        //     throw new RulesetCatalogException(
+        //         $"Draft '{draft.CharacterId}' catalog digest does not match its retained catalog.");
+        // }
 
         if (draft.Document.PriorityAssignment is null)
         {

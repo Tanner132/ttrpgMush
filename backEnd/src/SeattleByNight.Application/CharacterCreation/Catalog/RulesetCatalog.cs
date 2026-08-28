@@ -280,7 +280,8 @@ public sealed record GearDefinition(
     string? Speed = null,
     string? Duration = null,
     string? AddictionType = null,
-    string? Effect = null);
+    string? Effect = null,
+    string? Accuracy = null);
 
 public sealed record WeaponDefinition(
     string Id,
@@ -370,12 +371,23 @@ public enum WeaponMount
     Barrel,
     Underbarrel,
     TopOrUnderbarrel,
+    Side,
+    Internal,
+    Stock,
 }
 
 public sealed record CapacityCostDefinition(
     int? Fixed = null,
     int? PerRating = null);
 
+// AdditionalMounts generalizes the original single-Mount/TopOrUnderbarrel shape
+// to Run & Gun's wider per-accessory mount choices (e.g. a guncam installable in
+// five different slots) without breaking older pinned catalog versions, whose
+// JSON never populates this field. Mount plus (TopOrUnderbarrel's two slots, if
+// set) plus AdditionalMounts together form the accessory's full candidate set;
+// GearAttachmentEvaluator auto-assigns when that set has exactly one real slot
+// and requires an explicit choice when it has more than one, same as the
+// original TopOrUnderbarrel-only behavior generalized to N slots.
 public sealed record WeaponAccessoryDefinition(
     string Id,
     string DisplayName,
@@ -385,7 +397,9 @@ public sealed record WeaponAccessoryDefinition(
     AvailabilityDefinition? Availability = null,
     CostDefinition? Cost = null,
     RatingRangeDefinition? RatingRange = null,
-    int? Capacity = null);
+    int? Capacity = null,
+    IReadOnlyList<WeaponMount>? AdditionalMounts = null,
+    IReadOnlyList<string>? RestrictedToWeaponCategoryIds = null);
 
 public sealed record ArmorModificationDefinition(
     string Id,

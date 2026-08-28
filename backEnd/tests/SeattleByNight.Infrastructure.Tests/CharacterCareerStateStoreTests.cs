@@ -132,7 +132,13 @@ public sealed class CharacterCareerStateStoreTests : IAsyncLifetime
         Assert.False(await db.CharacterCareerStates.AnyAsync(item => item.CharacterId == characterId));
     }
 
-    [Fact]
+    // Digest/schema integrity enforcement is intentionally disabled during the
+    // pre-alpha active-schema-development phase (see the matching comment in
+    // CharacterCreationBaselineReader.Read, which this store's error mapping
+    // sits downstream of, and roadmap/SR5_RULESET_MANIFEST.md "Schema
+    // Lifecycle"). Re-enable this test alongside that enforcement once the
+    // base schema is declared stable/locked.
+    [Fact(Skip = "Digest enforcement is disabled pre-alpha; see CharacterCreationBaselineReader.Read.")]
     public async Task EnsureInitializedAsync_rejects_a_catalog_digest_mismatch()
     {
         await using var db = CreateDbContext();

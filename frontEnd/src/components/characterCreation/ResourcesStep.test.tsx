@@ -302,6 +302,89 @@ describe('ResourcesStep attachments', () => {
     expect(within(dialog.querySelector('.creation-attachment-modal__options')!).queryByText('Tripod')).not.toBeInTheDocument()
   })
 
+  it('a multi-candidate (AdditionalMounts) accessory offers a mount choice and adds with the chosen mount', () => {
+    // Guncam-style accessory: primary mount Top plus additionalMounts
+    // [Underbarrel, Barrel] (CHAR-817 generalization of TopOrUnderbarrel).
+    // Uses its own catalog variant so the extra accessory doesn't introduce
+    // text collisions ("Top"/"Barrel"/"Underbarrel" also appear as mount
+    // slot headers) in the other tests sharing the module-level `catalog`.
+    const catalogWithGuncam: CatalogContract = {
+      ...catalog,
+      weaponAccessories: [
+        ...catalog.weaponAccessories,
+        {
+          id: 'accessory-run-gun-guncam-test',
+          displayName: 'Guncam',
+          mount: 'Top',
+          additionalMounts: ['Underbarrel', 'Barrel'],
+          classification: 'Selectable',
+          source,
+          availability: { fixed: 4, legality: 'Legal' },
+          cost: { fixed: 350 },
+        },
+      ],
+    }
+    let document: CharacterCreationDocument = {
+      ...baseDocument,
+      resources: [{ itemId: 'ak-97', quantity: 1, instanceId: 'rifle-1' }],
+    }
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    const { rerender } = render(
+      <ResourcesStep catalog={catalogWithGuncam} document={document} creationMethodId="standard-priority" onChange={onChange} />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ak-97 unit 1/i }))
+    rerender(<ResourcesStep catalog={catalogWithGuncam} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    const dialog = screen.getByRole('dialog')
+    const guncamOption = within(dialog).getByText('Guncam').closest('li')!
+    const mountSelect = within(guncamOption).getByRole('combobox', { name: /guncam mount/i })
+    expect(within(mountSelect).getAllByRole('option').map((option) => option.textContent)).toEqual(
+      expect.arrayContaining(['Top', 'Underbarrel', 'Barrel']),
+    )
+
+    fireEvent.change(mountSelect, { target: { value: 'Barrel' } })
+    fireEvent.click(within(guncamOption).getByRole('button', { name: 'Add' }))
+    rerender(<ResourcesStep catalog={catalogWithGuncam} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    expect(document.attachments).toHaveLength(1)
+    expect(document.attachments![0]).toMatchObject({ accessoryId: 'accessory-run-gun-guncam-test', mount: 'Barrel' })
+  })
+
+  it('an accessory restricted to other weapon categories is not offered on a mismatched host', () => {
+    // Bayonet-style accessory restricted to shotguns-and-larger; ak-97 is an
+    // assault rifle, so it must not appear as an addable option (CHAR-817
+    // RestrictedToWeaponCategoryIds).
+    const catalogWithBayonet: CatalogContract = {
+      ...catalog,
+      weaponAccessories: [
+        ...catalog.weaponAccessories,
+        {
+          id: 'accessory-run-gun-bayonet-test',
+          displayName: 'Bayonet',
+          mount: 'Top',
+          additionalMounts: ['Underbarrel'],
+          restrictedToWeaponCategoryIds: ['shotguns'],
+          classification: 'Selectable',
+          source,
+          availability: { fixed: 4, legality: 'Restricted' },
+          cost: { fixed: 50 },
+        },
+      ],
+    }
+    let document: CharacterCreationDocument = {
+      ...baseDocument,
+      resources: [{ itemId: 'ak-97', quantity: 1, instanceId: 'rifle-1' }],
+    }
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    render(<ResourcesStep catalog={catalogWithBayonet} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ak-97 unit 1/i }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog.querySelector('.creation-attachment-modal__options')!).queryByText('Bayonet')).not.toBeInTheDocument()
+  })
+
   it('shows the plus button once a Capacity-host gear item is purchased and opens the enhancement modal', () => {
     let document = baseDocument
     const onChange = (next: CharacterCreationDocument) => { document = next }

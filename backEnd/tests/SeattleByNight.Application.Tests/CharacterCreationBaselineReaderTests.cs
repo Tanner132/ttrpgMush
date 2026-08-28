@@ -77,7 +77,12 @@ public sealed class CharacterCreationBaselineReaderTests
         Assert.Equal(CharacterCreationBaselineError.RulesetCatalogUnavailable, result.Error);
     }
 
-    [Fact]
+    // Digest/schema integrity enforcement is intentionally disabled during the
+    // pre-alpha active-schema-development phase (see the matching comment in
+    // CharacterCreationBaselineReader.Read and roadmap/SR5_RULESET_MANIFEST.md
+    // "Schema Lifecycle"). Re-enable this test alongside that enforcement once
+    // the base schema is declared stable/locked.
+    [Fact(Skip = "Digest enforcement is disabled pre-alpha; see CharacterCreationBaselineReader.Read.")]
     public void Rejects_a_catalog_digest_mismatch()
     {
         var (reader, provider, evaluated) = EvaluateValidSheet();

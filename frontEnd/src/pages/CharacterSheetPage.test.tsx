@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 import CharacterSheetPage from './CharacterSheetPage.tsx'
 import { advanceAttribute, getCareerSheet, type ComposedCareerSheet } from '../api/careerSheet.ts'
-import { getCatalog, type CatalogContract } from '../api/characterCreation.ts'
+import { deleteCharacter, getCatalog, type CatalogContract } from '../api/characterCreation.ts'
 import { ApiError } from '../api/client.ts'
 
 vi.mock('../api/careerSheet.ts', async (importOriginal) => ({
@@ -17,6 +17,7 @@ vi.mock('../api/careerSheet.ts', async (importOriginal) => ({
 vi.mock('../api/characterCreation.ts', async (importOriginal) => ({
     ...(await importOriginal<typeof import('../api/characterCreation.ts')>()),
     getCatalog: vi.fn(),
+    deleteCharacter: vi.fn(),
 }))
 
 function buildSheet(overrides: Partial<ComposedCareerSheet> = {}): ComposedCareerSheet {
@@ -228,5 +229,50 @@ describe('CharacterSheetPage', () => {
         await screen.findByText('Kestrel')
         expect(getCareerSheet).toHaveBeenCalledTimes(2)
         expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
+    it('requires confirmation before deleting, and cancel backs out without calling the API', async () => {
+        vi.mocked(getCareerSheet).mockResolvedValue(buildSheet())
+        const user = userEvent.setup()
+
+        renderPage()
+        await screen.findByText('Kestrel')
+
+        await user.click(screen.getByRole('button', { name: 'Delete character' }))
+        expect(screen.getByText('Delete this character?')).toBeInTheDocument()
+
+        await user.click(screen.getByRole('button', { name: 'Cancel' }))
+        expect(screen.queryByText('Delete this character?')).not.toBeInTheDocument()
+        expect(deleteCharacter).not.toHaveBeenCalled()
+    })
+
+    it('deletes the character and returns to the registry on confirm', async () => {
+        vi.mocked(getCareerSheet).mockResolvedValue(buildSheet())
+        vi.mocked(deleteCharacter).mockResolvedValue(undefined)
+        const user = userEvent.setup()
+
+        renderPage()
+        await screen.findByText('Kestrel')
+
+        await user.click(screen.getByRole('button', { name: 'Delete character' }))
+        await user.click(screen.getByRole('button', { name: 'Yes, delete' }))
+
+        expect(deleteCharacter).toHaveBeenCalledWith('character-1')
+        expect(await screen.findByText('Characters stub')).toBeInTheDocument()
+    })
+
+    it('shows an error and stays put when delete fails', async () => {
+        vi.mocked(getCareerSheet).mockResolvedValue(buildSheet())
+        vi.mocked(deleteCharacter).mockRejectedValue(new ApiError(409, 'Character could not be deleted.'))
+        const user = userEvent.setup()
+
+        renderPage()
+        await screen.findByText('Kestrel')
+
+        await user.click(screen.getByRole('button', { name: 'Delete character' }))
+        await user.click(screen.getByRole('button', { name: 'Yes, delete' }))
+
+        expect(await screen.findByText('Character could not be deleted.')).toBeInTheDocument()
+        expect(screen.getByText('Kestrel')).toBeInTheDocument()
     })
 })

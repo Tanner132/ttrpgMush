@@ -23,13 +23,13 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         response.EnsureSuccessStatusCode();
         using var body = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
         Assert.Equal("sr5-core", body.RootElement.GetProperty("rulesetId").GetString());
-        Assert.Equal("1.4.0", body.RootElement.GetProperty("version").GetString());
+        Assert.Equal("1.0.0", body.RootElement.GetProperty("version").GetString());
         Assert.Equal(64, body.RootElement.GetProperty("semanticDigest").GetString()!.Length);
         Assert.Equal(2, body.RootElement.GetProperty("creationMethods").GetArrayLength());
         Assert.Equal(25, body.RootElement.GetProperty("priorityCells").GetArrayLength());
         Assert.Equal(21, body.RootElement.GetProperty("knowledgeSkillSuggestions").GetArrayLength());
         Assert.Equal(9, body.RootElement.GetProperty("languageSuggestions").GetArrayLength());
-        Assert.Equal(17, body.RootElement.GetProperty("weaponAccessories").GetArrayLength());
+        Assert.Equal(50, body.RootElement.GetProperty("weaponAccessories").GetArrayLength());
         Assert.Equal(7, body.RootElement.GetProperty("armorModifications").GetArrayLength());
         Assert.Equal(3, body.RootElement.GetProperty("cyberlimbEnhancements").GetArrayLength());
         Assert.Equal(4, body.RootElement.GetProperty("vehicleModifications").GetArrayLength());
@@ -230,6 +230,31 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
     }
 
     [Fact]
+    public async Task Owner_can_delete_a_finalized_character_but_nobody_else_can()
+    {
+        var anonymous = await factory.CreateClient()
+            .DeleteAsync($"/api/characters/{Guid.NewGuid()}");
+        Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+
+        var owner = await CreatePlayerAsync();
+        var other = await CreatePlayerAsync();
+        var characterId = await FinalizeCharacterAsync(owner, "Delete API Runner");
+
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await other.DeleteAsync($"/api/characters/{characterId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK,
+            (await owner.GetAsync($"/api/characters/{characterId}/sheet")).StatusCode);
+
+        var deleted = await owner.DeleteAsync($"/api/characters/{characterId}");
+        Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await owner.GetAsync($"/api/characters/{characterId}/sheet")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await owner.DeleteAsync($"/api/characters/{characterId}")).StatusCode);
+    }
+
+    [Fact]
     public async Task Valid_sum_to_ten_draft_also_finalizes_into_the_new_character_room()
     {
         // ValidDocument's priority levels (e, b, a, c, d) cost 0+3+4+2+1 = 10,
@@ -396,6 +421,26 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
             new { instanceId = "life-1", tierId = "street-lifestyle", isPrimary = true, prepaidMonths = 0 }
         }
     };
+
+    private static async Task<Guid> FinalizeCharacterAsync(HttpClient client, string name)
+    {
+        var started = await StartDraftAsync(client, name);
+        var characterId = started.GetProperty("characterId").GetGuid();
+        var update = await client.PutAsJsonAsync($"/api/character-creation/drafts/{characterId}", new
+        {
+            expectedVersion = started.GetProperty("version").GetGuid(),
+            name,
+            document = ValidDocument()
+        });
+        var updated = await ReadObjectAsync(update);
+
+        var finalize = await client.PostAsJsonAsync(
+            $"/api/character-creation/drafts/{characterId}/finalize",
+            new { expectedVersion = updated.GetProperty("version").GetGuid() });
+        finalize.EnsureSuccessStatusCode();
+
+        return characterId;
+    }
 
     private static Task<HttpResponseMessage> DeleteDraftAsync(HttpClient client, Guid characterId, Guid version)
     {

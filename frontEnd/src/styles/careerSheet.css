@@ -12,13 +12,48 @@
     --career-type-heading: clamp(1.05rem, calc(0.9rem + 0.28vw), 1.4rem);
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background:
+        linear-gradient(color-mix(in srgb, var(--sb-accent) 2%, transparent) 1px, transparent 1px) 0 0 / 100% 5px,
+        var(--sb-bg);
+}
+
+.career-sheet-page__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--sb-space-2);
+    flex-shrink: 0;
+    padding: var(--sb-space-3) clamp(var(--sb-space-3), 2vw, var(--sb-space-6)) 0;
+}
+
+.career-sheet-page__delete-confirm {
+    display: flex;
+    align-items: center;
+    gap: var(--sb-space-2);
+    font-family: var(--sb-font-data);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    color: var(--sb-text-muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.career-sheet-page__delete-error {
+    font-family: var(--sb-font-data);
+    font-size: 0.65rem;
+    color: var(--sb-save-failed);
+    white-space: nowrap;
+}
+
+.career-sheet-page__content {
+    flex: 1;
     display: grid;
     overflow: hidden;
     place-items: center;
     padding: clamp(var(--sb-space-3), 2vw, var(--sb-space-6));
-    background:
-        linear-gradient(color-mix(in srgb, var(--sb-accent) 2%, transparent) 1px, transparent 1px) 0 0 / 100% 5px,
-        var(--sb-bg);
 }
 
 .career-sheet-page__error {
@@ -787,7 +822,7 @@
 }
 
 @media (max-width: 650px) {
-    .career-sheet-page {
+    .career-sheet-page__content {
         padding: 0;
     }
 

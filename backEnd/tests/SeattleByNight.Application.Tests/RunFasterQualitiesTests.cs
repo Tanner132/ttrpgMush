@@ -3,9 +3,9 @@ using SeattleByNight.Application.CharacterCreation.Catalog;
 namespace SeattleByNight.Application.Tests;
 
 // CHAR-814: Run Faster's qualities (Rank plus the full "Qualities for Good or
-// Ill" chapter) published as catalog version sr5-core 1.3.0. These entries
-// live only in the 1.3.0 overlay, so they're read from the embedded provider
-// rather than CatalogTestData.Catalog (which pins the 1.0.0 baseline).
+// Ill" chapter). These entries live only in the real embedded sr5-core
+// catalog, so they're read from the embedded provider rather than
+// CatalogTestData.Catalog (an independent synthetic fixture).
 public sealed class RunFasterQualitiesTests
 {
     private static RulesetCatalog Catalog => new EmbeddedRulesetCatalogProvider().Current;
@@ -15,7 +15,8 @@ public sealed class RunFasterQualitiesTests
     {
         var catalog = Catalog;
 
-        Assert.Equal(144, catalog.Qualities.Count);
+        // 157 total as of CHAR-815, which added 13 run-gun entries on top of these.
+        Assert.Equal(157, catalog.Qualities.Count);
         // 84 new CHAR-814 entries plus the pre-existing poor-self-control-vindictive (CHAR-813).
         Assert.Equal(85, catalog.Qualities.Values.Count(q => q.Source.SourceId == "run-faster"));
         Assert.Equal(59, catalog.Qualities.Values.Count(q => q.Source.SourceId == "sr5-core"));

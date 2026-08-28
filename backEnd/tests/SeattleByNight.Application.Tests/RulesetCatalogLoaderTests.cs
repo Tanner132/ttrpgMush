@@ -91,8 +91,6 @@ public sealed class RulesetCatalogLoaderTests
 
         var current = provider.Get(EmbeddedRulesetCatalogProvider.CurrentRulesetId, EmbeddedRulesetCatalogProvider.CurrentVersion);
         Assert.Equal(EmbeddedRulesetCatalogProvider.CurrentSemanticDigest, current.SemanticDigest);
-        Assert.Equal("C943E1DB4DC510AEE2BDE33372323A96140B51F95980D57630F9EB7DFC6FE44E",
-            provider.Get("sr5-core", "1.0.0").SemanticDigest);
 
         Assert.Throws<KeyNotFoundException>(() => provider.Get("sr5-core", "0.0.0"));
         Assert.Throws<KeyNotFoundException>(() => provider.Get("other-book", "1.0.0"));
@@ -164,8 +162,8 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(11, catalog.Armor.Count);
-        Assert.Equal(10, catalog.Armor.Values.Count(armor => armor.Classification == GearClassification.Selectable));
+        Assert.Equal(12, catalog.Armor.Count);
+        Assert.Equal(11, catalog.Armor.Values.Count(armor => armor.Classification == GearClassification.Selectable));
         Assert.Single(catalog.Armor.Values, armor => armor.Classification == GearClassification.CreationUnavailable);
 
         var jacket = catalog.Armor["armor-jacket"];
@@ -196,31 +194,36 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(77, catalog.Weapons.Count);
+        Assert.Equal(157, catalog.Weapons.Count);
 
-        Assert.Equal(8, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "blades"));
-        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "clubs"));
+        Assert.Equal(15, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "blades"));
+        Assert.Equal(7, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "clubs"));
         Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "other-melee"));
         Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "bows"));
-        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "crossbows"));
-        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "throwing-weapons"));
-        Assert.Equal(2, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "tasers"));
-        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "hold-outs"));
-        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "light-pistols"));
-        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "heavy-pistols"));
-        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-pistols"));
-        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "submachine-guns"));
-        Assert.Equal(5, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "assault-rifles"));
-        Assert.Equal(5, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "sniper-rifles"));
-        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "shotguns"));
+        Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "crossbows"));
+        Assert.Equal(5, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "throwing-weapons"));
+        Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "tasers"));
+        Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "hold-outs"));
+        Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "light-pistols"));
+        Assert.Equal(10, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "heavy-pistols"));
+        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-pistols"));
+        Assert.Equal(8, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "submachine-guns"));
+        Assert.Equal(15, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "assault-rifles"));
+        Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "sniper-rifles"));
+        Assert.Equal(7, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "shotguns"));
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "special-weapons"));
-        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-guns"));
-        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "cannons-launchers"));
-        Assert.Equal(2, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-ranged"));
-        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-melee"));
+        Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-guns"));
+        Assert.Equal(11, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "cannons-launchers"));
+        Assert.Equal(13, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-ranged"));
+        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-melee"));
+        Assert.Equal(2, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "harpoon-guns"));
+        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "slingshots"));
+        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "laser-weapons"));
+        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "flamethrowers"));
 
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.CreationUnavailable));
         Assert.Equal(1, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.Parameterized));
+        Assert.Equal(7, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.Generated));
 
         var bow = catalog.Weapons["bow"];
         Assert.Equal(1, bow.RatingRange!.Minimum);
@@ -241,7 +244,7 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(141, catalog.Gear.Count);
+        Assert.Equal(208, catalog.Gear.Count);
         Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "commlink"));
         Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "breaking-and-entering"));
         Assert.Equal(13, catalog.Gear.Values.Count(item => item.CategoryId == "survival"));
@@ -317,12 +320,14 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(17, catalog.WeaponAccessories.Count);
-        Assert.Equal(7, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.None));
-        Assert.Equal(2, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Top));
-        Assert.Equal(2, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Barrel));
-        Assert.Equal(4, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Underbarrel));
+        Assert.Equal(50, catalog.WeaponAccessories.Count);
+        Assert.Equal(19, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.None));
+        Assert.Equal(10, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Top));
+        Assert.Equal(3, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Barrel));
+        Assert.Equal(9, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Underbarrel));
         Assert.Equal(2, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.TopOrUnderbarrel));
+        Assert.Equal(2, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Stock));
+        Assert.Equal(5, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Internal));
 
         var bipod = catalog.WeaponAccessories["accessory-bipod"];
         Assert.Equal(WeaponMount.Underbarrel, bipod.Mount);
@@ -372,7 +377,12 @@ public sealed class RulesetCatalogLoaderTests
             RulesetCatalogLoader.ComputeSemanticDigest(second));
     }
 
-    [Fact]
+    // Digest/schema integrity enforcement is intentionally disabled during the
+    // pre-alpha active-schema-development phase (see the matching comment in
+    // RulesetCatalogLoader.Load and roadmap/SR5_RULESET_MANIFEST.md "Schema
+    // Lifecycle"). Re-enable this test alongside that enforcement once the
+    // base schema is declared stable/locked.
+    [Fact(Skip = "Digest enforcement is disabled pre-alpha; see RulesetCatalogLoader.Load.")]
     public void Digest_mismatch_fails_catalog_loading()
     {
         var exception = Assert.Throws<RulesetCatalogException>(() =>

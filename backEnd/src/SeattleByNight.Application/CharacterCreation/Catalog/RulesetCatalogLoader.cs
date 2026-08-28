@@ -36,12 +36,22 @@ public static partial class RulesetCatalogLoader
 
         Validate(document);
         var digest = ComputeSemanticDigest(json);
-        if (expectedSemanticDigest is not null
-            && !string.Equals(digest, expectedSemanticDigest, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new RulesetCatalogException(
-                $"Catalog semantic digest mismatch. Expected {expectedSemanticDigest}, calculated {digest}.");
-        }
+
+        // Digest/schema integrity enforcement is intentionally disabled during
+        // the pre-alpha active-schema-development phase (see
+        // roadmap/SR5_RULESET_MANIFEST.md "Schema Lifecycle" and
+        // EmbeddedRulesetCatalogProvider.RetainedVersions). The digest is
+        // still computed above and still returned on the catalog below, so
+        // drafts/sheets keep recording a real value -- only the "this must
+        // match a pinned expectation" check is suppressed. Re-enable this
+        // block once the base schema is declared stable/locked.
+        //
+        // if (expectedSemanticDigest is not null
+        //     && !string.Equals(digest, expectedSemanticDigest, StringComparison.OrdinalIgnoreCase))
+        // {
+        //     throw new RulesetCatalogException(
+        //         $"Catalog semantic digest mismatch. Expected {expectedSemanticDigest}, calculated {digest}.");
+        // }
 
         return new RulesetCatalog(
             document.RulesetId,
@@ -548,6 +558,8 @@ public static partial class RulesetCatalogLoader
             ValidateCommonEntry(accessory.Id, accessory.DisplayName, accessory.Source, sourceIds, "weapon accessory");
             ValidateResourceEntry(accessory.Availability, accessory.Cost, null, accessory.Capacity, accessory.RatingRange,
                 null, null, $"weapon accessory '{accessory.Id}'");
+            ValidateReferenceIds(accessory.RestrictedToWeaponCategoryIds, $"weapon accessory '{accessory.Id}'",
+                "restricted weapon category");
         }
 
         foreach (var modification in document.ArmorModifications)

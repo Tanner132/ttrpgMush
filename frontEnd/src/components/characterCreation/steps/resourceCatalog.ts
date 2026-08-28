@@ -10,6 +10,7 @@ import type {
   GearDefinition,
   RatingRangeDefinition,
   VehicleDefinition,
+  WeaponAccessoryDefinition,
   WeaponMount,
 } from '../../../api/characterCreation.ts'
 import { resolveNumber } from '../../../api/characterCreation.ts'
@@ -32,8 +33,9 @@ export interface ResourceLine {
 }
 
 // Mirrors GearAttachmentEvaluator's category-to-mount mapping (sr5-core p. 417,
-// PDF 419): hold-outs, melee, bows, crossbows, throwing weapons, and the
-// exotic categories have no firearm mount system.
+// PDF 419; run-gun categories added for CHAR-817). hold-outs, melee, bows,
+// crossbows, throwing weapons, and the exotic categories have no firearm
+// mount system.
 export const MOUNTS_BY_WEAPON_CATEGORY: Record<string, WeaponMount[]> = {
   tasers: ['Top'],
   'light-pistols': ['Top', 'Barrel'],
@@ -46,6 +48,8 @@ export const MOUNTS_BY_WEAPON_CATEGORY: Record<string, WeaponMount[]> = {
   'special-weapons': ['Top', 'Barrel', 'Underbarrel'],
   'machine-guns': ['Top', 'Barrel', 'Underbarrel'],
   'cannons-launchers': ['Top', 'Barrel', 'Underbarrel'],
+  'laser-weapons': ['Top', 'Barrel', 'Underbarrel'],
+  flamethrowers: ['Internal'],
 }
 
 export const MOUNT_LABELS: Record<WeaponMount, string> = {
@@ -54,6 +58,28 @@ export const MOUNT_LABELS: Record<WeaponMount, string> = {
   Barrel: 'Barrel',
   Underbarrel: 'Underbarrel',
   TopOrUnderbarrel: 'Top or Underbarrel',
+  Side: 'Side',
+  Internal: 'Internal',
+  Stock: 'Stock',
+}
+
+// An accessory's full set of acceptable mounts: its primary Mount (expanded
+// to [Top, Underbarrel] for the legacy TopOrUnderbarrel combinator, or
+// dropped for None) plus AdditionalMounts (run-gun's wider per-accessory
+// choices, e.g. a guncam's five eligible slots). Mirrors
+// GearAttachmentEvaluator.MountCandidates on the backend: a one-candidate
+// result auto-assigns; a multi-candidate result requires an explicit choice.
+export function weaponAccessoryMountCandidates(accessory: Pick<WeaponAccessoryDefinition, 'mount' | 'additionalMounts'>): WeaponMount[] {
+  const candidates: WeaponMount[] = []
+  if (accessory.mount === 'TopOrUnderbarrel') {
+    candidates.push('Top', 'Underbarrel')
+  } else if (accessory.mount !== 'None') {
+    candidates.push(accessory.mount)
+  }
+  for (const mount of accessory.additionalMounts ?? []) {
+    if (!candidates.includes(mount)) candidates.push(mount)
+  }
+  return candidates
 }
 
 export const RESOURCE_CATEGORY_LABELS: Record<string, string> = {
@@ -125,15 +151,16 @@ export function resolveAccessory(catalog: CatalogContract, hostKind: 'weapon' | 
 
 // The mount an attachment actually occupies. Fixed-mount accessories (e.g.
 // Bipod, always Underbarrel) ignore attachment.mount entirely — only
-// TopOrUnderbarrel accessories need the player's explicit choice — so this
+// multi-candidate accessories (TopOrUnderbarrel, or run-gun's wider
+// AdditionalMounts choices) need the player's explicit choice — so this
 // must resolve from the catalog rather than trust attachment.mount alone.
 export function effectiveWeaponMount(catalog: CatalogContract, attachment: AttachmentSelection): WeaponMount | undefined {
   const accessory = catalog.weaponAccessories.find((item) => item.id === attachment.accessoryId)
-  if (!accessory || accessory.mount === 'None') return undefined
-  if (accessory.mount === 'TopOrUnderbarrel') {
-    return attachment.mount === 'Top' || attachment.mount === 'Underbarrel' ? attachment.mount : undefined
-  }
-  return accessory.mount
+  if (!accessory) return undefined
+  const candidates = weaponAccessoryMountCandidates(accessory)
+  if (candidates.length === 0) return undefined
+  if (candidates.length === 1) return candidates[0]
+  return attachment.mount != null && candidates.includes(attachment.mount) ? attachment.mount : undefined
 }
 
 export function attachmentUnitCost(catalog: CatalogContract, attachment: AttachmentSelection): number {

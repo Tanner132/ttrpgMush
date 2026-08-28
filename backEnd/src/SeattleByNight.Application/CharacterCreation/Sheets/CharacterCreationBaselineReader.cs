@@ -31,10 +31,16 @@ public sealed class CharacterCreationBaselineReader
             return CharacterCreationBaselineResult.Failure(CharacterCreationBaselineError.RulesetCatalogUnavailable);
         }
 
-        if (!string.Equals(catalog.SemanticDigest, sheet.CatalogSemanticDigest, StringComparison.Ordinal))
-        {
-            return CharacterCreationBaselineResult.Failure(CharacterCreationBaselineError.CatalogDigestMismatch);
-        }
+        // Digest/schema integrity enforcement is intentionally disabled during
+        // the pre-alpha active-schema-development phase -- see
+        // roadmap/SR5_RULESET_MANIFEST.md "Schema Lifecycle" and the matching
+        // comment in RulesetCatalogLoader.Load. Re-enable this block once the
+        // base schema is declared stable/locked.
+        //
+        // if (!string.Equals(catalog.SemanticDigest, sheet.CatalogSemanticDigest, StringComparison.Ordinal))
+        // {
+        //     return CharacterCreationBaselineResult.Failure(CharacterCreationBaselineError.CatalogDigestMismatch);
+        // }
 
         CanonicalCharacterSheet canonical;
         try

@@ -17,6 +17,7 @@ import {
   MOUNT_LABELS,
   attachmentCapacityCost,
   effectiveWeaponMount,
+  weaponAccessoryMountCandidates,
 } from './resourceCatalog.ts'
 
 interface GearAttachmentModalProps {
@@ -49,12 +50,11 @@ export function GearAttachmentModal({
 
     const options = catalog.weaponAccessories.filter((accessory) => {
       if (attachments.some((item) => item.accessoryId === accessory.id)) return false
-      if (accessory.mount === 'None') return true
-      if (accessory.mount === 'TopOrUnderbarrel') {
-        return (availableMounts.includes('Top') && !occupied.has('Top'))
-          || (availableMounts.includes('Underbarrel') && !occupied.has('Underbarrel'))
-      }
-      return availableMounts.includes(accessory.mount) && !occupied.has(accessory.mount)
+      if (accessory.restrictedToWeaponCategoryIds
+        && !accessory.restrictedToWeaponCategoryIds.includes(weaponCategoryId ?? '')) return false
+      const candidates = weaponAccessoryMountCandidates(accessory)
+      if (candidates.length === 0) return true
+      return candidates.some((mount) => availableMounts.includes(mount) && !occupied.has(mount))
     })
 
     return (
@@ -84,15 +84,17 @@ export function GearAttachmentModal({
             {options.map((accessory) => {
               const rating = pendingRatings[accessory.id] ?? accessory.ratingRange?.minimum ?? undefined
               const cost = resolveNumber(accessory.cost?.fixed, accessory.cost?.perRating, null, rating ?? null)
-              const chosenMount = pendingMounts[accessory.id]
-                ?? (accessory.mount === 'TopOrUnderbarrel'
-                  ? (availableMounts.includes('Top') && !occupied.has('Top') ? 'Top' : 'Underbarrel')
-                  : accessory.mount)
+              const candidates = weaponAccessoryMountCandidates(accessory)
+              const eligibleMounts = candidates.filter((mount) => availableMounts.includes(mount) && !occupied.has(mount))
+              const chosenMount = (pendingMounts[accessory.id] && eligibleMounts.includes(pendingMounts[accessory.id])
+                ? pendingMounts[accessory.id]
+                : eligibleMounts[0]) ?? candidates[0]
+              const mountLabel = candidates.length === 0 ? 'None' : candidates.map((mount) => MOUNT_LABELS[mount]).join(' or ')
               return (
                 <li key={accessory.id} className="creation-attachment-modal__option">
                   <span>
                     <strong>{accessory.displayName}</strong>
-                    <small>{cost.toLocaleString()}¥ · {MOUNT_LABELS[accessory.mount]}</small>
+                    <small>{cost.toLocaleString()}¥ · {mountLabel}</small>
                   </span>
                   {accessory.ratingRange && (
                     <Stepper
@@ -103,16 +105,17 @@ export function GearAttachmentModal({
                       onChange={(next) => setPendingRatings((prev) => ({ ...prev, [accessory.id]: next }))}
                     />
                   )}
-                  {accessory.mount === 'TopOrUnderbarrel' && (
+                  {candidates.length > 1 && (
                     <select className="creation-select" aria-label={`${accessory.displayName} mount`} value={chosenMount}
                       onChange={(event) => setPendingMounts((prev) => ({ ...prev, [accessory.id]: event.target.value as WeaponMount }))}>
-                      {availableMounts.includes('Top') && !occupied.has('Top') && <option value="Top">Top</option>}
-                      {availableMounts.includes('Underbarrel') && !occupied.has('Underbarrel') && <option value="Underbarrel">Underbarrel</option>}
+                      {eligibleMounts.map((mount) => (
+                        <option key={mount} value={mount}>{MOUNT_LABELS[mount]}</option>
+                      ))}
                     </select>
                   )}
                   <Button intent="primary" onClick={() => onAdd({
                     hostInstanceId, accessoryId: accessory.id,
-                    mount: accessory.mount === 'None' ? undefined : chosenMount,
+                    mount: candidates.length === 0 ? undefined : chosenMount,
                     rating: rating ?? undefined,
                   })}>Add</Button>
                 </li>

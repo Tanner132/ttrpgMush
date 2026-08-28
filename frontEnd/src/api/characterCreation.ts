@@ -188,7 +188,8 @@ export interface ResourceSelection {
 // resource file's internal camelCase. AttachmentSelection.mount is sent back
 // as a plain string (the draft document has no enum converter on the wire),
 // so any of these literal values works as that string.
-export type WeaponMount = 'None' | 'Top' | 'Barrel' | 'Underbarrel' | 'TopOrUnderbarrel'
+export type WeaponMount =
+    | 'None' | 'Top' | 'Barrel' | 'Underbarrel' | 'TopOrUnderbarrel' | 'Side' | 'Internal' | 'Stock'
 
 // References the specific purchased line it attaches to (ResourceSelection.instanceId),
 // not a bare item ID, so two copies of the same host carry independent attachments.
@@ -541,6 +542,7 @@ export interface GearDefinition {
     duration?: string | null
     addictionType?: string | null
     effect?: string | null
+    accuracy?: string | null
 }
 
 export interface WeaponDefinition {
@@ -691,6 +693,8 @@ export interface WeaponAccessoryDefinition {
     cost?: CostDefinition | null
     ratingRange?: RatingRangeDefinition | null
     capacity?: number | null
+    additionalMounts?: WeaponMount[] | null
+    restrictedToWeaponCategoryIds?: string[] | null
 }
 
 export interface ArmorModificationDefinition {
@@ -849,6 +853,10 @@ export async function updateDraft(
 
 export async function discardDraft(characterId: string, expectedVersion: string): Promise<void> {
     await apiDelete(`/api/character-creation/drafts/${characterId}`, { expectedVersion })
+}
+
+export async function deleteCharacter(characterId: string): Promise<void> {
+    await apiDelete(`/api/characters/${characterId}`)
 }
 
 export async function finalizeDraft(characterId: string, expectedVersion: string): Promise<void> {

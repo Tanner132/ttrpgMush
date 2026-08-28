@@ -14,17 +14,24 @@ slices publish and reconcile their complete option facts.
 
 ## Status
 
-Runtime counts below reflect the `sr5-core` `1.4.0` catalog resource as of
-CHAR-812 completion.
+As of 2026-08-28 the runtime catalog was consolidated into a single mutable
+pre-alpha development schema (`sr5-core` `1.0.0`); see
+[`SR5_RULESET_MANIFEST.md`](SR5_RULESET_MANIFEST.md) "Schema Lifecycle". The
+`catalog version sr5-core X.Y.Z` references throughout this ledger (including
+below) are historical authorship markers for when content was reviewed and
+added — they no longer name distinct retained runtime resources, and digest
+pinning is not enforced during this phase. Runtime counts below reflect the
+consolidated `1.0.0` resource, which is the union of everything previously
+published across those historical version markers.
 
 | Category | Approved-PDF identity review | Detailed fact review | Runtime catalog | Reconciliation |
 | --- | --- | --- | --- | --- |
 | Priority rows and metatypes | Complete | Complete | Methods, levels, categories, 25 cell identities, and 5 metatypes published | Reconciled (CHAR-806 complete) |
-| Qualities | Complete: 31 positive, 28 negative (`sr5-core`); 43 positive, 41 negative (`run-faster`) | Complete | 144 qualities published: 59 `sr5-core` (CHAR-807), 85 `run-faster` (1 `poor-self-control-vindictive` under CHAR-813, 84 new under CHAR-814) | Reconciled (CHAR-807, CHAR-813, CHAR-814 complete) |
+| Qualities | Complete: 31 positive, 28 negative (`sr5-core`); 43 positive, 41 negative (`run-faster`); 10 positive, 3 negative (`run-gun`) | Complete | 157 qualities published: 59 `sr5-core` (CHAR-807), 85 `run-faster` (1 `poor-self-control-vindictive` under CHAR-813, 84 new under CHAR-814), 13 `run-gun` (CHAR-815) | Reconciled (CHAR-807, CHAR-813, CHAR-814, CHAR-815 complete) |
 | Active skills and groups | Complete: 75 skills, 15 groups | Complete | 75 skills, 15 groups published | Reconciled (CHAR-807 complete) |
 | Knowledge and languages | Complete as open-authored categories | Complete | 4 open categories published | Reconciled (CHAR-807 complete) |
 | Magic and Resonance | Complete identity pass | Complete | 6 paths, 3 aspected values, 2 traditions, 84 spells, 9 rituals, 25 adept powers, 16 mentor spirits, 20 complex forms, 6 spirit types, 5 sprite types published | Reconciled (CHAR-808 complete) |
-| Weapons and armor | Complete identity pass | Complete | 77 weapons (includes grapple gun, micro flare launcher, monofilament chainsaw), 12 armor (adds Leather Jacket/Duster), plus ammunition (11 types), arrow/bolt ammo (4 types), explosives (4 items), grenades (7 types), and rockets (3 selectable + 3 `creationUnavailable` missiles) published in `gear` | Reconciled (CHAR-812 complete); Autosofts excluded per `gear.autosoft-pricing-absent`, weapon-ammo damage linkage deferred per `gear.ammunition-grenade-rocket-linkage` |
+| Weapons and armor | Complete identity pass | Complete | 157 weapons published: 77 `sr5-core` (includes grapple gun, micro flare launcher, monofilament chainsaw), 80 `run-gun` (73 base + 7 generated alternate-configuration profiles, CHAR-816, see [`sr5-catalog/RUN_GUN_WEAPONS.md`](sr5-catalog/RUN_GUN_WEAPONS.md)); 12 armor (adds Leather Jacket/Duster); ammunition/arrow-bolt/explosive/grenade/rocket line items reviewed under CHAR-812 were never actually wired into the runtime `gear` array (confirmed by direct inspection during CHAR-816: 0 of 141 base `gear` entries match ammo/grenade/explosive/rocket/arrow/bolt patterns) — this row's "published in `gear`" claim for those items is stale and needs its own follow-up ticket | Weapons reconciled (CHAR-812, CHAR-816 complete); ammunition/grenade/explosive/rocket claim requires re-reconciliation; Autosofts excluded per `gear.autosoft-pricing-absent`, weapon-ammo damage linkage deferred per `gear.ammunition-grenade-rocket-linkage` |
 | Electronics and software | Complete identity pass | Complete | Commlinks (7), a new typed `cyberdecks` catalog (9), electronics accessories, RFID tags, communications/countermeasures, software, and skillsofts published in `gear`/`cyberdecks`; Capacity-scaled optical/audio/sensor hosts and their enhancements published under CHAR-809A | Reconciled; cyberdeck program slots and Autosoft pricing remain excluded per `SR5_RULE_DECISIONS.md` |
 | General gear and consumables | Complete identity pass | Complete | 100+ items published across credsticks, tools, fixed-capacity optical devices, security devices, restraints, breaking-and-entering gear, industrial chemicals, survival gear, biotech, DocWagon contracts, and slap patches; drugs (10 types), toxins (9 types), and BTL chips (4 types) published in `gear` under CHAR-812 | Reconciled (CHAR-809, CHAR-812 complete) |
 | Augmentations | Complete identity pass | Complete | 95 augmentations across 5 grades (standard, alphaware, betaware, deltaware, used); adds Ocular Drone, External Clip Port, and cybergun Laser Sight/Silencer implant-weapon accessories; 7 existing headware/earware entries gained missing `capacityCost` fields | Reconciled (CHAR-809, CHAR-812 complete); Cyberlimb Customization implemented post-CHAR-812, see `ware.cyberlimb-customization-unmodeled` |
@@ -120,6 +127,22 @@ poor-self-control-braggart, poor-self-control-thrill-seeker,
 poor-self-control-compulsive, poor-self-control-vindictive,
 poor-self-control-combat-monster, records-on-file, reduced-sense,
 sensory-overload-syndrome, signature, vendetta, wanted
+```
+
+`run-gun` positive quality inventory (CHAR-815): `run-gun` p. 127 (PDF 129),
+p. 169 (PDF 171).
+
+```text
+acrobatic-defender, agile-defender, brand-loyalty, one-trick-pony,
+perceptive-defender, sharpshooter, too-pretty-to-hit, radiation-sponge,
+rad-tolerant, spacer
+```
+
+`run-gun` negative quality inventory (CHAR-815): `run-gun` p. 127 (PDF 129),
+p. 169 (PDF 171).
+
+```text
+combat-junkie, blighted, earther
 ```
 
 ## Skills
@@ -326,6 +349,46 @@ mounts are all implemented. The governing capacity and mount rules are:
 | Full-body armor and other Availability-over-12 variants | Core item retained as creation-unavailable, not selectable | `sr5-core` pp. 94, 436-438 (PDF 96, 438-440) |
 
 ## Reconciliation Report
+
+CHAR-815 added Run & Gun as a fourth approved source and published its 13
+new qualities (10 positive, 3 negative) as catalog version `sr5-core`
+`1.5.0`. See [`sr5-catalog/RUN_GUN_QUALITIES.md`](sr5-catalog/RUN_GUN_QUALITIES.md).
+It is the first slice of a broader, project-owner-approved Run & Gun
+expansion; Run & Gun's Martial Arts subsystem and several GM-procedural
+chapters were reviewed and are not part of this or any scheduled slice yet
+— see [`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md).
+
+CHAR-816 published the second slice: Run & Gun's Arsenal chapter weapons
+(73 base products across 21 categories, 4 newly introduced — laser weapons,
+flamethrowers, harpoon guns, slingshots — plus 7 generated
+alternate-configuration profiles, 80 new entries total) as catalog version
+`sr5-core` `1.6.0`, bringing the runtime to 157 total weapons. See
+[`sr5-catalog/RUN_GUN_WEAPONS.md`](sr5-catalog/RUN_GUN_WEAPONS.md). Weapon
+Accessories' new 6-slot mounting system was reviewed and deferred as a
+future CHAR-817 candidate (it needs a `WeaponMount` schema change and new
+evaluator logic, not just catalog rows). The AMMO section and Arrowheads
+were also deferred at the time, on the mistaken belief that no base
+ammunition catalog existed in the runtime to extend; that belief was wrong
+(CHAR-812 had already published ammunition/arrow/bolt gear in `1.4.0`) and
+was corrected before CHAR-818 shipped — see the CHAR-817/CHAR-818 paragraph
+below. Improvised Melee Weapons remains reviewed and excluded outright — see
+[`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md). Armor, gear,
+and explosives remain tracked as separate follow-up CHAR-8xx tickets.
+
+CHAR-817 and CHAR-818 published the third slice, correcting the CHAR-816
+deferral above: Weapon Accessories (33 new items, plus 17 already-published
+`sr5-core` accessories carried forward, 50 total) and the new AMMO/Arrowhead
+gear (12 items: 5 AMMO, 7 Arrowheads) as catalog version `sr5-core` `1.7.0`.
+The existing `WeaponAccessoryDefinition`/`WeaponMount`/
+`GearAttachmentEvaluator` mount system needed only a backward-compatible
+extension — three new `WeaponMount` values (Side, Internal, Stock), an
+`AdditionalMounts` list generalizing the old two-way `TopOrUnderbarrel`
+combinator into an N-way choice, and a `RestrictedToWeaponCategoryIds`
+allow-list — not a new subsystem. See
+[`sr5-catalog/RUN_GUN_WEAPON_ACCESSORIES.md`](sr5-catalog/RUN_GUN_WEAPON_ACCESSORIES.md)
+and [`sr5-catalog/RUN_GUN_AMMO.md`](sr5-catalog/RUN_GUN_AMMO.md) for the full
+item lists, cost-modeling notes, and exclusions (Underbarrel Weight and
+Weapon Commlink, both unpriceable under the current schema).
 
 A runtime catalog now exists (`sr5-core` `1.4.0`) and is pinned by a semantic
 SHA-256 digest that changes whenever any catalog fact changes; this ledger

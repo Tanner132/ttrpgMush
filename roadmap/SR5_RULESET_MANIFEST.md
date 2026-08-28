@@ -2,23 +2,54 @@
 
 This manifest identifies the source revisions and project identities used by
 Milestone 8. Its CHAR-801 source contract is approved. CHAR-802 published the
-first immutable runtime catalog foundation and its semantic digest.
+first runtime catalog foundation and its semantic digest.
 
 ## Identity
 
 | Field | Value |
 | --- | --- |
 | Ruleset ID | `sr5-core` |
-| Catalog version | `1.0.0` |
+| Catalog version | `1.0.0` (mutable pre-alpha development schema — see Schema Lifecycle) |
 | Manifest status | CHAR-801 approved; CHAR-802 priority foundation published |
-| Catalog semantic digest | `D165B8A649CCEF484D0AAF106289A580205D46380EF6BF7B320DACCCC0003B94` |
-| Review date | 2026-08-18 |
+| Catalog semantic digest | Computed on every load (`EmbeddedRulesetCatalogProvider.CurrentSemanticDigest`); not enforced pre-alpha — see Schema Lifecycle |
+| Review date | 2026-08-28 |
 | Reviewer | Project owner |
 
-Version `1.0.0` is published and current. Its initial resource contains the
-creation methods and complete priority-assignment foundation required by
-CHAR-802. Later catalog slices extend immutable versions rather than rewriting a
-version referenced by a draft or finalized character.
+## Schema Lifecycle
+
+The runtime catalog schema (`backEnd/.../CharacterCreation/Catalog/Resources/
+sr5-core-1.0.0.json`) moves through three phases as content is imported from
+approved source books:
+
+1. **Pre-alpha / development (current phase).** One mutable canonical schema
+   (`sr5-core-1.0.0.json`) holds the full runtime catalog. All schema changes
+   — new fields, new content types, new source-book slices — are written
+   directly into this file rather than published as a new version. Digest and
+   version-pin integrity enforcement is disabled (commented out, not
+   deleted, with matching comments) in `RulesetCatalogLoader.Load`,
+   `CharacterCreationDraftEvaluator.Evaluate`, and
+   `CharacterCreationBaselineReader.Read`, because the schema's content — and
+   therefore its digest — is expected to keep changing under
+   already-created drafts/sheets during this phase. This trades away the
+   "a draft's rules never silently shift" guarantee in exchange for not
+   needing an immutable version bump (and full duplicate republish, per the
+   old overlay convention) for every content change. Acceptable because
+   there are no real players yet; any draft/sheet created pre-lock is
+   expected to be discardable.
+2. **Schema lock.** Once the approved-book content set for the initial
+   release is complete and the schema shape has stopped changing
+   structurally, the project owner declares `1.0.0` stable. At that point it
+   becomes the first immutable published version: its digest is recorded and
+   enforcement is re-enabled by un-commenting the three checks above.
+3. **Post-lock / production.** Every subsequent schema change publishes a new
+   immutable version (a new resource file plus a new
+   `EmbeddedRulesetCatalogProvider.CatalogVersionPin` entry) rather than
+   editing a locked file. `RulesetCatalogLoader.LoadOverlay` and the
+   `RetainedVersions` append-only-lockfile pattern (both preserved
+   unchanged through the pre-alpha phase, just currently holding a single
+   entry) resume normal use: legacy versions stay resolvable by
+   `EmbeddedRulesetCatalogProvider.Get`, and existing drafts/sheets keep
+   resolving against the exact version+digest they were created under.
 
 ## Approved Sources
 
@@ -26,6 +57,7 @@ version referenced by a draft or finalized character.
 | --- | --- | --- |
 | `sr5-core` | `Shadowrun 5th Edition Core Rulebook (Jennifer Brozek, Raymond Croteau etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `4928B5F45F94C542820D7A7688BD68B7940BF2E9480898CCAFA6111996497F79` |
 | `run-faster` | `Shadowrun Run Faster (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `F037FEFADC7FB91EE10180CD0116B55BC5EA825BF4BE56546D80C6F35D555BAF` |
+| `run-gun` | `Shadowrun Run Gun (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `D76698DF6652198B340FD62B99F84C8A232C1EF3CAF8390F32DBACB1C93A371B` |
 
 A checksum or filename change creates a new source revision and requires a new
 baseline review. External errata, summaries, websites, implementations, and
@@ -73,6 +105,34 @@ Included (CHAR-814, project owner, 2026-08-26):
   remaining Poor Self Control variants CHAR-813 left out of its own scope.
   See [`sr5-catalog/RUN_FASTER_QUALITIES.md`](sr5-catalog/RUN_FASTER_QUALITIES.md).
 
+Included (CHAR-815, project owner, 2026-08-28):
+
+- Every quality printed in Run & Gun's "New Qualities" (`run-gun` p. 127,
+  PDF 129) and the "Qualities" section adjoining the Staying Alive chapter
+  (`run-gun` p. 169, PDF 171). See
+  [`sr5-catalog/RUN_GUN_QUALITIES.md`](sr5-catalog/RUN_GUN_QUALITIES.md).
+
+Included (CHAR-816, project owner, 2026-08-28):
+
+- Every weapon printed in Run & Gun's "Arsenal" chapter, Blades through
+  Flamethrowers (`run-gun` pp. 18-49, PDF 20-51), including four newly
+  introduced weapon categories (laser weapons, flamethrowers, harpoon guns,
+  slingshots) and seven generated alternate-configuration profiles. See
+  [`sr5-catalog/RUN_GUN_WEAPONS.md`](sr5-catalog/RUN_GUN_WEAPONS.md).
+
+Included (CHAR-817/CHAR-818, project owner, 2026-08-28):
+
+- Every weapon accessory printed in Run & Gun's "Weapon Accessories" section
+  (`run-gun` pp. 50-53, PDF 52-55) and its 6-slot mounting system (Top,
+  Underbarrel, Barrel, Side, Internal, Stock), extending the existing
+  `WeaponAccessoryDefinition`/`WeaponMount`/`GearAttachmentEvaluator` system
+  rather than introducing a new one. See
+  [`sr5-catalog/RUN_GUN_WEAPON_ACCESSORIES.md`](sr5-catalog/RUN_GUN_WEAPON_ACCESSORIES.md).
+- Every AMMO item (`run-gun` pp. 54-55, PDF 56-57) and Arrowhead
+  (`run-gun` pp. 23-24, PDF 25-26), extending `sr5-core`'s existing
+  ammunition/arrow gear published under CHAR-812. See
+  [`sr5-catalog/RUN_GUN_AMMO.md`](sr5-catalog/RUN_GUN_AMMO.md).
+
 Excluded:
 
 - Core Street-Level and Prime Runner variants (`sr5-core` p. 64 (PDF 66)).
@@ -81,6 +141,16 @@ Excluded:
   listed above as included: metasapients (Centaur, Naga, Pixie, Sasquatch),
   shapeshifters, and the Changelings/SURGE system, including its Metagenic
   Qualities catalog and every Infected quality and critter power.
+- Run & Gun's Martial Arts subsystem, Sixth World Combat Tactics, Killshots
+  and More combat-resolution rules, Staying Alive's environmental hazard
+  rules, equipment repair rules, demolitions test/breach procedures, Gear
+  Qualities (GM-only flags), Improvised Melee Weapons, Underbarrel Weight and
+  Weapon Commlink (both unpriceable under the current cost schema — see
+  [`sr5-catalog/RUN_GUN_WEAPON_ACCESSORIES.md`](sr5-catalog/RUN_GUN_WEAPON_ACCESSORIES.md)),
+  and adventure/fiction content. See
+  [`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md) for Martial
+  Arts (deferred, revisit later) and the rest (reviewed and rejected as out
+  of scope).
 - Campaign-specific generation variants and custom GM-authored catalogs.
 - Rules or corrections whose only authority is outside the approved PDFs.
 

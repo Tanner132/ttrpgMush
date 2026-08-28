@@ -21,34 +21,42 @@ public sealed record CatalogVersionPin(
 public sealed class EmbeddedRulesetCatalogProvider : IRulesetCatalogProvider
 {
     public const string CurrentRulesetId = "sr5-core";
-    public const string CurrentVersion = "1.4.0";
-    public const string CurrentSemanticDigest = "B2DD296C8E9E317609071A34B6E39D138C43CE11C24661B2439F0E9A02870479";
-    private const string VersionOneSemanticDigest = "C943E1DB4DC510AEE2BDE33372323A96140B51F95980D57630F9EB7DFC6FE44E";
-    private const string VersionOneOneSemanticDigest = "81468BD05315418B475C50EFE840042C2CD5068606D65F87612E574AB2B41ECA";
-    private const string VersionOneTwoSemanticDigest = "AB964A3911536A0FFD6BADAD942EC32DD1E2A2ACC387E6DC7B315E3439FF248A";
-    private const string VersionOneThreeSemanticDigest = "D6D60E0C44412873F28F6F0FC80E1525C3F17BD01DBA29B1938D5E7079CD7AF8";
+    public const string CurrentVersion = "1.0.0";
+
+    // Recorded, not enforced, while the schema is mutable pre-alpha -- see the
+    // RetainedVersions comment below and roadmap/SR5_RULESET_MANIFEST.md's
+    // "Schema Lifecycle" section. Still computed correctly on every load and
+    // still stamped onto every draft/sheet, so re-enabling enforcement later
+    // is a matter of un-commenting the checks, not re-deriving this value.
+    public const string CurrentSemanticDigest = "C65EF4E96BC1B1108238E86D78076D6C2FAB2B969DD162D694AD37D6346FF7F3";
 
     private const string ResourcePrefix = "SeattleByNight.Application.CharacterCreation.Catalog.Resources.";
 
-    // Append-only lockfile of published catalog versions. The last entry is the
-    // current catalog. Released versions are never edited; new content becomes a
-    // new resource plus a new pin rather than a mutation of an earlier entry.
-    // Every overlay pin's BaseResourceName must reference a complete, standalone
-    // (non-overlay) catalog document -- LoadOverlay reads it as raw bytes rather
-    // than resolving its own overlay chain -- so every overlay here bases
-    // directly on sr5-core-1.0.0.json and republishes any earlier overlay's
+    // PRE-ALPHA SCHEMA POLICY (see roadmap/SR5_RULESET_MANIFEST.md "Schema
+    // Lifecycle" for the full lifecycle this implements):
+    //
+    // While the schema is still undergoing substantial structural change
+    // (new source books, frequent field/shape revisions), this list holds
+    // exactly one entry: a single mutable "1.0.0" development schema that
+    // every content change is written directly into. There is no overlay
+    // chain and no per-version digest enforcement during this phase (see
+    // RulesetCatalogLoader.Load and the digest checks in
+    // CharacterCreationDraftEvaluator / CharacterCreationBaselineReader,
+    // all intentionally disabled with matching comments).
+    //
+    // Once the schema is declared stable/locked, this single entry becomes
+    // the first immutable published version, digest enforcement is
+    // re-enabled, and this reverts to being the append-only lockfile it was
+    // before consolidation: released versions are never edited again, and
+    // new content becomes a new resource plus a new pin. Every overlay pin's
+    // BaseResourceName must reference a complete, standalone (non-overlay)
+    // catalog document -- LoadOverlay reads it as raw bytes rather than
+    // resolving its own overlay chain -- so every future overlay would base
+    // directly on sr5-core-1.0.0.json and republish any earlier overlay's
     // additive content it still needs.
     public static readonly IReadOnlyList<CatalogVersionPin> RetainedVersions =
     [
-        new(CurrentRulesetId, "1.0.0", $"{ResourcePrefix}sr5-core-1.0.0.json", VersionOneSemanticDigest),
-        new(CurrentRulesetId, "1.1.0", $"{ResourcePrefix}sr5-core-1.1.0.json", VersionOneOneSemanticDigest,
-            $"{ResourcePrefix}sr5-core-1.0.0.json"),
-        new(CurrentRulesetId, "1.2.0", $"{ResourcePrefix}sr5-core-1.2.0.json", VersionOneTwoSemanticDigest,
-            $"{ResourcePrefix}sr5-core-1.0.0.json"),
-        new(CurrentRulesetId, "1.3.0", $"{ResourcePrefix}sr5-core-1.3.0.json", VersionOneThreeSemanticDigest,
-            $"{ResourcePrefix}sr5-core-1.0.0.json"),
-        new(CurrentRulesetId, CurrentVersion, $"{ResourcePrefix}sr5-core-1.4.0.json", CurrentSemanticDigest,
-            $"{ResourcePrefix}sr5-core-1.0.0.json"),
+        new(CurrentRulesetId, CurrentVersion, $"{ResourcePrefix}sr5-core-1.0.0.json", CurrentSemanticDigest),
     ];
 
     private readonly IReadOnlyDictionary<(string RulesetId, string Version), RulesetCatalog> catalogs =

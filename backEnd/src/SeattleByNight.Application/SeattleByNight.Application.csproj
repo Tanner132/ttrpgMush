@@ -9,11 +9,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--
+      Pre-alpha: a single mutable canonical development schema. See
+      EmbeddedRulesetCatalogProvider's RetainedVersions comment and
+      roadmap/SR5_RULESET_MANIFEST.md's "Schema Lifecycle" section. Once the
+      schema is locked, new content becomes additional immutable resources
+      here (sr5-core-1.1.0.json, etc.) rather than edits to this file.
+    -->
     <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.0.0.json" />
-    <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.1.0.json" />
-    <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.2.0.json" />
-    <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.3.0.json" />
-    <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.4.0.json" />
   </ItemGroup>
 
   <PropertyGroup>

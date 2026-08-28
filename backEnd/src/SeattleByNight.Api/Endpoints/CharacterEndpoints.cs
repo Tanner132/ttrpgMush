@@ -141,6 +141,7 @@ public static class CharacterEndpoints
         group.MapPost("{characterId:guid}/advancements/skills", AdvanceSkillAsync).RequireAntiforgery();
         group.MapPost("{characterId:guid}/advancements/skills/preview", PreviewSkillAdvancementAsync);
         group.MapPost("{characterId:guid}/advancements/specializations", AddSkillSpecializationAsync).RequireAntiforgery();
+        group.MapDelete("{characterId:guid}", DeleteCharacterAsync).RequireAntiforgery();
 
         return endpoints;
     }
@@ -176,6 +177,22 @@ public static class CharacterEndpoints
 
         var result = await mediator.Send(new GetComposedCharacterSheetQuery(user.Id, characterId));
         return result.Succeeded ? Results.Ok(ToResponse(result.Sheet!)) : Problem(result.Error);
+    }
+
+    private static async Task<IResult> DeleteCharacterAsync(
+        Guid characterId,
+        UserManager<ApplicationUser> userManager,
+        IMediator mediator,
+        HttpContext httpContext)
+    {
+        var user = await userManager.GetUserAsync(httpContext.User);
+        if (user is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await mediator.Send(new DeleteCharacterCommand(user.Id, characterId));
+        return result.Succeeded ? Results.NoContent() : Problem(result.Error);
     }
 
     private static async Task<IResult> AdvanceAttributeAsync(
@@ -349,6 +366,11 @@ public static class CharacterEndpoints
         CareerSkillKind.Language => "language",
         _ => kind.ToString(),
     };
+
+    private static IResult Problem(DeleteCharacterError error)
+    {
+        return error == DeleteCharacterError.NotFound ? Results.NotFound() : Results.Problem(statusCode: 500);
+    }
 
     private static IResult Problem(ComposedCharacterSheetError error)
     {

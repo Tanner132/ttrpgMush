@@ -11,6 +11,11 @@
       "id": "sr5-core",
       "fileName": "Shadowrun 5th Edition Core Rulebook (Jennifer Brozek, Raymond Croteau etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
       "sha256": "4928B5F45F94C542820D7A7688BD68B7940BF2E9480898CCAFA6111996497F79"
+    },
+    {
+      "id": "run-gun",
+      "fileName": "Shadowrun Run Gun (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "D76698DF6652198B340FD62B99F84C8A232C1EF3CAF8390F32DBACB1C93A371B"
     }
   ],
   "creationMethods": [
@@ -1022,6 +1027,34 @@
       }
     },
     {
+      "id": "adrenaline-surge",
+      "displayName": "Adrenaline Surge",
+      "polarity": "positive",
+      "cost": 12,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 145,
+        "pdfPage": 147
+      }
+    },
+    {
+      "id": "albinism",
+      "displayName": "Albinism",
+      "polarity": "negative",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 151,
+        "pdfPage": 153
+      }
+    },
+    {
       "id": "allergy",
       "displayName": "Allergy",
       "polarity": "negative",
@@ -1050,6 +1083,20 @@
       }
     },
     {
+      "id": "amnesia",
+      "displayName": "Amnesia",
+      "polarity": "negative",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 152,
+        "pdfPage": 154
+      }
+    },
+    {
       "id": "analytical-mind",
       "displayName": "Analytical Mind",
       "polarity": "positive",
@@ -1064,6 +1111,20 @@
       }
     },
     {
+      "id": "animal-empathy",
+      "displayName": "Animal Empathy",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 145,
+        "pdfPage": 147
+      }
+    },
+    {
       "id": "aptitude",
       "displayName": "Aptitude",
       "polarity": "positive",
@@ -1075,6 +1136,20 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "asthma",
+      "displayName": "Asthma",
+      "polarity": "negative",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 152,
+        "pdfPage": 154
       }
     },
     {
@@ -1134,6 +1209,34 @@
       }
     },
     {
+      "id": "bi-polar",
+      "displayName": "Bi-Polar",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 152,
+        "pdfPage": 154
+      }
+    },
+    {
+      "id": "big-regret",
+      "displayName": "Big Regret",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
       "id": "bilingual",
       "displayName": "Bilingual",
       "polarity": "positive",
@@ -1145,6 +1248,20 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "black-market-pipeline",
+      "displayName": "Black Market Pipeline",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 145,
+        "pdfPage": 147
       }
     },
     {
@@ -1164,6 +1281,48 @@
       }
     },
     {
+      "id": "blind",
+      "displayName": "Blind",
+      "polarity": "negative",
+      "cost": 15,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "born-rich",
+      "displayName": "Born Rich",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 145,
+        "pdfPage": 147
+      }
+    },
+    {
+      "id": "borrowed-time",
+      "displayName": "Borrowed Time",
+      "polarity": "negative",
+      "cost": 20,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
       "id": "catlike",
       "displayName": "Catlike",
       "polarity": "positive",
@@ -1175,6 +1334,20 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "city-slicker",
+      "displayName": "City Slicker",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 145,
+        "pdfPage": 147
       }
     },
     {
@@ -1220,6 +1393,20 @@
       }
     },
     {
+      "id": "college-education",
+      "displayName": "College Education",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 145,
+        "pdfPage": 147
+      }
+    },
+    {
       "id": "combat-paralysis",
       "displayName": "Combat Paralysis",
       "polarity": "negative",
@@ -1234,6 +1421,90 @@
       }
     },
     {
+      "id": "common-sense",
+      "displayName": "Common Sense",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 145,
+        "pdfPage": 147
+      }
+    },
+    {
+      "id": "computer-illiterate",
+      "displayName": "Computer Illiterate",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "creature-of-comfort",
+      "displayName": "Creature of Comfort",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "daredevil",
+      "displayName": "Daredevil",
+      "polarity": "positive",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 146,
+        "pdfPage": 148
+      }
+    },
+    {
+      "id": "day-job",
+      "displayName": "Day Job",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 154,
+        "pdfPage": 156
+      }
+    },
+    {
+      "id": "deaf",
+      "displayName": "Deaf",
+      "polarity": "negative",
+      "cost": 15,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 154,
+        "pdfPage": 156
+      }
+    },
+    {
       "id": "dependents",
       "displayName": "Dependents",
       "polarity": "negative",
@@ -1245,6 +1516,62 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      }
+    },
+    {
+      "id": "did-you-just-call-me-dumb",
+      "displayName": "Did You Just Call Me Dumb?",
+      "polarity": "negative",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 154,
+        "pdfPage": 156
+      }
+    },
+    {
+      "id": "digital-doppelganger",
+      "displayName": "Digital Doppelganger",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 146,
+        "pdfPage": 148
+      }
+    },
+    {
+      "id": "dimmer-bulb",
+      "displayName": "Dimmer Bulb",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 154,
+        "pdfPage": 156
+      }
+    },
+    {
+      "id": "disgraced",
+      "displayName": "Disgraced",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 146,
+        "pdfPage": 148
       }
     },
     {
@@ -1278,6 +1605,20 @@
       }
     },
     {
+      "id": "driven",
+      "displayName": "Driven",
+      "polarity": "negative",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 154,
+        "pdfPage": 156
+      }
+    },
+    {
       "id": "elf-poser",
       "displayName": "Elf Poser",
       "polarity": "negative",
@@ -1289,6 +1630,50 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      }
+    },
+    {
+      "id": "emotional-attachment",
+      "displayName": "Emotional Attachment",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 154,
+        "pdfPage": 156
+      }
+    },
+    {
+      "id": "erased",
+      "displayName": "Erased",
+      "polarity": "positive",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [
+        "records-on-file"
+      ],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 146,
+        "pdfPage": 148
+      }
+    },
+    {
+      "id": "ex-con",
+      "displayName": "Ex-Con",
+      "polarity": "negative",
+      "cost": 15,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 155,
+        "pdfPage": 157
       }
     },
     {
@@ -1308,6 +1693,20 @@
       }
     },
     {
+      "id": "fame",
+      "displayName": "Fame",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 146,
+        "pdfPage": 148
+      }
+    },
+    {
       "id": "first-impression",
       "displayName": "First Impression",
       "polarity": "positive",
@@ -1322,6 +1721,20 @@
       }
     },
     {
+      "id": "flashbacks",
+      "displayName": "Flashbacks",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 155,
+        "pdfPage": 157
+      }
+    },
+    {
       "id": "focused-concentration",
       "displayName": "Focused Concentration",
       "polarity": "positive",
@@ -1333,6 +1746,20 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "friends-in-high-places",
+      "displayName": "Friends in High Places",
+      "polarity": "positive",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
       }
     },
     {
@@ -1378,6 +1805,20 @@
       }
     },
     {
+      "id": "hawk-eye",
+      "displayName": "Hawk Eye",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
       "id": "high-pain-tolerance",
       "displayName": "High Pain Tolerance",
       "polarity": "positive",
@@ -1389,6 +1830,20 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "hobo-with-a-shotgun",
+      "displayName": "Hobo with a Shotgun",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 155,
+        "pdfPage": 157
       }
     },
     {
@@ -1420,6 +1875,48 @@
       }
     },
     {
+      "id": "hung-out-to-dry",
+      "displayName": "Hung Out to Dry",
+      "polarity": "negative",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 155,
+        "pdfPage": 157
+      }
+    },
+    {
+      "id": "illiterate",
+      "displayName": "Illiterate",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 155,
+        "pdfPage": 157
+      }
+    },
+    {
+      "id": "in-debt",
+      "displayName": "In Debt",
+      "polarity": "negative",
+      "cost": 1,
+      "parameterized": false,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 156,
+        "pdfPage": 158
+      }
+    },
+    {
       "id": "incompetent",
       "displayName": "Incompetent",
       "polarity": "negative",
@@ -1431,6 +1928,20 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      }
+    },
+    {
+      "id": "incomplete-deprogramming",
+      "displayName": "Incomplete Deprogramming",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 156,
+        "pdfPage": 158
       }
     },
     {
@@ -1448,6 +1959,20 @@
       }
     },
     {
+      "id": "infirm",
+      "displayName": "Infirm",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 156,
+        "pdfPage": 158
+      }
+    },
+    {
       "id": "insomnia",
       "displayName": "Insomnia",
       "polarity": "negative",
@@ -1462,6 +1987,34 @@
       }
     },
     {
+      "id": "inspired",
+      "displayName": "Inspired",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "jack-of-all-trades",
+      "displayName": "Jack of All Trades, Master of None",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
       "id": "juryrigger",
       "displayName": "Juryrigger",
       "polarity": "positive",
@@ -1473,6 +2026,48 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "liar",
+      "displayName": "Liar",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 156,
+        "pdfPage": 158
+      }
+    },
+    {
+      "id": "lightning-reflexes",
+      "displayName": "Lightning Reflexes",
+      "polarity": "positive",
+      "cost": 20,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "linguist",
+      "displayName": "Linguist",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
       }
     },
     {
@@ -1517,6 +2112,20 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "made-man",
+      "displayName": "Made Man",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
       }
     },
     {
@@ -1592,6 +2201,48 @@
       }
     },
     {
+      "id": "night-blindness",
+      "displayName": "Night Blindness",
+      "polarity": "negative",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 156,
+        "pdfPage": 158
+      }
+    },
+    {
+      "id": "night-vision",
+      "displayName": "Night Vision",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "oblivious",
+      "displayName": "Oblivious",
+      "polarity": "negative",
+      "cost": 6,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 157,
+        "pdfPage": 159
+      }
+    },
+    {
       "id": "ork-poser",
       "displayName": "Ork Poser",
       "polarity": "negative",
@@ -1603,6 +2254,118 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      }
+    },
+    {
+      "id": "outdoorsman",
+      "displayName": "Outdoorsman",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "overclocker",
+      "displayName": "Overclocker",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "pacifist",
+      "displayName": "Pacifist",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 157,
+        "pdfPage": 159
+      }
+    },
+    {
+      "id": "paranoia",
+      "displayName": "Paranoia",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 157,
+        "pdfPage": 159
+      }
+    },
+    {
+      "id": "paraplegic",
+      "displayName": "Paraplegic",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 157,
+        "pdfPage": 159
+      }
+    },
+    {
+      "id": "perceptive",
+      "displayName": "Perceptive",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "perfect-time",
+      "displayName": "Perfect Time",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "phobia",
+      "displayName": "Phobia",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 157,
+        "pdfPage": 159
       }
     },
     {
@@ -1620,6 +2383,104 @@
       }
     },
     {
+      "id": "pie-iesu-domine",
+      "displayName": "Pie Iesu Domine, Dona Eis Requiem",
+      "polarity": "negative",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 158,
+        "pdfPage": 160
+      }
+    },
+    {
+      "id": "poor-link",
+      "displayName": "Poor Link",
+      "polarity": "positive",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "poor-self-control-braggart",
+      "displayName": "Poor Self Control (Braggart)",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 158,
+        "pdfPage": 160
+      }
+    },
+    {
+      "id": "poor-self-control-combat-monster",
+      "displayName": "Poor Self Control (Combat Monster)",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 158,
+        "pdfPage": 160
+      }
+    },
+    {
+      "id": "poor-self-control-compulsive",
+      "displayName": "Poor Self Control (Compulsive)",
+      "polarity": "negative",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 158,
+        "pdfPage": 160
+      }
+    },
+    {
+      "id": "poor-self-control-thrill-seeker",
+      "displayName": "Poor Self Control (Thrill-Seeker)",
+      "polarity": "negative",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 158,
+        "pdfPage": 160
+      }
+    },
+    {
+      "id": "poor-self-control-vindictive",
+      "displayName": "Poor Self Control (Vindictive)",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 158,
+        "pdfPage": 160
+      }
+    },
+    {
       "id": "prejudiced",
       "displayName": "Prejudiced",
       "polarity": "negative",
@@ -1631,6 +2492,20 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      }
+    },
+    {
+      "id": "privileged-family-name",
+      "displayName": "Privileged Family Name",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 149,
+        "pdfPage": 151
       }
     },
     {
@@ -1648,6 +2523,50 @@
       }
     },
     {
+      "id": "rank",
+      "displayName": "Rank",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 86,
+        "pdfPage": 88
+      }
+    },
+    {
+      "id": "records-on-file",
+      "displayName": "Records on File",
+      "polarity": "negative",
+      "cost": 1,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [
+        "erased"
+      ],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 158,
+        "pdfPage": 160
+      }
+    },
+    {
+      "id": "reduced-sense",
+      "displayName": "Reduced (Sense)",
+      "polarity": "negative",
+      "cost": 2,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 159,
+        "pdfPage": 161
+      }
+    },
+    {
       "id": "resistance-to-pathogens-toxins",
       "displayName": "Resistance To Pathogens Toxins",
       "polarity": "positive",
@@ -1659,6 +2578,34 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "restricted-gear",
+      "displayName": "Restricted Gear",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "school-of-hard-knocks",
+      "displayName": "School of Hard Knocks",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 149,
+        "pdfPage": 151
       }
     },
     {
@@ -1676,6 +2623,34 @@
       }
     },
     {
+      "id": "sense-of-direction",
+      "displayName": "Sense of Direction",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "sensei",
+      "displayName": "Sensei",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
       "id": "sensitive-system",
       "displayName": "Sensitive System",
       "polarity": "negative",
@@ -1687,6 +2662,34 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      }
+    },
+    {
+      "id": "sensory-overload-syndrome",
+      "displayName": "Sensory Overload Syndrome",
+      "polarity": "negative",
+      "cost": 15,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 159,
+        "pdfPage": 161
+      }
+    },
+    {
+      "id": "signature",
+      "displayName": "Signature",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 159,
+        "pdfPage": 161
       }
     },
     {
@@ -1732,6 +2735,48 @@
       }
     },
     {
+      "id": "solid-legendary-rep",
+      "displayName": "Solid/Legendary Rep",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "speed-reading",
+      "displayName": "Speed Reading",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "spike-resistance",
+      "displayName": "Spike Resistance",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 150,
+        "pdfPage": 152
+      }
+    },
+    {
       "id": "spirit-affinity",
       "displayName": "Spirit Affinity",
       "polarity": "positive",
@@ -1760,6 +2805,62 @@
       }
     },
     {
+      "id": "spirit-whisperer",
+      "displayName": "Spirit Whisperer",
+      "polarity": "positive",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 150,
+        "pdfPage": 152
+      }
+    },
+    {
+      "id": "steely-eyed-wheelman",
+      "displayName": "Steely Eyed Wheelman",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 150,
+        "pdfPage": 152
+      }
+    },
+    {
+      "id": "technical-school-education",
+      "displayName": "Technical School Education",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 150,
+        "pdfPage": 152
+      }
+    },
+    {
+      "id": "tough-as-nails",
+      "displayName": "Tough as Nails",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 150,
+        "pdfPage": 152
+      }
+    },
+    {
       "id": "toughness",
       "displayName": "Toughness",
       "polarity": "positive",
@@ -1771,6 +2872,34 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "trust-fund",
+      "displayName": "Trust Fund",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 151,
+        "pdfPage": 153
+      }
+    },
+    {
+      "id": "trustworthy",
+      "displayName": "Trustworthy",
+      "polarity": "positive",
+      "cost": 15,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 151,
+        "pdfPage": 153
       }
     },
     {
@@ -1816,6 +2945,62 @@
       }
     },
     {
+      "id": "vehicle-empathy",
+      "displayName": "Vehicle Empathy",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 151,
+        "pdfPage": 153
+      }
+    },
+    {
+      "id": "vendetta",
+      "displayName": "Vendetta",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 159,
+        "pdfPage": 161
+      }
+    },
+    {
+      "id": "wanted",
+      "displayName": "Wanted",
+      "polarity": "negative",
+      "cost": 10,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 159,
+        "pdfPage": 161
+      }
+    },
+    {
+      "id": "water-sprite",
+      "displayName": "Water Sprite",
+      "polarity": "positive",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 151,
+        "pdfPage": 153
+      }
+    },
+    {
       "id": "weak-immune-system",
       "displayName": "Weak Immune System",
       "polarity": "negative",
@@ -1844,6 +3029,206 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      }
+    },
+    {
+      "id": "witness-my-hate",
+      "displayName": "Witness My Hate",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 151,
+        "pdfPage": 153
+      }
+    },
+    {
+      "id": "acrobatic-defender",
+      "displayName": "Acrobatic Defender",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 127,
+        "pdfPage": 129
+      }
+    },
+    {
+      "id": "agile-defender",
+      "displayName": "Agile Defender",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 127,
+        "pdfPage": 129
+      }
+    },
+    {
+      "id": "brand-loyalty",
+      "displayName": "Brand Loyalty",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 127,
+        "pdfPage": 129
+      }
+    },
+    {
+      "id": "one-trick-pony",
+      "displayName": "One Trick Pony",
+      "polarity": "positive",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 127,
+        "pdfPage": 129
+      }
+    },
+    {
+      "id": "perceptive-defender",
+      "displayName": "Perceptive Defender",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 127,
+        "pdfPage": 129
+      }
+    },
+    {
+      "id": "sharpshooter",
+      "displayName": "Sharpshooter",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 127,
+        "pdfPage": 129
+      }
+    },
+    {
+      "id": "too-pretty-to-hit",
+      "displayName": "Too Pretty to Hit",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 127,
+        "pdfPage": 129
+      }
+    },
+    {
+      "id": "combat-junkie",
+      "displayName": "Combat Junkie",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 127,
+        "pdfPage": 129
+      }
+    },
+    {
+      "id": "radiation-sponge",
+      "displayName": "Radiation Sponge",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [
+        "rad-tolerant"
+      ],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "rad-tolerant",
+      "displayName": "Rad-Tolerant",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [
+        "radiation-sponge"
+      ],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "spacer",
+      "displayName": "Spacer",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "blighted",
+      "displayName": "Blighted",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "earther",
+      "displayName": "Earther",
+      "polarity": "negative",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 169,
+        "pdfPage": 171
       }
     }
   ],
@@ -5496,6 +6881,18 @@
         "sourceId": "sr5-core",
         "printedPage": 318,
         "pdfPage": 320
+      },
+      "focusCategoryId": "enchanting",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 5000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5506,6 +6903,18 @@
         "sourceId": "sr5-core",
         "printedPage": 320,
         "pdfPage": 322
+      },
+      "focusCategoryId": "spirit",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5516,6 +6925,18 @@
         "sourceId": "sr5-core",
         "printedPage": 320,
         "pdfPage": 322
+      },
+      "focusCategoryId": "spirit",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5526,6 +6947,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "metamagic",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 9000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5536,6 +6969,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "spell",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5546,6 +6991,18 @@
         "sourceId": "sr5-core",
         "printedPage": 318,
         "pdfPage": 320
+      },
+      "focusCategoryId": "enchanting",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 5000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5556,6 +7013,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "metamagic",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 9000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5566,6 +7035,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "metamagic",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 9000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5576,6 +7057,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "power",
+      "availability": {
+        "perRating": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 18000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5586,6 +7079,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "qi",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 3000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5596,6 +7101,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "spell",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5606,6 +7123,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "metamagic",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 9000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5616,6 +7145,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "spell",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5626,6 +7167,18 @@
         "sourceId": "sr5-core",
         "printedPage": 320,
         "pdfPage": 322
+      },
+      "focusCategoryId": "spirit",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5636,6 +7189,18 @@
         "sourceId": "sr5-core",
         "printedPage": 319,
         "pdfPage": 321
+      },
+      "focusCategoryId": "spell",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     },
     {
@@ -5646,6 +7211,18 @@
         "sourceId": "sr5-core",
         "printedPage": 320,
         "pdfPage": 322
+      },
+      "focusCategoryId": "weapon",
+      "availability": {
+        "perRating": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 7000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
       }
     }
   ],
@@ -8389,6 +9966,1393 @@
         "minimum": 1,
         "maximum": 6
       }
+    },
+    {
+      "id": "ammo-apds",
+      "displayName": "APDS Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 120
+      },
+      "damage": "--",
+      "ap": "-4"
+    },
+    {
+      "id": "ammo-assault-cannon",
+      "displayName": "Assault Cannon Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 400
+      },
+      "damage": "--",
+      "ap": "--"
+    },
+    {
+      "id": "ammo-explosive-rounds",
+      "displayName": "Explosive Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 80
+      },
+      "damage": "+1",
+      "ap": "-1"
+    },
+    {
+      "id": "ammo-flechette-rounds",
+      "displayName": "Flechette Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 65
+      },
+      "damage": "+2",
+      "ap": "+5"
+    },
+    {
+      "id": "ammo-gel-rounds",
+      "displayName": "Gel Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 25
+      },
+      "damage": "+0S",
+      "ap": "+1"
+    },
+    {
+      "id": "ammo-hollow-points",
+      "displayName": "Hollow Points (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 70
+      },
+      "damage": "+1",
+      "ap": "+2"
+    },
+    {
+      "id": "ammo-injection-darts",
+      "displayName": "Injection Darts (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 75
+      },
+      "ap": "--"
+    },
+    {
+      "id": "ammo-regular",
+      "displayName": "Regular Ammo (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 20
+      },
+      "damage": "--",
+      "ap": "--"
+    },
+    {
+      "id": "ammo-stick-n-shock",
+      "displayName": "Stick-n-Shock Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 80
+      },
+      "damage": "-2S (e)",
+      "ap": "-5"
+    },
+    {
+      "id": "ammo-tracer",
+      "displayName": "Tracer Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 60
+      },
+      "damage": "--",
+      "ap": "--"
+    },
+    {
+      "id": "ammo-taser-dart",
+      "displayName": "Taser Dart",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 433,
+        "pdfPage": 435
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "damage": "--",
+      "ap": "--"
+    },
+    {
+      "id": "arrow",
+      "displayName": "Arrow",
+      "categoryId": "ammunition",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 10
+      }
+    },
+    {
+      "id": "injection-arrow",
+      "displayName": "Injection Arrow",
+      "categoryId": "ammunition",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "byRating": {
+          "1": 3,
+          "2": 4,
+          "3": 5,
+          "4": 6,
+          "5": 7,
+          "6": 8,
+          "7": 9,
+          "8": 10,
+          "9": 11,
+          "10": 12
+        },
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 20
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 10
+      }
+    },
+    {
+      "id": "bolt",
+      "displayName": "Bolt",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "injection-bolt",
+      "displayName": "Injection Bolt",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "explosive-commercial",
+      "displayName": "Commercial Explosive (per kg, Rating 5)",
+      "categoryId": "explosive",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "explosive-plastic",
+      "displayName": "Plastic Explosive (per kg)",
+      "categoryId": "explosive",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 100
+      },
+      "ratingRange": {
+        "minimum": 6,
+        "maximum": 25
+      }
+    },
+    {
+      "id": "explosive-foam",
+      "displayName": "Explosive Foam (per kg)",
+      "categoryId": "explosive",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 100
+      },
+      "ratingRange": {
+        "minimum": 6,
+        "maximum": 25
+      }
+    },
+    {
+      "id": "explosive-detonator-cap",
+      "displayName": "Detonator Cap",
+      "categoryId": "explosive",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 75
+      }
+    },
+    {
+      "id": "grenade-flash-bang",
+      "displayName": "Flash-Bang Grenade",
+      "categoryId": "grenade",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "damage": "10S",
+      "ap": "-4",
+      "blast": "10m Radius"
+    },
+    {
+      "id": "grenade-flash-pak",
+      "displayName": "Flash-Pak",
+      "categoryId": "grenade",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 125
+      },
+      "damage": "Special",
+      "ap": "--",
+      "blast": "Special"
+    },
+    {
+      "id": "grenade-fragmentation",
+      "displayName": "Fragmentation Grenade",
+      "categoryId": "grenade",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "damage": "18P (f)",
+      "ap": "+5",
+      "blast": "-1/m"
+    },
+    {
+      "id": "grenade-high-explosive",
+      "displayName": "High Explosive Grenade",
+      "categoryId": "grenade",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "damage": "16P",
+      "ap": "-2",
+      "blast": "-2/m"
+    },
+    {
+      "id": "grenade-gas",
+      "displayName": "Gas Grenade",
+      "categoryId": "grenade",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 40
+      },
+      "damage": "as Chemical",
+      "ap": "--",
+      "blast": "10m Radius"
+    },
+    {
+      "id": "grenade-smoke",
+      "displayName": "Smoke Grenade",
+      "categoryId": "grenade",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 40
+      },
+      "damage": "--",
+      "ap": "--",
+      "blast": "10m Radius"
+    },
+    {
+      "id": "grenade-thermal-smoke",
+      "displayName": "Thermal Smoke Grenade",
+      "categoryId": "grenade",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 60
+      },
+      "damage": "--",
+      "ap": "--",
+      "blast": "10m Radius"
+    },
+    {
+      "id": "rocket-anti-vehicle",
+      "displayName": "Anti-Vehicle Rocket",
+      "categoryId": "rocket",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2800
+      },
+      "damage": "24P",
+      "ap": "-4 / -10",
+      "blast": "-4/m"
+    },
+    {
+      "id": "rocket-fragmentation",
+      "displayName": "Fragmentation Rocket",
+      "categoryId": "rocket",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "damage": "23P (f)",
+      "ap": "+5",
+      "blast": "-1/m"
+    },
+    {
+      "id": "rocket-high-explosive",
+      "displayName": "High-Explosive Rocket",
+      "categoryId": "rocket",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2100
+      },
+      "damage": "21P",
+      "ap": "-2",
+      "blast": "-2/m"
+    },
+    {
+      "id": "missile-anti-vehicle",
+      "displayName": "Anti-Vehicle Missile",
+      "categoryId": "rocket",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "damage": "As Rocket",
+      "ap": "As Rocket",
+      "blast": "As Rocket"
+    },
+    {
+      "id": "missile-fragmentation",
+      "displayName": "Fragmentation Missile",
+      "categoryId": "rocket",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "damage": "As Rocket",
+      "ap": "As Rocket",
+      "blast": "As Rocket"
+    },
+    {
+      "id": "missile-high-explosive",
+      "displayName": "High-Explosive Missile",
+      "categoryId": "rocket",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 435,
+        "pdfPage": 437
+      },
+      "damage": "As Rocket",
+      "ap": "As Rocket",
+      "blast": "As Rocket"
+    },
+    {
+      "id": "drug-bliss",
+      "displayName": "Bliss",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 15
+      },
+      "speed": "1 Combat Turn",
+      "duration": "(6 - Body) hours, minimum 1 hour",
+      "addictionType": "Both",
+      "effect": "-1 Reaction, +1 to all thresholds, -1 to all Limits, High Pain Tolerance 3"
+    },
+    {
+      "id": "drug-cram",
+      "displayName": "Cram",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 10
+      },
+      "speed": "10 minutes",
+      "duration": "(12 - Body) hours, minimum 1 hour",
+      "addictionType": "Psychological",
+      "effect": "+1 Reaction, +1D6 Initiative Dice"
+    },
+    {
+      "id": "drug-deepweed",
+      "displayName": "Deepweed",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 400
+      },
+      "speed": "Immediate",
+      "duration": "(6 - Body) hours, minimum 1 hour",
+      "addictionType": "Physiological",
+      "effect": "+1 Willpower, +1 Mental limit, -1 Physical limit, forces Awakened characters to astrally perceive"
+    },
+    {
+      "id": "drug-jazz",
+      "displayName": "Jazz",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 75
+      },
+      "speed": "Immediate",
+      "duration": "10 x 1D6 minutes",
+      "addictionType": "Both",
+      "effect": "+1 Reaction, +1 Physical limit, +2D6 Initiative Dice"
+    },
+    {
+      "id": "drug-kamikaze",
+      "displayName": "Kamikaze",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "speed": "Immediate",
+      "duration": "10 x 1D6 minutes",
+      "addictionType": "Physiological",
+      "effect": "+1 Body, +1 Agility, +2 Strength, +1 Willpower, +2 Physical limit, +2D6 Initiative Dice, High Pain Tolerance 3"
+    },
+    {
+      "id": "drug-long-haul",
+      "displayName": "Long Haul",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "speed": "10 minutes",
+      "duration": "4 days",
+      "addictionType": "Psychological",
+      "effect": "Alleviates need for sleep"
+    },
+    {
+      "id": "drug-nitro",
+      "displayName": "Nitro",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "speed": "1 Combat Turn",
+      "duration": "10 x 1D6 minutes",
+      "addictionType": "Both",
+      "effect": "+2 Strength, +2 Willpower, +2 Perception, +2 Physical limit, High Pain Tolerance 6"
+    },
+    {
+      "id": "drug-novacoke",
+      "displayName": "Novacoke",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 10
+      },
+      "speed": "1 Combat Turn",
+      "duration": "(10 - Body) hours, minimum 1 hour",
+      "addictionType": "Both",
+      "effect": "+1 Reaction, +1 Charisma, +1 Perception, +1 Social Limit, High Pain Tolerance 1"
+    },
+    {
+      "id": "drug-psyche",
+      "displayName": "Psyche",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "speed": "10 minutes",
+      "duration": "(12 - Body) hours, minimum 1 hour",
+      "addictionType": "Psychological",
+      "effect": "+1 Intuition, +1 Logic, +1 Mental limit"
+    },
+    {
+      "id": "drug-zen",
+      "displayName": "Zen",
+      "categoryId": "drug",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 411,
+        "pdfPage": 413
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 5
+      },
+      "speed": "5 minutes",
+      "duration": "10 x 1D6 minutes",
+      "addictionType": "Psychological",
+      "effect": "-2 Reaction, +1 Willpower, -1 physical action dice pool modifier"
+    },
+    {
+      "id": "toxin-cs-tear-gas",
+      "displayName": "CS/Tear Gas",
+      "categoryId": "toxin",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 409,
+        "pdfPage": 411
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 20
+      },
+      "damage": "Power 8",
+      "ap": "Penetration 0",
+      "effect": "Disorientation, Nausea, Stun Damage"
+    },
+    {
+      "id": "toxin-gamma-scopolamine",
+      "displayName": "Gamma-Scopolamine",
+      "categoryId": "toxin",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 409,
+        "pdfPage": 411
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "damage": "Power 12",
+      "ap": "Penetration 0",
+      "effect": "Paralysis, Truth Serum"
+    },
+    {
+      "id": "toxin-narcoject",
+      "displayName": "Narcoject",
+      "categoryId": "toxin",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 409,
+        "pdfPage": 411
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "damage": "Power 15",
+      "ap": "Penetration 0",
+      "effect": "Stun Damage"
+    },
+    {
+      "id": "toxin-nausea-gas",
+      "displayName": "Nausea Gas",
+      "categoryId": "toxin",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 409,
+        "pdfPage": 411
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 25
+      },
+      "damage": "Power 9",
+      "ap": "Penetration 0",
+      "effect": "Disorientation, Nausea"
+    },
+    {
+      "id": "toxin-neuro-stun-viii",
+      "displayName": "Neuro-Stun VIII",
+      "categoryId": "toxin",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 409,
+        "pdfPage": 411
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 60
+      },
+      "damage": "Power 15",
+      "ap": "Penetration 0",
+      "effect": "Disorientation, Stun Damage"
+    },
+    {
+      "id": "toxin-neuro-stun-ix",
+      "displayName": "Neuro-Stun IX",
+      "categoryId": "toxin",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 409,
+        "pdfPage": 411
+      },
+      "availability": {
+        "fixed": 13,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 60
+      },
+      "damage": "Power 15",
+      "ap": "Penetration 0",
+      "effect": "Disorientation, Stun Damage"
+    },
+    {
+      "id": "toxin-neuro-stun-x",
+      "displayName": "Neuro-Stun X",
+      "categoryId": "toxin",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 409,
+        "pdfPage": 411
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "damage": "Power 15",
+      "ap": "Penetration -2",
+      "effect": "Disorientation, Stun Damage"
+    },
+    {
+      "id": "toxin-pepper-punch",
+      "displayName": "Pepper Punch",
+      "categoryId": "toxin",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 409,
+        "pdfPage": 411
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      },
+      "damage": "Power 11",
+      "ap": "Penetration 0",
+      "effect": "Nausea, Stun Damage"
+    },
+    {
+      "id": "toxin-seven-7",
+      "displayName": "Seven-7",
+      "categoryId": "toxin",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 409,
+        "pdfPage": 411
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "damage": "Power 12",
+      "ap": "Penetration -2",
+      "effect": "Physical Damage, Disorientation, Nausea"
+    },
+    {
+      "id": "btl-dreamchip",
+      "displayName": "BTL Dreamchip",
+      "categoryId": "btl",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 413,
+        "pdfPage": 415
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 20
+      },
+      "speed": "Immediate",
+      "duration": "Varies, typically 10 x 1D6 minutes",
+      "addictionType": "Psychological",
+      "effect": "Standard simsense recording modified to produce BTL output"
+    },
+    {
+      "id": "btl-moodchip",
+      "displayName": "BTL Moodchip",
+      "categoryId": "btl",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 413,
+        "pdfPage": 415
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "speed": "Immediate",
+      "duration": "Varies, typically 10 x 1D6 minutes",
+      "addictionType": "Psychological",
+      "effect": "Focuses on the emotive track and intense emotional sensations"
+    },
+    {
+      "id": "btl-personafix",
+      "displayName": "BTL Personafix",
+      "categoryId": "btl",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 413,
+        "pdfPage": 415
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "speed": "Immediate",
+      "duration": "Varies, typically 10 x 1D6 minutes",
+      "addictionType": "Psychological",
+      "effect": "Modifies the basic personality of the user, installing mnemonic routines of a behavior pattern"
+    },
+    {
+      "id": "btl-tripchip",
+      "displayName": "BTL Tripchip",
+      "categoryId": "btl",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 413,
+        "pdfPage": 415
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "speed": "Immediate",
+      "duration": "Varies, typically 10 x 1D6 minutes",
+      "addictionType": "Psychological",
+      "effect": "Primarily produces sensory output, flooding the user with unusual sensations"
+    },
+    {
+      "id": "ammo-ex-explosive-run-gun",
+      "displayName": "EX-Explosive Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 54,
+        "pdfPage": 56
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 120
+      },
+      "damage": "+2",
+      "ap": "-1"
+    },
+    {
+      "id": "ammo-frangible",
+      "displayName": "Frangible Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 54,
+        "pdfPage": 56
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 10
+      },
+      "damage": "-1",
+      "ap": "+4"
+    },
+    {
+      "id": "ammo-flare",
+      "displayName": "Flare Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 54,
+        "pdfPage": 56
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 20
+      },
+      "damage": "-2 / +2",
+      "ap": "+2 / -3"
+    },
+    {
+      "id": "ammo-tracker-round",
+      "displayName": "Tracker Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 54,
+        "pdfPage": 56
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 150
+      },
+      "damage": "-2",
+      "ap": "-2"
+    },
+    {
+      "id": "ammo-capsule-round",
+      "displayName": "Capsule Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 54,
+        "pdfPage": 56
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      },
+      "damage": "-4",
+      "ap": "+4"
+    },
+    {
+      "id": "arrowhead-barbed",
+      "displayName": "Barbed Head",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 23,
+        "pdfPage": 25
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 10
+      },
+      "accuracy": "--",
+      "damage": "+1",
+      "ap": "--"
+    },
+    {
+      "id": "arrowhead-explosive",
+      "displayName": "Explosive Head",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 23,
+        "pdfPage": 25
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 15
+      },
+      "accuracy": "-1",
+      "damage": "+2",
+      "ap": "-1"
+    },
+    {
+      "id": "arrowhead-hammerhead",
+      "displayName": "Hammerhead",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      },
+      "accuracy": "-1",
+      "damage": "+1S",
+      "ap": "+2"
+    },
+    {
+      "id": "arrowhead-incendiary",
+      "displayName": "Incendiary Head",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "accuracy": "-1",
+      "damage": "8P (see source)",
+      "ap": "-6"
+    },
+    {
+      "id": "arrowhead-screamer",
+      "displayName": "Screamer Head",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      },
+      "accuracy": "-2",
+      "damage": "-2S",
+      "ap": "+6"
+    },
+    {
+      "id": "arrowhead-stick-n-shock",
+      "displayName": "Stick-n-Shock Head",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 25
+      },
+      "accuracy": "-1",
+      "damage": "8S(e)",
+      "ap": "-5"
+    },
+    {
+      "id": "arrowhead-static-shaft",
+      "displayName": "Static Shaft",
+      "categoryId": "ammunition",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 25
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "accuracy": "--",
+      "damage": "+4S(e)",
+      "ap": "--"
     }
   ],
   "weapons": [
@@ -10102,6 +13066,1770 @@
       "reach": "1",
       "damage": "8P",
       "ap": "-6"
+    },
+    {
+      "id": "highland-forge-claymore",
+      "displayName": "Highland Forge Claymore",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 18,
+        "pdfPage": 20
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4500
+      },
+      "accuracy": "5",
+      "reach": "2",
+      "damage": "(STR + 5)P",
+      "ap": "-5"
+    },
+    {
+      "id": "horizon-flynn-rapier",
+      "displayName": "Horizon-Flynn Rapier",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 18,
+        "pdfPage": 20
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "7",
+      "reach": "1",
+      "damage": "(STR + 2)P",
+      "ap": "-3"
+    },
+    {
+      "id": "victorinox-memory-blade-sword",
+      "displayName": "Victorinox Memory Blade (sword)",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 19,
+        "pdfPage": 21
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "accuracy": "5",
+      "reach": "1",
+      "damage": "(STR + 2)P",
+      "ap": "-2"
+    },
+    {
+      "id": "victorinox-memory-blade-dagger",
+      "displayName": "Victorinox Memory Blade (dagger)",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 19,
+        "pdfPage": 21
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "accuracy": "5",
+      "reach": "none",
+      "damage": "(STR + 1)P",
+      "ap": "-2"
+    },
+    {
+      "id": "ares-one-monosword",
+      "displayName": "Ares \"One\" Monosword",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 19,
+        "pdfPage": 21
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "accuracy": "5",
+      "reach": "1",
+      "damage": "(STR + 3)P",
+      "ap": "-3"
+    },
+    {
+      "id": "cougar-fineblades-short",
+      "displayName": "Cougar Fineblades (short)",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      },
+      "accuracy": "6",
+      "reach": "none",
+      "damage": "(STR + 2)P",
+      "ap": "-1"
+    },
+    {
+      "id": "cougar-fineblades-long",
+      "displayName": "Cougar Fineblades (long)",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      },
+      "accuracy": "6",
+      "reach": "none",
+      "damage": "(STR + 3)P",
+      "ap": "-1"
+    },
+    {
+      "id": "nemesis-arms-maul-stun-staff",
+      "displayName": "Nemesis Arms Maul Stun Staff",
+      "weaponCategoryId": "clubs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "6",
+      "reach": "2",
+      "damage": "9S(e)",
+      "ap": "-5"
+    },
+    {
+      "id": "standard-garrote",
+      "displayName": "Standard Garrote",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "accuracy": "5",
+      "reach": "none",
+      "damage": "(STR + 4)S",
+      "ap": "-6"
+    },
+    {
+      "id": "ares-queen-of-hearts-monofilament-garrote",
+      "displayName": "Ares \"Queen of Hearts\" Monofilament Garrote",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "accuracy": "5",
+      "reach": "none",
+      "damage": "(STR + 6)P",
+      "ap": "-8"
+    },
+    {
+      "id": "bullwhip",
+      "displayName": "Bullwhip",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "accuracy": "6",
+      "reach": "2",
+      "damage": "(STR + 1)P",
+      "ap": "+3"
+    },
+    {
+      "id": "ash-arms-combat-chainsaw",
+      "displayName": "Ash Arms Combat Chainsaw",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 21,
+        "pdfPage": 23
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "accuracy": "5",
+      "reach": "1",
+      "damage": "8P",
+      "ap": "-4"
+    },
+    {
+      "id": "ash-arms-monofilament-chainsaw",
+      "displayName": "Ash Arms Monofilament Chainsaw",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 21,
+        "pdfPage": 23
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "accuracy": "5",
+      "reach": "1",
+      "damage": "12P",
+      "ap": "-8"
+    },
+    {
+      "id": "boomerang",
+      "displayName": "Boomerang",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "accuracy": "Physical - 1",
+      "damage": "(STR + 2)P"
+    },
+    {
+      "id": "harpoon-javelin",
+      "displayName": "Harpoon/Javelin",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 125
+      },
+      "accuracy": "Physical",
+      "damage": "(STR + 3)P",
+      "ap": "-1"
+    },
+    {
+      "id": "net",
+      "displayName": "Net",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 350
+      },
+      "accuracy": "Physical - 2"
+    },
+    {
+      "id": "cavalier-arms-urban-tribe-tomahawk",
+      "displayName": "Cavalier Arms Urban Tribe Tomahawk",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 25,
+        "pdfPage": 27
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "accuracy": "Physical + 1",
+      "damage": "(STR + 2)P",
+      "ap": "-1"
+    },
+    {
+      "id": "standard-harpoon-gun",
+      "displayName": "Standard Harpoon Gun",
+      "weaponCategoryId": "harpoon-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 22,
+        "pdfPage": 24
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "accuracy": "5",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SS",
+      "ammo": "1"
+    },
+    {
+      "id": "aquadyne-shark-xs-harpoon-gun",
+      "displayName": "Aquadyne Shark-XS Harpoon Gun",
+      "weaponCategoryId": "harpoon-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 22,
+        "pdfPage": 24
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 800
+      },
+      "accuracy": "5",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "ranger-sliver-pistol-crossbow",
+      "displayName": "Ranger Sliver Pistol Crossbow",
+      "weaponCategoryId": "crossbows",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 23,
+        "pdfPage": 25
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "7",
+      "damage": "4P",
+      "mode": "SS"
+    },
+    {
+      "id": "ares-giantslayer-slingshot",
+      "displayName": "Ares Giantslayer Slingshot",
+      "weaponCategoryId": "slingshots",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 23,
+        "pdfPage": 25
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "accuracy": "7",
+      "damage": "2P",
+      "mode": "SS"
+    },
+    {
+      "id": "ares-screech-sonic-rifle",
+      "displayName": "Ares Screech Sonic Rifle",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 8000
+      },
+      "accuracy": "6",
+      "damage": "7S",
+      "ap": "*",
+      "mode": "SS",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "blowgun",
+      "displayName": "Blowgun",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 15
+      },
+      "accuracy": "8",
+      "damage": "1P",
+      "mode": "SS",
+      "ammo": "1 (ml)"
+    },
+    {
+      "id": "standard-bola",
+      "displayName": "Standard Bola",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 75
+      },
+      "accuracy": "Physical",
+      "damage": "(STR + 3)S",
+      "ap": "+4"
+    },
+    {
+      "id": "nemesis-arms-suruchin-monofilament-bolas",
+      "displayName": "Nemesis Arms Suruchin Monofilament Bolas",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "accuracy": "Physical",
+      "damage": "(STR + 3)S",
+      "ap": "+4",
+      "generatedProfileIds": [
+        "nemesis-arms-suruchin-monofilament-bolas-wrap"
+      ]
+    },
+    {
+      "id": "fn-aal-gyrojet-pistol",
+      "displayName": "FN-AAL Gyrojet Pistol",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "SA",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "mortimer-trafalgar-gun-cane",
+      "displayName": "Mortimer of London \"Trafalgar\" Gun Cane",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 27,
+        "pdfPage": 29
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "mode": "SS",
+      "ammo": "1 (b)"
+    },
+    {
+      "id": "mortimer-knockoff-gun-cane",
+      "displayName": "Mortimer of London Knockoff Gun Cane",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 27,
+        "pdfPage": 29
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 150
+      },
+      "accuracy": "5",
+      "damage": "9P",
+      "mode": "SS"
+    },
+    {
+      "id": "sa-retiarus-net-gun-basic",
+      "displayName": "SA Retiarus Net Gun (basic)",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 28,
+        "pdfPage": 30
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "accuracy": "5",
+      "mode": "SS",
+      "ammo": "4 (b)"
+    },
+    {
+      "id": "sa-retiarus-net-gun-xl",
+      "displayName": "SA Retiarus Net Gun (XL)",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 28,
+        "pdfPage": 30
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "5",
+      "mode": "SS",
+      "ammo": "2 (b)"
+    },
+    {
+      "id": "tiffani-elegance-shooting-bracers",
+      "displayName": "Tiffani Élégance Shooting Bracers",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 28,
+        "pdfPage": 30
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "accuracy": "5 (6)",
+      "damage": "7P",
+      "mode": "SS",
+      "ammo": "1 (b)"
+    },
+    {
+      "id": "cavalier-safeguard",
+      "displayName": "Cavalier SafeGuard",
+      "weaponCategoryId": "tasers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 29,
+        "pdfPage": 31
+      },
+      "cost": {
+        "fixed": 275
+      },
+      "accuracy": "5 (6)",
+      "damage": "6S(e)",
+      "ap": "-5",
+      "mode": "SA",
+      "ammo": "6 (m)"
+    },
+    {
+      "id": "tiffani-defiance-protector",
+      "displayName": "Tiffani-Defiance Protector",
+      "weaponCategoryId": "tasers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 29,
+        "pdfPage": 31
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "5 (6)",
+      "damage": "7S(e)",
+      "ap": "-5",
+      "mode": "SA",
+      "ammo": "3 (m)"
+    },
+    {
+      "id": "fichetti-tiffani-self-defender-2075",
+      "displayName": "Fichetti-Tiffani Self-Defender 2075",
+      "weaponCategoryId": "hold-outs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 30,
+        "pdfPage": 32
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      },
+      "accuracy": "4",
+      "damage": "6P",
+      "mode": "SS",
+      "ammo": "4 (c)"
+    },
+    {
+      "id": "fichetti-executive-action",
+      "displayName": "Fichetti Executive Action",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 30,
+        "pdfPage": 32
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "mode": "SA/BF",
+      "ammo": "18 (c)"
+    },
+    {
+      "id": "shiawase-armaments-puzzler",
+      "displayName": "Shiawase Armaments Puzzler",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 31,
+        "pdfPage": 33
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "accuracy": "4",
+      "damage": "6P",
+      "mode": "SA",
+      "ammo": "12 (c)"
+    },
+    {
+      "id": "nitama-sporter",
+      "displayName": "Nitama Sporter",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 31,
+        "pdfPage": 33
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "6 (7)",
+      "damage": "6P",
+      "mode": "SA",
+      "ammo": "18 (c)"
+    },
+    {
+      "id": "cavalier-deputy",
+      "displayName": "Cavalier Deputy",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 32,
+        "pdfPage": 34
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 225
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "7 (cy)"
+    },
+    {
+      "id": "psk-3-collapsible-heavy-pistol",
+      "displayName": "PSK-3 Collapsible Heavy Pistol",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 32,
+        "pdfPage": 34
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1050
+      },
+      "accuracy": "4",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "savalette-guardian",
+      "displayName": "Savalette Guardian",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 33,
+        "pdfPage": 35
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 870
+      },
+      "accuracy": "5 (7)",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "rc": "1",
+      "ammo": "12 (c)"
+    },
+    {
+      "id": "onotari-arms-violator",
+      "displayName": "Onotari Arms Violator",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 33,
+        "pdfPage": 35
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 550
+      },
+      "accuracy": "5 (7)",
+      "damage": "7P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "1",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "ppsk-4-collapsible-machine-pistol",
+      "displayName": "PPSK-4 Collapsible Machine Pistol",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 34,
+        "pdfPage": 36
+      },
+      "availability": {
+        "fixed": 17,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2800
+      },
+      "accuracy": "5 (6)",
+      "damage": "6P",
+      "mode": "SA/BF",
+      "rc": "(1)",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "onotari-arms-equalizer",
+      "displayName": "Onotari Arms Equalizer",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 34,
+        "pdfPage": 36
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "accuracy": "4 (5)",
+      "damage": "7P",
+      "mode": "BF/FA",
+      "rc": "(1)",
+      "ammo": "12 (c)"
+    },
+    {
+      "id": "ultimax-70",
+      "displayName": "Ultimax 70",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 35,
+        "pdfPage": 37
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 800
+      },
+      "accuracy": "5 (6)",
+      "damage": "6P",
+      "mode": "BF/FA",
+      "rc": "2",
+      "ammo": "15 (c)"
+    },
+    {
+      "id": "ares-executioner",
+      "displayName": "Ares Executioner",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 35,
+        "pdfPage": 37
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "4 (6)",
+      "damage": "7P",
+      "mode": "SA/BF/FA",
+      "rc": "(1)",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "hk-urban-combat",
+      "displayName": "HK Urban Combat",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 36,
+        "pdfPage": 38
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2300
+      },
+      "accuracy": "7 (9)",
+      "damage": "8P",
+      "mode": "SA/BF/FA",
+      "rc": "2",
+      "ammo": "36 (c)"
+    },
+    {
+      "id": "ak-98",
+      "displayName": "AK-98",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 36,
+        "pdfPage": 38
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "ammo": "38 (c)",
+      "generatedProfileIds": [
+        "ak-98-grenade-launcher"
+      ]
+    },
+    {
+      "id": "ares-hvar",
+      "displayName": "Ares HVAR",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2400
+      },
+      "accuracy": "5 (7)",
+      "damage": "8P",
+      "mode": "SA/BF/FA",
+      "rc": "3 (4)",
+      "ammo": "50 (c)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle",
+      "displayName": "HK XM30 Assault Rifle",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "availability": {
+        "fixed": 15,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 4500
+      },
+      "accuracy": "6 (8)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "rc": "(1)",
+      "ammo": "30 (c)",
+      "generatedProfileIds": [
+        "hk-xm30-assault-rifle-sniper",
+        "hk-xm30-assault-rifle-lmg",
+        "hk-xm30-assault-rifle-shotgun",
+        "hk-xm30-assault-rifle-grenade-launcher"
+      ]
+    },
+    {
+      "id": "nissan-optimum-ii",
+      "displayName": "Nissan Optimum II",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 38,
+        "pdfPage": 40
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2300
+      },
+      "accuracy": "5 (7)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "rc": "1",
+      "ammo": "30 (c)",
+      "generatedProfileIds": [
+        "nissan-optimum-ii-shotgun"
+      ]
+    },
+    {
+      "id": "terracotta-arms-am-47",
+      "displayName": "Terracotta Arms AM-47",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 36,
+        "pdfPage": 38
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 35000
+      },
+      "accuracy": "7 (9)",
+      "damage": "15P",
+      "ap": "-4",
+      "mode": "SA",
+      "rc": "1 (3)",
+      "ammo": "18 (c)"
+    },
+    {
+      "id": "onotari-arms-jp-k50",
+      "displayName": "Onotari Arms JP-K50",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 39,
+        "pdfPage": 41
+      },
+      "availability": {
+        "fixed": 13,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 12500
+      },
+      "accuracy": "7",
+      "damage": "12P",
+      "ap": "-3",
+      "mode": "SA/BF",
+      "rc": "1",
+      "ammo": "25 (c)"
+    },
+    {
+      "id": "pioneer-60",
+      "displayName": "Pioneer 60",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 39,
+        "pdfPage": 41
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "barret-model-122",
+      "displayName": "Barret Model 122",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 40,
+        "pdfPage": 42
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 38500
+      },
+      "accuracy": "7 (9)",
+      "damage": "14P",
+      "ap": "-6",
+      "mode": "SA",
+      "rc": "(2)",
+      "ammo": "14 (c)"
+    },
+    {
+      "id": "auto-assault-16",
+      "displayName": "Auto-Assault 16",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 40,
+        "pdfPage": 42
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1800
+      },
+      "accuracy": "4",
+      "damage": "13P",
+      "ap": "-1",
+      "mode": "SA/BF/FA",
+      "rc": "-2",
+      "ammo": "10 (c) or 32 (d)"
+    },
+    {
+      "id": "mossberg-am-cmdt",
+      "displayName": "Mossberg AM-CMDT",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 41,
+        "pdfPage": 43
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1400
+      },
+      "accuracy": "5 (7)",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SA/BF/FA",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "franchi-spas-24",
+      "displayName": "Franchi SPAS-24",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 41,
+        "pdfPage": 43
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1050
+      },
+      "accuracy": "4 (6)",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "rc": "-1",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "remington-990",
+      "displayName": "Remington 990",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 42,
+        "pdfPage": 44
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 950
+      },
+      "accuracy": "4",
+      "damage": "11P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "8 (c)"
+    },
+    {
+      "id": "ge-vindicator-mini-gun",
+      "displayName": "GE Vindicator Mini-Gun",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 42,
+        "pdfPage": 44
+      },
+      "availability": {
+        "fixed": 24,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 6000
+      },
+      "accuracy": "4 (6)",
+      "damage": "9P",
+      "ap": "-4",
+      "mode": "FA",
+      "rc": "-2",
+      "ammo": "200 (belt)"
+    },
+    {
+      "id": "sa-nemesis",
+      "displayName": "SA Nemesis",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 43,
+        "pdfPage": 45
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 6500
+      },
+      "accuracy": "5 (7)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "BF/FA",
+      "rc": "-2",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "fn-mag-5",
+      "displayName": "FN MAG-5",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 43,
+        "pdfPage": 45
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 8500
+      },
+      "accuracy": "4 (5)",
+      "damage": "11P",
+      "ap": "-3",
+      "mode": "FA",
+      "rc": "-2 (-8)",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "ultamax-mmg",
+      "displayName": "Ultamax MMG",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 44,
+        "pdfPage": 46
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 7600
+      },
+      "accuracy": "5 (6)",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "FA",
+      "rc": "-1 / -6",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "ruhrmetall-sf-20",
+      "displayName": "Ruhrmetall SF-20",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 44,
+        "pdfPage": 46
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 19600
+      },
+      "accuracy": "5 (6)",
+      "damage": "12P",
+      "ap": "-4",
+      "mode": "FA",
+      "rc": "-1 (-4)",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "ultamax-hmg-2",
+      "displayName": "Ultamax HMG-2",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 44,
+        "pdfPage": 46
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 16000
+      },
+      "accuracy": "4 (5)",
+      "damage": "11P",
+      "ap": "-4",
+      "mode": "FA",
+      "rc": "-6",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "ares-thunderstruck-gauss-rifle",
+      "displayName": "Ares Thunderstruck Gauss Rifle",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 45,
+        "pdfPage": 47
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 26000
+      },
+      "accuracy": "7 (8)",
+      "damage": "15P",
+      "ap": "-8",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "10 (c) + Energy"
+    },
+    {
+      "id": "ogre-hammer-sws-assault-cannon",
+      "displayName": "Ogre Hammer SWS Assault Cannon",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 46,
+        "pdfPage": 48
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 32000
+      },
+      "accuracy": "6",
+      "damage": "16P",
+      "ap": "-4",
+      "mode": "SA",
+      "ammo": "6 (c)"
+    },
+    {
+      "id": "ares-vigorous-assault-cannon",
+      "displayName": "Ares Vigorous Assault Cannon",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 46,
+        "pdfPage": 48
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 24500
+      },
+      "accuracy": "4",
+      "damage": "16P",
+      "ap": "-6",
+      "mode": "SS",
+      "ammo": "12 (c)"
+    },
+    {
+      "id": "onotari-arms-ballista-mml",
+      "displayName": "Onotari Arms Ballista MML",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 46,
+        "pdfPage": 48
+      },
+      "availability": {
+        "fixed": 19,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "accuracy": "Missile",
+      "damage": "Missile",
+      "mode": "SS",
+      "ammo": "4 (m)"
+    },
+    {
+      "id": "mitsubishi-yakusoku-mrl",
+      "displayName": "Mitsubishi Yakusoku MRL",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 47,
+        "pdfPage": 49
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 14000
+      },
+      "accuracy": "Missile",
+      "damage": "Missile",
+      "mode": "SA/BF",
+      "ammo": "4 x 2 (m)"
+    },
+    {
+      "id": "ares-redline",
+      "displayName": "Ares Redline",
+      "weaponCategoryId": "laser-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 48,
+        "pdfPage": 50
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "accuracy": "9",
+      "damage": "5P",
+      "ap": "-10",
+      "mode": "SA",
+      "ammo": "10 (c) or external source"
+    },
+    {
+      "id": "ares-lancer-mp-laser",
+      "displayName": "Ares Lancer MP Laser",
+      "weaponCategoryId": "laser-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 48,
+        "pdfPage": 50
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 16000
+      },
+      "accuracy": "7",
+      "damage": "7P",
+      "ap": "-10",
+      "mode": "SA",
+      "ammo": "2x 10 (c) or external source"
+    },
+    {
+      "id": "ares-archon-heavy-mp-laser",
+      "displayName": "Ares Archon Heavy MP Laser",
+      "weaponCategoryId": "laser-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 49,
+        "pdfPage": 51
+      },
+      "availability": {
+        "fixed": 24,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 35000
+      },
+      "accuracy": "7",
+      "damage": "10P",
+      "ap": "-10",
+      "mode": "SA",
+      "ammo": "External source"
+    },
+    {
+      "id": "shiawase-blazer",
+      "displayName": "Shiawase Blazer",
+      "weaponCategoryId": "flamethrowers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 49,
+        "pdfPage": 51
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2200
+      },
+      "accuracy": "6",
+      "damage": "10P",
+      "ap": "-6",
+      "mode": "SA/BF/FA",
+      "ammo": "4 (c)"
+    },
+    {
+      "id": "nemesis-arms-suruchin-monofilament-bolas-wrap",
+      "displayName": "Nemesis Arms Suruchin Monofilament Bolas (wrap)",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "damage": "12P",
+      "ap": "-8"
+    },
+    {
+      "id": "ak-98-grenade-launcher",
+      "displayName": "AK-98 (grenade launcher)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 36,
+        "pdfPage": 38
+      },
+      "accuracy": "3",
+      "damage": "Grenade",
+      "ap": "Grenade",
+      "mode": "SS",
+      "ammo": "6 (m)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle-sniper",
+      "displayName": "HK XM30 (sniper configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "accuracy": "7 (9)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SA",
+      "rc": "2 (3)",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle-lmg",
+      "displayName": "HK XM30 (LMG configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "accuracy": "6 (8)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "BF/FA",
+      "rc": "2 (3)",
+      "ammo": "100 (belt)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle-shotgun",
+      "displayName": "HK XM30 (shotgun configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "accuracy": "3 (5)",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle-grenade-launcher",
+      "displayName": "HK XM30 (grenade launcher configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "accuracy": "4",
+      "damage": "Grenade",
+      "ap": "Grenade",
+      "mode": "SS",
+      "ammo": "6 (c)"
+    },
+    {
+      "id": "nissan-optimum-ii-shotgun",
+      "displayName": "Nissan Optimum II (shotgun configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 38,
+        "pdfPage": 40
+      },
+      "accuracy": "4 (6)",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "1",
+      "ammo": "5 (m)"
     }
   ],
   "armor": [
@@ -10313,6 +15041,23 @@
       },
       "armorRating": 6,
       "capacity": 6
+    },
+    {
+      "id": "leather-jacket-duster",
+      "displayName": "Leather Jacket/Duster",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "armorRating": 4
     }
   ],
   "augmentationGrades": [
@@ -10402,7 +15147,10 @@
       "essence": {
         "fixed": 0.2
       },
-      "requiresParameter": true
+      "requiresParameter": true,
+      "capacityCost": {
+        "fixed": 2
+      }
     },
     {
       "id": "control-rig",
@@ -10460,6 +15208,9 @@
       },
       "essence": {
         "fixed": 0
+      },
+      "capacityCost": {
+        "fixed": 1
       }
     },
     {
@@ -10481,6 +15232,9 @@
       },
       "essence": {
         "fixed": 0
+      },
+      "capacityCost": {
+        "fixed": 2
       }
     },
     {
@@ -10502,6 +15256,9 @@
       },
       "essence": {
         "fixed": 0
+      },
+      "capacityCost": {
+        "fixed": 3
       }
     },
     {
@@ -10524,7 +15281,10 @@
       "essence": {
         "fixed": 0.4
       },
-      "requiresParameter": true
+      "requiresParameter": true,
+      "capacityCost": {
+        "fixed": 4
+      }
     },
     {
       "id": "datajack",
@@ -10710,6 +15470,9 @@
       "ratingRange": {
         "minimum": 1,
         "maximum": 6
+      },
+      "capacityCost": {
+        "fixed": 2
       }
     },
     {
@@ -11164,6 +15927,9 @@
       },
       "essence": {
         "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 2
       }
     },
     {
@@ -12602,6 +17368,90 @@
         "minimum": 1,
         "maximum": 3
       }
+    },
+    {
+      "id": "ocular-drone",
+      "displayName": "Ocular Drone",
+      "augmentationCategoryId": "eyeware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 454,
+        "pdfPage": 456
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 6000
+      },
+      "capacityCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "cybergun-external-clip-port",
+      "displayName": "External Clip Port",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cybergun-laser-sight",
+      "displayName": "Laser Sight (Cybergun)",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cybergun-silencer",
+      "displayName": "Silencer/Suppressor (Cybergun)",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
     }
   ],
   "vehicles": [
@@ -12612,8 +17462,8 @@
       "classification": "selectable",
       "source": {
         "sourceId": "sr5-core",
-        "printedPage": 462,
-        "pdfPage": 464
+        "printedPage": 463,
+        "pdfPage": 465
       },
       "availability": {
         "legality": "legal"
@@ -12637,8 +17487,8 @@
       "classification": "selectable",
       "source": {
         "sourceId": "sr5-core",
-        "printedPage": 465,
-        "pdfPage": 467
+        "printedPage": 466,
+        "pdfPage": 468
       },
       "availability": {
         "fixed": 8,
@@ -14161,6 +19011,655 @@
       "cost": {
         "fixed": 500
       }
+    },
+    {
+      "id": "accessory-run-gun-advanced-safety-system",
+      "displayName": "Advanced Safety System",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 600
+      }
+    },
+    {
+      "id": "accessory-run-gun-immobilization",
+      "displayName": "Immobilization (Safety System)",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "accessory-run-gun-self-destruct",
+      "displayName": "Self Destruct (Safety System)",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "accessory-run-gun-explosive-self-destruct",
+      "displayName": "Explosive Self Destruct (Safety System)",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 400
+      }
+    },
+    {
+      "id": "accessory-run-gun-electro-shocker",
+      "displayName": "Electro Shocker (Safety System)",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      }
+    },
+    {
+      "id": "accessory-run-gun-bayonet",
+      "displayName": "Bayonet",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel"
+      ],
+      "restrictedToWeaponCategoryIds": [
+        "assault-rifles",
+        "sniper-rifles",
+        "shotguns",
+        "special-weapons",
+        "machine-guns",
+        "cannons-launchers"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "accessory-run-gun-concealed-quick-draw-holster",
+      "displayName": "Concealed Quick-Draw Holster",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 275
+      }
+    },
+    {
+      "id": "accessory-run-gun-extreme-environment-modification",
+      "displayName": "Extreme Environment Modification",
+      "mount": "none",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 1500
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 2
+      }
+    },
+    {
+      "id": "accessory-run-gun-flashlight-standard",
+      "displayName": "Flashlight, Standard",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "side"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "accessory-run-gun-flashlight-low-light",
+      "displayName": "Flashlight, Low Light",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "side"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "accessory-run-gun-flashlight-infrared",
+      "displayName": "Flashlight, Infrared",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "side"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 400
+      }
+    },
+    {
+      "id": "accessory-run-gun-folding-stock",
+      "displayName": "Folding Stock",
+      "mount": "stock",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30
+      }
+    },
+    {
+      "id": "accessory-run-gun-foregrip",
+      "displayName": "Foregrip",
+      "mount": "barrel",
+      "restrictedToWeaponCategoryIds": [
+        "submachine-guns",
+        "assault-rifles",
+        "sniper-rifles",
+        "shotguns",
+        "special-weapons",
+        "machine-guns",
+        "cannons-launchers"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "accessory-run-gun-gecko-grip",
+      "displayName": "Gecko Grip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "accessory-run-gun-guncam",
+      "displayName": "Guncam",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "barrel",
+        "side",
+        "internal"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 350
+      }
+    },
+    {
+      "id": "accessory-run-gun-hip-pad-bracing-system",
+      "displayName": "Hip Pad Bracing System",
+      "mount": "stock",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "accessory-run-gun-improved-range-finder",
+      "displayName": "Improved Range Finder",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "barrel",
+        "side",
+        "internal",
+        "stock"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "accessory-run-gun-peak-discharge-power-clip",
+      "displayName": "Peak-Discharge Battery Pack, Power Clip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 400
+      }
+    },
+    {
+      "id": "accessory-run-gun-peak-discharge-satchel-power-pack",
+      "displayName": "Peak-Discharge Battery Pack, Satchel Power Pack",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 900
+      }
+    },
+    {
+      "id": "accessory-run-gun-peak-discharge-power-backpack",
+      "displayName": "Peak-Discharge Battery Pack, Power Backpack",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2500
+      }
+    },
+    {
+      "id": "accessory-run-gun-safe-target-system",
+      "displayName": "Safe Target System",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "barrel",
+        "side",
+        "internal"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 750
+      }
+    },
+    {
+      "id": "accessory-run-gun-safe-target-additional-profiles",
+      "displayName": "Safe Target System, Additional RFID/GPS Profiles (10)",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "accessory-run-gun-safe-target-image-recognition",
+      "displayName": "Safe Target System, Image Recognition Capabilities",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      }
+    },
+    {
+      "id": "accessory-run-gun-safe-target-extra-image-profiles",
+      "displayName": "Safe Target System, Extra Image Profiles (10)",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "accessory-run-gun-slide-mount",
+      "displayName": "Slide Mount",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "side"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 52,
+        "pdfPage": 54
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "accessory-run-gun-sling",
+      "displayName": "Sling",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 52,
+        "pdfPage": 54
+      },
+      "cost": {
+        "fixed": 15
+      }
+    },
+    {
+      "id": "accessory-run-gun-tracker",
+      "displayName": "Tracker",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 150
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-bola-launcher",
+      "displayName": "Underbarrel Bola Launcher",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-chainsaw",
+      "displayName": "Underbarrel Chainsaw",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2500
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-flamethrower",
+      "displayName": "Underbarrel Flamethrower",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2400
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-grapple-gun",
+      "displayName": "Underbarrel Grapple Gun",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-grenade-launcher",
+      "displayName": "Underbarrel Grenade Launcher",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 3500
+      }
+    },
+    {
+      "id": "accessory-run-gun-weapon-personality",
+      "displayName": "Weapon Personality",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250
+      }
     }
   ],
   "armorModifications": [
@@ -14482,49 +19981,97 @@
       "id": "street-lifestyle",
       "displayName": "Street Lifestyle",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
       "baseCostPerMonth": 0,
-      "startingCashDice": { "count": 1, "sides": 6, "multiplier": 20 }
+      "startingCashDice": {
+        "count": 1,
+        "sides": 6,
+        "multiplier": 20
+      }
     },
     {
       "id": "squatter-lifestyle",
       "displayName": "Squatter Lifestyle",
       "classification": "parameterized",
-      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
       "baseCostPerMonth": 500,
-      "startingCashDice": { "count": 2, "sides": 6, "multiplier": 40 }
+      "startingCashDice": {
+        "count": 2,
+        "sides": 6,
+        "multiplier": 40
+      }
     },
     {
       "id": "low-lifestyle",
       "displayName": "Low Lifestyle",
       "classification": "parameterized",
-      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
       "baseCostPerMonth": 2000,
-      "startingCashDice": { "count": 3, "sides": 6, "multiplier": 60 }
+      "startingCashDice": {
+        "count": 3,
+        "sides": 6,
+        "multiplier": 60
+      }
     },
     {
       "id": "middle-lifestyle",
       "displayName": "Middle Lifestyle",
       "classification": "parameterized",
-      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
       "baseCostPerMonth": 5000,
-      "startingCashDice": { "count": 4, "sides": 6, "multiplier": 100 }
+      "startingCashDice": {
+        "count": 4,
+        "sides": 6,
+        "multiplier": 100
+      }
     },
     {
       "id": "high-lifestyle",
       "displayName": "High Lifestyle",
       "classification": "parameterized",
-      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
       "baseCostPerMonth": 10000,
-      "startingCashDice": { "count": 5, "sides": 6, "multiplier": 500 }
+      "startingCashDice": {
+        "count": 5,
+        "sides": 6,
+        "multiplier": 500
+      }
     },
     {
       "id": "luxury-lifestyle",
       "displayName": "Luxury Lifestyle",
       "classification": "parameterized",
-      "source": { "sourceId": "sr5-core", "printedPage": 373, "pdfPage": 375 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
       "baseCostPerMonth": 100000,
-      "startingCashDice": { "count": 6, "sides": 6, "multiplier": 1000 }
+      "startingCashDice": {
+        "count": 6,
+        "sides": 6,
+        "multiplier": 1000
+      }
     }
   ],
   "lifestyleOptions": [
@@ -14532,36 +20079,1619 @@
       "id": "special-work-area",
       "displayName": "Special Work Area",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
       "fixedMonthlyAmount": 1000
     },
     {
       "id": "extra-secure",
       "displayName": "Extra Secure",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
       "adjustmentPercent": 20
     },
     {
       "id": "obscure-difficult-to-find",
       "displayName": "Obscure/Difficult to Find",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
       "adjustmentPercent": 10
     },
     {
       "id": "cramped",
       "displayName": "Cramped",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
       "adjustmentPercent": -10
     },
     {
       "id": "dangerous-area",
       "displayName": "Dangerous Area",
       "classification": "selectable",
-      "source": { "sourceId": "sr5-core", "printedPage": 374, "pdfPage": 376 },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
       "adjustmentPercent": -20
+    }
+  ],
+  "knowledgeSkillSuggestions": [
+    {
+      "id": "ares-macrotechnology",
+      "displayName": "Ares Macrotechnology",
+      "categoryId": "street",
+      "specializations": [
+        "Personalities",
+        "Security Policies",
+        "Tactics",
+        "Shortcuts",
+        "Guard Posts"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "architecture",
+      "displayName": "Architecture",
+      "categoryId": "professional",
+      "specializations": [
+        "Residential",
+        "Commercial",
+        "Industrial"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "biology",
+      "displayName": "Biology",
+      "categoryId": "academic",
+      "specializations": [
+        "Microbiology",
+        "Parabotany",
+        "Parazoology",
+        "Genetics",
+        "Physiology"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "business",
+      "displayName": "Business",
+      "categoryId": "professional",
+      "specializations": [
+        "Finance",
+        "Investing",
+        "Megacorp",
+        "Small Business",
+        "Economics"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "chemistry",
+      "displayName": "Chemistry",
+      "categoryId": "academic",
+      "specializations": [
+        "Analytical",
+        "Biochemistry",
+        "Inorganic",
+        "Organic",
+        "Physical"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "club-music",
+      "displayName": "Club Music",
+      "categoryId": "interests",
+      "specializations": [
+        "By decade",
+        "By genre",
+        "By club"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "economics",
+      "displayName": "Economics",
+      "categoryId": "academic",
+      "specializations": [
+        "Microeconomics",
+        "Macroeconomics",
+        "Regional"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "engineering",
+      "displayName": "Engineering",
+      "categoryId": "professional",
+      "specializations": [
+        "Chemical",
+        "Civil",
+        "Electrical",
+        "Mechanical",
+        "Nuclear"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "fashion",
+      "displayName": "Fashion",
+      "categoryId": "interests",
+      "specializations": [
+        "Armor",
+        "Clothing",
+        "Cyber",
+        "European",
+        "Hippie",
+        "Street"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "history",
+      "displayName": "History",
+      "categoryId": "academic",
+      "specializations": [
+        "By era",
+        "By region"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "hong-kong-triads",
+      "displayName": "Hong Kong Triads",
+      "categoryId": "street",
+      "specializations": [
+        "Locations",
+        "Identifying Marks",
+        "Criminal Activities"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "literature",
+      "displayName": "Literature",
+      "categoryId": "academic",
+      "specializations": [
+        "American",
+        "English",
+        "Japanese",
+        "Ancient",
+        "Classical",
+        "Science Fiction",
+        "Scandinavian"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "matrix-games",
+      "displayName": "Matrix Games",
+      "categoryId": "interests",
+      "specializations": [
+        "Action",
+        "Horror",
+        "Fantasy",
+        "Role-Playing",
+        "Time Period",
+        "Platform"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "military",
+      "displayName": "Military",
+      "categoryId": "professional",
+      "specializations": [
+        "Mercenaries",
+        "Company",
+        "Army",
+        "Navy",
+        "Air Force",
+        "Marines"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "police-procedures",
+      "displayName": "Police Procedures",
+      "categoryId": "professional",
+      "specializations": [
+        "By company",
+        "By jurisdiction",
+        "By department"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "seattle-street-gangs",
+      "displayName": "Seattle Street Gangs",
+      "categoryId": "street",
+      "specializations": [
+        "Halloweeners",
+        "Ancients",
+        "Brain Eaters"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "security-companies",
+      "displayName": "Security Companies",
+      "categoryId": "street",
+      "specializations": [
+        "Personnel",
+        "Tactics",
+        "Territories",
+        "Equipment",
+        "Companies"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "sprawl-life",
+      "displayName": "Sprawl Life",
+      "categoryId": "street",
+      "specializations": [
+        "Area",
+        "District",
+        "Apartment Living",
+        "Squatter Living",
+        "Shortcuts",
+        "Shelters"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "sports",
+      "displayName": "Sports",
+      "categoryId": "interests",
+      "specializations": [
+        "By sport",
+        "By team",
+        "By position"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "street-drugs",
+      "displayName": "Street Drugs",
+      "categoryId": "interests",
+      "specializations": [
+        "Personality",
+        "Effects",
+        "Recipes",
+        "Locations",
+        "Prices"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "ucas-politics",
+      "displayName": "UCAS Politics",
+      "categoryId": "street",
+      "specializations": [
+        "By region",
+        "By party",
+        "By personality"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    }
+  ],
+  "languageSuggestions": [
+    {
+      "id": "cantonese",
+      "displayName": "Cantonese",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "english",
+      "displayName": "English",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "french",
+      "displayName": "French",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "german",
+      "displayName": "German",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "italian",
+      "displayName": "Italian",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "japanese",
+      "displayName": "Japanese",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "mandarin",
+      "displayName": "Mandarin",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "russian",
+      "displayName": "Russian",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "spanish",
+      "displayName": "Spanish",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    }
+  ],
+  "metavariants": [
+    {
+      "id": "gnome",
+      "displayName": "Gnome",
+      "parentMetatypeId": "dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "willpower": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "logic": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+20% lifestyle cost; Arcane Arrester 2 (add rating x 2 dice to resist any spell targeted at the character); Neoteny (Physical Condition Monitor becomes 6 + (Body/2, rounded up)); Thermographic Vision.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 87,
+        "pdfPage": 89
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 7
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 7
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 7
+        }
+      ]
+    },
+    {
+      "id": "hanuman",
+      "displayName": "Hanuman",
+      "parentMetatypeId": "dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+20% lifestyle cost; Monkey Paws (+2 dice pool, or +1 if shod, to non-tumbling Gymnastics/Climbing/zero-G movement tests); Functional Tail (Prehensile) (effective Strength half unaugmented Strength, rounded down; -4 dice pool for fine manipulation); Thermographic Vision; Unusual Hair (Body).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 88,
+        "pdfPage": 90
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 5
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 5
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 5
+        }
+      ]
+    },
+    {
+      "id": "koborokuru",
+      "displayName": "Koborokuru",
+      "parentMetatypeId": "dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+20% lifestyle cost; Celerity (Walking Agility x 3, Running Agility x 6, +1 m/hit Sprint Increase); +2 dice pathogen/toxin resistance (as core Dwarf); Thermographic Vision; Unusual Hair.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 89,
+        "pdfPage": 91
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 0
+        }
+      ]
+    },
+    {
+      "id": "menehune",
+      "displayName": "Menehune",
+      "parentMetatypeId": "dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+20% lifestyle cost; +2 dice pathogen resistance; Thermographic Vision; Underwater Vision (unrestricted vision underwater); Webbed Digits (+2 dice pool Swimming Tests, -1 dice pool fine manipulation with the digits).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 89,
+        "pdfPage": 91
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 2
+        }
+      ]
+    },
+    {
+      "id": "hobgoblin",
+      "displayName": "Hobgoblin",
+      "parentMetatypeId": "ork",
+      "attributes": {
+        "body": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Fangs (Unarmed Combat DV (STR+1)P, Reach -1, AP --); Keen-Eared (+1 dice pool audio-based Perception Tests); Low-Light Vision; Poor Self Control (Vindictive).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 91,
+        "pdfPage": 93
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 5
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 5
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 5
+        }
+      ]
+    },
+    {
+      "id": "ogre",
+      "displayName": "Ogre",
+      "parentMetatypeId": "ork",
+      "attributes": {
+        "body": {
+          "minimum": 4,
+          "maximum": 9
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "strength": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "willpower": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision; Ogre Stomach (-20% lifestyle cost; +2 dice pool Toxin Resistance Tests for ingested toxins).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 91,
+        "pdfPage": 93
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 8
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 8
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 8
+        }
+      ]
+    },
+    {
+      "id": "oni",
+      "displayName": "Oni",
+      "parentMetatypeId": "ork",
+      "attributes": {
+        "body": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision; Striking Skin Pigmentation (+2 dice pool to Matrix Search/identify/locate tests against the character).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 92,
+        "pdfPage": 94
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 4
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 4
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 4
+        }
+      ]
+    },
+    {
+      "id": "satyr",
+      "displayName": "Satyr",
+      "parentMetatypeId": "ork",
+      "attributes": {
+        "body": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision; Satyr Legs (Running rate Agility x 6, +1 m/hit Sprint Increase, +2 Strength to kicking-attack damage; social stigma).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 92,
+        "pdfPage": 94
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 10
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 10
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 10
+        }
+      ]
+    },
+    {
+      "id": "cyclops",
+      "displayName": "Cyclops",
+      "parentMetatypeId": "troll",
+      "attributes": {
+        "body": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 6,
+          "maximum": 11
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+100% lifestyle cost; Cyclopean Eye (-1 dice pool to Combat Tests and precision skill tests; social stigma); +1 Reach; Thermographic Vision.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 93,
+        "pdfPage": 95
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 5,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 2
+        }
+      ]
+    },
+    {
+      "id": "fomorian",
+      "displayName": "Fomorian",
+      "parentMetatypeId": "troll",
+      "attributes": {
+        "body": {
+          "minimum": 4,
+          "maximum": 9
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+100% lifestyle cost; Arcane Arrester 1 (add rating x 2 dice to resist any spell targeted at the character); Thermographic Vision; +1 Reach.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 94,
+        "pdfPage": 96
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 5,
+          "additionalKarmaCost": 12
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 12
+        }
+      ]
+    },
+    {
+      "id": "giant",
+      "displayName": "Giant",
+      "parentMetatypeId": "troll",
+      "attributes": {
+        "body": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "strength": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+100% lifestyle cost; Dermal Alteration (Bark Skin) (+2 armor, cumulative with worn armor); Thermographic Vision; +1 Reach.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 95,
+        "pdfPage": 97
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 5,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 2
+        }
+      ]
+    },
+    {
+      "id": "minotaur",
+      "displayName": "Minotaur",
+      "parentMetatypeId": "troll",
+      "attributes": {
+        "body": {
+          "minimum": 6,
+          "maximum": 11
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+100% lifestyle cost; Goring Horns (Exotic Melee Weapon [Horns] DV (STR+2)P, Reach --, AP -1); Thermographic Vision; +1 Reach.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 95,
+        "pdfPage": 97
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 5,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 2
+        }
+      ]
+    },
+    {
+      "id": "dryad",
+      "displayName": "Dryad",
+      "parentMetatypeId": "elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Glamour (+2 Social limit; +1 dice pool Social Skill Tests except Intimidation; incurs the core Distinctive Style effect); Low-Light Vision; Symbiosis (bonded-location social/Outdoor/Healing bonuses; environmental harm imposes a persistent Mild-Allergy-equivalent penalty).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 96,
+        "pdfPage": 98
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 3,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 0
+        }
+      ]
+    },
+    {
+      "id": "nocturna",
+      "displayName": "Nocturna",
+      "parentMetatypeId": "elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "agility": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Allergy (Sunlight, Mild); Low-Light Vision; Keen-Eared (+1 dice pool audio-based Perception Tests); Nocturnal (Mental attributes -1 during daylight hours); Unusual Hair (Colored Fur).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 96,
+        "pdfPage": 98
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 3,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 0
+        }
+      ]
+    },
+    {
+      "id": "wakyambi",
+      "displayName": "Wakyambi",
+      "parentMetatypeId": "elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Celerity (Walking Agility x 3, Running Agility x 6, +1 m/hit Sprint Increase); Elongated Limbs (+1 Reach, cumulative; +10% cost for accommodating armor/clothing); Low-Light Vision.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 97,
+        "pdfPage": 99
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 12
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 12
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 3,
+          "additionalKarmaCost": 12
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 12
+        }
+      ]
+    },
+    {
+      "id": "xapiri-thepe",
+      "displayName": "Xapiri Thëpë",
+      "parentMetatypeId": "elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Allergy (Pollutants, Mild); Low-Light Vision; Photometabolism (-10% lifestyle cost; -1 dice pool Social Tests at night/in shade).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 99,
+        "pdfPage": 101
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 3,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 0
+        }
+      ]
+    },
+    {
+      "id": "nartaki",
+      "displayName": "Nartaki",
+      "parentMetatypeId": "human",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 2,
+          "maximum": 7
+        }
+      },
+      "traits": "Shiva Arms (one extra pair of arms; can wield/use extra weapons per the Multiple Attacks rules with the normal off-hand penalty; social stigma); Striking Skin Pigmentation (+2 dice pool to Matrix Search/identify/locate tests against the character).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 99,
+        "pdfPage": 101
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 2,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "e",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 0
+        }
+      ]
     }
   ]
 }

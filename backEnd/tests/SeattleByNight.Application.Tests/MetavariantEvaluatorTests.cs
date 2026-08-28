@@ -4,9 +4,9 @@ using SeattleByNight.Application.CharacterCreation.Evaluation;
 
 namespace SeattleByNight.Application.Tests;
 
-// Uses the real embedded sr5-core catalog (not CatalogTestData, which loads
-// the raw 1.0.0.json resource directly) because CHAR-813's 17 metavariants
-// live only in the 1.2.0 overlay.
+// Uses the real embedded sr5-core catalog (not CatalogTestData, an
+// independent synthetic fixture) because CHAR-813's 17 metavariants live only
+// in the real embedded catalog.
 public sealed class MetavariantEvaluatorTests
 {
     private static readonly RulesetCatalog Catalog = new EmbeddedRulesetCatalogProvider().Current;

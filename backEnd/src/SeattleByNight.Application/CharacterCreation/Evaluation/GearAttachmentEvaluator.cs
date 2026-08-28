@@ -34,6 +34,17 @@ public sealed class GearAttachmentEvaluator
             ["special-weapons"] = new HashSet<WeaponMount> { WeaponMount.Top, WeaponMount.Barrel, WeaponMount.Underbarrel },
             ["machine-guns"] = new HashSet<WeaponMount> { WeaponMount.Top, WeaponMount.Barrel, WeaponMount.Underbarrel },
             ["cannons-launchers"] = new HashSet<WeaponMount> { WeaponMount.Top, WeaponMount.Barrel, WeaponMount.Underbarrel },
+            // Run & Gun weapon categories (CHAR-817). laser-weapons spans SMG,
+            // assault-rifle, and sniper-rifle ranges depending on the model
+            // (run-gun p. 48, PDF 50), so it is given the broadest of those
+            // three mount sets rather than one specific to a single model.
+            // flamethrowers "cannot mount any accessories except biometric
+            // safety systems" (run-gun p. 49, PDF 51), which install in the
+            // internal slot only; slot-free accessories (Mount.None, e.g.
+            // sling, tracker) are not "mounted" in a physical slot and are
+            // still available regardless of this restriction.
+            ["laser-weapons"] = new HashSet<WeaponMount> { WeaponMount.Top, WeaponMount.Barrel, WeaponMount.Underbarrel },
+            ["flamethrowers"] = new HashSet<WeaponMount> { WeaponMount.Internal },
         };
 
     public GearAttachmentEvaluation Evaluate(
@@ -162,25 +173,33 @@ public sealed class GearAttachmentEvaluator
             return;
         }
 
+        if (accessory.RestrictedToWeaponCategoryIds is { Count: > 0 } restrictedTo
+            && !restrictedTo.Contains(weapon.WeaponCategoryId))
+        {
+            diagnostics.Add(Error("attachment.host.category-mismatch", path, [selection.AccessoryId], accessory.Source,
+                "Choose a host weapon category this accessory is printed for."));
+            return;
+        }
+
         var availableMounts = MountsByWeaponCategory.GetValueOrDefault(weapon.WeaponCategoryId)
             ?? new HashSet<WeaponMount>();
         var chosenMount = Enum.TryParse<WeaponMount>(selection.Mount, ignoreCase: true, out var parsedMount)
             ? parsedMount
             : (WeaponMount?)null;
 
-        WeaponMount? effectiveMount = accessory.Mount switch
+        var mountCandidates = MountCandidates(accessory);
+
+        WeaponMount? effectiveMount = mountCandidates.Count switch
         {
-            WeaponMount.None => null,
-            WeaponMount.TopOrUnderbarrel => chosenMount is WeaponMount.Top or WeaponMount.Underbarrel
-                ? chosenMount
-                : null,
-            var fixedMount => fixedMount,
+            0 => null,
+            1 => mountCandidates[0],
+            _ => chosenMount is not null && mountCandidates.Contains(chosenMount.Value) ? chosenMount : null,
         };
 
-        if (accessory.Mount == WeaponMount.TopOrUnderbarrel && effectiveMount is null)
+        if (mountCandidates.Count > 1 && effectiveMount is null)
         {
             diagnostics.Add(Error("attachment.mount.choice-required", path, [selection.AccessoryId], accessory.Source,
-                "Choose the top or underbarrel mount for this accessory."));
+                "Choose one of this accessory's printed mount slots."));
             return;
         }
 
@@ -233,6 +252,36 @@ public sealed class GearAttachmentEvaluator
         canonical.Add(new CanonicalAttachment(
             selection.HostInstanceId, selection.AccessoryId, effectiveMount?.ToString(), rating,
             RoundNuyen(cost), CanonicalProvenance.Nuyen));
+    }
+
+    // Builds the accessory's full set of acceptable mounts: its primary Mount
+    // (expanded to {Top, Underbarrel} for the legacy TopOrUnderbarrel
+    // combinator, or dropped entirely for None), plus any AdditionalMounts
+    // (run-gun's wider per-accessory choices, e.g. a guncam's five eligible
+    // slots). A one-element result auto-assigns; a multi-element result
+    // requires selection.Mount to name one of them.
+    private static IReadOnlyList<WeaponMount> MountCandidates(WeaponAccessoryDefinition accessory)
+    {
+        var candidates = new List<WeaponMount>();
+        switch (accessory.Mount)
+        {
+            case WeaponMount.None:
+                break;
+            case WeaponMount.TopOrUnderbarrel:
+                candidates.Add(WeaponMount.Top);
+                candidates.Add(WeaponMount.Underbarrel);
+                break;
+            default:
+                candidates.Add(accessory.Mount);
+                break;
+        }
+
+        if (accessory.AdditionalMounts is not null)
+        {
+            candidates.AddRange(accessory.AdditionalMounts);
+        }
+
+        return candidates.Distinct().ToList();
     }
 
     private void EvaluateArmorModification(
