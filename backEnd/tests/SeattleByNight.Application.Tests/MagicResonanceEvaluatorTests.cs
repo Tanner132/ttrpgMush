@@ -20,7 +20,7 @@ public sealed class MagicResonanceEvaluatorTests
         Assert.Equal(2, catalog.Traditions.Count);
         Assert.Equal(84, catalog.Spells.Count);
         Assert.Equal(9, catalog.Rituals.Count);
-        Assert.Equal(25, catalog.AdeptPowers.Count);
+        Assert.Equal(27, catalog.AdeptPowers.Count);
         Assert.Equal(16, catalog.MentorSpirits.Count);
         Assert.Equal(20, catalog.ComplexForms.Count);
         Assert.Equal(6, catalog.SpiritTypes.Count);

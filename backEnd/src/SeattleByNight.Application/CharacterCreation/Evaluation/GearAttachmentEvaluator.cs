@@ -91,7 +91,7 @@ public sealed class GearAttachmentEvaluator
 
             if (catalog.Weapons.TryGetValue(host.ItemId, out var weapon))
             {
-                EvaluateWeaponAccessory(catalog, weapon, selection, path, mountsUsedByHost, canonical, diagnostics, ref spent);
+                EvaluateWeaponAccessory(catalog, weapon, host, selection, path, mountsUsedByHost, canonical, diagnostics, ref spent, ref essenceSpent);
             }
             else if (catalog.Armor.TryGetValue(host.ItemId, out var armor))
             {
@@ -160,15 +160,24 @@ public sealed class GearAttachmentEvaluator
     private void EvaluateWeaponAccessory(
         RulesetCatalog catalog,
         WeaponDefinition weapon,
+        ResourceSelection host,
         AttachmentSelection selection,
         string path,
         Dictionary<string, HashSet<WeaponMount>> mountsUsedByHost,
         List<CanonicalAttachment> canonical,
         List<CharacterCreationDiagnostic> diagnostics,
-        ref decimal spent)
+        ref decimal spent,
+        ref decimal essenceSpent)
     {
         if (!catalog.WeaponAccessories.TryGetValue(selection.AccessoryId, out var accessory))
         {
+            if (catalog.Augmentations.TryGetValue(selection.AccessoryId, out var cybergun)
+                && cybergun.ConversionSurcharge is not null)
+            {
+                EvaluateCybergunConversion(weapon, host, cybergun, selection, path, canonical, diagnostics, ref spent, ref essenceSpent);
+                return;
+            }
+
             diagnostics.Add(Unknown(selection.AccessoryId, catalog));
             return;
         }
@@ -252,6 +261,62 @@ public sealed class GearAttachmentEvaluator
         canonical.Add(new CanonicalAttachment(
             selection.HostInstanceId, selection.AccessoryId, effectiveMount?.ToString(), rating,
             RoundNuyen(cost), CanonicalProvenance.Nuyen));
+    }
+
+    // Cyberguns (Chrome Flesh p. 90, PDF 91): converting an already-owned
+    // weapon into its matching cybergun implant is an alternate acquisition
+    // path for the same catalog AugmentationDefinition a player could
+    // otherwise buy standalone (its own flat Cost/Availability). Converting
+    // instead prices off the host weapon's own resolved Cost/Availability
+    // plus a per-gun-type surcharge; Essence and Capacity are unaffected by
+    // acquisition path, so they still come from the cybergun's own fields.
+    // Unlike an ordinary weapon accessory, a conversion occupies no mount.
+    private void EvaluateCybergunConversion(
+        WeaponDefinition weapon,
+        ResourceSelection host,
+        AugmentationDefinition cybergun,
+        AttachmentSelection selection,
+        string path,
+        List<CanonicalAttachment> canonical,
+        List<CharacterCreationDiagnostic> diagnostics,
+        ref decimal spent,
+        ref decimal essenceSpent)
+    {
+        if (cybergun.ConversionRestrictedToWeaponCategoryIds is { Count: > 0 } restrictedTo
+            && !restrictedTo.Contains(weapon.WeaponCategoryId))
+        {
+            diagnostics.Add(Error("attachment.host.category-mismatch", path, [selection.AccessoryId], cybergun.Source,
+                "Choose a host weapon category this cybergun conversion is printed for."));
+            return;
+        }
+
+        var rating = EvaluateRating(cybergun.RatingRange, selection.Rating, selection.AccessoryId, cybergun.Source, diagnostics);
+
+        var hostWeaponCost = Resolve(weapon.Cost?.Fixed, weapon.Cost?.PerRating, host.Rating);
+        var surcharge = Resolve(cybergun.ConversionSurcharge?.Fixed, cybergun.ConversionSurcharge?.PerRating, rating);
+        var cost = hostWeaponCost + surcharge;
+
+        var hostWeaponAvailability = Resolve(weapon.Availability?.Fixed, weapon.Availability?.PerRating, host.Rating);
+        var availability = (hostWeaponAvailability ?? 0) + (cybergun.ConversionAvailabilityBonus ?? 0);
+        if (availability > MaxCreationAvailability)
+        {
+            diagnostics.Add(Error("attachment.availability.exceeded", path, [selection.AccessoryId], cybergun.Source,
+                new Dictionary<string, string>
+                {
+                    ["actual"] = availability.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["maximum"] = MaxCreationAvailability.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                },
+                "Choose a conversion whose combined numeric Availability is 12 or lower at creation."));
+        }
+
+        spent += cost;
+
+        var essence = Resolve(cybergun.Essence?.Fixed, cybergun.Essence?.PerRating, rating);
+        essenceSpent += essence;
+
+        canonical.Add(new CanonicalAttachment(
+            selection.HostInstanceId, selection.AccessoryId, null, rating, RoundNuyen(cost),
+            CanonicalProvenance.Nuyen, essence));
     }
 
     // Builds the accessory's full set of acceptable mounts: its primary Mount

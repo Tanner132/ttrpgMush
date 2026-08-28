@@ -202,6 +202,19 @@ const QUALITY_DESCRIPTIONS: Record<string, string> = {
   spacer: '+1 dice pool modifier to Physical actions taken in a gravity other than Earth norm.',
   blighted: 'Long-term radiation/pollution damage to your system, taken at three escalating durations (6/12/24 months). Test Edge (3) each game session; on a failure you take a dice pool penalty (-1 Physical at 6 months, -1 to everything at 12, -2 Physical/-1 everything else at 24) for that session.',
   earther: 'Never trained for space flight: -2 dice pool modifier on all Physical actions taken in a gravity other than Earth norm.',
+
+  // Better Than Bad additions (CHAR-819, `better-than-bad` pp. 160-162 (PDF 161-163)).
+  'hair-trigger': 'Requires Technomancer. Enter hot-sim as a Free Action (or cold-sim, with the appropriate Echo); with a control rig (implant or Echo), jump into a drone as a Simple Action.',
+  'hi-rez': 'Requires Technomancer. Your Matrix Perception bonus increases from +2 to +4, and you may make a Matrix Perception test to detect hidden icons as a Free Action once per Combat Turn.',
+  'instinctive-hack': 'Unless surprised, take one free action before Initiative is rolled for the first time in a combat: Brute Force, Data Spike, Hack on the Fly, or Matrix Perception.',
+  'prototype-materials': 'Requires Mundane and Gamemaster approval. Lets you take another rating of the Special Modifications quality beyond its normal rank-2 maximum.',
+  'rabble-rouser': '+2 dice pool bonus to social skill tests attempting to influence a crowd of ten or more people.',
+  'shoot-first-dont-ask-questions': 'On a successful Surprise test, increase your initiative score by the total hits rolled (first turn of combat only); also reduces the threshold for quick-drawing a weapon by 1.',
+  'special-modifications': 'Requires Mundane. Per rating (max rank 2), add +1 damage to a favored weapon, or choose two of: an additional -1 AP, +1 Accuracy, +1 Recoil Compensation, +½ ammo capacity, -1 Concealability, or +1 Reach. Only the payer can use the modified weapon; replicating it onto a replacement takes 1 Lifestyle payment cycle.',
+  'elemental-attunement': 'Mastery Quality. Requires the Killing Hands, Elemental Strike, and Elemental Body adept powers. Changes Elemental Body’s Drain to 1 unresisted box (Physical or Stun, your choice) at the start of the Combat Turn after activation.',
+  'resonant-discordance': 'Mastery Quality. Requires Submersion grade 1. Lets you enter cold-sim while keeping the +2 Matrix dice pool bonus; using hot-sim instead grants a further +2 to Compiling, Decompiling, and Threading complex forms.',
+  'dead-sin': 'Everyone believes you’re dead. Grants a Rating 3 Fake SIN plus four Rating 3 fake licenses; if it’s ever flagged as fake you must immediately buy off this quality (going into Karmic debt if you’re short), and a SIN scanner flags it fake on a tied roll against the threshold.',
+  'hard-luck': 'Chronic hardship forces you to pay lifestyle costs one level above the one you’ve chosen.',
 }
 
 const MENTOR_SPIRIT_DESCRIPTIONS: Record<string, string> = {
@@ -249,6 +262,10 @@ const ADEPT_POWER_DESCRIPTIONS: Record<string, string> = {
   'traceless-walk': 'Moves without leaving a physical trace — no sound, no footprints, and much harder to track even by scent.',
   'voice-control': 'Total command over your own voice — mimicry, disguise, and a social edge whenever your voice does the talking.',
   'wall-running': 'Briefly defies gravity, letting you sprint up or across a vertical surface before you have to come back down.',
+
+  // Better Than Bad additions (CHAR-820, `better-than-bad` pp. 159-160 (PDF 160-161)).
+  'mystic-aptitude': 'Substitute Magic + Rank for any one Physical Attribute (chosen when activated), affecting dice pools, limits, Strength-based damage, and Initiative — for a number of Combat Turns equal to your Magic, then Drain equal to twice the power’s rank.',
+  'state-of-purity': 'Requires Essence 6. Replaces your unarmed combat attacks’ damage with (Magic + Strength), Physical or Stun your choice, and AP -(Magic x 0.5), for as long as you sustain it.',
 }
 
 const RITUAL_DESCRIPTIONS: Record<string, string> = {

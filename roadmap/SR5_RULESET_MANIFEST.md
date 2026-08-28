@@ -58,6 +58,7 @@ approved source books:
 | `sr5-core` | `Shadowrun 5th Edition Core Rulebook (Jennifer Brozek, Raymond Croteau etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `4928B5F45F94C542820D7A7688BD68B7940BF2E9480898CCAFA6111996497F79` |
 | `run-faster` | `Shadowrun Run Faster (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `F037FEFADC7FB91EE10180CD0116B55BC5EA825BF4BE56546D80C6F35D555BAF` |
 | `run-gun` | `Shadowrun Run Gun (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `D76698DF6652198B340FD62B99F84C8A232C1EF3CAF8390F32DBACB1C93A371B` |
+| `better-than-bad` | `pdfcoffee.com_better-than-bad-pdf-free.pdf` | `4BEB7F2620BCA5114AD83E297B92C8337062EBE404974C80E25AE39C11965D07` |
 
 A checksum or filename change creates a new source revision and requires a new
 baseline review. External errata, summaries, websites, implementations, and
@@ -133,6 +134,20 @@ Included (CHAR-817/CHAR-818, project owner, 2026-08-28):
   ammunition/arrow gear published under CHAR-812. See
   [`sr5-catalog/RUN_GUN_AMMO.md`](sr5-catalog/RUN_GUN_AMMO.md).
 
+Included (CHAR-819, project owner, 2026-08-28):
+
+- Every quality printed in Better Than Bad's "New Qualities" section — New
+  Positive Qualities, New Mastery Qualities, and New Negative Qualities
+  (`better-than-bad` pp. 160-162, PDF 161-163). `better-than-bad` is newly
+  pinned as a fourth approved source, first used by this ticket. See
+  [`sr5-catalog/BETTER_THAN_BAD_QUALITIES.md`](sr5-catalog/BETTER_THAN_BAD_QUALITIES.md).
+
+Included (CHAR-820, project owner, 2026-08-28):
+
+- Both powers printed in Better Than Bad's "New Adept Powers" section, Mystic
+  Aptitude and State of Purity (`better-than-bad` pp. 159-160, PDF 160-161).
+  See [`sr5-catalog/BETTER_THAN_BAD_ADEPT_POWERS.md`](sr5-catalog/BETTER_THAN_BAD_ADEPT_POWERS.md).
+
 Excluded:
 
 - Core Street-Level and Prime Runner variants (`sr5-core` p. 64 (PDF 66)).
@@ -147,7 +162,17 @@ Excluded:
   Qualities (GM-only flags), Improvised Melee Weapons, Underbarrel Weight and
   Weapon Commlink (both unpriceable under the current cost schema — see
   [`sr5-catalog/RUN_GUN_WEAPON_ACCESSORIES.md`](sr5-catalog/RUN_GUN_WEAPON_ACCESSORIES.md)),
-  and adventure/fiction content. See
+  and adventure/fiction content.
+- Better Than Bad's New Manipulation Spells, New Armor Modifications, Grey
+  Mana Tattoos, New Toxin (Blight), New Cyberware Grade (GreyWare), New Life
+  Modules (Nationalities, Formative Years, Further Education, Real Life —
+  Life Modules are excluded project-wide, consistent with `run-faster` p. 62
+  (PDF 64) above), "New Uses for Karma and Street Cred" (a new spend-Karma
+  mechanic, not a catalog entry), and all setting/adventure content (the
+  Pretoria-Witwatersrand-Vaal metroplex writeup, NPCs, plot hooks). Only the
+  book's New Qualities (CHAR-819) and New Adept Powers (CHAR-820) sections
+  have been reviewed for scope; the rest above is unreviewed, not
+  reviewed-and-rejected. See
   [`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md) for Martial
   Arts (deferred, revisit later) and the rest (reviewed and rejected as out
   of scope).

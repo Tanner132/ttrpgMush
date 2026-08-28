@@ -13,6 +13,10 @@ public enum CanonicalProvenance
     FreePoints,
     Native,
     Nuyen,
+    // Synthesized child row for a bundle component (CHRM-FLESH augmentation
+    // bundles): never backed by a document.Resources entry, so it has no
+    // draft-level delete affordance — only the bundle header line does.
+    Bundle,
 }
 
 public sealed record CanonicalCharacterSheet(

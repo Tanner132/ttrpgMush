@@ -83,7 +83,26 @@ public sealed class ResourcesEssenceEvaluator
 
             var rating = EvaluateRating(item, selection.Rating, diagnostics);
 
-            var availability = ResolveAvailability(item.Availability, rating);
+            List<ResolvedBundleComponent>? bundleComponents = null;
+            if (item.BundleComponents is { Count: > 0 })
+            {
+                bundleComponents = item.BundleComponents
+                    .Select(component =>
+                    {
+                        var componentAugmentation = catalog.Augmentations[component.ItemId];
+                        return new ResolvedBundleComponent(
+                            componentAugmentation,
+                            component.Rating,
+                            ResolveCost(componentAugmentation.Cost, component.Rating),
+                            ResolveEssence(componentAugmentation.Essence, component.Rating),
+                            ResolveAvailability(componentAugmentation.Availability, component.Rating));
+                    })
+                    .ToList();
+            }
+
+            var availability = bundleComponents is null
+                ? ResolveAvailability(item.Availability, rating)
+                : bundleComponents.Max(component => component.Availability ?? 0);
             var grade = ResolveGrade(catalog, item, selection.GradeId, diagnostics);
             if (grade is not null && availability is not null)
             {
@@ -125,7 +144,9 @@ public sealed class ResourcesEssenceEvaluator
                     "Complete the required parameter for this purchase."));
             }
 
-            var unitCost = ResolveCost(item.Cost, rating);
+            var unitCost = bundleComponents is null
+                ? ResolveCost(item.Cost, rating)
+                : bundleComponents.Sum(component => component.Cost);
             if (cyberlimbCustomizationPoints > 0)
             {
                 unitCost += CyberlimbCustomizationCostPerPoint * cyberlimbCustomizationPoints;
@@ -140,7 +161,9 @@ public sealed class ResourcesEssenceEvaluator
             var lineCost = unitCost * selection.Quantity;
             spent += lineCost;
 
-            var unitEssence = ResolveEssence(item.Essence, rating);
+            var unitEssence = bundleComponents is null
+                ? ResolveEssence(item.Essence, rating)
+                : 0.9m * bundleComponents.Sum(component => component.Essence);
             if (grade is not null)
             {
                 unitEssence *= grade.EssenceMultiplier;
@@ -161,6 +184,23 @@ public sealed class ResourcesEssenceEvaluator
                 selection.InstanceId,
                 cyberlimbStrengthPoints > 0 ? cyberlimbStrengthPoints : null,
                 cyberlimbAgilityPoints > 0 ? cyberlimbAgilityPoints : null));
+
+            if (bundleComponents is not null)
+            {
+                foreach (var component in bundleComponents)
+                {
+                    canonical.Add(new CanonicalResource(
+                        component.Definition.Id,
+                        selection.Quantity,
+                        component.Rating,
+                        grade?.Id,
+                        null,
+                        0,
+                        0m,
+                        CanonicalProvenance.Bundle,
+                        $"{selection.InstanceId}:{component.Definition.Id}"));
+                }
+            }
         }
 
         if (spent > totalBudget)
@@ -494,7 +534,8 @@ public sealed class ResourcesEssenceEvaluator
         {
             item = new ResolvedItem(augmentation.Id, augmentation.Classification, augmentation.Source,
                 augmentation.Availability, augmentation.Cost, augmentation.Essence, augmentation.RatingRange,
-                augmentation.RequiresParameter, true, augmentation.AugmentationCategoryId);
+                augmentation.RequiresParameter, true, augmentation.AugmentationCategoryId,
+                augmentation.BundleComponents);
             return true;
         }
 
@@ -549,5 +590,16 @@ public sealed class ResourcesEssenceEvaluator
         RatingRangeDefinition? RatingRange,
         bool RequiresParameter,
         bool IsAugmentation,
-        string? AugmentationCategoryId = null);
+        string? AugmentationCategoryId = null,
+        IReadOnlyList<BundleComponentDefinition>? BundleComponents = null);
+
+    // A resolved BundleComponentDefinition, priced/rated/availability-checked
+    // against the catalog once so ResourcesEssenceEvaluator's bundle branch and
+    // its synthesized CanonicalProvenance.Bundle child rows share one lookup.
+    private sealed record ResolvedBundleComponent(
+        AugmentationDefinition Definition,
+        int? Rating,
+        decimal Cost,
+        decimal Essence,
+        int? Availability);
 }

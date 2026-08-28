@@ -96,6 +96,7 @@ public sealed class RulesetCatalogLoaderTests
         Assert.Throws<KeyNotFoundException>(() => provider.Get("other-book", "1.0.0"));
     }
 
+
     [Fact]
     public void Current_catalog_has_complete_priority_foundation()
     {

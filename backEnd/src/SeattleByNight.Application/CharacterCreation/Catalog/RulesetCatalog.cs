@@ -328,6 +328,10 @@ public sealed record CapacityDefinition(
     int? Fixed = null,
     int? PerRating = null);
 
+public sealed record BundleComponentDefinition(
+    string ItemId,
+    int? Rating = null);
+
 public sealed record AugmentationDefinition(
     string Id,
     string DisplayName,
@@ -344,7 +348,29 @@ public sealed record AugmentationDefinition(
     IReadOnlyList<string>? GeneratedProfileIds = null,
     IReadOnlyList<string>? PrerequisiteIds = null,
     IReadOnlyList<string>? ExcludedIds = null,
-    CapacityCostDefinition? CapacityCost = null);
+    CapacityCostDefinition? CapacityCost = null,
+    // Cybergun conversion pricing (Chrome Flesh p. 90): additive surcharge for
+    // converting an already-owned weapon into this cybergun, as an alternate
+    // acquisition path to buying the cybergun's own flat Cost/Availability
+    // standalone. See GearAttachmentEvaluator.EvaluateWeaponAccessory.
+    CostDefinition? ConversionSurcharge = null,
+    int? ConversionAvailabilityBonus = null,
+    IReadOnlyList<string>? ConversionRestrictedToWeaponCategoryIds = null,
+    // Augmentation bundles (Chrome Flesh p. 92): a non-empty BundleComponents
+    // marks this row as a pre-built package. ResourcesEssenceEvaluator computes
+    // the header's cost/essence/availability from the components (not from this
+    // row's own Cost/Essence/Availability) and synthesizes read-only child rows.
+    IReadOnlyList<BundleComponentDefinition>? BundleComponents = null,
+    // Skillsoft Network membership tiers (Chrome Flesh p. 78): monthly fee,
+    // captured but not yet billed — see roadmap/SR5_CATALOG_DEFERRED_WORK.md.
+    CostDefinition? RecurringCost = null,
+    // Cyberweapon combat stats (Chrome Flesh Cyberweapons, mirrors WeaponDefinition).
+    string? Accuracy = null,
+    string? Damage = null,
+    string? Ap = null,
+    string? Mode = null,
+    string? Reach = null,
+    string? Rc = null);
 
 public sealed record VehicleDefinition(
     string Id,

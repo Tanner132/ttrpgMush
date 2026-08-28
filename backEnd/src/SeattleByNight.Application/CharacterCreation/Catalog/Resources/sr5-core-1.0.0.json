@@ -16,6 +16,11 @@
       "id": "run-gun",
       "fileName": "Shadowrun Run Gun (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
       "sha256": "D76698DF6652198B340FD62B99F84C8A232C1EF3CAF8390F32DBACB1C93A371B"
+    },
+    {
+      "id": "better-than-bad",
+      "fileName": "pdfcoffee.com_better-than-bad-pdf-free.pdf",
+      "sha256": "4BEB7F2620BCA5114AD83E297B92C8337062EBE404974C80E25AE39C11965D07"
     }
   ],
   "creationMethods": [
@@ -3230,6 +3235,160 @@
         "printedPage": 169,
         "pdfPage": 171
       }
+    },
+    {
+      "id": "hair-trigger",
+      "displayName": "Hair Trigger",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 160,
+        "pdfPage": 161
+      }
+    },
+    {
+      "id": "hi-rez",
+      "displayName": "Hi-Rez",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 160,
+        "pdfPage": 161
+      }
+    },
+    {
+      "id": "instinctive-hack",
+      "displayName": "Instinctive Hack",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 160,
+        "pdfPage": 161
+      }
+    },
+    {
+      "id": "prototype-materials",
+      "displayName": "Prototype Materials",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 160,
+        "pdfPage": 161
+      }
+    },
+    {
+      "id": "rabble-rouser",
+      "displayName": "Rabble Rouser",
+      "polarity": "positive",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 161,
+        "pdfPage": 162
+      }
+    },
+    {
+      "id": "shoot-first-dont-ask-questions",
+      "displayName": "Shoot First, Don't Ask Questions",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 161,
+        "pdfPage": 162
+      }
+    },
+    {
+      "id": "special-modifications",
+      "displayName": "Special Modifications",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 161,
+        "pdfPage": 162
+      }
+    },
+    {
+      "id": "elemental-attunement",
+      "displayName": "Elemental Attunement",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 161,
+        "pdfPage": 162
+      }
+    },
+    {
+      "id": "resonant-discordance",
+      "displayName": "Resonant Discordance",
+      "polarity": "positive",
+      "cost": 13,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 161,
+        "pdfPage": 162
+      }
+    },
+    {
+      "id": "dead-sin",
+      "displayName": "Dead Sin",
+      "polarity": "negative",
+      "cost": 20,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 162,
+        "pdfPage": 163
+      }
+    },
+    {
+      "id": "hard-luck",
+      "displayName": "Hard Luck",
+      "polarity": "negative",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 162,
+        "pdfPage": 163
+      }
     }
   ],
   "skills": [
@@ -6340,6 +6499,30 @@
         "sourceId": "sr5-core",
         "printedPage": 308,
         "pdfPage": 310
+      }
+    },
+    {
+      "id": "mystic-aptitude",
+      "displayName": "Mystic Aptitude",
+      "powerPointCost": 0.75,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 159,
+        "pdfPage": 160
+      }
+    },
+    {
+      "id": "state-of-purity",
+      "displayName": "State of Purity",
+      "powerPointCost": 1.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 160,
+        "pdfPage": 161
       }
     }
   ],

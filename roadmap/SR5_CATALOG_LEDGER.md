@@ -27,10 +27,10 @@ published across those historical version markers.
 | Category | Approved-PDF identity review | Detailed fact review | Runtime catalog | Reconciliation |
 | --- | --- | --- | --- | --- |
 | Priority rows and metatypes | Complete | Complete | Methods, levels, categories, 25 cell identities, and 5 metatypes published | Reconciled (CHAR-806 complete) |
-| Qualities | Complete: 31 positive, 28 negative (`sr5-core`); 43 positive, 41 negative (`run-faster`); 10 positive, 3 negative (`run-gun`) | Complete | 157 qualities published: 59 `sr5-core` (CHAR-807), 85 `run-faster` (1 `poor-self-control-vindictive` under CHAR-813, 84 new under CHAR-814), 13 `run-gun` (CHAR-815) | Reconciled (CHAR-807, CHAR-813, CHAR-814, CHAR-815 complete) |
+| Qualities | Complete: 31 positive, 28 negative (`sr5-core`); 43 positive, 41 negative (`run-faster`); 10 positive, 3 negative (`run-gun`); 9 positive, 2 negative (`better-than-bad`) | Complete | 168 qualities published: 59 `sr5-core` (CHAR-807), 85 `run-faster` (1 `poor-self-control-vindictive` under CHAR-813, 84 new under CHAR-814), 13 `run-gun` (CHAR-815), 11 `better-than-bad` (CHAR-819) | Reconciled (CHAR-807, CHAR-813, CHAR-814, CHAR-815, CHAR-819 complete) |
 | Active skills and groups | Complete: 75 skills, 15 groups | Complete | 75 skills, 15 groups published | Reconciled (CHAR-807 complete) |
 | Knowledge and languages | Complete as open-authored categories | Complete | 4 open categories published | Reconciled (CHAR-807 complete) |
-| Magic and Resonance | Complete identity pass | Complete | 6 paths, 3 aspected values, 2 traditions, 84 spells, 9 rituals, 25 adept powers, 16 mentor spirits, 20 complex forms, 6 spirit types, 5 sprite types published | Reconciled (CHAR-808 complete) |
+| Magic and Resonance | Complete identity pass | Complete | 6 paths, 3 aspected values, 2 traditions, 84 spells, 9 rituals, 27 adept powers (25 `sr5-core` + 2 `better-than-bad`, CHAR-820), 16 mentor spirits, 20 complex forms, 6 spirit types, 5 sprite types published | Reconciled (CHAR-808, CHAR-820 complete) |
 | Weapons and armor | Complete identity pass | Complete | 157 weapons published: 77 `sr5-core` (includes grapple gun, micro flare launcher, monofilament chainsaw), 80 `run-gun` (73 base + 7 generated alternate-configuration profiles, CHAR-816, see [`sr5-catalog/RUN_GUN_WEAPONS.md`](sr5-catalog/RUN_GUN_WEAPONS.md)); 12 armor (adds Leather Jacket/Duster); ammunition/arrow-bolt/explosive/grenade/rocket line items reviewed under CHAR-812 were never actually wired into the runtime `gear` array (confirmed by direct inspection during CHAR-816: 0 of 141 base `gear` entries match ammo/grenade/explosive/rocket/arrow/bolt patterns) — this row's "published in `gear`" claim for those items is stale and needs its own follow-up ticket | Weapons reconciled (CHAR-812, CHAR-816 complete); ammunition/grenade/explosive/rocket claim requires re-reconciliation; Autosofts excluded per `gear.autosoft-pricing-absent`, weapon-ammo damage linkage deferred per `gear.ammunition-grenade-rocket-linkage` |
 | Electronics and software | Complete identity pass | Complete | Commlinks (7), a new typed `cyberdecks` catalog (9), electronics accessories, RFID tags, communications/countermeasures, software, and skillsofts published in `gear`/`cyberdecks`; Capacity-scaled optical/audio/sensor hosts and their enhancements published under CHAR-809A | Reconciled; cyberdeck program slots and Autosoft pricing remain excluded per `SR5_RULE_DECISIONS.md` |
 | General gear and consumables | Complete identity pass | Complete | 100+ items published across credsticks, tools, fixed-capacity optical devices, security devices, restraints, breaking-and-entering gear, industrial chemicals, survival gear, biotech, DocWagon contracts, and slap patches; drugs (10 types), toxins (9 types), and BTL chips (4 types) published in `gear` under CHAR-812 | Reconciled (CHAR-809, CHAR-812 complete) |
@@ -389,6 +389,25 @@ allow-list — not a new subsystem. See
 and [`sr5-catalog/RUN_GUN_AMMO.md`](sr5-catalog/RUN_GUN_AMMO.md) for the full
 item lists, cost-modeling notes, and exclusions (Underbarrel Weight and
 Weapon Commlink, both unpriceable under the current schema).
+
+CHAR-819 added Better Than Bad as a fifth approved source, at the project
+owner's direction to port only its qualities ("I want to add the qualities
+from better than bad"). It published all 11 headings from the book's "New
+Qualities" section — 7 New Positive Qualities, 2 New Mastery Qualities
+(modeled with `positive` polarity; the schema has no separate Mastery
+concept), and 2 New Negative Qualities — bringing the runtime to 168 total
+qualities. This book's printed→PDF page offset (one page) was independently
+verified and differs from the two-page offset shared by the other three
+approved sources. No other chapter of the book was reviewed; see
+[`sr5-catalog/BETTER_THAN_BAD_QUALITIES.md`](sr5-catalog/BETTER_THAN_BAD_QUALITIES.md).
+
+CHAR-820 followed immediately after, at the project owner's direction ("add
+in the new adept powers"): both powers in the book's "New Adept Powers"
+section, Mystic Aptitude and State of Purity, bringing the runtime to 27
+total adept powers. Neither power's stated prerequisite (Essence 6, for
+State of Purity) or activation type is code-enforced, consistent with how
+every other adept power/quality in this project is modeled. See
+[`sr5-catalog/BETTER_THAN_BAD_ADEPT_POWERS.md`](sr5-catalog/BETTER_THAN_BAD_ADEPT_POWERS.md).
 
 A runtime catalog now exists (`sr5-core` `1.4.0`) and is pinned by a semantic
 SHA-256 digest that changes whenever any catalog fact changes; this ledger
