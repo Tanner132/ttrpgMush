@@ -18,6 +18,7 @@ import { CatalogRail } from '../CatalogRail.tsx'
 import { Readout } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { describeResourceItem } from '../catalogDescriptions.ts'
+import { onKeyActivate } from '../../ui/keyboardActivation.ts'
 
 const PURCHASABLE: string[] = ['Selectable', 'Parameterized']
 
@@ -88,12 +89,22 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
     for (const license of licenses) spent += unitCost(licenseLine, license.rating)
   }
 
+  // A host-kind line (weapon, armor, or Capacity-host gear) can be bought
+  // more than once, and each unit must stay its own quantity-1 line so it
+  // can carry its own accessories independently — GearAttachmentEvaluator
+  // rejects attachments on a host whose Quantity isn't 1, and a single
+  // shared line can't represent "rifle A has a scope, rifle B doesn't."
+  // toggle() therefore adds/removes *all* instances of an item at once (the
+  // checkbox/REMOVE FROM DOSSIER action), while addInstance()/removeInstance()
+  // manage one unit at a time.
   const toggle = (item: ResourceLine) => {
-    const existing = itemSelections.find((selection) => selection.itemId === item.id)
-    if (existing) {
+    const existingIds = new Set(
+      itemSelections.filter((selection) => selection.itemId === item.id).map((selection) => selection.instanceId),
+    )
+    if (existingIds.size > 0) {
       setItemSelections(
         itemSelections.filter((selection) => selection.itemId !== item.id),
-        attachments.filter((attachment) => attachment.hostInstanceId !== existing.instanceId),
+        attachments.filter((attachment) => !existingIds.has(attachment.hostInstanceId)),
       )
     } else {
       setItemSelections([...itemSelections, {
@@ -106,9 +117,28 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
     setFocusedId(item.id)
   }
 
+  const addInstance = (item: ResourceLine) =>
+    setItemSelections([...itemSelections, {
+      itemId: item.id,
+      quantity: 1,
+      rating: item.ratingRange ? item.ratingRange.minimum : undefined,
+      instanceId: crypto.randomUUID(),
+    }])
+
+  const removeInstance = (instanceId: string) =>
+    setItemSelections(
+      itemSelections.filter((selection) => selection.instanceId !== instanceId),
+      attachments.filter((attachment) => attachment.hostInstanceId !== instanceId),
+    )
+
   const updateSelection = (itemId: string, patch: Partial<ResourceSelection>) =>
     setItemSelections(itemSelections.map((selection) =>
       selection.itemId === itemId ? { ...selection, ...patch } : selection,
+    ))
+
+  const updateInstance = (instanceId: string, patch: Partial<ResourceSelection>) =>
+    setItemSelections(itemSelections.map((selection) =>
+      selection.instanceId === instanceId ? { ...selection, ...patch } : selection,
     ))
 
   const addAttachment = (attachment: AttachmentSelection) =>
@@ -150,21 +180,20 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
     const line = findLine(selection.itemId)
     if (!line) return []
     return [{
-      id: line.id,
+      id: selection.instanceId ?? line.id,
       name: line.displayName,
       badge: money(Math.round(unitCost(line, selection.rating ?? null) * (selection.quantity ?? 1))),
       active: focusedId === line.id,
       onFocus: () => setFocusedId(line.id),
-      onRemove: () => toggle(line),
+      onRemove: () => (line.hostKind && selection.instanceId ? removeInstance(selection.instanceId) : toggle(line)),
     }]
   })
 
   const focused = purchasable.find((item) => item.id === focusedId) ?? purchasable[0]
-  const focusedSelection = focused ? itemSelections.find((item) => item.itemId === focused.id) : undefined
-  const taken = focusedSelection !== undefined
-  const focusedAttachments = focusedSelection?.instanceId
-    ? attachments.filter((entry) => entry.hostInstanceId === focusedSelection.instanceId)
-    : []
+  const isMultiInstance = Boolean(focused?.hostKind)
+  const focusedInstances = focused ? itemSelections.filter((item) => item.itemId === focused.id) : []
+  const focusedSelection = focusedInstances[0]
+  const taken = focusedInstances.length > 0
   const focusedAvailability = focused ? resolveAvailabilityNumber(focused.availability, focusedSelection?.rating ?? null) : null
   const normalizedQuery = query.trim().toLocaleLowerCase()
   const visibleItems = purchasable.filter((item) =>
@@ -210,7 +239,11 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
                 key={item.id}
                 className={`console__row${focusedId === item.id ? ' console__row--active' : ''}${isTaken ? ' console__row--taken' : ''}`}
                 style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 60px 96px' }}
+                role="button"
+                tabIndex={0}
                 onClick={() => setFocusedId(item.id)}
+                onKeyDown={onKeyActivate(() => setFocusedId(item.id))}
+                aria-label={item.displayName}
               >
                 <span className="console__row-name"><span className="console__row-name-text">{item.displayName}</span></span>
                 <span className="console__row-col">{item.groupLabel}</span>
@@ -314,7 +347,63 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
           rows={[{ label: 'RATING RANGE', value: focused.ratingRange ? `${focused.ratingRange.minimum}–${focused.ratingRange.maximum}` : 'FIXED' }]}
           warn={(focusedAvailability ?? 0) > 12 ? `Availability ${focusedAvailability} exceeds the creation cap of 12. The server will reject this item on finalize.` : undefined}
         >
-          {taken && (
+          {taken && isMultiInstance && (
+            <div className="readout__field--stack">
+              <span className="readout__field-label">INSTALLED UNITS <span className="readout__field-sub">({focusedInstances.length})</span></span>
+              {focusedInstances.map((instance, index) => {
+                const instanceAttachments = instance.instanceId
+                  ? attachments.filter((entry) => entry.hostInstanceId === instance.instanceId)
+                  : []
+                const unitLabel = `${focused.displayName} unit ${index + 1}`
+                return (
+                  <div className="readout__field--stack" key={instance.instanceId ?? index}>
+                    <div className="readout__field">
+                      <span className="readout__field-label">UNIT {index + 1}</span>
+                      <button type="button" className="readout__action readout__action--remove" aria-label={`Remove ${unitLabel}`} onClick={() => removeInstance(instance.instanceId!)}>REMOVE</button>
+                    </div>
+                    {focused.ratingRange && (
+                      <div className="readout__field">
+                        <span className="readout__field-label">RATING</span>
+                        <span className="readout__pillrow" style={{ maxWidth: 140 }}>
+                          <button type="button" className="console__stepper-btn" aria-label={`Decrease ${unitLabel} rating`} disabled={(instance.rating ?? focused.ratingRange.minimum) <= focused.ratingRange.minimum} onClick={() => updateInstance(instance.instanceId!, { rating: Math.max(focused.ratingRange!.minimum, (instance.rating ?? focused.ratingRange!.minimum) - 1) })}>−</button>
+                          <span className="console__stepper-value console__stepper-value--active" style={{ minWidth: 24 }}>{instance.rating ?? focused.ratingRange.minimum}</span>
+                          <button type="button" className="console__stepper-btn" aria-label={`Increase ${unitLabel} rating`} disabled={(instance.rating ?? focused.ratingRange.minimum) >= Math.min(focused.ratingRange.maximum, 6)} onClick={() => updateInstance(instance.instanceId!, { rating: Math.min(Math.min(focused.ratingRange!.maximum, 6), (instance.rating ?? focused.ratingRange!.minimum) + 1) })}>+</button>
+                        </span>
+                      </div>
+                    )}
+                    {focused.requiresParameter && (
+                      <div className="readout__field--stack">
+                        <span className="readout__field-label" style={{ color: 'var(--sb-warning)' }}>REQUIRED PARAMETER</span>
+                        <div className="readout__input-row">
+                          <input aria-label={`${unitLabel} parameter`} placeholder="Required parameter" value={instance.parameter ?? ''} onChange={(event) => updateInstance(instance.instanceId!, { parameter: event.target.value })} />
+                        </div>
+                      </div>
+                    )}
+                    <div className="readout__field">
+                      <span className="readout__field-label">ATTACHMENTS</span>
+                      <button type="button" className="creator-header__btn" aria-label={`Manage attachments for ${unitLabel}`} onClick={() => setOpenHostInstanceId(instance.instanceId ?? null)}>MANAGE ▸</button>
+                    </div>
+                    {instanceAttachments.length > 0 && (
+                      <div className="readout__attach-list">
+                        {instanceAttachments.map((attachment) => {
+                          const accessory = resolveAccessory(catalog, focused.hostKind, attachment.accessoryId)
+                          const mount = effectiveWeaponMount(catalog, attachment)
+                          return (
+                            <div className="readout__attach-row" key={attachment.accessoryId}>
+                              <span>{accessory?.displayName ?? attachment.accessoryId}</span>
+                              <span>{attachmentUnitCost(catalog, attachment).toLocaleString()}¥{mount ? ` · ${MOUNT_LABELS[mount]}` : ''}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              <button type="button" className="readout__action" onClick={() => addInstance(focused)}>ADD ANOTHER {focused.displayName.toUpperCase()} +</button>
+            </div>
+          )}
+          {taken && !isMultiInstance && (
             <>
               {focused.ratingRange && (
                 <div className="readout__field">
@@ -340,28 +429,6 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
                   <div className="readout__input-row">
                     <input aria-label={`${focused.displayName} parameter`} placeholder="Required parameter" value={focusedSelection?.parameter ?? ''} onChange={(event) => updateSelection(focused.id, { parameter: event.target.value })} />
                   </div>
-                </div>
-              )}
-              {focused.hostKind && (
-                <div className="readout__field--stack">
-                  <div className="readout__field">
-                    <span className="readout__field-label">ATTACHMENTS</span>
-                    <button type="button" className="creator-header__btn" aria-label={`Manage attachments for ${focused.displayName}`} onClick={() => setOpenHostInstanceId(focusedSelection!.instanceId ?? null)}>MANAGE ▸</button>
-                  </div>
-                  {focusedAttachments.length > 0 && (
-                    <div className="readout__attach-list">
-                      {focusedAttachments.map((attachment) => {
-                        const accessory = resolveAccessory(catalog, focused.hostKind, attachment.accessoryId)
-                        const mount = effectiveWeaponMount(catalog, attachment)
-                        return (
-                          <div className="readout__attach-row" key={attachment.accessoryId}>
-                            <span>{accessory?.displayName ?? attachment.accessoryId}</span>
-                            <span>{attachmentUnitCost(catalog, attachment).toLocaleString()}¥{mount ? ` · ${MOUNT_LABELS[mount]}` : ''}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
                 </div>
               )}
             </>

@@ -217,7 +217,11 @@ public sealed record FocusDefinition(
     string Id,
     string DisplayName,
     bool CreationUnavailable,
-    SourceCitation Source);
+    SourceCitation Source,
+    string? FocusCategoryId = null,
+    AvailabilityDefinition? Availability = null,
+    CostDefinition? Cost = null,
+    RatingRangeDefinition? RatingRange = null);
 
 public enum GearClassification
 {
@@ -269,7 +273,14 @@ public sealed record GearDefinition(
     IReadOnlyList<string>? IncludedComponentIds = null,
     IReadOnlyList<string>? GeneratedProfileIds = null,
     bool IsCapacityHost = false,
-    CapacityCostDefinition? CapacityCost = null);
+    CapacityCostDefinition? CapacityCost = null,
+    string? Damage = null,
+    string? Ap = null,
+    string? Blast = null,
+    string? Speed = null,
+    string? Duration = null,
+    string? AddictionType = null,
+    string? Effect = null);
 
 public sealed record WeaponDefinition(
     string Id,

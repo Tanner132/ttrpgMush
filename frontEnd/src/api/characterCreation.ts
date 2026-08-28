@@ -167,6 +167,11 @@ export interface CharacterIdentity {
     description?: string | null
 }
 
+// cyberlimbStrengthCustomization/cyberlimbAgilityCustomization (sr5-core
+// p. 456-457, PDF 458-459) raise a cyberlimb's inherent Strength/Agility
+// above the base value of 3, one purchase-time point at a time, at +5,000¥
+// and +1 Availability each. Only meaningful on a `cyberlimb`-category
+// augmentation line.
 export interface ResourceSelection {
     itemId: string
     quantity?: number
@@ -174,6 +179,8 @@ export interface ResourceSelection {
     gradeId?: string | null
     parameter?: string | null
     instanceId?: string | null
+    cyberlimbStrengthCustomization?: number | null
+    cyberlimbAgilityCustomization?: number | null
 }
 
 // Matches the catalog's wire enum convention (CatalogJsonOptions: bare
@@ -346,13 +353,29 @@ export function resolveAvailabilityNumber(
     return resolveNumber(availability.fixed, availability.perRating, availability.byRating, rating)
 }
 
+// Cyberlimb Customization (sr5-core p. 456-457, PDF 458-459): raising a
+// cyberlimb's inherent Strength/Agility above the base value of 3 costs
+// +5,000¥ and +1 Availability per point. Mirrors
+// ResourcesEssenceEvaluator's CyberlimbCustomizationCostPerPoint/
+// CyberlimbCustomizationAvailabilityPerPoint.
+export const CYBERLIMB_CUSTOMIZATION_COST_PER_POINT = 5000
+export const CYBERLIMB_CUSTOMIZATION_AVAILABILITY_PER_POINT = 1
+
+export function cyberlimbCustomizationPoints(
+    selection: Pick<ResourceSelection, 'cyberlimbStrengthCustomization' | 'cyberlimbAgilityCustomization'> | undefined,
+): number {
+    return (selection?.cyberlimbStrengthCustomization ?? 0) + (selection?.cyberlimbAgilityCustomization ?? 0)
+}
+
 export function augmentationUnitCost(
     augmentation: AugmentationDefinition,
     grade: AugmentationGradeDefinition,
     rating: number | null,
+    customizationPoints = 0,
 ): number {
-    return resolveNumber(augmentation.cost?.fixed, augmentation.cost?.perRating, augmentation.cost?.byRating, rating)
-        * grade.costMultiplier
+    const base = resolveNumber(augmentation.cost?.fixed, augmentation.cost?.perRating, augmentation.cost?.byRating, rating)
+        + customizationPoints * CYBERLIMB_CUSTOMIZATION_COST_PER_POINT
+    return base * grade.costMultiplier
 }
 
 export function augmentationUnitEssence(
@@ -368,9 +391,12 @@ export function augmentationAvailability(
     augmentation: AugmentationDefinition,
     grade: AugmentationGradeDefinition,
     rating: number | null,
+    customizationPoints = 0,
 ): number | null {
     const base = resolveAvailabilityNumber(augmentation.availability, rating)
-    return base === null ? null : base + grade.availabilityModifier
+    return base === null
+        ? null
+        : base + grade.availabilityModifier + customizationPoints * CYBERLIMB_CUSTOMIZATION_AVAILABILITY_PER_POINT
 }
 
 // Mirrors ResourcesEssenceEvaluator.GearCostMultiplier. A selected Run Faster
@@ -447,6 +473,10 @@ export interface FocusDefinition {
     displayName: string
     creationUnavailable: boolean
     source: SourceCitation
+    focusCategoryId?: string | null
+    availability?: AvailabilityDefinition | null
+    cost?: CostDefinition | null
+    ratingRange?: RatingRangeDefinition | null
 }
 
 export type GearClassification =
@@ -504,6 +534,13 @@ export interface GearDefinition {
     generatedProfileIds?: string[] | null
     isCapacityHost?: boolean
     capacityCost?: CapacityCostDefinition | null
+    damage?: string | null
+    ap?: string | null
+    blast?: string | null
+    speed?: string | null
+    duration?: string | null
+    addictionType?: string | null
+    effect?: string | null
 }
 
 export interface WeaponDefinition {

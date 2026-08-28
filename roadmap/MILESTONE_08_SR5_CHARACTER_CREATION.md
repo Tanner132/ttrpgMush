@@ -589,3 +589,55 @@ final calculations.
 - No serious or critical automated accessibility finding remains.
 - Existing authentication, chat, movement, presence, world editing, and play sessions regressions pass.
 - The released ruleset and catalog hashes match the approved review artifacts.
+
+**Status: Complete.** Six parallel background audits reconciled every
+equipment domain against the approved core PDF (weapons/armor,
+electronics/software, general gear/drugs, augmentations, vehicles/drones,
+magical equipment). The audits surfaced four genuine content gaps beyond
+data-entry fixes — ammunition/explosives/grenades/rockets, drugs/toxins/BTL,
+unpriced foci, and unfindable Autosoft pricing — all resolved this ticket per
+project owner direction to implement everything now rather than defer:
+
+- Ammunition (11 types), arrow/bolt ammo (4 types), explosives (4 items),
+  grenades (7 types), and rockets (3 selectable + 3 `creationUnavailable`
+  missiles) were added to `gear` under new `categoryId` values, reusing the
+  existing purchase/evaluation/display pipeline with new optional
+  `damage`/`ap`/`blast` display fields on `GearDefinition` — no weapon-ammo
+  damage-resolution linkage was built, since no weapon's damage is resolved
+  by any evaluator today (`gear.ammunition-grenade-rocket-linkage`).
+- Drugs (10 types), toxins (9 types), and BTL chips (4 types) were added to
+  `gear` the same way, with new `speed`/`duration`/`addictionType`/`effect`
+  display fields.
+- All 16 foci gained Force-scaled `cost`/`availability`/`ratingRange`/
+  `focusCategoryId` data (`FocusDefinition` extended, plus new loader
+  validation) — this adds missing catalog data, not a purchase-flow fix,
+  since no `FocusSelection`/evaluator/nuyen-deduction path exists for any
+  focus yet (`focus.pricing-added-no-purchase-flow`).
+- Autosofts remain excluded: no priced Autosoft table exists anywhere in the
+  approved PDF copy despite an extensive search (`gear.autosoft-pricing-absent`).
+
+Seven smaller fixes also shipped: Leather Jacket/Duster armor; Ocular Drone,
+External Clip Port, and cybergun Laser Sight/Silencer augmentations; 7
+existing headware/earware entries gained missing `capacityCost` fields; and
+two vehicle citation corrections (Harley-Davidson Scorpion, Horizon
+Flying-Eye). Three reconciliation-report "mismatches" turned out to be
+non-issues already covered by existing approved decisions
+(`vehicle-modification.manual-operation-absolute-values`,
+`gear.helmet-availability`, `gear.smoke-area`), and one flagged gap
+(Biometric Reader) was already present and correct in the base catalog. A
+new Cyberlimb Customization gap and a Gas Grenade cross-item cost reference
+were each excluded per new decisions in `SR5_RULE_DECISIONS.md`
+(`ware.cyberlimb-customization-unmodeled`, `gear.gas-grenade-chemical-payload-cost`),
+matching the existing `gear.focus-formula-cost-reference` precedent of
+excluding rather than fabricating a cross-item price. The new content
+shipped as a `sr5-core-1.4.0.json` overlay (196 gear items, 12 armor, 95
+augmentations, 16 priced foci) pinned in `EmbeddedRulesetCatalogProvider`
+with a computed semantic digest.
+
+The accessibility half of this ticket was completed and live-verified
+earlier in the same session: 17 clickable rows across 6 creator steps
+received `role="button"`/`tabIndex`/`onKeyDown`/`aria-label`, confirmed
+working in a real browser session with no horizontal overflow at 375px.
+Verified via the full backend suite (504 tests passing: Domain, Application,
+Infrastructure, API) and the full frontend suite (325 tests across 36
+files), both green, plus a clean `tsc -b` type-check.

@@ -237,7 +237,7 @@ describe('ResourcesStep attachments', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /ak-97/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={(next) => { document = next }} />)
 
-    const addButton = screen.getByRole('button', { name: /manage attachments for ak-97/i })
+    const addButton = screen.getByRole('button', { name: /manage attachments for ak-97 unit 1/i })
     fireEvent.click(addButton)
 
     const dialog = screen.getByRole('dialog', { name: /attachments — ak-97/i })
@@ -254,7 +254,7 @@ describe('ResourcesStep attachments', () => {
 
     fireEvent.click(screen.getByRole('checkbox', { name: /ak-97/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
-    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ak-97/i }))
+    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ak-97 unit 1/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
 
     const dialog = screen.getByRole('dialog')
@@ -281,7 +281,7 @@ describe('ResourcesStep attachments', () => {
     const onChange = (next: CharacterCreationDocument) => { document = next }
     const { rerender } = renderResourcesStep(document, onChange)
 
-    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ak-97/i }))
+    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ak-97 unit 1/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
 
     let dialog = screen.getByRole('dialog')
@@ -310,7 +310,7 @@ describe('ResourcesStep attachments', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /goggles/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
 
-    const addButton = screen.getByRole('button', { name: /manage attachments for goggles/i })
+    const addButton = screen.getByRole('button', { name: /manage attachments for goggles unit 1/i })
     fireEvent.click(addButton)
 
     const dialog = screen.getByRole('dialog', { name: /enhancements — goggles/i })
@@ -327,7 +327,7 @@ describe('ResourcesStep attachments', () => {
 
     fireEvent.click(screen.getByRole('checkbox', { name: /goggles/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
-    fireEvent.click(screen.getByRole('button', { name: /manage attachments for goggles/i }))
+    fireEvent.click(screen.getByRole('button', { name: /manage attachments for goggles unit 1/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
 
     let dialog = screen.getByRole('dialog')
@@ -350,7 +350,7 @@ describe('ResourcesStep attachments', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /ares roadmaster/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
 
-    const addButton = screen.getByRole('button', { name: /manage attachments for ares roadmaster/i })
+    const addButton = screen.getByRole('button', { name: /manage attachments for ares roadmaster unit 1/i })
     fireEvent.click(addButton)
 
     const dialog = screen.getByRole('dialog', { name: /modifications — ares roadmaster/i })
@@ -366,7 +366,7 @@ describe('ResourcesStep attachments', () => {
 
     fireEvent.click(screen.getByRole('checkbox', { name: /ares roadmaster/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
-    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ares roadmaster/i }))
+    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ares roadmaster unit 1/i }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
 
     let dialog = screen.getByRole('dialog')
@@ -397,6 +397,65 @@ describe('ResourcesStep attachments', () => {
 
     expect(document.resources).toHaveLength(0)
     expect(document.attachments).toHaveLength(0)
+  })
+
+  it('supports buying a second rifle as its own quantity-1 line with its own accessory', () => {
+    let document: CharacterCreationDocument = {
+      ...baseDocument,
+      resources: [{ itemId: 'ak-97', quantity: 1, instanceId: 'rifle-1' }],
+      attachments: [{ hostInstanceId: 'rifle-1', accessoryId: 'accessory-bipod', mount: 'Underbarrel' }],
+    }
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    const { rerender } = renderResourcesStep(document, onChange)
+
+    fireEvent.click(screen.getByRole('button', { name: /add another ak-97/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    // Every purchased rifle stays its own quantity-1 line so it can carry its
+    // own accessories — the server rejects attachments on any host whose
+    // Quantity isn't 1.
+    expect(document.resources).toHaveLength(2)
+    expect(document.resources!.every((item) => item.quantity === 1)).toBe(true)
+    const secondRifleId = document.resources!.find((item) => item.instanceId !== 'rifle-1')!.instanceId!
+    expect(secondRifleId).not.toBe('rifle-1')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Manage attachments for AK-97 unit 2' }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    const dialog = screen.getByRole('dialog')
+    const scopeOption = within(dialog).getByText('Imaging Scope').closest('li')!
+    fireEvent.click(within(scopeOption).getByRole('button', { name: 'Add' }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    // Both rifles now each carry their own accessory, charged independently.
+    expect(document.attachments).toHaveLength(2)
+    expect(document.attachments).toEqual(expect.arrayContaining([
+      { hostInstanceId: 'rifle-1', accessoryId: 'accessory-bipod', mount: 'Underbarrel' },
+      { hostInstanceId: secondRifleId, accessoryId: 'accessory-imaging-scope', mount: 'Top', rating: undefined },
+    ]))
+  })
+
+  it('removing a single rifle instance only removes that unit and its attachments', () => {
+    let document: CharacterCreationDocument = {
+      ...baseDocument,
+      resources: [
+        { itemId: 'ak-97', quantity: 1, instanceId: 'rifle-1' },
+        { itemId: 'ak-97', quantity: 1, instanceId: 'rifle-2' },
+      ],
+      attachments: [
+        { hostInstanceId: 'rifle-1', accessoryId: 'accessory-bipod', mount: 'Underbarrel' },
+        { hostInstanceId: 'rifle-2', accessoryId: 'accessory-imaging-scope', mount: 'Top' },
+      ],
+    }
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    renderResourcesStep(document, onChange)
+
+    fireEvent.click(screen.getByRole('button', { name: /remove ak-97 unit 2/i }))
+
+    expect(document.resources).toHaveLength(1)
+    expect(document.resources![0].instanceId).toBe('rifle-1')
+    expect(document.attachments).toHaveLength(1)
+    expect(document.attachments![0].hostInstanceId).toBe('rifle-1')
   })
 })
 

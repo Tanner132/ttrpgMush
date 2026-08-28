@@ -16,6 +16,14 @@ public sealed class ResourcesEssenceEvaluator
     private const int MaxKarmaConversion = 10;
     private const decimal StartingEssence = 6m;
 
+    // Cyberlimb Customization (sr5-core p. 456-457, PDF 458-459): a cyberlimb
+    // ships with Strength/Agility of 3; raising either above that base, one
+    // point at a time and only at purchase time, costs +5,000nuyen and
+    // +1 Availability per point.
+    private const int CyberlimbBaseAttribute = 3;
+    private const decimal CyberlimbCustomizationCostPerPoint = 5000m;
+    private const int CyberlimbCustomizationAvailabilityPerPoint = 1;
+
     public ResourcesEssenceEvaluation Evaluate(
         RulesetCatalog catalog,
         PriorityAssignment assignment,
@@ -35,6 +43,10 @@ public sealed class ResourcesEssenceEvaluator
         var metatype = document.Metatype is null
             ? null
             : catalog.Metatypes.GetValueOrDefault(document.Metatype.MetatypeId);
+        var metavariant = document.Metatype?.MetavariantId is null
+            ? null
+            : catalog.Metavariants.GetValueOrDefault(document.Metatype.MetavariantId);
+        var effectiveAttributes = metavariant?.Attributes ?? metatype?.Attributes;
         var gearMultiplier = GearCostMultiplier(metatype, document.Metatype?.MetavariantId);
 
         var spent = 0m;
@@ -67,6 +79,15 @@ public sealed class ResourcesEssenceEvaluator
                 availability += grade.AvailabilityModifier;
             }
 
+            var (cyberlimbStrengthPoints, cyberlimbAgilityPoints) = EvaluateCyberlimbCustomization(
+                item, selection, effectiveAttributes, document, diagnostics);
+            var cyberlimbCustomizationPoints = cyberlimbStrengthPoints + cyberlimbAgilityPoints;
+
+            if (availability is not null && cyberlimbCustomizationPoints > 0)
+            {
+                availability += cyberlimbCustomizationPoints * CyberlimbCustomizationAvailabilityPerPoint;
+            }
+
             if (availability is not null && availability > MaxCreationAvailability)
             {
                 diagnostics.Add(Error("resource.availability.exceeded", $"resources[{selection.ItemId}]",
@@ -87,6 +108,11 @@ public sealed class ResourcesEssenceEvaluator
             }
 
             var unitCost = ResolveCost(item.Cost, rating);
+            if (cyberlimbCustomizationPoints > 0)
+            {
+                unitCost += CyberlimbCustomizationCostPerPoint * cyberlimbCustomizationPoints;
+            }
+
             if (grade is not null)
             {
                 unitCost *= grade.CostMultiplier;
@@ -114,7 +140,9 @@ public sealed class ResourcesEssenceEvaluator
                 RoundNuyen(lineCost),
                 lineEssence,
                 CanonicalProvenance.Nuyen,
-                selection.InstanceId));
+                selection.InstanceId,
+                cyberlimbStrengthPoints > 0 ? cyberlimbStrengthPoints : null,
+                cyberlimbAgilityPoints > 0 ? cyberlimbAgilityPoints : null));
         }
 
         if (spent > totalBudget)
@@ -245,6 +273,65 @@ public sealed class ResourcesEssenceEvaluator
         }
 
         return rating;
+    }
+
+    private static (int Strength, int Agility) EvaluateCyberlimbCustomization(
+        ResolvedItem item,
+        ResourceSelection selection,
+        IReadOnlyDictionary<string, MetatypeAttributeRange>? effectiveAttributes,
+        CharacterCreationDraftDocument document,
+        List<CharacterCreationDiagnostic> diagnostics)
+    {
+        var strength = selection.CyberlimbStrengthCustomization ?? 0;
+        var agility = selection.CyberlimbAgilityCustomization ?? 0;
+
+        if (item.AugmentationCategoryId != "cyberlimb")
+        {
+            if (strength != 0 || agility != 0)
+            {
+                diagnostics.Add(Error("resource.cyberlimb-customization.not-applicable",
+                    $"resources[{item.Id}]", [item.Id], item.Source, new Dictionary<string, string>(),
+                    "Only cyberlimbs use Strength/Agility customization."));
+            }
+
+            return (0, 0);
+        }
+
+        foreach (var (attributeId, points) in new[] { ("strength", strength), ("agility", agility) })
+        {
+            if (points < 0)
+            {
+                diagnostics.Add(Error("resource.cyberlimb-customization.negative",
+                    $"resources[{item.Id}].{attributeId}Customization", [item.Id], item.Source,
+                    new Dictionary<string, string>(), "Customization points cannot be negative."));
+                continue;
+            }
+
+            if (points == 0)
+            {
+                continue;
+            }
+
+            var naturalMaximum = effectiveAttributes is not null
+                && effectiveAttributes.TryGetValue(attributeId, out var range)
+                    ? range.Maximum + (CharacterCreationDiagnosticFactory.HasExceptionalAttributeFor(document, attributeId) ? 1 : 0)
+                    : (int?)null;
+
+            var customizedValue = CyberlimbBaseAttribute + points;
+            if (naturalMaximum is not null && customizedValue > naturalMaximum)
+            {
+                diagnostics.Add(Error("resource.cyberlimb-customization.natural-maximum-exceeded",
+                    $"resources[{item.Id}].{attributeId}Customization", [item.Id], item.Source,
+                    new Dictionary<string, string>
+                    {
+                        ["actual"] = customizedValue.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        ["maximum"] = naturalMaximum.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    },
+                    "Reduce customization so the limb's Strength/Agility does not exceed your natural maximum."));
+            }
+        }
+
+        return (strength, agility);
     }
 
     private static AugmentationGradeDefinition? ResolveGrade(
@@ -389,7 +476,7 @@ public sealed class ResourcesEssenceEvaluator
         {
             item = new ResolvedItem(augmentation.Id, augmentation.Classification, augmentation.Source,
                 augmentation.Availability, augmentation.Cost, augmentation.Essence, augmentation.RatingRange,
-                augmentation.RequiresParameter, true);
+                augmentation.RequiresParameter, true, augmentation.AugmentationCategoryId);
             return true;
         }
 
@@ -443,5 +530,6 @@ public sealed class ResourcesEssenceEvaluator
         EssenceDefinition? Essence,
         RatingRangeDefinition? RatingRange,
         bool RequiresParameter,
-        bool IsAugmentation);
+        bool IsAugmentation,
+        string? AugmentationCategoryId = null);
 }

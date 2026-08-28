@@ -15,6 +15,7 @@ import {
   resolveOptions,
   visibleFields,
 } from '../qualityParameters.ts'
+import { onKeyActivate } from '../../ui/keyboardActivation.ts'
 
 const KARMA_CAP = 25
 
@@ -202,7 +203,11 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
                 key={quality.id}
                 className={`console__row${isFocused ? ' console__row--active' : ''}${isSelected ? ' console__row--taken' : ''}`}
                 style={{ gridTemplateColumns: 'minmax(150px,1fr) 96px 90px' }}
+                role="button"
+                tabIndex={0}
                 onClick={() => setFocusedId(quality.id)}
+                onKeyDown={onKeyActivate(() => setFocusedId(quality.id))}
+                aria-label={quality.displayName}
               >
                 <span className="console__row-name">
                   <span className="console__row-name-text">{quality.displayName}</span>
@@ -336,6 +341,7 @@ export function QualitiesStep({ catalog, document, onChange, diagnostics = [] }:
                                 maxLength={120}
                                 list={listId}
                                 placeholder={field.placeholder}
+                                aria-label={field.label}
                                 value={value}
                                 onChange={(event) => updateParameter(position, field.key, event.target.value)}
                               />

@@ -182,7 +182,9 @@ public sealed record CanonicalResource(
     int NuyenCost,
     decimal EssenceLoss,
     CanonicalProvenance Provenance,
-    string? InstanceId = null);
+    string? InstanceId = null,
+    int? CyberlimbStrengthCustomization = null,
+    int? CyberlimbAgilityCustomization = null);
 
 public sealed record CanonicalResourcesEssence(
     IReadOnlyList<CanonicalResource> Resources,

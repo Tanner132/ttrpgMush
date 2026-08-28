@@ -5,6 +5,7 @@ import { Diagnostics } from '../Diagnostics.tsx'
 import { describeAttribute } from '../catalogDescriptions.ts'
 import { computeAttributeKarmaSpent } from '../budgets.ts'
 import { effectiveMetatypeAttributes, getCatalogIndex } from '../catalogIndex.ts'
+import { onKeyActivate } from '../../ui/keyboardActivation.ts'
 
 const NORMAL_ATTRIBUTE_IDS = ['body', 'agility', 'reaction', 'strength', 'willpower', 'logic', 'intuition', 'charisma']
 
@@ -64,7 +65,11 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
               <div
                 key={id}
                 className={`attribute-row${selectedId === id ? ' attribute-row--active' : ''}`}
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelectedId(id)}
+                onKeyDown={onKeyActivate(() => setSelectedId(id))}
+                aria-label={definition?.displayName ?? id}
               >
                 <span className="attribute-row__name">
                   <span className="attribute-row__title">{definition?.displayName ?? id}</span>

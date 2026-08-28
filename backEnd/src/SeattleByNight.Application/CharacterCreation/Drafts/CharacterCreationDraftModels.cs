@@ -75,13 +75,21 @@ public sealed record ComplexFormSelection(string ComplexFormId, bool Granted = f
 
 public sealed record MentorSpiritSelection(string MentorSpiritId, string? Choice = null);
 
+// CyberlimbStrength/AgilityCustomization (sr5-core p. 456-457, PDF 458-459)
+// raise a cyberlimb's inherent Strength/Agility above the base value of 3,
+// one purchase-time point at a time, at +5,000nuyen and +1 Availability each
+// (SeattleByNight.Application.CharacterCreation.Evaluation.ResourcesEssenceEvaluator).
+// They only apply to a `cyberlimb`-category augmentation line; any other item
+// carrying a non-zero value is a validation error.
 public sealed record ResourceSelection(
     string ItemId,
     int Quantity = 1,
     int? Rating = null,
     string? GradeId = null,
     string? Parameter = null,
-    string? InstanceId = null);
+    string? InstanceId = null,
+    int? CyberlimbStrengthCustomization = null,
+    int? CyberlimbAgilityCustomization = null);
 
 // An attachment references the specific purchased line instance it is mounted
 // to or installed in (ResourceSelection.InstanceId), not a bare item ID, so two

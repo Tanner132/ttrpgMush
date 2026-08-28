@@ -23,7 +23,7 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         response.EnsureSuccessStatusCode();
         using var body = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
         Assert.Equal("sr5-core", body.RootElement.GetProperty("rulesetId").GetString());
-        Assert.Equal("1.3.0", body.RootElement.GetProperty("version").GetString());
+        Assert.Equal("1.4.0", body.RootElement.GetProperty("version").GetString());
         Assert.Equal(64, body.RootElement.GetProperty("semanticDigest").GetString()!.Length);
         Assert.Equal(2, body.RootElement.GetProperty("creationMethods").GetArrayLength());
         Assert.Equal(25, body.RootElement.GetProperty("priorityCells").GetArrayLength());

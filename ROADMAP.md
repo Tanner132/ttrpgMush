@@ -42,6 +42,45 @@ npm --prefix frontEnd run lint
 npm --prefix frontEnd run build
 ```
 
+## Ruleset Catalog Operations
+
+The SR5 catalog (`backEnd/src/SeattleByNight.Application/CharacterCreation/Catalog/`)
+is versioned and pinned, not freely mutable. This section is the operational
+reference for its hashes and rollback procedure, written as part of CHAR-812's
+release-gate documentation requirement.
+
+- `EmbeddedRulesetCatalogProvider.CurrentRulesetId`/`CurrentVersion`/
+  `CurrentSemanticDigest` are the single source of truth for which catalog
+  version is live. Never hardcode a digest value in prose elsewhere (this
+  roadmap and `SR5_CATALOG_LEDGER.md` deliberately don't) — read it from the
+  provider.
+- `RetainedVersions` is an append-only lockfile of every published version
+  (`1.0.0` through the current version). A released version's resource file
+  and pinned digest are never edited after release; new content always
+  becomes a new resource file (e.g. `sr5-core-1.4.0.json`) plus a new pin.
+- Every overlay's `BaseResourceName` points at the standalone `sr5-core-1.0.0.json`
+  base, not at the previous overlay — `LoadOverlay` reads the base as raw
+  bytes rather than resolving its own overlay chain, so each new overlay must
+  carry forward, in full, any additive content from every earlier overlay it
+  still needs (this is why `1.4.0.json` republishes `1.1.0`'s
+  Knowledge/Language suggestions, `1.2.0`'s metavariants, and `1.3.0`'s Run
+  Faster qualities alongside its own new content).
+- **Computing a new digest**: pin a placeholder digest string on the new
+  `CatalogVersionPin`, run `dotnet test --filter FullyQualifiedName~RulesetCatalogLoaderTests`,
+  and read the real SHA-256 digest out of the resulting
+  `RulesetCatalogException` message (`"Catalog semantic digest mismatch.
+  Expected <placeholder>, calculated <real digest>"`). Never guess a digest.
+- **Rollback / disable procedure**: revert `EmbeddedRulesetCatalogProvider.CurrentVersion`
+  (and `CurrentSemanticDigest`) to the prior pinned version and redeploy. No
+  data migration is needed — a player's draft or finalized character records
+  the catalog version it was created against, and `RulesetCatalogLoader`
+  already rejects a sheet whose pinned version/digest no longer resolves
+  (`RulesetCatalogException`, confirmed in practice during CHAR-814 when a
+  stale local draft correctly failed this check). Because `RetainedVersions`
+  never removes an entry, rolling `CurrentVersion` back does not orphan any
+  character created under a newer version — it simply stops offering that
+  version for new drafts.
+
 ## Release Sequence
 
 1. Release Milestone 2 as a behavior-preserving frontend foundation.
@@ -127,11 +166,21 @@ which meant `SeattleByNight.Api.Tests` had been failing outright since that
 change (a locked build output from a stale running dev server had been
 masking this before now).
 
-CHAR-812 (Milestone 8's completeness/accessibility/release gate) has not been
-started; CHAR-801 through CHAR-811 are complete. Normal sequencing is to
-complete CHAR-812 before Milestone 9 (see Release Sequence item 9). The
-project owner explicitly approved starting Milestone 9 rules work ahead of
-CHAR-812 on 2026-08-25 as a recorded process exception.
+**CHAR-812 (Milestone 8's completeness/accessibility/release gate) is
+complete — Milestone 8 is fully complete (CHAR-801 through CHAR-812).** Six
+parallel background audits reconciled every equipment domain against the
+approved core PDF; the four genuine content gaps they found (ammunition/
+explosives/grenades/rockets, drugs/toxins/BTL, unpriced foci, unfindable
+Autosoft pricing) were all closed per project-owner direction to implement
+everything now, published as catalog version `sr5-core` `1.4.0` (see
+`roadmap/SR5_CATALOG_LEDGER.md` and the new entries in
+`roadmap/SR5_RULE_DECISIONS.md`). The accessibility half (keyboard/
+screen-reader/reduced-motion/zoom/narrow-screen review) was completed and
+live-verified earlier in the same session. Full detail in
+`roadmap/MILESTONE_08_SR5_CHARACTER_CREATION.md`'s CHAR-812 section. Milestone
+9 rules work had already started ahead of CHAR-812 on 2026-08-25 as a
+recorded process exception (see below); that exception is now moot since
+CHAR-812 has landed.
 
 **SHEET-901** (`roadmap/SHEET_901_CAREER_RULES_BASELINE.md`) is complete and
 approved: the full core Character Improvement Table (attributes, skills,

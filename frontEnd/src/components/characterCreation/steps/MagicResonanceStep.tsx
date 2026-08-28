@@ -6,6 +6,7 @@ import { Diagnostics } from '../Diagnostics.tsx'
 import { Readout } from '../Readout.tsx'
 import { Stepper } from '../Stepper.tsx'
 import { CatalogRail, type CatalogSectionNavItem } from '../CatalogRail.tsx'
+import { onKeyActivate } from '../../ui/keyboardActivation.ts'
 import {
   describeAdeptPower,
   describeAspectedValue,
@@ -288,7 +289,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     key={item.pathId}
                     className={`console__row${isFocused('path', item.pathId) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                     style={{ gridTemplateColumns: 'minmax(140px,1fr) 110px minmax(0,1fr) 96px' }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFocused({ kind: 'path', id: item.pathId })}
+                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'path', id: item.pathId }))}
+                    aria-label={definition?.displayName ?? item.pathId}
                   >
                     <span className="console__row-name"><span className="console__row-name-text">{definition?.displayName ?? item.pathId}</span></span>
                     <span className="console__row-col">{item.attributeRating > 0 ? `${item.attributeRating} ${definition?.attributeId}` : '—'}</span>
@@ -319,7 +324,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     key={tradition.id}
                     className={`console__row${isFocused('tradition', tradition.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                     style={{ gridTemplateColumns: 'minmax(140px,1fr) 1fr 96px' }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFocused({ kind: 'tradition', id: tradition.id })}
+                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'tradition', id: tradition.id }))}
+                    aria-label={tradition.displayName}
                   >
                     <span className="console__row-name"><span className="console__row-name-text">{tradition.displayName}</span></span>
                     <span className="console__row-col">{tradition.drainAttributes}</span>
@@ -350,7 +359,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     key={id}
                     className={`console__row${isFocused('aspect', id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                     style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFocused({ kind: 'aspect', id })}
+                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'aspect', id }))}
+                    aria-label={aspect?.displayName ?? id}
                   >
                     <span className="console__row-name"><span className="console__row-name-text">{aspect?.displayName ?? id}</span></span>
                     <span className="console__row-end">
@@ -406,7 +419,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                       key={group.id}
                       className={`console__row${isFocused('skill-group', group.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                       style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setFocused({ kind: 'skill-group', id: group.id })}
+                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'skill-group', id: group.id }))}
+                      aria-label={group.displayName}
                     >
                       <span className="console__row-name"><span className="console__row-name-text">{group.displayName}</span></span>
                       <span className="console__row-end">
@@ -435,7 +452,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                       key={skill.id}
                       className={`console__row${isFocused('skill', skill.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                       style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setFocused({ kind: 'skill', id: skill.id })}
+                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'skill', id: skill.id }))}
+                      aria-label={skill.displayName}
                     >
                       <span className="console__row-name"><span className="console__row-name-text">{skill.displayName}</span></span>
                       <span className="console__row-end">
@@ -468,7 +489,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     <div
                       className={`console__row${isFocused('spell', spell.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                       style={{ gridTemplateColumns: 'minmax(140px,1fr) 130px 96px 96px' }}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setFocused({ kind: 'spell', id: spell.id })}
+                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'spell', id: spell.id }))}
+                      aria-label={spell.displayName}
                     >
                       <span className="console__row-name"><span className="console__row-name-text">{spell.displayName}</span></span>
                       <span className="console__row-col">{spell.category} / {spell.type}</span>
@@ -505,7 +530,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     key={ritual.id}
                     className={`console__row${isFocused('ritual', ritual.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                     style={{ gridTemplateColumns: 'minmax(140px,1fr) 1fr 96px' }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFocused({ kind: 'ritual', id: ritual.id })}
+                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'ritual', id: ritual.id }))}
+                    aria-label={ritual.displayName}
                   >
                     <span className="console__row-name"><span className="console__row-name-text">{ritual.displayName}</span></span>
                     <span className="console__row-col">{ritual.keywords.join(', ')}</span>
@@ -554,7 +583,15 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                   </span>
                 </div>
               ))}
-              <div className="console__row" style={{ gridTemplateColumns: 'minmax(0,1fr)', cursor: 'pointer' }} onClick={addPreparation}>
+              <div
+                className="console__row"
+                style={{ gridTemplateColumns: 'minmax(0,1fr)', cursor: 'pointer' }}
+                role="button"
+                tabIndex={0}
+                onClick={addPreparation}
+                onKeyDown={onKeyActivate(addPreparation)}
+                aria-label="Add preparation"
+              >
                 <span className="console__row-name-text" style={{ color: 'var(--sb-accent)' }}>+ ADD PREPARATION</span>
               </div>
             </div>
@@ -568,7 +605,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
             </div>
             {path.kind === 'MysticAdept' && (
               <div style={{ padding: 'var(--sb-space-2) var(--sb-space-4)' }}>
-                <label className="creation-attribute">
+                <div className="creation-attribute">
                   <span><strong>Purchased Power Points</strong><small>5 Karma each, up to Magic</small></span>
                   <Stepper
                     label="Purchased Power Points"
@@ -577,7 +614,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     value={selection?.purchasedPowerPoints ?? 0}
                     onChange={purchasedPowerPoints => update({ purchasedPowerPoints })}
                   />
-                </label>
+                </div>
               </div>
             )}
             <div className="console__list">
@@ -589,7 +626,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     <div
                       className={`console__row${isFocused('power', power.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                       style={{ gridTemplateColumns: 'minmax(140px,1fr) 130px 96px' }}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setFocused({ kind: 'power', id: power.id })}
+                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'power', id: power.id }))}
+                      aria-label={power.displayName}
                     >
                       <span className="console__row-name"><span className="console__row-name-text">{power.displayName}</span></span>
                       <span className="console__row-col">{selectedPower ? `${effectivePowerPointCost(power, selectedPower.rank ?? 1)} PP` : `${power.powerPointCost} PP${power.ranked ? ' per rank' : ''}`}</span>
@@ -636,7 +677,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     key={form.id}
                     className={`console__row${isFocused('form', form.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                     style={{ gridTemplateColumns: 'minmax(140px,1fr) 1fr 96px' }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFocused({ kind: 'form', id: form.id })}
+                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'form', id: form.id }))}
+                    aria-label={form.displayName}
                   >
                     <span className="console__row-name"><span className="console__row-name-text">{form.displayName}</span></span>
                     <span className="console__row-col">{form.target} / {form.duration} / {form.fade}</span>
@@ -666,7 +711,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                     <div
                       className={`console__row${isFocused('mentor', spirit.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
                       style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setFocused({ kind: 'mentor', id: spirit.id })}
+                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'mentor', id: spirit.id }))}
+                      aria-label={spirit.displayName}
                     >
                       <span className="console__row-name"><span className="console__row-name-text">{spirit.displayName}</span></span>
                       <span className="console__row-end">

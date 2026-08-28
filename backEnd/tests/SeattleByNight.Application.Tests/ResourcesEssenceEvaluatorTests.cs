@@ -252,4 +252,68 @@ public sealed class ResourcesEssenceEvaluatorTests
 
         Assert.Contains(evaluation.Diagnostics, item => item.Code == "catalog.option.unknown");
     }
+
+    [Fact]
+    public void Cyberlimb_customization_adds_cost_and_availability_per_point()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Metatype: new MetatypeSelection("human"),
+            Resources:
+            [
+                new ResourceSelection("obvious-cyberlimb-full-arm",
+                    CyberlimbStrengthCustomization: 2, CyberlimbAgilityCustomization: 1),
+            ]));
+
+        Assert.Empty(evaluation.Diagnostics);
+        var resource = Assert.Single(evaluation.Resources!.Resources);
+        Assert.Equal(30000, resource.NuyenCost);
+        Assert.Equal(2, resource.CyberlimbStrengthCustomization);
+        Assert.Equal(1, resource.CyberlimbAgilityCustomization);
+    }
+
+    [Fact]
+    public void Cyberlimb_customization_beyond_the_natural_maximum_is_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        // Human Strength maxes at 6; the limb ships at 3, so +4 (=7) exceeds it.
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Metatype: new MetatypeSelection("human"),
+            Resources: [new ResourceSelection("obvious-cyberlimb-full-arm", CyberlimbStrengthCustomization: 4)]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.cyberlimb-customization.natural-maximum-exceeded");
+    }
+
+    [Fact]
+    public void Cyberlimb_customization_on_a_non_cyberlimb_item_is_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("datajack", CyberlimbStrengthCustomization: 1)]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.cyberlimb-customization.not-applicable");
+    }
+
+    [Fact]
+    public void Negative_cyberlimb_customization_is_rejected()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new ResourcesEssenceEvaluator();
+
+        var evaluation = evaluator.Evaluate(catalog, ResourcesA, new CharacterCreationDraftDocument(
+            ResourcesA,
+            Metatype: new MetatypeSelection("human"),
+            Resources: [new ResourceSelection("obvious-cyberlimb-full-arm", CyberlimbAgilityCustomization: -1)]));
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "resource.cyberlimb-customization.negative");
+    }
 }

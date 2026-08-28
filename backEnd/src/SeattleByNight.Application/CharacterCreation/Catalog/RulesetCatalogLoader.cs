@@ -453,7 +453,11 @@ public static partial class RulesetCatalogLoader
             ValidateCommonEntry(sprite.Id, sprite.DisplayName, sprite.Source, sourceIds, "sprite type");
 
         foreach (var focus in document.Foci)
+        {
             ValidateCommonEntry(focus.Id, focus.DisplayName, focus.Source, sourceIds, "focus");
+            ValidateResourceEntry(focus.Availability, focus.Cost, null, null, focus.RatingRange,
+                null, null, $"focus '{focus.Id}'");
+        }
 
         foreach (var grade in document.AugmentationGrades)
         {

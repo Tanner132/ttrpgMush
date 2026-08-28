@@ -6,6 +6,7 @@ import { Diagnostics } from '../Diagnostics.tsx'
 import { describeSkillDomain } from '../catalogDescriptions.ts'
 import { computeSkillKarmaSpent } from '../budgets.ts'
 import { getCatalogIndex } from '../catalogIndex.ts'
+import { onKeyActivate } from '../../ui/keyboardActivation.ts'
 
 function clampRating(value: number, maximum = 6): number {
   return Math.max(0, Math.min(maximum, value))
@@ -176,7 +177,11 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
                     key={skill.id}
                     className={`console__row${focusedSkillId === skill.id ? ' console__row--active' : ''}${effectiveRating > 0 ? ' console__row--taken' : ''}${fundedByGroup ? ' console__row--grouped' : ''}`}
                     style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px 74px 96px' }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFocusedSkillId(skill.id)}
+                    onKeyDown={onKeyActivate(() => setFocusedSkillId(skill.id))}
+                    aria-label={skill.displayName}
                   >
                     <span className="console__row-name">
                       <span className="console__row-name-text">{skill.displayName}</span>
@@ -212,7 +217,11 @@ export function SkillsStep({ catalog, document, onChange, diagnostics = [] }: Cr
                     key={group.id}
                     className={`console__row${focusedGroupId === group.id ? ' console__row--active' : ''}${rating > 0 ? ' console__row--taken' : ''}`}
                     style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px 96px' }}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFocusedGroupId(group.id)}
+                    onKeyDown={onKeyActivate(() => setFocusedGroupId(group.id))}
+                    aria-label={group.displayName}
                   >
                     <span className="console__row-name"><span className="console__row-name-text">{group.displayName}</span></span>
                     <span className="console__row-col">{group.skillIds.length}</span>

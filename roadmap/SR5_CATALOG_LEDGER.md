@@ -14,9 +14,8 @@ slices publish and reconcile their complete option facts.
 
 ## Status
 
-Runtime counts below reflect the `sr5-core` `1.0.0` catalog resource as of
-CHAR-809A completion. They are working figures for this ledger, not a
-substitute for a full CHAR-812 reconciliation pass.
+Runtime counts below reflect the `sr5-core` `1.4.0` catalog resource as of
+CHAR-812 completion.
 
 | Category | Approved-PDF identity review | Detailed fact review | Runtime catalog | Reconciliation |
 | --- | --- | --- | --- | --- |
@@ -25,12 +24,12 @@ substitute for a full CHAR-812 reconciliation pass.
 | Active skills and groups | Complete: 75 skills, 15 groups | Complete | 75 skills, 15 groups published | Reconciled (CHAR-807 complete) |
 | Knowledge and languages | Complete as open-authored categories | Complete | 4 open categories published | Reconciled (CHAR-807 complete) |
 | Magic and Resonance | Complete identity pass | Complete | 6 paths, 3 aspected values, 2 traditions, 84 spells, 9 rituals, 25 adept powers, 16 mentor spirits, 20 complex forms, 6 spirit types, 5 sprite types published | Reconciled (CHAR-808 complete) |
-| Weapons and armor | Complete identity pass | Complete | 77 weapons (includes grapple gun, micro flare launcher, monofilament chainsaw), 11 armor published | Substantially reconciled; final ammunition/explosives pass pending CHAR-809 |
-| Electronics and software | Complete identity pass | Complete | Commlinks (7), a new typed `cyberdecks` catalog (9), electronics accessories, RFID tags, communications/countermeasures, software, and skillsofts published in `gear`/`cyberdecks`; Capacity-scaled optical/audio/sensor hosts and their enhancements published under CHAR-809A | Substantially reconciled; cyberdeck program slots remain a separately tracked gap outside CHAR-809A's written scope |
-| General gear and consumables | Complete identity pass | Complete | 100+ items published across credsticks, tools, fixed-capacity optical devices, security devices, restraints, breaking-and-entering gear, industrial chemicals, survival gear, biotech, DocWagon contracts, and slap patches | Substantially reconciled (CHAR-809) |
-| Augmentations | Complete identity pass | Complete | 91 augmentations across 5 grades (standard, alphaware, betaware, deltaware, used) published | Substantially reconciled (CHAR-809) |
-| Vehicles and drones | Complete identity pass | Complete | 40 items published: 4 bikes, 7 cars, 4 trucks/vans, 3 boats, 2 submarines, 9 aircraft, 11 drones; vehicle modifications (rigger interface, standard/heavy weapon mounts, manual operation) published under CHAR-809A | Substantially reconciled |
-| Magical equipment | Complete identity pass | Complete | 16 foci published under CHAR-808; reagents and magical lodge materials published in `gear`; 5 spell formulae published as parameterized purchases without known-spell linkage | Substantially reconciled; focus formulae (cost tied to a specific focus's price) and spell-formula-to-known-spell linkage deferred |
+| Weapons and armor | Complete identity pass | Complete | 77 weapons (includes grapple gun, micro flare launcher, monofilament chainsaw), 12 armor (adds Leather Jacket/Duster), plus ammunition (11 types), arrow/bolt ammo (4 types), explosives (4 items), grenades (7 types), and rockets (3 selectable + 3 `creationUnavailable` missiles) published in `gear` | Reconciled (CHAR-812 complete); Autosofts excluded per `gear.autosoft-pricing-absent`, weapon-ammo damage linkage deferred per `gear.ammunition-grenade-rocket-linkage` |
+| Electronics and software | Complete identity pass | Complete | Commlinks (7), a new typed `cyberdecks` catalog (9), electronics accessories, RFID tags, communications/countermeasures, software, and skillsofts published in `gear`/`cyberdecks`; Capacity-scaled optical/audio/sensor hosts and their enhancements published under CHAR-809A | Reconciled; cyberdeck program slots and Autosoft pricing remain excluded per `SR5_RULE_DECISIONS.md` |
+| General gear and consumables | Complete identity pass | Complete | 100+ items published across credsticks, tools, fixed-capacity optical devices, security devices, restraints, breaking-and-entering gear, industrial chemicals, survival gear, biotech, DocWagon contracts, and slap patches; drugs (10 types), toxins (9 types), and BTL chips (4 types) published in `gear` under CHAR-812 | Reconciled (CHAR-809, CHAR-812 complete) |
+| Augmentations | Complete identity pass | Complete | 95 augmentations across 5 grades (standard, alphaware, betaware, deltaware, used); adds Ocular Drone, External Clip Port, and cybergun Laser Sight/Silencer implant-weapon accessories; 7 existing headware/earware entries gained missing `capacityCost` fields | Reconciled (CHAR-809, CHAR-812 complete); Cyberlimb Customization implemented post-CHAR-812, see `ware.cyberlimb-customization-unmodeled` |
+| Vehicles and drones | Complete identity pass | Complete | 40 items published: 4 bikes, 7 cars, 4 trucks/vans, 3 boats, 2 submarines, 9 aircraft, 11 drones; vehicle modifications (rigger interface, standard/heavy weapon mounts, manual operation) published under CHAR-809A; two citation fixes (Harley-Davidson Scorpion, Horizon Flying-Eye) applied under CHAR-812 | Reconciled |
+| Magical equipment | Complete identity pass | Complete | 16 foci published under CHAR-808, now with Force-scaled cost/Availability/`focusCategoryId` added under CHAR-812; reagents and magical lodge materials published in `gear`; 5 spell formulae published as parameterized purchases without known-spell linkage | Reconciled; focus pricing has no purchase/evaluator flow yet (`focus.pricing-added-no-purchase-flow`), and focus formulae/spell-formula-to-known-spell linkage remain deferred |
 | Accessories, modifications, and capacity hosts | Complete identity pass | Complete | Firearm mounts, armor Capacity, device Capacity, augmentation/cyberlimb Capacity, and vehicle weapon mounts all implemented: 17 weapon accessories (`weaponAccessories`), 7 armor modifications (`armorModifications`), 3 cyberlimb enhancements (`cyberlimbEnhancements`), 4 vehicle modifications (`vehicleModifications`), plus Capacity-cost fields on gear/augmentation entries, all consumed by `GearAttachmentEvaluator` | Reconciled (CHAR-809A complete) |
 | Contacts, identities, lifestyles | Complete identity pass | Complete | Free-form contacts (Karma-priced, not a catalog collection); `fake-sin`/`fake-license` gear items; 6 lifestyle tiers and 5 lifestyle options published in `lifestyleTiers`/`lifestyleOptions` | Reconciled (CHAR-810 complete) |
 
@@ -228,12 +227,16 @@ transcendent-grid, tattletale
 The detailed category ledgers cover the core product tables, row-level statistics,
 and operative prose effects. The weapons/armor-related owner decisions this
 inventory previously awaited are now resolved and recorded in
-`SR5_RULE_DECISIONS.md` (the `gear.*` and `ware.*` entries). Runtime
-reconciliation is complete for weapons, armor, electronics/software, general
-gear, and vehicles/drones identity/detail facts but not yet given a final
-CHAR-812 pass; magical supplies are reconciled except for focus formulae and
-spell-formula-to-known-spell linkage; contacts/identities/lifestyles remain
-entirely pending (see the Status table above).
+`SR5_RULE_DECISIONS.md` (the `gear.*` and `ware.*` entries). CHAR-812 closed
+the final reconciliation pass: weapons, armor, electronics/software, general
+gear, augmentations, vehicles/drones, and magical supplies are all reconciled
+against the reviewed inventory, with the remaining gaps (Autosoft pricing,
+weapon-ammo damage linkage, focus purchase flow, cyberdeck program slots,
+focus-formula/spell-formula linkage) recorded as deliberate exclusions in
+`SR5_RULE_DECISIONS.md` rather than left unexplained (see the Status table
+above). Cyberlimb Customization was excluded at CHAR-812 time but has since
+been implemented (`ware.cyberlimb-customization-unmodeled` in
+`SR5_RULE_DECISIONS.md` records the resolution) and is no longer a gap.
 
 Electronics, general gear, and magical-supplies items that fit the existing
 `gear` catalog shape (commlinks, accessories, RFID tags, communications and
@@ -248,9 +251,11 @@ slots), so they are a new typed `cyberdecks` collection with its own loader
 validation and evaluator resolution branch. Grapple guns, micro flare
 launchers, and monofilament chainsaws are dual-classified as both purchasable
 gear and combat-capable weapons in the source; following the existing
-`ballistic-shield`/`riot-shield` precedent (armor entries with weapon stats
-but no separate weapons-catalog entry), they were added once to `weapons`
-rather than duplicated into `gear`.
+`ballistic-shield`/`riot-shield` precedent (armor entries with no separate
+weapons-catalog entry — note that unlike these three items, the shields carry
+no combat stat fields of their own; their bash/block use is narrative, not
+modeled data), they were added once to `weapons` rather than duplicated into
+`gear`.
 
 Capacity-scaled host devices were explicitly out of CHAR-809 scope: the core
 text describes optical, audio, and sensor host devices (binoculars, cameras,
@@ -322,26 +327,40 @@ mounts are all implemented. The governing capacity and mount rules are:
 
 ## Reconciliation Report
 
-A runtime catalog now exists (`sr5-core` `1.0.0`) and is pinned by a semantic
+A runtime catalog now exists (`sr5-core` `1.4.0`) and is pinned by a semantic
 SHA-256 digest that changes whenever any catalog fact changes; this ledger
 does not pin that digest value and should not be treated as a substitute for
-reading it from the loader. Priority rows/metatypes, qualities, active
-skills/groups, knowledge/languages, and Magic and Resonance are reconciled
-against the reviewed inventory above (CHAR-806 through CHAR-808 complete).
-Weapons, armor, augmentations, electronics/software, general gear, magical
-supplies, and vehicles/drones are all substantially populated but not yet
-given a final CHAR-812 reconciliation pass. CHAR-809A closed every CHAR-809
-attachment/Capacity gap: firearm mounts, armor Capacity, optical/audio/sensor
-device Capacity and their enhancements, augmentation/cyberlimb Capacity, and
-vehicle modifications (rigger interface, weapon mounts) are all implemented,
-tested, and manually verified. CHAR-810 is complete: free-form contacts,
-fake SINs and linked licenses, and all six core lifestyle tiers with their
-options and payment forms are implemented, tested, and manually verified.
-Remaining known gaps outside CHAR-809A's written scope: cyberdeck program
-slots, focus formulae, and spell-formula-to-known-spell linkage. Identity
-counts elsewhere in this ledger are review checkpoints, not release counts.
-CHAR-812 must run the final full reconciliation and publish the released
-semantic digest before this ledger can report zero unexplained discrepancy.
-CHAR-802's readiness checks (missing citation, duplicate stable ID,
-unsupported source, dangling reference) already run against whatever the
-catalog currently contains.
+reading it from the loader (`EmbeddedRulesetCatalogProvider.CurrentVersion`/
+`CurrentSemanticDigest` are authoritative). Priority rows/metatypes,
+qualities, active skills/groups, knowledge/languages, and Magic and Resonance
+are reconciled against the reviewed inventory above (CHAR-806 through
+CHAR-808 complete). CHAR-809A closed every CHAR-809 attachment/Capacity gap:
+firearm mounts, armor Capacity, optical/audio/sensor device Capacity and
+their enhancements, augmentation/cyberlimb Capacity, and vehicle
+modifications (rigger interface, weapon mounts) are all implemented, tested,
+and manually verified. CHAR-810 is complete: free-form contacts, fake SINs
+and linked licenses, and all six core lifestyle tiers with their options and
+payment forms are implemented, tested, and manually verified.
+
+CHAR-812 closed the final reconciliation pass across six PDF-vs-catalog
+background audits (weapons/armor, electronics/software, general gear/drugs,
+augmentations, vehicles/drones, magical equipment). It added ammunition,
+arrow/bolt ammo, explosives, grenades, and rockets/missiles to `gear` under
+new `categoryId` values (weapons/armor); drugs, toxins, and BTL chips to
+`gear` (general gear); Force-scaled cost/Availability/`focusCategoryId` to
+all 16 foci (magical equipment); Ocular Drone, External Clip Port, and
+cybergun Laser Sight/Silencer plus 7 missing `capacityCost` fields
+(augmentations); Leather Jacket/Duster armor and two vehicle citation fixes
+(weapons/armor, vehicles/drones). It resolved three reconciliation-report
+"mismatches" as non-issues already covered by existing approved decisions
+(`vehicle-modification.manual-operation-absolute-values`,
+`gear.helmet-availability`, `gear.smoke-area`) and one as a false-positive
+gap already present in the base catalog (Biometric Reader). Every remaining
+gap the audits found — Autosoft pricing, weapon-ammo damage linkage, the
+rocket/missile purchase split, the focus purchase/evaluator flow, Cyberlimb
+Customization, and the Gas Grenade's cross-item chemical-payload cost — is
+recorded as a deliberate exclusion in `SR5_RULE_DECISIONS.md`, not left as an
+unexplained discrepancy. Identity counts elsewhere in this ledger are review
+checkpoints, not release counts. CHAR-802's readiness checks (missing
+citation, duplicate stable ID, unsupported source, dangling reference)
+already run against whatever the catalog currently contains.
