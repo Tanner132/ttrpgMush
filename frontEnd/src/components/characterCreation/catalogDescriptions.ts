@@ -1641,3 +1641,7 @@ export function describeResourceCategory(groupKey: string): string {
 export function describeResourceItem(id: string, groupKey: string): string {
   return GEAR_DESCRIPTIONS[id] ?? WEAPON_DESCRIPTIONS[id] ?? ARMOR_DESCRIPTIONS[id] ?? VEHICLE_DESCRIPTIONS[id] ?? CYBERDECK_DESCRIPTIONS[id] ?? describeResourceCategory(groupKey)
 }
+
+export function describeVehicleModification(id: string): string {
+  return lookup(VEHICLE_MODIFICATION_DESCRIPTIONS, id, 'A vehicle modification that occupies modification slots.')
+}
