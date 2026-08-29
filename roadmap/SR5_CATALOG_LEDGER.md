@@ -31,7 +31,7 @@ published across those historical version markers.
 | Active skills and groups | Complete: 75 skills, 15 groups | Complete | 75 skills, 15 groups published | Reconciled (CHAR-807 complete) |
 | Knowledge and languages | Complete as open-authored categories | Complete | 4 open categories published | Reconciled (CHAR-807 complete) |
 | Magic and Resonance | Complete identity pass | Complete | 6 paths, 3 aspected values, 2 traditions, 84 spells, 9 rituals, 27 adept powers (25 `sr5-core` + 2 `better-than-bad`, CHAR-820), 16 mentor spirits, 20 complex forms, 6 spirit types, 5 sprite types published | Reconciled (CHAR-808, CHAR-820 complete) |
-| Weapons and armor | Complete identity pass | Complete | 157 weapons published: 77 `sr5-core` (includes grapple gun, micro flare launcher, monofilament chainsaw), 80 `run-gun` (73 base + 7 generated alternate-configuration profiles, CHAR-816, see [`sr5-catalog/RUN_GUN_WEAPONS.md`](sr5-catalog/RUN_GUN_WEAPONS.md)); 12 armor (adds Leather Jacket/Duster); ammunition/arrow-bolt/explosive/grenade/rocket line items reviewed under CHAR-812 were never actually wired into the runtime `gear` array (confirmed by direct inspection during CHAR-816: 0 of 141 base `gear` entries match ammo/grenade/explosive/rocket/arrow/bolt patterns) — this row's "published in `gear`" claim for those items is stale and needs its own follow-up ticket | Weapons reconciled (CHAR-812, CHAR-816 complete); ammunition/grenade/explosive/rocket claim requires re-reconciliation; Autosofts excluded per `gear.autosoft-pricing-absent`, weapon-ammo damage linkage deferred per `gear.ammunition-grenade-rocket-linkage` |
+| Weapons and armor | Complete identity pass | Complete | 190 weapons published: 77 `sr5-core` (includes grapple gun, micro flare launcher, monofilament chainsaw), 80 `run-gun` (73 base + 7 generated alternate-configuration profiles, CHAR-816, see [`sr5-catalog/RUN_GUN_WEAPONS.md`](sr5-catalog/RUN_GUN_WEAPONS.md)), 33 `gun-heaven-3` (the book's complete product inventory, incl. the new `sporting-rifles` category, CHAR-821, see [`sr5-catalog/GUN_HEAVEN_3_WEAPONS.md`](sr5-catalog/GUN_HEAVEN_3_WEAPONS.md)); 12 armor (adds Leather Jacket/Duster); ammunition/arrow-bolt/explosive/grenade/rocket line items reviewed under CHAR-812 were never actually wired into the runtime `gear` array (confirmed by direct inspection during CHAR-816: 0 of 141 base `gear` entries match ammo/grenade/explosive/rocket/arrow/bolt patterns) — this row's "published in `gear`" claim for those items is stale and needs its own follow-up ticket | Weapons reconciled (CHAR-812, CHAR-816, CHAR-821 complete); ammunition/grenade/explosive/rocket claim requires re-reconciliation; Autosofts excluded per `gear.autosoft-pricing-absent`, weapon-ammo damage linkage deferred per `gear.ammunition-grenade-rocket-linkage` |
 | Electronics and software | Complete identity pass | Complete | Commlinks (7), a new typed `cyberdecks` catalog (9), electronics accessories, RFID tags, communications/countermeasures, software, and skillsofts published in `gear`/`cyberdecks`; Capacity-scaled optical/audio/sensor hosts and their enhancements published under CHAR-809A | Reconciled; cyberdeck program slots and Autosoft pricing remain excluded per `SR5_RULE_DECISIONS.md` |
 | General gear and consumables | Complete identity pass | Complete | 100+ items published across credsticks, tools, fixed-capacity optical devices, security devices, restraints, breaking-and-entering gear, industrial chemicals, survival gear, biotech, DocWagon contracts, and slap patches; drugs (10 types), toxins (9 types), and BTL chips (4 types) published in `gear` under CHAR-812 | Reconciled (CHAR-809, CHAR-812 complete) |
 | Augmentations | Complete identity pass | Complete | 95 augmentations across 5 grades (standard, alphaware, betaware, deltaware, used); adds Ocular Drone, External Clip Port, and cybergun Laser Sight/Silencer implant-weapon accessories; 7 existing headware/earware entries gained missing `capacityCost` fields | Reconciled (CHAR-809, CHAR-812 complete); Cyberlimb Customization implemented post-CHAR-812, see `ware.cyberlimb-customization-unmodeled` |
@@ -408,6 +408,22 @@ total adept powers. Neither power's stated prerequisite (Essence 6, for
 State of Purity) or activation type is code-enforced, consistent with how
 every other adept power/quality in this project is modeled. See
 [`sr5-catalog/BETTER_THAN_BAD_ADEPT_POWERS.md`](sr5-catalog/BETTER_THAN_BAD_ADEPT_POWERS.md).
+
+CHAR-821 added Gun H(e)aven 3 as a sixth approved source, at the project
+owner's direction ("add in as many guns and gear as possible from gun heaven
+3"). The book is a weapons-only product catalog with no gear, armor,
+electronics, or vehicle sections, so all 33 of its products — one printed per
+page across pp. 4-36 — were published as weapons, bringing the runtime to 190
+total weapons. One new category, `sporting-rifles` (10 entries), was
+introduced: Longarms-skill civilian rifles with their own range table
+(`gun-heaven-3` p. 3), registered in `GearAttachmentEvaluator` with the same
+mount set as `sniper-rifles`/`shotguns`. **This book's printed→PDF page
+mapping is 1:1** — no offset at all, unlike the two-page offset of
+`sr5-core`/`run-faster`/`run-gun` or the one-page offset of
+`better-than-bad`. The two new weapon traits (Vintage, Cap & Ball), the
+Flamethrower usage rules, the per-weapon "Standard Upgrades/Accessories"
+lists, and the SR4A conversion table are excluded with reasoning in
+[`sr5-catalog/GUN_HEAVEN_3_WEAPONS.md`](sr5-catalog/GUN_HEAVEN_3_WEAPONS.md).
 
 A runtime catalog now exists (`sr5-core` `1.4.0`) and is pinned by a semantic
 SHA-256 digest that changes whenever any catalog fact changes; this ledger

@@ -51,6 +51,16 @@
       "id": "street-lethal",
       "fileName": "Shadowrun Street Lethal (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
       "sha256": "F692F286494D71F26E4AFAFFB236A268EF78A314C15F562F917DE32F9098CD9E"
+    },
+    {
+      "id": "hard-targets",
+      "fileName": "Shadowrun_5E_Hard_Targets.pdf",
+      "sha256": "BD2357860819D12A003600500BDE19C9B4915F47EBACF940CA0390AAA97B2873"
+    },
+    {
+      "id": "gun-heaven-3",
+      "fileName": "Shadowrun_5E_Gun_Heaven_3.pdf",
+      "sha256": "9B7CDC932905E2B9E462C10790FE4A2D39CDB1E33DDC5D47AA3C843E78F0649D"
     }
   ],
   "creationMethods": [
@@ -15306,6 +15316,777 @@
       "mode": "SA",
       "rc": "1",
       "ammo": "5 (m)"
+    },
+    {
+      "id": "colt-new-model-revolver",
+      "displayName": "Colt New Model Revolver",
+      "weaponCategoryId": "hold-outs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 4,
+        "pdfPage": 4
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 180
+      },
+      "accuracy": "6",
+      "damage": "5P",
+      "ap": "--",
+      "mode": "SA",
+      "ammo": "5 (cy)"
+    },
+    {
+      "id": "colt-agent-special",
+      "displayName": "Colt Agent Special",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 5,
+        "pdfPage": 5
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      },
+      "accuracy": "5",
+      "damage": "8P",
+      "ap": "--",
+      "mode": "SA",
+      "ammo": "8 (c)"
+    },
+    {
+      "id": "colt-future-frontier",
+      "displayName": "Colt Future Frontier",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 6,
+        "pdfPage": 6
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "5",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "7 (cy)"
+    },
+    {
+      "id": "fianchetti-military-100",
+      "displayName": "Fianchetti Military 100",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 7,
+        "pdfPage": 7
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 850
+      },
+      "accuracy": "5 (7)",
+      "damage": "6P",
+      "ap": "--",
+      "mode": "SA/BF/FA",
+      "ammo": "20 (c)"
+    },
+    {
+      "id": "cavalier-evanator",
+      "displayName": "Cavalier Evanator",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 8,
+        "pdfPage": 8
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 775
+      },
+      "accuracy": "5 (6)",
+      "damage": "6P",
+      "ap": "--",
+      "mode": "BF/FA",
+      "rc": "1 (2)",
+      "ammo": "20 (c)"
+    },
+    {
+      "id": "remington-suppressor",
+      "displayName": "Remington Suppressor",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 9,
+        "pdfPage": 9
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 700
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "ammo": "15 (c)"
+    },
+    {
+      "id": "krime-spree",
+      "displayName": "Krime Spree",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 10,
+        "pdfPage": 10
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 425
+      },
+      "accuracy": "4",
+      "damage": "7P",
+      "ap": "--",
+      "mode": "FA",
+      "rc": "1",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "ares-sigma-3",
+      "displayName": "Ares Sigma-3",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 11,
+        "pdfPage": 11
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "4 (6)",
+      "damage": "8P",
+      "ap": "--",
+      "mode": "SA/BF/FA",
+      "rc": "(2)",
+      "ammo": "50 (d)"
+    },
+    {
+      "id": "cavalier-arms-gladius",
+      "displayName": "Cavalier Arms Gladius",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 12,
+        "pdfPage": 12
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 400
+      },
+      "accuracy": "3 (4)",
+      "damage": "7P",
+      "ap": "--",
+      "mode": "BF/FA",
+      "rc": "1 (2)",
+      "ammo": "32 (c)"
+    },
+    {
+      "id": "shiawase-arms-monsoon",
+      "displayName": "Shiawase Arms Monsoon",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 13,
+        "pdfPage": 13
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1900
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA/FA",
+      "rc": "1",
+      "ammo": "20 (ml) x6"
+    },
+    {
+      "id": "colt-inception",
+      "displayName": "Colt Inception",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 14,
+        "pdfPage": 14
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2250
+      },
+      "accuracy": "7 (8)",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "rc": "1 (3)",
+      "ammo": "35 (c)"
+    },
+    {
+      "id": "krupp-arms-kriegfaust",
+      "displayName": "Krupp Arms Kriegfaust",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 15,
+        "pdfPage": 15
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1300
+      },
+      "accuracy": "8",
+      "damage": "9P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "rc": "1",
+      "ammo": "25 (d)"
+    },
+    {
+      "id": "sbd-44",
+      "displayName": "SBd-44",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 16,
+        "pdfPage": 16
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "3",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA/BF/FA",
+      "ammo": "32 (c)"
+    },
+    {
+      "id": "krime-boss",
+      "displayName": "Krime Boss",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 17,
+        "pdfPage": 17
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      },
+      "accuracy": "3",
+      "damage": "13P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "1",
+      "ammo": "15 (d)"
+    },
+    {
+      "id": "winchester-model-201",
+      "displayName": "Winchester Model 201",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 18,
+        "pdfPage": 18
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1300
+      },
+      "accuracy": "8",
+      "damage": "11P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "2 (b)"
+    },
+    {
+      "id": "winchester-model-2066",
+      "displayName": "Winchester Model 2066",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 19,
+        "pdfPage": 19
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "4",
+      "damage": "11P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "winchester-model-2054",
+      "displayName": "Winchester Model 2054",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 20,
+        "pdfPage": 20
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "accuracy": "4 (5)",
+      "damage": "11P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "7 (m)"
+    },
+    {
+      "id": "shiawase-arms-rain",
+      "displayName": "Shiawase Arms Rain",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 21,
+        "pdfPage": 21
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 450
+      },
+      "accuracy": "4",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "5 (ml)"
+    },
+    {
+      "id": "cavalier-falchion",
+      "displayName": "Cavalier Falchion",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 22,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1200
+      },
+      "accuracy": "5 (7)",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "8 (m)"
+    },
+    {
+      "id": "springfield-2003",
+      "displayName": "Springfield 2003",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 23,
+        "pdfPage": 23
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 3600
+      },
+      "accuracy": "9",
+      "damage": "12P",
+      "ap": "-2",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "winchester-model-2024",
+      "displayName": "Winchester Model 2024",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 24,
+        "pdfPage": 24
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1800
+      },
+      "accuracy": "6",
+      "damage": "12P",
+      "ap": "--",
+      "mode": "SA",
+      "ammo": "7 (m)"
+    },
+    {
+      "id": "marlin-3468ss",
+      "displayName": "Marlin 3468SS",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 25,
+        "pdfPage": 25
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "4",
+      "damage": "13P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "4 (m)"
+    },
+    {
+      "id": "springfield-m1a",
+      "displayName": "Springfield M1A",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 26,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1700
+      },
+      "accuracy": "6",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "20 (c)"
+    },
+    {
+      "id": "m1-garand",
+      "displayName": "M1 Garand",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 27,
+        "pdfPage": 27
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1100
+      },
+      "accuracy": "5",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "8 (c)"
+    },
+    {
+      "id": "springfield-model-1855-reproduction",
+      "displayName": "Springfield Model 1855 Reproduction",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 28,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 850
+      },
+      "accuracy": "2",
+      "damage": "10P",
+      "ap": "--",
+      "mode": "SS",
+      "ammo": "1 (cb)"
+    },
+    {
+      "id": "marlin-3041-bl",
+      "displayName": "Marlin 3041 BL",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 29,
+        "pdfPage": 29
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1100
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-3",
+      "mode": "SA",
+      "ammo": "6 (m)"
+    },
+    {
+      "id": "marlin-x71",
+      "displayName": "Marlin X71",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 30,
+        "pdfPage": 30
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "accuracy": "5",
+      "damage": "12P",
+      "ap": "-4",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "marlin-79s",
+      "displayName": "Marlin 79S",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 31,
+        "pdfPage": 31
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "4",
+      "damage": "6P",
+      "ap": "--",
+      "mode": "SA",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "ultimax-rain-forest-carbine",
+      "displayName": "Ultimax Rain Forest Carbine",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 32,
+        "pdfPage": 32
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2800
+      },
+      "accuracy": "7",
+      "damage": "14P",
+      "ap": "-4",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "18 (c)"
+    },
+    {
+      "id": "winchester-model-2067",
+      "displayName": "Winchester Model 2067",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 33,
+        "pdfPage": 33
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 650
+      },
+      "accuracy": "5",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "15 (m)"
+    },
+    {
+      "id": "krime-wave",
+      "displayName": "Krime Wave",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 34,
+        "pdfPage": 34
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "FA",
+      "rc": "(2)",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "krime-bomb",
+      "displayName": "Krime Bomb",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 35,
+        "pdfPage": 35
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 23000
+      },
+      "accuracy": "6 (7)",
+      "damage": "16P",
+      "ap": "-6",
+      "mode": "SS",
+      "ammo": "4 (m)"
+    },
+    {
+      "id": "shiawase-arms-incinerator",
+      "displayName": "Shiawase Arms Incinerator",
+      "weaponCategoryId": "flamethrowers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 36,
+        "pdfPage": 36
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "accuracy": "4",
+      "damage": "12P",
+      "ap": "-6",
+      "mode": "SS",
+      "ammo": "6 (c)"
     }
   ],
   "armor": [
