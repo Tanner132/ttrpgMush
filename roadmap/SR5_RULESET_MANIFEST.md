@@ -65,14 +65,17 @@ approved source books:
 | `rigger-5` | `Shadowrun Rigger 5.0 - Core Rigger Handbook (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `19CF526FD757A92D7AA881CB141B58CFA0EBA431AC8645F2021A369F0EC29715` |
 | `street-grimoire` | `Shadowrun Street Grimoire (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `F67B0C8A8A8340135FB83698A201D1336172C2F0C2C6AAF153BE68E1CFCC874B` |
 | `street-lethal` | `Shadowrun Street Lethal (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `F692F286494D71F26E4AFAFFB236A268EF78A314C15F562F917DE32F9098CD9E` |
+| `hard-targets` | `Shadowrun_5E_Hard_Targets.pdf` | `BD2357860819D12A003600500BDE19C9B4915F47EBACF940CA0390AAA97B2873` |
+| `gun-heaven-3` | `Shadowrun_5E_Gun_Heaven_3.pdf` | `9B7CDC932905E2B9E462C10790FE4A2D39CDB1E33DDC5D47AA3C843E78F0649D` |
 
 A checksum or filename change creates a new source revision and requires a new
 baseline review. External errata, summaries, websites, implementations, and
 other books are not approved sources.
 
 No catalog content has been imported from `chrome-flesh`, `data-trails`,
-`forbidden-arcana`, `rigger-5`, `street-grimoire`, or `street-lethal` yet. They
-are registered here so their provenance is pinned before any review begins;
+`forbidden-arcana`, `rigger-5`, `street-grimoire`, `street-lethal`, or
+`hard-targets` yet. They are registered here so their
+provenance is pinned before any review begins;
 inclusion in this table is not a scope decision, and each still needs its own
 ledger inventory and baseline review before any of its options may be published.
 
@@ -87,6 +90,11 @@ Catalog and rule citations record both the printed page and physical PDF page:
 Example: `sr5-core p. 65 (PDF 67)`. Both approved PDFs have a two-page offset in
 the character-creation ranges reviewed for this manifest. Citations must still
 store both values rather than assuming that offset elsewhere in either document.
+
+**`gun-heaven-3` is the exception: it has a 1:1 printed-to-PDF page mapping**,
+with no front-matter offset at all, verified against its own page footers
+(CHAR-821). Every `gun-heaven-3` citation therefore reads `p. N (PDF N)`. Do
+not carry the two-page offset habit over to it.
 
 ## Scope
 
@@ -160,6 +168,17 @@ Included (CHAR-820, project owner, 2026-08-28):
   Aptitude and State of Purity (`better-than-bad` pp. 159-160, PDF 160-161).
   See [`sr5-catalog/BETTER_THAN_BAD_ADEPT_POWERS.md`](sr5-catalog/BETTER_THAN_BAD_ADEPT_POWERS.md).
 
+Included (CHAR-821, project owner, 2026-08-29):
+
+- Every weapon printed in Gun H(e)aven 3 — all 33 products, one per page
+  across `gun-heaven-3` pp. 4-36 (PDF 4-36) — including one newly introduced
+  weapon category, `sporting-rifles` (Longarms skill, own range table from
+  `gun-heaven-3` p. 3, PDF 3). `gun-heaven-3` is first used by this ticket
+  and is the one approved source with a 1:1 page offset. The book contains
+  no gear, armor, electronics, or vehicle sections, so its weapons are its
+  complete portable inventory. See
+  [`sr5-catalog/GUN_HEAVEN_3_WEAPONS.md`](sr5-catalog/GUN_HEAVEN_3_WEAPONS.md).
+
 Excluded:
 
 - Core Street-Level and Prime Runner variants (`sr5-core` p. 64 (PDF 66)).
@@ -188,6 +207,14 @@ Excluded:
   [`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md) for Martial
   Arts (deferred, revisit later) and the rest (reviewed and rejected as out
   of scope).
+- Gun H(e)aven 3's two new weapon traits (VINTAGE, CAP & BALL — narrative and
+  in-play reload descriptors, `gun-heaven-3` p. 3, PDF 3), its Flamethrower
+  usage rules (in-play combat procedure, same page), the per-weapon "Standard
+  Upgrades/Accessories" lists (no schema exists for shipping a weapon with
+  accessories pre-mounted and their cost pre-absorbed; every accessory named
+  is already purchasable from CHAR-817's catalog), and the book's SR4A
+  conversion stat blocks (`gun-heaven-3` p. 38, PDF 38 — wrong edition). See
+  [`sr5-catalog/GUN_HEAVEN_3_WEAPONS.md`](sr5-catalog/GUN_HEAVEN_3_WEAPONS.md).
 - Campaign-specific generation variants and custom GM-authored catalogs.
 - Rules or corrections whose only authority is outside the approved PDFs.
 

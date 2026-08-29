@@ -18,7 +18,7 @@ public sealed class RunGunWeaponsTests
     {
         var catalog = Catalog;
 
-        Assert.Equal(174, catalog.Weapons.Count);
+        Assert.Equal(190, catalog.Weapons.Count);
         Assert.Equal(80, catalog.Weapons.Values.Count(w => w.Source.SourceId == "run-gun"));
         Assert.Equal(77, catalog.Weapons.Values.Count(w => w.Source.SourceId == "sr5-core"));
     }

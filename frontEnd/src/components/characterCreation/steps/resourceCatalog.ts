@@ -50,6 +50,7 @@ export const MOUNTS_BY_WEAPON_CATEGORY: Record<string, WeaponMount[]> = {
   'cannons-launchers': ['Top', 'Barrel', 'Underbarrel'],
   'laser-weapons': ['Top', 'Barrel', 'Underbarrel'],
   flamethrowers: ['Internal'],
+  'sporting-rifles': ['Top', 'Barrel', 'Underbarrel'],
 }
 
 export const MOUNT_LABELS: Record<WeaponMount, string> = {

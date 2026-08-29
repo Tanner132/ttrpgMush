@@ -195,7 +195,7 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(174, catalog.Weapons.Count);
+        Assert.Equal(190, catalog.Weapons.Count);
 
         Assert.Equal(21, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "blades"));
         Assert.Equal(7, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "clubs"));
@@ -204,23 +204,24 @@ public sealed class RulesetCatalogLoaderTests
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "crossbows"));
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "throwing-weapons"));
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "tasers"));
-        Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "hold-outs"));
-        Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "light-pistols"));
+        Assert.Equal(5, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "hold-outs"));
+        Assert.Equal(10, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "light-pistols"));
         Assert.Equal(14, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "heavy-pistols"));
-        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-pistols"));
-        Assert.Equal(8, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "submachine-guns"));
-        Assert.Equal(15, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "assault-rifles"));
+        Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-pistols"));
+        Assert.Equal(11, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "submachine-guns"));
+        Assert.Equal(20, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "assault-rifles"));
         Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "sniper-rifles"));
-        Assert.Equal(7, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "shotguns"));
+        Assert.Equal(13, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "shotguns"));
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "special-weapons"));
-        Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-guns"));
-        Assert.Equal(11, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "cannons-launchers"));
+        Assert.Equal(10, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-guns"));
+        Assert.Equal(12, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "cannons-launchers"));
         Assert.Equal(16, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-ranged"));
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-melee"));
         Assert.Equal(2, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "harpoon-guns"));
         Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "slingshots"));
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "laser-weapons"));
-        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "flamethrowers"));
+        Assert.Equal(2, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "flamethrowers"));
+        Assert.Equal(10, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "sporting-rifles"));
 
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.CreationUnavailable));
         Assert.Equal(2, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.Parameterized));

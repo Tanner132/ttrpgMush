@@ -34,17 +34,9 @@ public sealed class GearAttachmentEvaluator
             ["special-weapons"] = new HashSet<WeaponMount> { WeaponMount.Top, WeaponMount.Barrel, WeaponMount.Underbarrel },
             ["machine-guns"] = new HashSet<WeaponMount> { WeaponMount.Top, WeaponMount.Barrel, WeaponMount.Underbarrel },
             ["cannons-launchers"] = new HashSet<WeaponMount> { WeaponMount.Top, WeaponMount.Barrel, WeaponMount.Underbarrel },
-            // Run & Gun weapon categories (CHAR-817). laser-weapons spans SMG,
-            // assault-rifle, and sniper-rifle ranges depending on the model
-            // (run-gun p. 48, PDF 50), so it is given the broadest of those
-            // three mount sets rather than one specific to a single model.
-            // flamethrowers "cannot mount any accessories except biometric
-            // safety systems" (run-gun p. 49, PDF 51), which install in the
-            // internal slot only; slot-free accessories (Mount.None, e.g.
-            // sling, tracker) are not "mounted" in a physical slot and are
-            // still available regardless of this restriction.
             ["laser-weapons"] = new HashSet<WeaponMount> { WeaponMount.Top, WeaponMount.Barrel, WeaponMount.Underbarrel },
             ["flamethrowers"] = new HashSet<WeaponMount> { WeaponMount.Internal },
+            ["sporting-rifles"] = new HashSet<WeaponMount> { WeaponMount.Top, WeaponMount.Barrel, WeaponMount.Underbarrel },
         };
 
     public GearAttachmentEvaluation Evaluate(
