@@ -1,0 +1,105 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two deploys touch the stack at once.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # The suite uses Testcontainers, which needs the Docker daemon that
+      # ubuntu-latest already provides.
+      - run: dotnet test backEnd/SeattleByNight.slnx --nologo -v q
+
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontEnd
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontEnd/package-lock.json
+
+      - run: npm ci
+      - name: Typecheck
+        run: npx tsc -b
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npx vitest run
+
+  deploy:
+    name: Deploy to mush
+    needs: [backend, frontend]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, mush]
+    steps:
+      - uses: actions/checkout@v4
+
+      # The compose file pins `name: seattlebynight`, so building from the
+      # runner workspace still targets the same project, containers and
+      # volumes as a manual deploy from /opt/seattlebynight.
+      - name: Build and start
+        run: |
+          docker compose -f compose.production.yaml \
+            --env-file /opt/seattlebynight/.env \
+            up -d --build --remove-orphans
+
+      - name: Wait for backend to report healthy
+        run: |
+          set -euo pipefail
+          cid=$(docker compose -f compose.production.yaml \
+            --env-file /opt/seattlebynight/.env ps -q backend)
+
+          for _ in $(seq 1 60); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' "$cid" 2>/dev/null || echo starting)
+            if [ "$status" = healthy ]; then
+              echo "backend healthy"
+              exit 0
+            fi
+            if [ "$status" = unhealthy ]; then
+              break
+            fi
+            sleep 5
+          done
+
+          echo "backend did not become healthy"
+          docker compose -f compose.production.yaml \
+            --env-file /opt/seattlebynight/.env logs backend --tail=80
+          exit 1
+
+      - name: Verify the served path through nginx
+        run: |
+          set -euo pipefail
+          set -a; . /opt/seattlebynight/.env; set +a
+          curl -fsS -o /dev/null -w 'health/live -> %{http_code}\n' \
+            "http://${TAILSCALE_IP}:8080/health/live"
+          curl -fsS -o /dev/null -w 'SPA shell  -> %{http_code}\n' \
+            "http://${TAILSCALE_IP}:8080/"
+
+      # Repeated rebuilds leave dangling layers behind; mush has finite disk.
+      - name: Prune dangling images
+        if: always()
+        run: docker image prune -f

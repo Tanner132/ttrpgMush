@@ -63,7 +63,7 @@ public sealed class MagicResonanceEvaluator
         EvaluateAspectedValue(catalog, path, selection, diagnostics);
         EvaluateSkillGrants(catalog, selection, grant, diagnostics);
         EvaluateFormulae(catalog, path, selection, grant, magicValue, diagnostics);
-        EvaluatePowerPoints(catalog, path, selection, grant, magicValue, diagnostics);
+        EvaluatePowerPoints(catalog, path, selection, grant, document, magicValue, diagnostics);
         EvaluateComplexForms(catalog, path, selection, grant, resonanceValue, document, diagnostics);
         EvaluateMentorSpirit(catalog, path, selection, document, diagnostics);
 
@@ -445,9 +445,22 @@ public sealed class MagicResonanceEvaluator
         CreationPathDefinition path,
         MagicResonanceSelection selection,
         MagicResonancePathGrant grant,
+        CharacterCreationDraftDocument document,
         int magicValue,
         List<CharacterCreationDiagnostic> diagnostics)
     {
+        if (path.AttributeId is null)
+        {
+            if (magicValue > 0)
+            {
+                diagnostics.Add(Error("magic.attribute.mundane-forbidden", "specialAttributes", [],
+                    path.Source, new Dictionary<string, string>(),
+                    "A mundane character cannot hold Magic."));
+            }
+
+            return;
+        }
+
         var powers = selection.AdeptPowers ?? [];
         var canUsePowers = path.Kind is CreationPathKind.Adept or CreationPathKind.MysticAdept;
         if (powers.Count > 0 && !canUsePowers)
@@ -469,7 +482,10 @@ public sealed class MagicResonanceEvaluator
             return;
         }
 
-        var magic = grant.AttributeRating + magicValue;
+        var naturalMax = CharacterCreationDiagnosticFactory.HasExceptionalAttributeFor(document, path.AttributeId)
+            ? ExceptionalAttributeMax
+            : NaturalAttributeMax;
+        var magic = naturalMax;
         var totalCost = powers.Sum(item => PowerCost(catalog, item));
         if (path.Kind == CreationPathKind.Adept)
         {

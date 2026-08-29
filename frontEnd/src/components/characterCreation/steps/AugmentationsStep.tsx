@@ -18,6 +18,7 @@ import { Diagnostics } from '../Diagnostics.tsx'
 import { computeNuyenBudget, computeNuyenSpent, ESSENCE_BUDGET } from '../budgets.ts'
 import { describeAugmentation } from '../catalogDescriptions.ts'
 import { getCatalogIndex } from '../catalogIndex.ts'
+import { naturalMaximumFor } from '../attributeResolver.ts'
 import { onKeyActivate } from '../../ui/keyboardActivation.ts'
 
 const AUGMENTATION_CATEGORY_LABELS: Record<string, string> = {
@@ -71,19 +72,10 @@ export function AugmentationsStep({ catalog, document, onChange, diagnostics = [
     grades.find((grade) => grade.id === (selection?.gradeId ?? 'standard')) ?? standardGrade
 
   // Cyberlimb Customization's cap is the character's natural (unaugmented)
-  // Strength/Agility maximum, matching MetatypeAndAttributeEvaluator's
-  // NaturalMaximum on the server: metavariant range if one is selected,
-  // otherwise the metatype's, plus 1 if Exceptional Attribute targets it.
-  const selectedMetatype = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
-  const selectedMetavariant = catalog.metavariants?.find((item) => item.id === document.metatype?.metavariantId)
-  const effectiveAttributes = selectedMetavariant?.attributes ?? selectedMetatype?.attributes
-  const naturalMaximum = (attributeId: 'strength' | 'agility') => {
-    const range = effectiveAttributes?.[attributeId]
-    if (!range) return null
-    const hasExceptionalAttribute = (document.qualities ?? []).some((quality) =>
-      quality.qualityId === 'exceptional-attribute' && quality.parameters?.['attribute-id'] === attributeId)
-    return range.maximum + (hasExceptionalAttribute ? 1 : 0)
-  }
+  // Strength/Agility maximum. attributeResolver owns that rule for every
+  // consumer and mirrors MetatypeAndAttributeEvaluator.NaturalMaximum.
+  const naturalMaximum = (attributeId: 'strength' | 'agility') =>
+    naturalMaximumFor(catalog, document, attributeId)
 
   let spent = 0
   let essence = 0

@@ -1077,6 +1077,17 @@
   color: var(--sb-accent);
 }
 
+.console__row-name-note {
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--sb-text-faint);
+}
+
 .console__row-flag {
   flex-shrink: 0;
   font-size: 0.6rem;
@@ -1650,6 +1661,18 @@
   min-width: 18px;
   text-align: center;
   color: var(--sb-text);
+}
+
+/* The augmented rating, shown beside the natural one only when ware or an
+   adept power has actually moved it. */
+.attribute-row__augmented {
+  display: block;
+  margin-top: -2px;
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--sb-info);
 }
 
 @media (max-width: 600px) {

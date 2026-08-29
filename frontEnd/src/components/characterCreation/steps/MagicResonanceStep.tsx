@@ -1,5 +1,11 @@
-import { useState } from 'react'
-import type { AdeptPowerDefinition, MagicResonanceSelection, SpellDefinition } from '../../../api/characterCreation.ts'
+import { useMemo, useState } from 'react'
+import type {
+  AdeptPowerDefinition,
+  AdeptPowerSelection,
+  CharacterCreationDocument,
+  MagicResonanceSelection,
+  SpellDefinition,
+} from '../../../api/characterCreation.ts'
 import { effectivePowerPointCost } from '../../../api/characterCreation.ts'
 import type { CreationStepProps } from './types.ts'
 import { Diagnostics } from '../Diagnostics.tsx'
@@ -18,6 +24,14 @@ import {
   describeSpell,
   describeTradition,
 } from '../catalogDescriptions.ts'
+import { resolveAttributes } from '../attributeResolver.ts'
+import {
+  adeptPowerOptionsWithCurrent,
+  adeptPowerParameterField,
+  adeptPowerParameterLabel,
+  incompleteAdeptPowers,
+  isAdeptPowerParameterIncomplete,
+} from '../adeptPowerParameters.ts'
 
 const MAGICAL_GROUP_IDS = ['sorcery', 'conjuring', 'enchanting']
 const PREPARATION_TRIGGERS = ['command', 'contact', 'time']
@@ -65,9 +79,9 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
     return !skill || !grantedSkillDomains.has(skill.domain)
   })
   const staleSkillGroupGrants = grantsSkillGroup ? [] : (selection?.skillGroupGrants ?? [])
-  const magic = grant?.attributeRating ?? 0
-  const special = document.specialAttributes?.values ?? {}
-  const attributeValue = path?.attributeId ? magic + (special[path.attributeId] ?? 0) : 0
+  const profile = useMemo(() => resolveAttributes(catalog, document), [catalog, document])
+  const attributeValue = profile.magicOrResonance
+  const unconfiguredPowers = incompleteAdeptPowers(catalog, document)
 
   const update = (patch: Partial<MagicResonanceSelection>) => onChange({
     ...document,
@@ -601,7 +615,10 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
         {path && grant && activeSec === 'powers' && (
           <>
             <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 130px 96px' }}>
-              <span>ADEPT POWER · {usedPowerPoints}/{totalPowerPoints} PP</span><span /><span />
+              <span>
+                ADEPT POWER · {usedPowerPoints}/{totalPowerPoints} PP
+                {unconfiguredPowers.length > 0 && ` · ${unconfiguredPowers.join(', ')} needs a target`}
+              </span><span /><span />
             </div>
             {path.kind === 'MysticAdept' && (
               <div style={{ padding: 'var(--sb-space-2) var(--sb-space-4)' }}>
@@ -621,6 +638,13 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
               {catalog.adeptPowers.map(power => {
                 const selectedPower = powers.find(item => item.powerId === power.id)
                 const selected = selectedPower !== undefined
+                // The parameter itself is edited in the readout on the right,
+                // the way quality parameters are; the row only reports it.
+                const parameterLabel = selected
+                  ? adeptPowerParameterLabel(catalog, document, power.id, selectedPower.parameter)
+                  : ''
+                const needsParameter = selected
+                  && isAdeptPowerParameterIncomplete(catalog, document, power.id, selectedPower.parameter)
                 return (
                   <div key={power.id}>
                     <div
@@ -632,7 +656,11 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                       onKeyDown={onKeyActivate(() => setFocused({ kind: 'power', id: power.id }))}
                       aria-label={power.displayName}
                     >
-                      <span className="console__row-name"><span className="console__row-name-text">{power.displayName}</span></span>
+                      <span className="console__row-name">
+                        <span className="console__row-name-text">{power.displayName}</span>
+                        {parameterLabel && <small className="console__row-name-note">{parameterLabel}</small>}
+                        {needsParameter && <span className="console__row-flag">CHOOSE</span>}
+                      </span>
                       <span className="console__row-col">{selectedPower ? `${effectivePowerPointCost(power, selectedPower.rank ?? 1)} PP` : `${power.powerPointCost} PP${power.ranked ? ' per rank' : ''}`}</span>
                       <span className="console__row-end">
                         <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
@@ -641,20 +669,15 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                         </label>
                       </span>
                     </div>
-                    {(power.ranked || power.parameterized) && selectedPower && (
+                    {power.ranked && selectedPower && (
                       <div style={{ padding: '0 var(--sb-space-4) 8px', display: 'flex', gap: 'var(--sb-space-2)' }}>
-                        {power.ranked && (
-                          <Stepper
-                            label={`${power.displayName} rank`}
-                            min={1}
-                            max={power.maxRank ?? attributeValue}
-                            value={selectedPower.rank ?? 1}
-                            onChange={(rank) => updatePower(power.id, { rank })}
-                          />
-                        )}
-                        {power.parameterized && (
-                          <input aria-label={`${power.displayName} parameter`} placeholder="Required parameter" maxLength={120} value={selectedPower.parameter ?? ''} onChange={event => updatePower(power.id, { parameter: event.target.value })} />
-                        )}
+                        <Stepper
+                          label={`${power.displayName} rank`}
+                          min={1}
+                          max={power.maxRank ?? attributeValue}
+                          value={selectedPower.rank ?? 1}
+                          onChange={(rank) => updatePower(power.id, { rank })}
+                        />
                       </div>
                     )}
                   </div>
@@ -740,15 +763,22 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
         <Diagnostics diagnostics={diagnostics} />
       </div>
 
-      {renderFocusedReadout(focused, catalog, { spells, powers })}
+      {renderFocusedReadout(focused, catalog, { document, spells, powers, updatePower })}
     </div>
   )
+}
+
+interface ReadoutContext {
+  document: CharacterCreationDocument
+  spells: NonNullable<MagicResonanceSelection['spells']>
+  powers: NonNullable<MagicResonanceSelection['adeptPowers']>
+  updatePower: (powerId: string, patch: Partial<AdeptPowerSelection>) => void
 }
 
 function renderFocusedReadout(
   focused: FocusedItem | null,
   catalog: CreationStepProps['catalog'],
-  context: { spells: NonNullable<MagicResonanceSelection['spells']>; powers: NonNullable<MagicResonanceSelection['adeptPowers']> },
+  context: ReadoutContext,
 ) {
   if (!focused) {
     return (
@@ -881,9 +911,14 @@ function renderFocusedReadout(
     const power = catalog.adeptPowers.find((item) => item.id === focused.id)
     if (!power) return null
     const selectedPower = context.powers.find((item) => item.powerId === power.id)
+    const field = adeptPowerParameterField(power.id)
+    const value = selectedPower?.parameter ?? ''
+    const blank = value.trim().length === 0
+    const configurable = Boolean(field) && selectedPower !== undefined
+    const inputId = `adept-power-${power.id}-parameter`
     return (
       <Readout
-        mode="reference"
+        mode={configurable ? 'config' : 'reference'}
         source="SR5 CORE"
         name={power.displayName.toUpperCase()}
         meta={power.ranked ? `RANKED${power.maxRank ? ` · UP TO ${power.maxRank}` : ''}` : 'FIXED'}
@@ -891,7 +926,50 @@ function renderFocusedReadout(
         stats={[
           { label: 'PP COST', value: selectedPower ? String(effectivePowerPointCost(power, selectedPower.rank ?? 1)) : String(power.powerPointCost), tone: 'accent' },
         ]}
-      />
+        configureTitle={configurable ? 'REQUIRED PARAMETER' : undefined}
+        warn={configurable && isAdeptPowerParameterIncomplete(catalog, context.document, power.id, value)
+          ? 'This power does nothing until you choose its target. The server rejects a blank parameter on finalize.'
+          : undefined}
+      >
+        {configurable && field && (
+          <div className="quality-parameters">
+            <div className="readout__field--stack">
+              <label
+                className="readout__field-label"
+                htmlFor={inputId}
+                style={blank ? { color: 'var(--sb-warning)' } : undefined}
+              >
+                {field.label}{blank ? ' · REQUIRED' : ''}
+              </label>
+              {field.kind === 'select' ? (
+                <select
+                  id={inputId}
+                  className="quality-parameters__input"
+                  value={value}
+                  onChange={(event) => context.updatePower(power.id, { parameter: event.target.value })}
+                >
+                  <option value="">Choose…</option>
+                  {adeptPowerOptionsWithCurrent(catalog, context.document, field, value).map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  id={inputId}
+                  className="quality-parameters__input"
+                  type="text"
+                  maxLength={120}
+                  placeholder={field.placeholder}
+                  aria-label={field.label}
+                  value={value}
+                  onChange={(event) => context.updatePower(power.id, { parameter: event.target.value })}
+                />
+              )}
+              {field.hint && <p className="quality-parameters__hint">{field.hint}</p>}
+            </div>
+          </div>
+        )}
+      </Readout>
     )
   }
 

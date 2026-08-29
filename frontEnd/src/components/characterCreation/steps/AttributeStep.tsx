@@ -1,41 +1,52 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { CreationStepProps } from './types.ts'
-import { Readout } from '../Readout.tsx'
+import { Readout, type ReadoutRow } from '../Readout.tsx'
 import { Diagnostics } from '../Diagnostics.tsx'
 import { describeAttribute } from '../catalogDescriptions.ts'
 import { computeAttributeKarmaSpent } from '../budgets.ts'
-import { effectiveMetatypeAttributes, getCatalogIndex } from '../catalogIndex.ts'
+import {
+  PHYSICAL_MENTAL_ATTRIBUTE_IDS,
+  resolveAttributes,
+  type AttributeModifier,
+} from '../attributeResolver.ts'
 import { onKeyActivate } from '../../ui/keyboardActivation.ts'
 
-const NORMAL_ATTRIBUTE_IDS = ['body', 'agility', 'reaction', 'strength', 'willpower', 'logic', 'intuition', 'charisma']
+/** "Muscle Toner +2", or "Bone Lacing, Plastic +1 (damage resistance only)". */
+function describeModifier(modifier: AttributeModifier): string {
+  const amount = `${modifier.amount >= 0 ? '+' : ''}${modifier.amount}`
+  return modifier.note ? `${amount} · ${modifier.note}` : amount
+}
 
 export function AttributeStep({ catalog, document, onChange, diagnostics = [] }: CreationStepProps) {
   const priority = document.priorityAssignment?.attributes
   const cell = catalog.priorityCells.find((item) => item.categoryId === 'attributes' && item.levelId === priority)
   const metatype = catalog.metatypes.find((item) => item.id === document.metatype?.metatypeId)
-  // Effective ranges: a selected Run Faster metavariant (CHAR-813) replaces
-  // the parent metatype's attribute ranges outright.
-  const attributes = effectiveMetatypeAttributes(getCatalogIndex(catalog), document)
+  // Every rating, cap, and bonus on this step comes from the one resolver, so
+  // Exceptional Attribute, adept powers, and ware cannot disagree between here
+  // and the Augmentations or Magic steps.
+  const profile = useMemo(() => resolveAttributes(catalog, document), [catalog, document])
   const allocations = document.attributes?.values ?? {}
   const budget = cell?.physicalMentalAttributePoints ?? 0
-  const spent = NORMAL_ATTRIBUTE_IDS.reduce((sum, id) => sum + (allocations[id] ?? 0), 0)
+  const spent = PHYSICAL_MENTAL_ATTRIBUTE_IDS.reduce((sum, id) => sum + (allocations[id] ?? 0), 0)
   const karmaSpent = computeAttributeKarmaSpent(catalog, document)
-  const special = document.specialAttributes?.values ?? {}
-  const magicCell = catalog.priorityCells.find((item) => item.categoryId === 'magic-resonance' && item.levelId === document.priorityAssignment?.magicOrResonance)
   const path = catalog.creationPaths.find((item) => item.id === document.magicResonance?.pathId)
-  const pathGrant = magicCell?.magicResonancePathGrants?.find((item) => item.pathId === path?.id)
-  const edge = (attributes?.edge?.minimum ?? 0) + (special.edge ?? 0)
+  const edge = profile.attributes.edge?.natural ?? 0
   const awakenedAttribute = path?.attributeId
-  const awakenedValue = awakenedAttribute ? (pathGrant?.attributeRating ?? 0) + (special[awakenedAttribute] ?? 0) : 0
   const update = (id: string, value: number) => onChange({
     ...document,
     attributes: { values: { ...allocations, [id]: Math.max(0, value) } },
   })
 
-  const [selectedId, setSelectedId] = useState(NORMAL_ATTRIBUTE_IDS[0])
+  const [selectedId, setSelectedId] = useState(PHYSICAL_MENTAL_ATTRIBUTE_IDS[0])
   const selectedDefinition = catalog.attributes.find((item) => item.id === selectedId)
-  const selectedRange = attributes?.[selectedId]
-  const selectedValue = (selectedRange?.minimum ?? 0) + (allocations[selectedId] ?? 0)
+  const selected = profile.attributes[selectedId]
+  const selectedModifiers = selected?.modifiers ?? []
+
+  const modifierRows: ReadoutRow[] = selectedModifiers.map((modifier) => ({
+    label: modifier.scope === 'natural-maximum' ? `${modifier.label} (MAX)` : modifier.label.toUpperCase(),
+    value: describeModifier(modifier),
+    tone: modifier.scope === 'augmented' ? 'accent' : 'default',
+  }))
 
   return (
     <div className="console console--allocate">
@@ -52,15 +63,17 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
           {metatype && (
             <div className="creation-step__allocation-status" role="status">
               <strong>Edge {edge}</strong>
-              <span> · Magic {awakenedAttribute === 'magic' ? awakenedValue : 0} · Resonance {awakenedAttribute === 'resonance' ? awakenedValue : 0}</span>
+              <span> · Magic {awakenedAttribute === 'magic' ? profile.magicOrResonance : 0} · Resonance {awakenedAttribute === 'resonance' ? profile.magicOrResonance : 0}</span>
+              <span> · Initiative {profile.initiative.base} + {profile.initiative.dice}D6</span>
             </div>
           )}
-          {NORMAL_ATTRIBUTE_IDS.map((id) => {
+          {PHYSICAL_MENTAL_ATTRIBUTE_IDS.map((id) => {
             const definition = catalog.attributes.find((item) => item.id === id)
-            const range = attributes?.[id]
+            const resolution = profile.attributes[id]
             const allocation = allocations[id] ?? 0
-            const value = range ? range.minimum + allocation : 0
-            const pipCount = range ? Math.max(range.maximum, 1) : 6
+            const value = resolution?.natural ?? 0
+            const augmented = resolution?.augmented ?? value
+            const pipCount = Math.max(resolution?.naturalMaximum ?? 0, 1)
             return (
               <div
                 key={id}
@@ -73,7 +86,9 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
               >
                 <span className="attribute-row__name">
                   <span className="attribute-row__title">{definition?.displayName ?? id}</span>
-                  <span className="attribute-row__range">{range ? `${range.minimum}–${range.maximum}` : 'select a metatype'}</span>
+                  <span className="attribute-row__range">
+                    {metatype && resolution ? `${resolution.base}–${resolution.naturalMaximum}` : 'select a metatype'}
+                  </span>
                 </span>
                 <span className="attribute-row__pips">
                   {Array.from({ length: pipCount }, (_, index) => (
@@ -89,11 +104,17 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
                   >
                     −
                   </button>
-                  <span className="attribute-row__value">{range ? value : '—'}</span>
+                  <span className="attribute-row__value">
+                    {metatype && resolution ? value : '—'}
+                    {augmented > value && <small className="attribute-row__augmented">{augmented}</small>}
+                  </span>
                   <button
                     type="button"
                     className="console__stepper-btn"
-                    disabled={!metatype || (range != null && value >= range.maximum)}
+                    // The cap is the natural maximum, which already includes
+                    // Exceptional Attribute's +1 — spending the point that
+                    // quality pays for has to be possible.
+                    disabled={!metatype || (resolution != null && value >= resolution.naturalMaximum)}
                     onClick={(event) => { event.stopPropagation(); setSelectedId(id); update(id, allocation + 1) }}
                   >
                     +
@@ -113,20 +134,29 @@ export function AttributeStep({ catalog, document, onChange, diagnostics = [] }:
         meta={`${selectedDefinition?.group?.toUpperCase() ?? ''} ATTRIBUTE`}
         text={describeAttribute(selectedId)}
         stats={[
-          { label: 'RATING', value: metatype ? String(selectedValue) : '—', tone: 'accent' },
-          { label: 'NATURAL MAX', value: selectedRange ? String(selectedRange.maximum) : '—' },
+          { label: 'NATURAL', value: metatype && selected ? String(selected.natural) : '—', tone: 'accent' },
+          {
+            label: 'AUGMENTED',
+            value: metatype && selected ? String(selected.augmented) : '—',
+            tone: selected && selected.augmented > selected.natural ? 'info' : 'default',
+          },
         ]}
         rows={[
+          { label: 'NATURAL MAX', value: metatype && selected ? String(selected.naturalMaximum) : '—' },
+          { label: 'AUGMENTED MAX', value: metatype && selected ? String(selected.augmentedMaximum) : '—' },
+          ...modifierRows,
           { label: 'ASSIGNED', value: `${spent} of ${budget}`, tone: spent < budget ? 'warning' : 'accent' },
           { label: 'REMAINING', value: String(Math.max(0, budget - spent)), tone: 'default' },
           { label: 'FROM PRIORITY', value: priority ? `PRIORITY ${priority.toUpperCase()}` : 'UNASSIGNED' },
           ...(karmaSpent > 0 ? [{ label: 'KARMA COST', value: `${karmaSpent}`, tone: 'warning' as const }] : []),
         ]}
-        warn={spent < budget
-          ? `You have ${budget - spent} unspent attribute points. Every point left here is wasted — they do not convert to karma.`
-          : karmaSpent > 0
-            ? `Points beyond the priority budget are not blocked — they draw ${karmaSpent} Karma at the published rate.`
-            : undefined}
+        warn={selected?.augmentationBonusWasted
+          ? `Your ware adds +${selected.rawAugmentationBonus} to ${selected.displayName}, but no attribute may gain more than +4 from augmentation. ${selected.rawAugmentationBonus - 4} of that is paid for and does nothing.`
+          : spent < budget
+            ? `You have ${budget - spent} unspent attribute points. Every point left here is wasted — they do not convert to karma.`
+            : karmaSpent > 0
+              ? `Points beyond the priority budget are not blocked — they draw ${karmaSpent} Karma at the published rate.`
+              : undefined}
       />
     </div>
   )
