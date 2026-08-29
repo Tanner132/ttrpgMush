@@ -28,7 +28,7 @@ public sealed class EmbeddedRulesetCatalogProvider : IRulesetCatalogProvider
     // "Schema Lifecycle" section. Still computed correctly on every load and
     // still stamped onto every draft/sheet, so re-enabling enforcement later
     // is a matter of un-commenting the checks, not re-deriving this value.
-    public const string CurrentSemanticDigest = "18C4BAA5AA1CA26F7E5FCD3293D385D1F88A8972CAB35FB1B4F4C8C5A1FAD8E3";
+    public const string CurrentSemanticDigest = "F9E6BDBC78CBC9DD7E70988480C7A5B992944FF890724612709732B156908D63";
 
     private const string ResourcePrefix = "SeattleByNight.Application.CharacterCreation.Catalog.Resources.";
 

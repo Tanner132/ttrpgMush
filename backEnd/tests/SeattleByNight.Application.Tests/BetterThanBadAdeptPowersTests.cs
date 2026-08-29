@@ -15,7 +15,7 @@ public sealed class BetterThanBadAdeptPowersTests
     {
         var catalog = Catalog;
 
-        Assert.Equal(27, catalog.AdeptPowers.Count);
+        Assert.Equal(74, catalog.AdeptPowers.Count);
         Assert.Equal(2, catalog.AdeptPowers.Values.Count(p => p.Source.SourceId == "better-than-bad"));
         Assert.Equal(25, catalog.AdeptPowers.Values.Count(p => p.Source.SourceId == "sr5-core"));
     }

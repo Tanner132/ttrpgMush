@@ -12,7 +12,7 @@ public sealed class QualitiesSkillsKnowledgeEvaluatorTests
     public void CurrentCatalogContainsReviewedChar807Inventory()
     {
         var catalog = CatalogTestData.Catalog;
-        Assert.Equal(168, catalog.Qualities.Count);
+        Assert.Equal(184, catalog.Qualities.Count);
         Assert.Equal(75, catalog.Skills.Count);
         Assert.Equal(15, catalog.SkillGroups.Count);
         Assert.Equal(4, catalog.KnowledgeCategories.Count);

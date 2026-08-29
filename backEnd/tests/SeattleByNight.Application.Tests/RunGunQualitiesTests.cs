@@ -16,7 +16,7 @@ public sealed class RunGunQualitiesTests
     {
         var catalog = Catalog;
 
-        Assert.Equal(168, catalog.Qualities.Count);
+        Assert.Equal(184, catalog.Qualities.Count);
         Assert.Equal(13, catalog.Qualities.Values.Count(q => q.Source.SourceId == "run-gun"));
         Assert.Equal(85, catalog.Qualities.Values.Count(q => q.Source.SourceId == "run-faster"));
         Assert.Equal(59, catalog.Qualities.Values.Count(q => q.Source.SourceId == "sr5-core"));

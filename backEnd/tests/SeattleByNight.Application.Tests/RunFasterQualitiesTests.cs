@@ -15,8 +15,8 @@ public sealed class RunFasterQualitiesTests
     {
         var catalog = Catalog;
 
-        // 157 total as of CHAR-815, which added 13 run-gun entries on top of these.
-        Assert.Equal(168, catalog.Qualities.Count);
+        // 157 total as of CHAR-815, which added 13 run-gun entries on top of these; 184 after Rigger 5.0 (9 qualities).
+        Assert.Equal(184, catalog.Qualities.Count);
         // 84 new CHAR-814 entries plus the pre-existing poor-self-control-vindictive (CHAR-813).
         Assert.Equal(85, catalog.Qualities.Values.Count(q => q.Source.SourceId == "run-faster"));
         Assert.Equal(59, catalog.Qualities.Values.Count(q => q.Source.SourceId == "sr5-core"));

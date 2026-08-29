@@ -15,7 +15,7 @@ public sealed class BetterThanBadQualitiesTests
     {
         var catalog = Catalog;
 
-        Assert.Equal(168, catalog.Qualities.Count);
+        Assert.Equal(184, catalog.Qualities.Count);
         Assert.Equal(11, catalog.Qualities.Values.Count(q => q.Source.SourceId == "better-than-bad"));
         Assert.Equal(13, catalog.Qualities.Values.Count(q => q.Source.SourceId == "run-gun"));
         Assert.Equal(85, catalog.Qualities.Values.Count(q => q.Source.SourceId == "run-faster"));

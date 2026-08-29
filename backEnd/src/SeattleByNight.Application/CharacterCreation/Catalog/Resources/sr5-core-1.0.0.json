@@ -51,6 +51,11 @@
       "id": "street-lethal",
       "fileName": "Shadowrun Street Lethal (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
       "sha256": "F692F286494D71F26E4AFAFFB236A268EF78A314C15F562F917DE32F9098CD9E"
+    },
+    {
+      "id": "hard-targets",
+      "fileName": "Shadowrun_5E_Hard_Targets-1.pdf",
+      "sha256": "BD2357860819D12A003600500BDE19C9B4915F47EBACF940CA0390AAA97B2873"
     }
   ],
   "creationMethods": [
@@ -3419,6 +3424,230 @@
         "printedPage": 162,
         "pdfPage": 163
       }
+    },
+    {
+      "id": "barrens-rat",
+      "displayName": "Barrens Rat",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "elemental-focus",
+      "displayName": "Elemental Focus",
+      "polarity": "positive",
+      "cost": 10,
+      "parameterized": true,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "poisoner",
+      "displayName": "Poisoner",
+      "polarity": "positive",
+      "cost": 5,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "practice-practice-practice",
+      "displayName": "Practice, Practice, Practice",
+      "polarity": "positive",
+      "cost": 2,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "code-of-honor-avenging-angel",
+      "displayName": "Code of Honor: Avenging Angel",
+      "polarity": "negative",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "faceless",
+      "displayName": "Faceless",
+      "polarity": "negative",
+      "cost": 6,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "impassive",
+      "displayName": "Impassive",
+      "polarity": "negative",
+      "cost": 7,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "chaser",
+      "displayName": "Chaser",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 33,
+        "pdfPage": 34
+      }
+    },
+    {
+      "id": "dealer-connection",
+      "displayName": "Dealer Connection",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 33,
+        "pdfPage": 34
+      }
+    },
+    {
+      "id": "grease-monkey",
+      "displayName": "Grease Monkey",
+      "polarity": "positive",
+      "cost": 8,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 33,
+        "pdfPage": 34
+      }
+    },
+    {
+      "id": "speed-demon",
+      "displayName": "Speed Demon",
+      "polarity": "positive",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 33,
+        "pdfPage": 34
+      }
+    },
+    {
+      "id": "stunt-driver",
+      "displayName": "Stunt Driver",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 33,
+        "pdfPage": 34
+      }
+    },
+    {
+      "id": "subtle-pilot",
+      "displayName": "Subtle Pilot",
+      "polarity": "positive",
+      "cost": 4,
+      "parameterized": true,
+      "repeatable": true,
+      "conflicts": [],
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 33,
+        "pdfPage": 34
+      }
+    },
+    {
+      "id": "accident-prone",
+      "displayName": "Accident Prone",
+      "polarity": "negative",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 33,
+        "pdfPage": 34
+      }
+    },
+    {
+      "id": "motion-sickness",
+      "displayName": "Motion Sickness",
+      "polarity": "negative",
+      "cost": 4,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 34,
+        "pdfPage": 35
+      }
+    },
+    {
+      "id": "too-much-data",
+      "displayName": "Too Much Data",
+      "polarity": "negative",
+      "cost": 3,
+      "parameterized": false,
+      "repeatable": false,
+      "conflicts": [],
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 34,
+        "pdfPage": 35
+      }
     }
   ],
   "skills": [
@@ -4850,7 +5079,8 @@
         "printedPage": 41,
         "pdfPage": 43
       }
-    },{
+    },
+    {
       "id": "black-magic",
       "displayName": "Black Magic",
       "drainAttributes": "Willpower + Charisma",
@@ -4859,7 +5089,8 @@
         "printedPage": 43,
         "pdfPage": 45
       }
-    },{
+    },
+    {
       "id": "buddhism",
       "displayName": "Buddhism",
       "drainAttributes": "Willpower + Intuition",
@@ -4868,7 +5099,8 @@
         "printedPage": 43,
         "pdfPage": 45
       }
-    },{
+    },
+    {
       "id": "chaos-magic",
       "displayName": "Chaos Magic",
       "drainAttributes": "Willpower + Intuition",
@@ -4877,7 +5109,8 @@
         "printedPage": 44,
         "pdfPage": 46
       }
-    },{
+    },
+    {
       "id": "christian-theurgy",
       "displayName": "Christian Theurgy",
       "drainAttributes": "Willpower + Charisma",
@@ -4886,7 +5119,8 @@
         "printedPage": 45,
         "pdfPage": 47
       }
-    },{
+    },
+    {
       "id": "druid",
       "displayName": "Druid",
       "drainAttributes": "Willpower + Intuition",
@@ -4895,7 +5129,8 @@
         "printedPage": 45,
         "pdfPage": 47
       }
-    },{
+    },
+    {
       "id": "hinduism",
       "displayName": "Hinduism",
       "drainAttributes": "Willpower + Logic",
@@ -4904,7 +5139,8 @@
         "printedPage": 46,
         "pdfPage": 48
       }
-    },{
+    },
+    {
       "id": "islam",
       "displayName": "Islam",
       "drainAttributes": "Willpower + Logic",
@@ -4913,7 +5149,8 @@
         "printedPage": 47,
         "pdfPage": 49
       }
-    },{
+    },
+    {
       "id": "path-of-the-wheel",
       "displayName": "Path of the Wheel",
       "drainAttributes": "Willpower + Charisma",
@@ -4922,7 +5159,8 @@
         "printedPage": 47,
         "pdfPage": 49
       }
-    },{
+    },
+    {
       "id": "qabbalistic",
       "displayName": "Qabbalistic",
       "drainAttributes": "Willpower + Logic",
@@ -4931,7 +5169,8 @@
         "printedPage": 48,
         "pdfPage": 50
       }
-    },{
+    },
+    {
       "id": "shinto",
       "displayName": "Shinto",
       "drainAttributes": "Willpower + Charisma",
@@ -4940,7 +5179,8 @@
         "printedPage": 49,
         "pdfPage": 51
       }
-    },{
+    },
+    {
       "id": "sioux",
       "displayName": "Sioux",
       "drainAttributes": "Willpower + Intuition",
@@ -4949,7 +5189,8 @@
         "printedPage": 49,
         "pdfPage": 51
       }
-    },{
+    },
+    {
       "id": "vodou",
       "displayName": "Vodou",
       "drainAttributes": "Willpower + Charisma",
@@ -4958,7 +5199,8 @@
         "printedPage": 50,
         "pdfPage": 52
       }
-    },{
+    },
+    {
       "id": "wicca",
       "displayName": "Wiccan",
       "drainAttributes": "Willpower + Intuition",
@@ -4967,7 +5209,8 @@
         "printedPage": 51,
         "pdfPage": 53
       }
-    },{
+    },
+    {
       "id": "wuxing",
       "displayName": "Wuxing",
       "drainAttributes": "Willpower + Logic",
@@ -4976,7 +5219,8 @@
         "printedPage": 51,
         "pdfPage": 53
       }
-    },{
+    },
+    {
       "id": "zoroastrianism",
       "displayName": "Zoroastrianism",
       "drainAttributes": "Willpower + Logic",
@@ -4985,7 +5229,8 @@
         "printedPage": 53,
         "pdfPage": 55
       }
-    },{
+    },
+    {
       "id": "cosmic",
       "displayName": "Cosmic",
       "drainAttributes": "Willpower + Logic",
@@ -4994,7 +5239,8 @@
         "printedPage": 76,
         "pdfPage": 78
       }
-    },{
+    },
+    {
       "id": "draconic",
       "displayName": "Draconic",
       "drainAttributes": "Willpower + Magic",
@@ -5093,7 +5339,8 @@
         "printedPage": 91,
         "pdfPage": 93
       }
-    },{
+    },
+    {
       "id": "psionic",
       "displayName": "Psionic",
       "drainAttributes": "Willpower + Intuition",
@@ -5103,7 +5350,6 @@
         "pdfPage": 5
       }
     }
-    
   ],
   "spells": [
     {
@@ -6365,6 +6611,1791 @@
         "printedPage": 291,
         "pdfPage": 293
       }
+    },
+    {
+      "id": "catch",
+      "displayName": "Catch",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "conceal-scent",
+      "displayName": "Conceal Scent",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "snakeblood",
+      "displayName": "Snakeblood",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "recharge-potency",
+      "displayName": "Recharge Potency",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "manablade",
+      "displayName": "Manablade",
+      "category": "combat",
+      "type": "mana",
+      "range": "special",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 192,
+        "pdfPage": 193
+      }
+    },
+    {
+      "id": "powerblade",
+      "displayName": "Powerblade",
+      "category": "combat",
+      "type": "physical",
+      "range": "special",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 192,
+        "pdfPage": 193
+      }
+    },
+    {
+      "id": "corrode-object",
+      "displayName": "Corrode [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 102,
+        "pdfPage": 104
+      }
+    },
+    {
+      "id": "melt-object",
+      "displayName": "Melt [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 102,
+        "pdfPage": 104
+      }
+    },
+    {
+      "id": "sludge-object",
+      "displayName": "Sludge [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 102,
+        "pdfPage": 104
+      }
+    },
+    {
+      "id": "disrupt-focus",
+      "displayName": "Disrupt [Focus]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 102,
+        "pdfPage": 104
+      }
+    },
+    {
+      "id": "destroy-free-spirit",
+      "displayName": "Destroy [Free Spirit]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "destroy-vehicle",
+      "displayName": "Destroy [Vehicle]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "firewater",
+      "displayName": "Firewater",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "napalm",
+      "displayName": "Napalm",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "insecticide-insect-spirit",
+      "displayName": "Insecticide [Insect Spirit]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F + 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "ice-spear",
+      "displayName": "Ice Spear",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "ice-storm",
+      "displayName": "Ice Storm",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "one-less-metatype",
+      "displayName": "One Less [Metatype/Species]",
+      "category": "combat",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 104,
+        "pdfPage": 106
+      }
+    },
+    {
+      "id": "slay-metatype",
+      "displayName": "Slay [Metatype/Species]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 4",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 104,
+        "pdfPage": 106
+      }
+    },
+    {
+      "id": "slaughter-metatype",
+      "displayName": "Slaughter [Metatype/Species]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 104,
+        "pdfPage": 106
+      }
+    },
+    {
+      "id": "ram-object",
+      "displayName": "Ram [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 5",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 104,
+        "pdfPage": 106
+      }
+    },
+    {
+      "id": "wreck-object",
+      "displayName": "Wreck [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 105,
+        "pdfPage": 107
+      }
+    },
+    {
+      "id": "demolish-object",
+      "displayName": "Demolish [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 105,
+        "pdfPage": 107
+      }
+    },
+    {
+      "id": "radiation-beam",
+      "displayName": "Radiation Beam",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 105,
+        "pdfPage": 107
+      }
+    },
+    {
+      "id": "radiation-burst",
+      "displayName": "Radiation Burst",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 105,
+        "pdfPage": 107
+      }
+    },
+    {
+      "id": "pollutant-stream",
+      "displayName": "Pollutant Stream",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "pollutant-wave",
+      "displayName": "Pollutant Wave",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "shattershield",
+      "displayName": "Shattershield",
+      "category": "combat",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "astral-message",
+      "displayName": "Astral Message",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "astral-clairvoyance",
+      "displayName": "Astral Clairvoyance",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "borrow-sense",
+      "displayName": "Borrow Sense",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "animal-sense",
+      "displayName": "Animal Sense",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 5",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "eyes-of-the-pack",
+      "displayName": "Eyes of the Pack",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "catalog",
+      "displayName": "Catalog",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "diagnose",
+      "displayName": "Diagnose",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "dragon-astral-signature",
+      "displayName": "Dragon Astral Signature",
+      "category": "detection",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 5",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "enhance-aim",
+      "displayName": "Enhance Aim",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "hawkeye",
+      "displayName": "Hawkeye",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "mana-window",
+      "displayName": "Mana Window",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "astral-window",
+      "displayName": "Astral Window",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "mindnet",
+      "displayName": "Mindnet",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "mindnet-extended",
+      "displayName": "Mindnet Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "night-vision",
+      "displayName": "Night Vision",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "sense-cryptesthesia",
+      "displayName": "[Sense] Cryptesthesia",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "spatial-sense",
+      "displayName": "Spatial Sense",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "spatial-sense-extended",
+      "displayName": "Spatial Sense, Extended",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "thought-recognition",
+      "displayName": "Thought Recognition",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "area-thought-recognition",
+      "displayName": "Area Thought Recognition",
+      "category": "detection",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "translate",
+      "displayName": "Translate",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "ambidexterity",
+      "displayName": "Ambidexterity",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "alleviate-addiction",
+      "displayName": "Alleviate Addiction",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "alleviate-allergy",
+      "displayName": "Alleviate [Allergy]",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 6",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "awaken",
+      "displayName": "Awaken",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "crank",
+      "displayName": "Crank",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "decrease-reflexes",
+      "displayName": "Decrease Reflexes",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "enabler",
+      "displayName": "Enabler",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "fast",
+      "displayName": "Fast",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "forced-defense",
+      "displayName": "Forced Defense",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "increase-inherent-limits",
+      "displayName": "Increase Inherent Limits",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "decrease-inherent-limits",
+      "displayName": "Decrease Inherent Limits",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "camouflage",
+      "displayName": "Camouflage",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "physical-camouflage",
+      "displayName": "Physical Camouflage",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "decoy",
+      "displayName": "Decoy",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "chaff",
+      "displayName": "Chaff",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "double-image",
+      "displayName": "Double Image",
+      "category": "illusion",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "dream",
+      "displayName": "Dream",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "euphoria",
+      "displayName": "Euphoria",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "opium-den",
+      "displayName": "Opium Den",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "foreboding",
+      "displayName": "Foreboding",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 112,
+        "pdfPage": 114
+      }
+    },
+    {
+      "id": "hot-potato",
+      "displayName": "Hot Potato",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 112,
+        "pdfPage": 114
+      }
+    },
+    {
+      "id": "sense-removal",
+      "displayName": "[Sense] Removal",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 112,
+        "pdfPage": 114
+      }
+    },
+    {
+      "id": "mass-sense-removal",
+      "displayName": "Mass [Sense] Removal",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 112,
+        "pdfPage": 114
+      }
+    },
+    {
+      "id": "stink",
+      "displayName": "Stink",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "stench",
+      "displayName": "Stench",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "sound-barrier",
+      "displayName": "Sound Barrier",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "switch-vehicle-signature",
+      "displayName": "Switch Vehicle Signature",
+      "category": "illusion",
+      "type": "physical",
+      "range": "touch",
+      "duration": "special",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "vehicle-mask",
+      "displayName": "Vehicle Mask",
+      "category": "illusion",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "bind",
+      "displayName": "Bind",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "net-bind",
+      "displayName": "Net Bind",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "mana-bind",
+      "displayName": "Mana Bind",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "mana-net",
+      "displayName": "Mana Net",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "bug-zapper",
+      "displayName": "Bug Zapper",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "calm-animal",
+      "displayName": "Calm Animal",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "calm-pack",
+      "displayName": "Calm Pack",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "catfall",
+      "displayName": "Catfall",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "clean-element",
+      "displayName": "Clean [Element]",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "permanent",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "compel-truth",
+      "displayName": "Compel Truth",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "special",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "control-animal",
+      "displayName": "Control Animal",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "control-pack",
+      "displayName": "Control Pack",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "deflection",
+      "displayName": "Deflection",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "element-aura",
+      "displayName": "[Element] Aura",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "element-wall",
+      "displayName": "[Element] Wall",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "fashion",
+      "displayName": "Fashion",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "fix",
+      "displayName": "Fix",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "gecko-crawl",
+      "displayName": "Gecko Crawl",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "glue",
+      "displayName": "Glue",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "permanent",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "glue-strip",
+      "displayName": "Glue Strip",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "increase-noise",
+      "displayName": "Increase Noise",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "decrease-noise",
+      "displayName": "Decrease Noise",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "increase-gear-limits",
+      "displayName": "Increase Gear Limits",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "decrease-gear-limits",
+      "displayName": "Decrease Gear Limits",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "interference",
+      "displayName": "Interference",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "lock",
+      "displayName": "Lock",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "mana-static",
+      "displayName": "Mana Static",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "makeover",
+      "displayName": "Makeover",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "mist",
+      "displayName": "Mist",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "offensive-mana-barrier",
+      "displayName": "Offensive Mana Barrier",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "preserve",
+      "displayName": "Preserve",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "protect-vehicle",
+      "displayName": "Protect Vehicle",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "pulse",
+      "displayName": "Pulse",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "reinforce",
+      "displayName": "Reinforce",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "slow-vehicle",
+      "displayName": "Slow Vehicle",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F + 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "shape-material",
+      "displayName": "Shape [Material]",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "shapechange",
+      "displayName": "Shapechange",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "critter-form",
+      "displayName": "(Critter) Form",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "spirit-barrier",
+      "displayName": "Spirit Barrier",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 119,
+        "pdfPage": 121
+      }
+    },
+    {
+      "id": "spirit-zapper",
+      "displayName": "Spirit Zapper",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 119,
+        "pdfPage": 121
+      }
+    },
+    {
+      "id": "sterilize",
+      "displayName": "Sterilize",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 119,
+        "pdfPage": 121
+      }
+    },
+    {
+      "id": "turn-to-goo",
+      "displayName": "Turn to Goo",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 119,
+        "pdfPage": 121
+      }
     }
   ],
   "rituals": [
@@ -6816,6 +8847,577 @@
         "sourceId": "better-than-bad",
         "printedPage": 160,
         "pdfPage": 161
+      }
+    },
+    {
+      "id": "adept-spell",
+      "displayName": "Adept Spell",
+      "powerPointCost": 1.0,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      }
+    },
+    {
+      "id": "adept-accident",
+      "displayName": "Adept Accident",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      }
+    },
+    {
+      "id": "focused-archery",
+      "displayName": "Focused Archery",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      }
+    },
+    {
+      "id": "kiai",
+      "displayName": "Kiai",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 6,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      }
+    },
+    {
+      "id": "master-archer",
+      "displayName": "Master Archer",
+      "powerPointCost": 1.0,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "precision-throwing",
+      "displayName": "Precision Throwing",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "analytics",
+      "displayName": "Analytics",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "animal-empathy",
+      "displayName": "Animal Empathy",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "berserk",
+      "displayName": "Berserk",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "berserkers-rage",
+      "displayName": "Berserker's Rage",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "blind-fighting",
+      "displayName": "Blind Fighting",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "cloak",
+      "displayName": "Cloak",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "cool-resolve",
+      "displayName": "Cool Resolve",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "commanding-voice",
+      "displayName": "Commanding Voice",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "counterstrike",
+      "displayName": "Counterstrike",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "elemental-body",
+      "displayName": "Elemental Body",
+      "powerPointCost": 1,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "elemental-strike",
+      "displayName": "Elemental Strike",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "elemental-weapon",
+      "displayName": "Elemental Weapon",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "empathic-healing",
+      "displayName": "Empathic Healing",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "facial-sculpt",
+      "displayName": "Facial Sculpt",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "flexibility",
+      "displayName": "Flexibility",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "freefall",
+      "displayName": "Freefall",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "hang-time",
+      "displayName": "Hang Time",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "inertia-strike",
+      "displayName": "Inertia Strike",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "kinesics-mastery",
+      "displayName": "Kinesics Mastery",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "linguistics",
+      "displayName": "Linguistics",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "magic-sense",
+      "displayName": "Magic Sense",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "melanin-control",
+      "displayName": "Melanin Control",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "metabolic-control",
+      "displayName": "Metabolic Control",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "missile-mastery",
+      "displayName": "Missile Mastery",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "motion-sense",
+      "displayName": "Motion Sense",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "nerve-strike",
+      "displayName": "Nerve Strike",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "nimble-fingers",
+      "displayName": "Nimble Fingers",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "pain-relief",
+      "displayName": "Pain Relief",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "penetrating-strike",
+      "displayName": "Penetrating Strike",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 4,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "plague-cloud",
+      "displayName": "Plague Cloud",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "rapid-draw",
+      "displayName": "Rapid Draw",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "riposte",
+      "displayName": "Riposte",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "skate",
+      "displayName": "Skate",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "smashing-blow",
+      "displayName": "Smashing Blow",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "spirit-claw",
+      "displayName": "Spirit Claw",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "spirit-ram",
+      "displayName": "Spirit Ram",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "stillness",
+      "displayName": "Stillness",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "sustenance",
+      "displayName": "Sustenance",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 175,
+        "pdfPage": 177
+      }
+    },
+    {
+      "id": "temperature-tolerance",
+      "displayName": "Temperature Tolerance",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 175,
+        "pdfPage": 177
+      }
+    },
+    {
+      "id": "three-dimensional-memory",
+      "displayName": "Three-Dimensional Memory",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 175,
+        "pdfPage": 177
+      }
+    },
+    {
+      "id": "toxic-strike",
+      "displayName": "Toxic Strike",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 176,
+        "pdfPage": 178
       }
     }
   ],
@@ -11829,6 +14431,464 @@
       "accuracy": "--",
       "damage": "+4S(e)",
       "ap": "--"
+    },
+    {
+      "id": "cloak",
+      "displayName": "Cloak",
+      "categoryId": "clothing",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 184,
+        "pdfPage": 185
+      },
+      "availability": {
+        "fixed": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "ruthenium-polymer-cloak",
+      "displayName": "Ruthenium Polymer Cloak",
+      "categoryId": "clothing",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "ares-monotip-arrows",
+      "displayName": "Ares Monotip Arrows",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 30
+      }
+    },
+    {
+      "id": "c-squared",
+      "displayName": "C-Squared",
+      "categoryId": "industrial-chemical",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 15
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "enchanting-gloves",
+      "displayName": "Enchanting Gloves",
+      "categoryId": "magical-supplies",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "quickdraw-quiver",
+      "displayName": "Quickdraw Quiver",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "reactive-myomer-pack",
+      "displayName": "Reactive Myomer Pack",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 450
+      }
+    },
+    {
+      "id": "reloading-rail",
+      "displayName": "Reloading Rail",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 675
+      }
+    },
+    {
+      "id": "reloading-rail-cybertorso",
+      "displayName": "Reloading Rail (cybertorso)",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 3500
+      },
+      "capacity": 5
+    },
+    {
+      "id": "reloading-slide",
+      "displayName": "Reloading Slide",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      }
+    },
+    {
+      "id": "reloading-slide-cyberarm",
+      "displayName": "Reloading Slide (cyberarm)",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2750
+      },
+      "capacity": 3
+    },
+    {
+      "id": "seeker-shafts",
+      "displayName": "Seeker Shafts",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 45
+      }
+    },
+    {
+      "id": "smokebomb",
+      "displayName": "Smokebomb",
+      "categoryId": "survival",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "ultrasonic-noise-generator",
+      "displayName": "Ultrasonic Noise Generator",
+      "categoryId": "communications",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 60
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      },
+      "capacity": 2
+    },
+    {
+      "id": "voice-warper",
+      "displayName": "Voice Warper",
+      "categoryId": "electronics-accessory",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "polychromic-lens",
+      "displayName": "Polychromic Lens",
+      "categoryId": "optical-imaging",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 188,
+        "pdfPage": 189
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "capacity": 1
+    },
+    {
+      "id": "smart-wig",
+      "displayName": "Smart Wig",
+      "categoryId": "clothing",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 188,
+        "pdfPage": 189
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1200
+      }
+    },
+    {
+      "id": "synthskin-face-mask",
+      "displayName": "Synthskin Face Mask",
+      "categoryId": "clothing",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 188,
+        "pdfPage": 189
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 100
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "theatrical-cosmetics-kit",
+      "displayName": "Theatrical Cosmetics Kit",
+      "categoryId": "clothing",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 188,
+        "pdfPage": 189
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      }
+    },
+    {
+      "id": "depleted-uranium-rounds",
+      "displayName": "Depleted Uranium Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 189,
+        "pdfPage": 190
+      },
+      "availability": {
+        "fixed": 28,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "damage": "+1",
+      "ap": "-5"
+    },
+    {
+      "id": "hi-de-rounds",
+      "displayName": "Hi-De Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 189,
+        "pdfPage": 190
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 150
+      }
+    },
+    {
+      "id": "silver-bullets-10",
+      "displayName": "Silver Bullets (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 189,
+        "pdfPage": 190
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "subsonic-rounds",
+      "displayName": "Subsonic Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 189,
+        "pdfPage": 190
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 40
+      }
+    },
+    {
+      "id": "wood-pulp-rounds",
+      "displayName": "Wood Pulp Rounds (10)",
+      "categoryId": "ammunition",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 189,
+        "pdfPage": 190
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 10
+      },
+      "ap": "-4"
     }
   ],
   "weapons": [
@@ -15306,6 +18366,378 @@
       "mode": "SA",
       "rc": "1",
       "ammo": "5 (m)"
+    },
+    {
+      "id": "cavalier-adder-slivergun",
+      "displayName": "Cavalier Adder Slivergun",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 178,
+        "pdfPage": 179
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 320
+      },
+      "accuracy": "5",
+      "damage": "8P(f)",
+      "ap": "+5",
+      "mode": "SA",
+      "ammo": "20(c)"
+    },
+    {
+      "id": "colt-manhunter",
+      "displayName": "Colt Manhunter",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 178,
+        "pdfPage": 179
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 700
+      },
+      "accuracy": "5 (6)",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "16(c)"
+    },
+    {
+      "id": "lemat-2072",
+      "displayName": "Lemat 2072",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 178,
+        "pdfPage": 179
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1080
+      },
+      "accuracy": "5",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "9(cy)",
+      "generatedProfileIds": [
+        "lemat-2072-shotgun"
+      ]
+    },
+    {
+      "id": "lemat-2072-shotgun",
+      "displayName": "Lemat 2072 (shotgun barrel)",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "generated",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 178,
+        "pdfPage": 179
+      },
+      "accuracy": "5",
+      "damage": "10P(f)",
+      "ap": "+4",
+      "mode": "SS",
+      "ammo": "1(b)"
+    },
+    {
+      "id": "plasteel-toe-boots",
+      "displayName": "Plasteel Toe Boots",
+      "weaponCategoryId": "other-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "accuracy": "Physical",
+      "damage": "(STR+1)P"
+    },
+    {
+      "id": "sapphire-knife",
+      "displayName": "Sapphire Knife",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "accuracy": "5",
+      "damage": "(STR+2)P",
+      "ap": "-3"
+    },
+    {
+      "id": "ceramic-plasteel-knife",
+      "displayName": "Ceramic/Plasteel Knife",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 75
+      },
+      "accuracy": "5",
+      "damage": "(STR+1)P",
+      "ap": "-1"
+    },
+    {
+      "id": "dynamic-tension-bow",
+      "displayName": "Dynamic Tension Bow",
+      "weaponCategoryId": "bows",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1200
+      },
+      "accuracy": "5",
+      "damage": "(Rating + 2)P",
+      "ap": "-(Rating / 4)",
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 10
+      }
+    },
+    {
+      "id": "victorinox-collapsible-hatchet",
+      "displayName": "Victorinox Collapsible Hatchet",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250
+      },
+      "accuracy": "5",
+      "damage": "(STR+2)P",
+      "ap": "-1",
+      "reach": "1"
+    },
+    {
+      "id": "cougar-collapsible-spear",
+      "displayName": "Cougar Collapsible Spear",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 180,
+        "pdfPage": 181
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "accuracy": "5",
+      "damage": "(STR+1)P",
+      "ap": "-1",
+      "reach": "0",
+      "generatedProfileIds": [
+        "cougar-collapsible-spear-extended"
+      ]
+    },
+    {
+      "id": "cougar-collapsible-spear-extended",
+      "displayName": "Cougar Collapsible Spear (extended)",
+      "weaponCategoryId": "blades",
+      "classification": "generated",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 180,
+        "pdfPage": 181
+      },
+      "accuracy": "5",
+      "damage": "(STR+3)P",
+      "ap": "-2",
+      "reach": "3"
+    },
+    {
+      "id": "collapsible-scythe",
+      "displayName": "Collapsible Scythe",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2350
+      },
+      "accuracy": "5",
+      "damage": "(STR+2)P",
+      "ap": "-2",
+      "reach": "2"
+    },
+    {
+      "id": "flame-bracer",
+      "displayName": "Flame Bracer",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 184,
+        "pdfPage": 185
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 775
+      },
+      "accuracy": "4",
+      "damage": "6P(fire)",
+      "ap": "-6",
+      "mode": "SS",
+      "ammo": "2(c)"
+    },
+    {
+      "id": "ares-armatus",
+      "displayName": "Ares Armatus",
+      "weaponCategoryId": "laser-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 184,
+        "pdfPage": 185
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 19000
+      },
+      "accuracy": "6",
+      "damage": "6P",
+      "ap": "-5",
+      "mode": "SA",
+      "ammo": "10(c) or external source"
+    },
+    {
+      "id": "shiawase-arms-simoom",
+      "displayName": "Shiawase Arms Simoom",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 184,
+        "pdfPage": 185
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "accuracy": "5",
+      "damage": "6P",
+      "mode": "SA/FA",
+      "ammo": "6(ml)"
+    },
+    {
+      "id": "throwing-syringe",
+      "displayName": "Throwing Syringe",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 184,
+        "pdfPage": 185
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 40
+      },
+      "accuracy": "Physical",
+      "damage": "(STR-2)P",
+      "ap": "-2"
+    },
+    {
+      "id": "tactical-grapple-gun",
+      "displayName": "Tactical Grapple Gun",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 15,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "accuracy": "4 (6)",
+      "damage": "9S",
+      "ap": "-2",
+      "mode": "SS",
+      "rc": "1",
+      "ammo": "1(b)"
     }
   ],
   "armor": [
@@ -17928,6 +21360,242 @@
       "capacityCost": {
         "fixed": 2
       }
+    },
+    {
+      "id": "bilateral-coordination-co-processor",
+      "displayName": "Bilateral Coordination Co-Processor",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4500
+      },
+      "essence": {
+        "fixed": 0.2
+      }
+    },
+    {
+      "id": "biospike",
+      "displayName": "Biospike",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "essence": {
+        "fixed": 0.2
+      }
+    },
+    {
+      "id": "spur-pocket",
+      "displayName": "Spur Pocket",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8000
+      },
+      "essence": {
+        "fixed": 0.1
+      }
+    },
+    {
+      "id": "foot-blade",
+      "displayName": "Foot Blade",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 28000
+      },
+      "essence": {
+        "fixed": 0.2
+      }
+    },
+    {
+      "id": "cybergland",
+      "displayName": "Cybergland",
+      "augmentationCategoryId": "bodyware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "perRating": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 12000
+      },
+      "essence": {
+        "perRating": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      },
+      "capacityCost": {
+        "perRating": 1
+      }
+    },
+    {
+      "id": "cyberfingers-credstick",
+      "displayName": "Cyberfingers (Credstick)",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "essence": {
+        "fixed": 0.05
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cyberfingers-glass-cutter",
+      "displayName": "Cyberfingers (Glass Cutter)",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 550
+      },
+      "essence": {
+        "fixed": 0.05
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cyberfingers-injector",
+      "displayName": "Cyberfingers (Injector)",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 650
+      },
+      "essence": {
+        "fixed": 0.05
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cyberfingers-lockpick",
+      "displayName": "Cyberfingers (Lockpick)",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "essence": {
+        "fixed": 0.05
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "infrasonic-generator",
+      "displayName": "Infrasonic Generator",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "essence": {
+        "fixed": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
     }
   ],
   "vehicles": [
@@ -18947,6 +22615,4030 @@
       "armor": 12,
       "pilot": 3,
       "sensor": 3
+    },
+    {
+      "id": "ammo-drone",
+      "displayName": "Ammo Drone",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 189,
+        "pdfPage": 190
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3000
+      },
+      "handling": "2",
+      "speed": "2",
+      "acceleration": 2,
+      "body": 2,
+      "armor": 4,
+      "pilot": 3,
+      "sensor": 2
+    },
+    {
+      "id": "reloading-drone",
+      "displayName": "Reloading Drone",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4500
+      },
+      "handling": "4",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 3,
+      "armor": 4,
+      "pilot": 3,
+      "sensor": 2
+    },
+    {
+      "id": "sparring-drone",
+      "displayName": "Sparring Drone",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "handling": "3",
+      "speed": "2",
+      "acceleration": 2,
+      "body": 4,
+      "armor": 2,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "mitsuhama-akiyama",
+      "displayName": "Mitsuhama Akiyama",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      },
+      "availability": {
+        "fixed": 24,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 200000
+      },
+      "handling": "5",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 4,
+      "armor": 6,
+      "pilot": 3,
+      "sensor": 3
+    },
+    {
+      "id": "daihatsu-caterpillar-horseman",
+      "displayName": "Daihatsu-Caterpillar Horseman",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 42,
+        "pdfPage": 43
+      },
+      "handling": "3/1",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 4,
+      "armor": 3,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 1,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 12000
+      }
+    },
+    {
+      "id": "ares-segway-terrier",
+      "displayName": "Ares-Segway Terrier",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 42,
+        "pdfPage": 43
+      },
+      "handling": "5/2",
+      "speed": "2",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 2,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 1,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4500
+      }
+    },
+    {
+      "id": "horizon-doble-revolution",
+      "displayName": "Horizon-Doble Revolution",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 43,
+        "pdfPage": 44
+      },
+      "handling": "5/3",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 6,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 1,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8000
+      }
+    },
+    {
+      "id": "evo-falcon-ex",
+      "displayName": "Evo Falcon-EX",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 43,
+        "pdfPage": 44
+      },
+      "handling": "3/5",
+      "speed": "2/3",
+      "acceleration": 2,
+      "body": 7,
+      "armor": 9,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 2,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "entertainment-systems-cyclops",
+      "displayName": "Entertainment Systems Cyclops",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 43,
+        "pdfPage": 44
+      },
+      "handling": "4/4",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 4,
+      "armor": 4,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 1,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 6500
+      }
+    },
+    {
+      "id": "echo-motors-zip",
+      "displayName": "Echo Motors Zip",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 44,
+        "pdfPage": 45
+      },
+      "handling": "3/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 6,
+      "armor": 4,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 1,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3500
+      }
+    },
+    {
+      "id": "yamaha-kaburaya",
+      "displayName": "Yamaha Kaburaya",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 44,
+        "pdfPage": 45
+      },
+      "handling": "5/3",
+      "speed": "6",
+      "acceleration": 3,
+      "body": 5,
+      "armor": 4,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 1,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 17000
+      }
+    },
+    {
+      "id": "buell-spartan",
+      "displayName": "Buell Spartan",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 45,
+        "pdfPage": 46
+      },
+      "handling": "3/4",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 7,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 1,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 11500
+      }
+    },
+    {
+      "id": "harley-davidson-nightmare",
+      "displayName": "Harley-Davidson Nightmare",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 45,
+        "pdfPage": 46
+      },
+      "handling": "4/3",
+      "speed": "5",
+      "acceleration": 2,
+      "body": 8,
+      "armor": 8,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 2,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 22000
+      }
+    },
+    {
+      "id": "yamaha-nodachi",
+      "displayName": "Yamaha Nodachi",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 46,
+        "pdfPage": 47
+      },
+      "handling": "4/3",
+      "speed": "5",
+      "acceleration": 2,
+      "body": 8,
+      "armor": 9,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 2,
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 28000
+      }
+    },
+    {
+      "id": "thundercloud-mustang",
+      "displayName": "Thundercloud Mustang",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 47,
+        "pdfPage": 48
+      },
+      "handling": "4/4",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 8,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 2,
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 11000
+      }
+    },
+    {
+      "id": "renault-fiat-funone",
+      "displayName": "Renault-Fiat FunOne",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 47,
+        "pdfPage": 48
+      },
+      "handling": "3/1",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 6,
+      "armor": 4,
+      "pilot": 2,
+      "sensor": 1,
+      "seats": 2,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8500
+      }
+    },
+    {
+      "id": "dodge-xenon",
+      "displayName": "Dodge Xenon",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 47,
+        "pdfPage": 48
+      },
+      "handling": "3/2",
+      "speed": "4/3",
+      "acceleration": 2,
+      "body": 8,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 4,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 18000
+      }
+    },
+    {
+      "id": "echo-motors-metaway",
+      "displayName": "Echo Motors Metaway",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 48,
+        "pdfPage": 49
+      },
+      "handling": "4/2",
+      "speed": "4",
+      "acceleration": 1,
+      "body": 10,
+      "armor": 4,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 1,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 24000
+      }
+    },
+    {
+      "id": "gmc-442-chameleon",
+      "displayName": "GMC 442 Chameleon",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 48,
+        "pdfPage": 49
+      },
+      "handling": "4/2",
+      "speed": "4",
+      "acceleration": 1,
+      "body": 10,
+      "armor": 4,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 4,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 14000
+      }
+    },
+    {
+      "id": "mercury-comet",
+      "displayName": "Mercury Comet",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 49,
+        "pdfPage": 50
+      },
+      "handling": "4/4",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 11,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 4,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20000
+      }
+    },
+    {
+      "id": "saab-gladius-998-ti",
+      "displayName": "Saab Gladius 998 Ti",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 50,
+        "pdfPage": 51
+      },
+      "handling": "7/3",
+      "speed": "9",
+      "acceleration": 4,
+      "body": 10,
+      "armor": 5,
+      "pilot": 3,
+      "sensor": 5,
+      "seats": 2,
+      "availability": {
+        "fixed": 14,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 154000
+      }
+    },
+    {
+      "id": "saab-dynamit",
+      "displayName": "Saab Dynamit",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 50,
+        "pdfPage": 51
+      },
+      "handling": "5/1",
+      "speed": "9",
+      "acceleration": 3,
+      "body": 10,
+      "armor": 3,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 98000
+      }
+    },
+    {
+      "id": "gmc-phoenix",
+      "displayName": "GMC Phoenix",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 51,
+        "pdfPage": 52
+      },
+      "handling": "4/2",
+      "speed": "6",
+      "acceleration": 3,
+      "body": 10,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 4,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 32000
+      }
+    },
+    {
+      "id": "hyundai-equus",
+      "displayName": "Hyundai Equus",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 52,
+        "pdfPage": 53
+      },
+      "handling": "3/3",
+      "speed": "4/3",
+      "acceleration": 2,
+      "body": 12,
+      "armor": 10,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 4,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 40000
+      }
+    },
+    {
+      "id": "chevrolet-longboard",
+      "displayName": "Chevrolet Longboard",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 52,
+        "pdfPage": 53
+      },
+      "handling": "4/3",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 12,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 6,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 31000
+      }
+    },
+    {
+      "id": "rolls-royce-phaeton",
+      "displayName": "Rolls-Royce Phaeton",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 52,
+        "pdfPage": 53
+      },
+      "handling": "5/3",
+      "speed": "5/3",
+      "acceleration": 2,
+      "body": 16,
+      "armor": 12,
+      "pilot": 3,
+      "sensor": 4,
+      "seats": 8,
+      "availability": {
+        "fixed": 18,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 350000
+      }
+    },
+    {
+      "id": "thundercloud-morgan",
+      "displayName": "Thundercloud Morgan",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 53,
+        "pdfPage": 54
+      },
+      "handling": "3/5",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 14,
+      "armor": 6,
+      "seats": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 7500
+      }
+    },
+    {
+      "id": "tata-hotspur",
+      "displayName": "Tata Hotspur",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 53,
+        "pdfPage": 54
+      },
+      "handling": "4/5",
+      "speed": "6",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 60000
+      }
+    },
+    {
+      "id": "gmc-armadillo",
+      "displayName": "GMC Armadillo",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 54,
+        "pdfPage": 55
+      },
+      "handling": "3/4",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 13,
+      "armor": 10,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 4,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 22000
+      }
+    },
+    {
+      "id": "ford-percheron",
+      "displayName": "Ford Percheron",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 54,
+        "pdfPage": 55
+      },
+      "handling": "3/3",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 15,
+      "armor": 6,
+      "pilot": 4,
+      "sensor": 3,
+      "seats": 6,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 39000
+      }
+    },
+    {
+      "id": "jeep-trailblazer",
+      "displayName": "Jeep Trailblazer",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 55,
+        "pdfPage": 56
+      },
+      "handling": "3/4",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 12,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 4,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 32000
+      }
+    },
+    {
+      "id": "toyota-talon",
+      "displayName": "Toyota Talon",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 56,
+        "pdfPage": 57
+      },
+      "handling": "4/3",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 12,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 5,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30000
+      }
+    },
+    {
+      "id": "nissan-hauler",
+      "displayName": "Nissan Hauler",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 56,
+        "pdfPage": 57
+      },
+      "handling": "3/3",
+      "speed": "4/3",
+      "acceleration": 1,
+      "body": 16,
+      "armor": 8,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 4,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30000
+      }
+    },
+    {
+      "id": "eurocar-northstar",
+      "displayName": "Eurocar Northstar",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 57,
+        "pdfPage": 58
+      },
+      "handling": "5/3",
+      "speed": "6",
+      "acceleration": 2,
+      "body": 12,
+      "armor": 8,
+      "pilot": 3,
+      "sensor": 5,
+      "seats": 4,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 115000
+      }
+    },
+    {
+      "id": "gmc-escalade",
+      "displayName": "GMC Escalade",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 57,
+        "pdfPage": 58
+      },
+      "handling": "3/3",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 16,
+      "armor": 10,
+      "pilot": 3,
+      "sensor": 4,
+      "seats": 6,
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 125000
+      }
+    },
+    {
+      "id": "ford-econovan",
+      "displayName": "Ford Econovan",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 58,
+        "pdfPage": 59
+      },
+      "handling": "3/2",
+      "speed": "4",
+      "acceleration": 1,
+      "body": 14,
+      "armor": 8,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 10,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30000
+      }
+    },
+    {
+      "id": "dodge-caravaner",
+      "displayName": "Dodge Caravaner",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 59,
+        "pdfPage": 60
+      },
+      "handling": "3/2",
+      "speed": "4",
+      "acceleration": 1,
+      "body": 12,
+      "armor": 8,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 7,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 28000
+      }
+    },
+    {
+      "id": "gmc-universe",
+      "displayName": "GMC Universe",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 59,
+        "pdfPage": 60
+      },
+      "handling": "3/3",
+      "speed": "4/3",
+      "acceleration": 1,
+      "body": 14,
+      "armor": 8,
+      "pilot": 3,
+      "sensor": 2,
+      "seats": 14,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30000
+      }
+    },
+    {
+      "id": "ares-chuck-wagon",
+      "displayName": "Ares Chuck Wagon",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 59,
+        "pdfPage": 60
+      },
+      "handling": "2/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 16,
+      "armor": 5,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 2,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 40000
+      }
+    },
+    {
+      "id": "airstream-chinook",
+      "displayName": "Airstream Chinook",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 60,
+        "pdfPage": 61
+      },
+      "handling": "3/2",
+      "speed": "4/3",
+      "acceleration": 1,
+      "body": 14,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 10,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 145000
+      }
+    },
+    {
+      "id": "airstream-preserve",
+      "displayName": "Airstream Preserve",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 60,
+        "pdfPage": 61
+      },
+      "handling": "3/3",
+      "speed": "4/4",
+      "acceleration": 1,
+      "body": 16,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 10,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 134000
+      }
+    },
+    {
+      "id": "airstream-outback",
+      "displayName": "Airstream Outback",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 60,
+        "pdfPage": 61
+      },
+      "handling": "3/4",
+      "speed": "3/4",
+      "acceleration": 1,
+      "body": 14,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 4,
+      "seats": 8,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 158000
+      }
+    },
+    {
+      "id": "mack-hellhound",
+      "displayName": "Mack Hellhound",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 62,
+        "pdfPage": 63
+      },
+      "handling": "3/2",
+      "speed": "4/3",
+      "acceleration": 1,
+      "body": 20,
+      "armor": 15,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 2,
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 150000
+      }
+    },
+    {
+      "id": "omni-motors-omnibus",
+      "displayName": "Omni Motors Omnibus",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 62,
+        "pdfPage": 63
+      },
+      "handling": "2/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 18,
+      "armor": 10,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 53,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 296000
+      }
+    },
+    {
+      "id": "gmc-commercial-g-series",
+      "displayName": "GMC Commercial G-Series",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 63,
+        "pdfPage": 64
+      },
+      "handling": "2/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 18,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 2,
+      "availability": {
+        "fixed": 14,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 287000
+      }
+    },
+    {
+      "id": "gmc-commercial-d-compact",
+      "displayName": "GMC Commercial D-Compact",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 63,
+        "pdfPage": 64
+      },
+      "handling": "2/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 12,
+      "armor": 8,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 2,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 196000
+      }
+    },
+    {
+      "id": "gmc-commercial-d-series",
+      "displayName": "GMC Commercial D-Series",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 63,
+        "pdfPage": 64
+      },
+      "handling": "2/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 16,
+      "armor": 10,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 2,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 248000
+      }
+    },
+    {
+      "id": "gmc-commercial-dd",
+      "displayName": "GMC Commercial DD",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 63,
+        "pdfPage": 64
+      },
+      "handling": "2/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 20,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 2,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 312000
+      }
+    },
+    {
+      "id": "saeder-krupp-konstructors",
+      "displayName": "Saeder-Krupp Konstructors",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 64,
+        "pdfPage": 65
+      },
+      "handling": "2/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 24,
+      "armor": 18,
+      "pilot": 4,
+      "sensor": 3,
+      "seats": 2,
+      "availability": {
+        "fixed": 16,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 365000
+      }
+    },
+    {
+      "id": "mostrans-kvp-28",
+      "displayName": "Mostrans KVP-28",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 64,
+        "pdfPage": 65
+      },
+      "handling": "2/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 18,
+      "armor": 12,
+      "pilot": 4,
+      "sensor": 3,
+      "seats": 2,
+      "availability": {
+        "fixed": 16,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 87000
+      }
+    },
+    {
+      "id": "mostrans-minsk",
+      "displayName": "Mostrans Minsk",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 65,
+        "pdfPage": 66
+      },
+      "handling": "2/2",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 16,
+      "armor": 10,
+      "pilot": 4,
+      "sensor": 3,
+      "seats": 2,
+      "availability": {
+        "fixed": 16,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 77000
+      }
+    },
+    {
+      "id": "universal-hovercraft-minnesota",
+      "displayName": "Universal Hovercraft Minnesota",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 65,
+        "pdfPage": 66
+      },
+      "handling": "4/4",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 14,
+      "armor": 9,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 12,
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 130000
+      }
+    },
+    {
+      "id": "vodyanoy-assault-hovercraft",
+      "displayName": "Vodyanoy Assault Hovercraft",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 66,
+        "pdfPage": 67
+      },
+      "handling": "3/3",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 16,
+      "pilot": 1,
+      "sensor": 2,
+      "seats": 10,
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 84000
+      }
+    },
+    {
+      "id": "bmw-blitzkrieg",
+      "displayName": "BMW Blitzkrieg",
+      "vehicleCategoryId": "bike",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 67,
+        "pdfPage": 68
+      },
+      "handling": "4/3",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 10,
+      "armor": 8,
+      "pilot": 3,
+      "sensor": 4,
+      "seats": 2,
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 46000
+      }
+    },
+    {
+      "id": "dodge-charger",
+      "displayName": "Dodge Charger",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 68,
+        "pdfPage": 69
+      },
+      "handling": "4/3",
+      "speed": "5",
+      "acceleration": 2,
+      "body": 12,
+      "armor": 12,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 5,
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 65000
+      }
+    },
+    {
+      "id": "bmw-i8-interceptor",
+      "displayName": "BMW i8 Interceptor",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 69,
+        "pdfPage": 70
+      },
+      "handling": "5/3",
+      "speed": "8",
+      "acceleration": 4,
+      "body": 12,
+      "armor": 8,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 3,
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 114000
+      }
+    },
+    {
+      "id": "dodge-goliath",
+      "displayName": "Dodge Goliath",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 70,
+        "pdfPage": 71
+      },
+      "handling": "3/2",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 16,
+      "armor": 16,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 8,
+      "availability": {
+        "fixed": 20,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 120000
+      }
+    },
+    {
+      "id": "bmw-teufelkatze",
+      "displayName": "BMW Teufelkatze",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 71,
+        "pdfPage": 72
+      },
+      "handling": "5/4",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 16,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 7,
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 76000
+      }
+    },
+    {
+      "id": "dodge-stallion",
+      "displayName": "Dodge Stallion",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 73,
+        "pdfPage": 74
+      },
+      "handling": "3/4",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 12,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 4,
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 78000
+      }
+    },
+    {
+      "id": "ares-minotaur",
+      "displayName": "Ares Minotaur",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 73,
+        "pdfPage": 74
+      },
+      "handling": "4/5",
+      "speed": "5",
+      "acceleration": 2,
+      "body": 14,
+      "armor": 8,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 4,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 45000
+      }
+    },
+    {
+      "id": "bmw-luxus",
+      "displayName": "BMW Luxus",
+      "vehicleCategoryId": "car",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 73,
+        "pdfPage": 74
+      },
+      "handling": "5/5",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 18,
+      "armor": 16,
+      "pilot": 5,
+      "sensor": 6,
+      "seats": 8,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 398000
+      }
+    },
+    {
+      "id": "dodge-general-command",
+      "displayName": "Dodge General (Command)",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 74,
+        "pdfPage": 75
+      },
+      "handling": "3/3",
+      "speed": "4",
+      "acceleration": 1,
+      "body": 20,
+      "armor": 16,
+      "pilot": 5,
+      "sensor": 7,
+      "seats": 10,
+      "availability": {
+        "fixed": 18,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 344000
+      }
+    },
+    {
+      "id": "dodge-general-trailer",
+      "displayName": "Dodge General (Trailer)",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 74,
+        "pdfPage": 75
+      },
+      "handling": "3/3",
+      "speed": "3",
+      "acceleration": 1,
+      "body": 20,
+      "armor": 16,
+      "pilot": 3,
+      "sensor": 7,
+      "seats": 1,
+      "availability": {
+        "fixed": 18,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 54000
+      }
+    },
+    {
+      "id": "bmw-sturmwagon",
+      "displayName": "BMW Sturmwagon",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 77,
+        "pdfPage": 78
+      },
+      "handling": "5/4",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 17,
+      "armor": 18,
+      "pilot": 4,
+      "sensor": 5,
+      "seats": 10,
+      "availability": {
+        "fixed": 20,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 145000
+      }
+    },
+    {
+      "id": "dodge-rhino",
+      "displayName": "Dodge Rhino",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 77,
+        "pdfPage": 78
+      },
+      "handling": "4/4",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 24,
+      "armor": 14,
+      "pilot": 6,
+      "sensor": 7,
+      "seats": 9,
+      "availability": {
+        "fixed": 18,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 225000
+      }
+    },
+    {
+      "id": "ruhrmetall-wolf-ii",
+      "displayName": "Ruhrmetall Wolf II",
+      "vehicleCategoryId": "truck-van",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 77,
+        "pdfPage": 78
+      },
+      "handling": "3/3",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 24,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 6,
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 330000
+      }
+    },
+    {
+      "id": "evo-waterking",
+      "displayName": "Evo Waterking",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 80,
+        "pdfPage": 81
+      },
+      "handling": "3",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 14,
+      "armor": 8,
+      "pilot": 3,
+      "sensor": 2,
+      "seats": 12,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 74000
+      }
+    },
+    {
+      "id": "sea-ray-cottonmouth",
+      "displayName": "Sea Ray Cottonmouth",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 81,
+        "pdfPage": 82
+      },
+      "handling": "5",
+      "speed": "7",
+      "acceleration": 4,
+      "body": 8,
+      "armor": 4,
+      "pilot": 3,
+      "sensor": 3,
+      "seats": 4,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 120000
+      }
+    },
+    {
+      "id": "kawasaki-stingray",
+      "displayName": "Kawasaki Stingray",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 81,
+        "pdfPage": 82
+      },
+      "handling": "5",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 8,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 2,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 13000
+      }
+    },
+    {
+      "id": "kawasaki-manta-ray",
+      "displayName": "Kawasaki Manta Ray",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 81,
+        "pdfPage": 82
+      },
+      "handling": "4",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 9,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 3,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 16000
+      }
+    },
+    {
+      "id": "aztech-nightrunner",
+      "displayName": "Aztech Nightrunner",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 82,
+        "pdfPage": 83
+      },
+      "handling": "5",
+      "speed": "6",
+      "acceleration": 3,
+      "body": 12,
+      "armor": 6,
+      "pilot": 3,
+      "sensor": 4,
+      "seats": 6,
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 56000
+      }
+    },
+    {
+      "id": "zodiac-scorpio",
+      "displayName": "Zodiac Scorpio",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 83,
+        "pdfPage": 84
+      },
+      "handling": "4",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 10,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 6,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 26000
+      }
+    },
+    {
+      "id": "mitsubishi-waterbug",
+      "displayName": "Mitsubishi Waterbug",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 84,
+        "pdfPage": 85
+      },
+      "handling": "6",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 8,
+      "armor": 4,
+      "pilot": 1,
+      "seats": 1,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8000
+      }
+    },
+    {
+      "id": "mitsubishi-waveskipper",
+      "displayName": "Mitsubishi Waveskipper",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 84,
+        "pdfPage": 85
+      },
+      "handling": "5",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 10,
+      "armor": 4,
+      "pilot": 1,
+      "seats": 2,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "evo-water-strider",
+      "displayName": "Evo Water Strider",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 85,
+        "pdfPage": 86
+      },
+      "handling": "3",
+      "speed": "2",
+      "acceleration": 1,
+      "body": 8,
+      "armor": 5,
+      "pilot": 2,
+      "sensor": 2,
+      "seats": 1,
+      "availability": {
+        "fixed": 16,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 11000
+      }
+    },
+    {
+      "id": "corsair-elysium",
+      "displayName": "Corsair Elysium",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 85,
+        "pdfPage": 86
+      },
+      "handling": "1/3",
+      "speed": "1/4",
+      "acceleration": 2,
+      "body": 14,
+      "armor": 10,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 6,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 78000
+      }
+    },
+    {
+      "id": "corsair-panther",
+      "displayName": "Corsair Panther",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 87,
+        "pdfPage": 88
+      },
+      "handling": "1/3",
+      "speed": "2/5",
+      "acceleration": 3,
+      "body": 18,
+      "armor": 10,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 8,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 135000
+      }
+    },
+    {
+      "id": "corsair-trident",
+      "displayName": "Corsair Trident",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 88,
+        "pdfPage": 89
+      },
+      "handling": "1/3",
+      "speed": "4/5",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 10,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 6,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 125000
+      }
+    },
+    {
+      "id": "corsair-triton",
+      "displayName": "Corsair Triton",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 88,
+        "pdfPage": 89
+      },
+      "handling": "1",
+      "speed": "6",
+      "acceleration": 2,
+      "body": 16,
+      "armor": 10,
+      "pilot": 2,
+      "sensor": 3,
+      "seats": 6,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 104000
+      }
+    },
+    {
+      "id": "blohm-voss-classic-111",
+      "displayName": "Blohm & Voss Classic 111",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 89,
+        "pdfPage": 90
+      },
+      "handling": "3",
+      "speed": "4",
+      "acceleration": 2,
+      "body": 24,
+      "armor": 14,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 14,
+      "availability": {
+        "fixed": 16,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 14870000
+      }
+    },
+    {
+      "id": "lurssen-mobius",
+      "displayName": "Lurssen Mobius",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 90,
+        "pdfPage": 91
+      },
+      "handling": "3",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 36,
+      "armor": 14,
+      "pilot": 6,
+      "sensor": 5,
+      "seats": 22,
+      "availability": {
+        "fixed": 36,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 84985000
+      }
+    },
+    {
+      "id": "sun-tracker-lake-king",
+      "displayName": "Sun Tracker Lake King",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 90,
+        "pdfPage": 91
+      },
+      "handling": "2",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 14,
+      "armor": 8,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 8,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 35000
+      }
+    },
+    {
+      "id": "evo-aquavida-1",
+      "displayName": "Evo Aquavida 1",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 91,
+        "pdfPage": 92
+      },
+      "handling": "2",
+      "speed": "1",
+      "acceleration": 2,
+      "body": 20,
+      "armor": 16,
+      "pilot": 1,
+      "sensor": 3,
+      "seats": 8,
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 115000
+      }
+    },
+    {
+      "id": "evo-aquavida-2",
+      "displayName": "Evo Aquavida 2",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 91,
+        "pdfPage": 92
+      },
+      "handling": "2",
+      "speed": "1",
+      "acceleration": 2,
+      "body": 20,
+      "armor": 16,
+      "pilot": 1,
+      "sensor": 3,
+      "seats": 8,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 135000
+      }
+    },
+    {
+      "id": "ultramarine-kingfisher",
+      "displayName": "Ultramarine Kingfisher",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 92,
+        "pdfPage": 93
+      },
+      "handling": "3",
+      "speed": "3",
+      "acceleration": 2,
+      "body": 16,
+      "armor": 12,
+      "pilot": 3,
+      "sensor": 4,
+      "seats": 6,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 61000
+      }
+    },
+    {
+      "id": "american-airboat-airranger",
+      "displayName": "American Airboat AirRanger",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 92,
+        "pdfPage": 93
+      },
+      "handling": "4",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 10,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 6,
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25500
+      }
+    },
+    {
+      "id": "american-airboat-airranger-heavy",
+      "displayName": "American Airboat AirRanger Heavy",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 92,
+        "pdfPage": 93
+      },
+      "handling": "4",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 12,
+      "armor": 6,
+      "pilot": 1,
+      "sensor": 1,
+      "seats": 5,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 35500
+      }
+    },
+    {
+      "id": "gmc-riverine-security",
+      "displayName": "GMC Riverine (Security)",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 93,
+        "pdfPage": 94
+      },
+      "handling": "4",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 12,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 8,
+      "availability": {
+        "fixed": 15,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 100000
+      }
+    },
+    {
+      "id": "gmc-riverine-police",
+      "displayName": "GMC Riverine (Police)",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 93,
+        "pdfPage": 94
+      },
+      "handling": "4",
+      "speed": "5",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 14,
+      "pilot": 4,
+      "sensor": 5,
+      "seats": 8,
+      "availability": {
+        "fixed": 15,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 154000
+      }
+    },
+    {
+      "id": "gmc-riverine-military",
+      "displayName": "GMC Riverine (Military)",
+      "vehicleCategoryId": "boat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 93,
+        "pdfPage": 94
+      },
+      "handling": "5",
+      "speed": "5",
+      "acceleration": 2,
+      "body": 20,
+      "armor": 20,
+      "pilot": 6,
+      "sensor": 6,
+      "seats": 8,
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 225000
+      }
+    },
+    {
+      "id": "hughes-stallion-wk-4",
+      "displayName": "Hughes Stallion WK-4",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 97,
+        "pdfPage": 98
+      },
+      "handling": "5",
+      "speed": "5",
+      "acceleration": 4,
+      "body": 16,
+      "armor": 16,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 8,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 440000
+      }
+    },
+    {
+      "id": "aztech-agular-gx-2",
+      "displayName": "Aztech Agular GX-2",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 98,
+        "pdfPage": 99
+      },
+      "handling": "5",
+      "speed": "7",
+      "acceleration": 5,
+      "body": 20,
+      "armor": 16,
+      "pilot": 4,
+      "sensor": 5,
+      "seats": 2,
+      "availability": {
+        "fixed": 28,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 500000
+      }
+    },
+    {
+      "id": "aztech-agular-gx-3at",
+      "displayName": "Aztech Agular GX-3AT",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 98,
+        "pdfPage": 99
+      },
+      "handling": "4",
+      "speed": "6",
+      "acceleration": 4,
+      "body": 22,
+      "armor": 20,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 10,
+      "availability": {
+        "fixed": 28,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 550000
+      }
+    },
+    {
+      "id": "sk-aerospace-ska-008",
+      "displayName": "S-K Aerospace SKA-008",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 99,
+        "pdfPage": 100
+      },
+      "handling": "6",
+      "speed": "5",
+      "acceleration": 8,
+      "body": 16,
+      "armor": 18,
+      "pilot": 4,
+      "sensor": 4,
+      "seats": 12,
+      "availability": {
+        "fixed": 24,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 525000
+      }
+    },
+    {
+      "id": "dassault-sea-sprite",
+      "displayName": "Dassault Sea Sprite",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 100,
+        "pdfPage": 101
+      },
+      "handling": "5",
+      "speed": "4",
+      "acceleration": 3,
+      "body": 18,
+      "armor": 12,
+      "pilot": 3,
+      "sensor": 5,
+      "seats": 14,
+      "availability": {
+        "fixed": 18,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 400000
+      }
+    },
+    {
+      "id": "federated-boeing-pby-70-catalina-ii",
+      "displayName": "Federated-Boeing PBY-70 Catalina II",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 102,
+        "pdfPage": 103
+      },
+      "handling": "4",
+      "speed": "3",
+      "acceleration": 3,
+      "body": 22,
+      "armor": 14,
+      "pilot": 3,
+      "sensor": 4,
+      "seats": 16,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250000
+      }
+    },
+    {
+      "id": "airbus-lift-ticket-als-699",
+      "displayName": "Airbus Lift-Ticket ALS-699",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 103,
+        "pdfPage": 104
+      },
+      "handling": "5",
+      "speed": "3",
+      "acceleration": 3,
+      "body": 16,
+      "armor": 12,
+      "pilot": 3,
+      "sensor": 4,
+      "seats": 5,
+      "availability": {
+        "fixed": 14,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 325000
+      }
+    },
+    {
+      "id": "gmc-gryphon",
+      "displayName": "GMC Gryphon",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 105,
+        "pdfPage": 106
+      },
+      "handling": "5",
+      "speed": "8",
+      "acceleration": 7,
+      "body": 24,
+      "armor": 24,
+      "pilot": 4,
+      "sensor": 5,
+      "seats": 2,
+      "availability": {
+        "fixed": 28,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 3200000
+      }
+    },
+    {
+      "id": "evo-krime-krime-wing",
+      "displayName": "Evo-Krime Krime Wing",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 106,
+        "pdfPage": 107
+      },
+      "handling": "4",
+      "speed": "6",
+      "acceleration": 5,
+      "body": 22,
+      "armor": 18,
+      "pilot": 4,
+      "sensor": 5,
+      "seats": 20,
+      "availability": {
+        "fixed": 24,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2275000
+      }
+    },
+    {
+      "id": "luftschiffbau-lzp-2070",
+      "displayName": "Luftschiffbau LZP-2070",
+      "vehicleCategoryId": "aircraft",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 108,
+        "pdfPage": 109
+      },
+      "handling": "4",
+      "speed": "2",
+      "acceleration": 3,
+      "body": 12,
+      "armor": 6,
+      "pilot": 5,
+      "sensor": 4,
+      "seats": 6,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 85000
+      }
+    },
+    {
+      "id": "horizon-noizquito",
+      "displayName": "Horizon Noizquito",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 128,
+        "pdfPage": 129
+      },
+      "handling": "4",
+      "speed": "3R",
+      "acceleration": 2,
+      "body": 1,
+      "armor": 0,
+      "pilot": 3,
+      "sensor": 3,
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "sony-goldfish",
+      "displayName": "Sony Goldfish",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 128,
+        "pdfPage": 129
+      },
+      "handling": "2/4",
+      "speed": "1W",
+      "acceleration": 1,
+      "body": 0,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "aerodesigns-condor",
+      "displayName": "Aerodesigns Condor",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 129,
+        "pdfPage": 130
+      },
+      "handling": "2",
+      "speed": "0R",
+      "acceleration": 0,
+      "body": 1,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 4,
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "aztech-hedgehog",
+      "displayName": "Aztechnology Hedgehog",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 129,
+        "pdfPage": 130
+      },
+      "handling": "3",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 4,
+      "sensor": 3,
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 8000
+      }
+    },
+    {
+      "id": "cd-dragonfly",
+      "displayName": "Cyberspace Designs Dragonfly",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 129,
+        "pdfPage": 130
+      },
+      "handling": "4",
+      "speed": "2P",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 3,
+      "pilot": 3,
+      "sensor": 2,
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "festo-pigeon-2-0",
+      "displayName": "Festo Pigeon 2.0",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 129,
+        "pdfPage": 130
+      },
+      "handling": "4",
+      "speed": "2P",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3000
+      }
+    },
+    {
+      "id": "horizon-cu-3",
+      "displayName": "Horizon CU^3",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 129,
+        "pdfPage": 130
+      },
+      "handling": "4",
+      "speed": "1P",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 3,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3000
+      }
+    },
+    {
+      "id": "renraku-gerbil",
+      "displayName": "Renraku Gerbil",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 129,
+        "pdfPage": 130
+      },
+      "handling": "4/2",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "ares-sentry",
+      "displayName": "Ares Sentry",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 6,
+      "pilot": 3,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "c-b-smoke-generator",
+      "displayName": "Citron-Brouillard Smoke Generator",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "3",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "cd-wolfhound",
+      "displayName": "Cyberspace Designs Wolfhound",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "3",
+      "speed": "2J",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 4,
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30000
+      }
+    },
+    {
+      "id": "evo-proletarian",
+      "displayName": "Evo Proletarian",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4/2",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "ferret-rpd-5x",
+      "displayName": "Ferret RPD-5X",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4/2",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 3,
+      "pilot": 3,
+      "sensor": 3,
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "festo-sewer-snake",
+      "displayName": "Festo Sewer Snake",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "3",
+      "speed": "1G/1W",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 6000
+      }
+    },
+    {
+      "id": "horizon-mini-zep",
+      "displayName": "Horizon Mini-Zep",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "2",
+      "speed": "0P",
+      "acceleration": 0,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "knight-errant-p5",
+      "displayName": "Knight Errant P5",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4/2",
+      "speed": "6G",
+      "acceleration": 2,
+      "body": 2,
+      "armor": 0,
+      "pilot": 3,
+      "sensor": 2,
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 8000
+      }
+    },
+    {
+      "id": "lone-star-castle-guard",
+      "displayName": "Lone Star Castle Guard",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4/2",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 6,
+      "pilot": 3,
+      "sensor": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "mct-gun-turret",
+      "displayName": "MCT Gun Turret",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "body": 2,
+      "armor": 6,
+      "pilot": 3,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "mct-seven-wheelie",
+      "displayName": "MCT Seven (Wheelie)",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4/2",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 1,
+      "sensor": 1,
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "mct-seven-treads",
+      "displayName": "MCT Seven (Treads)",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "3",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 1,
+      "sensor": 1,
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "mct-seven-dirty",
+      "displayName": "MCT Seven (Dirty)",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "2/4",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 1,
+      "sensor": 1,
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "mct-seven-quad",
+      "displayName": "MCT Seven (Quad)",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 1,
+      "sensor": 1,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "mct-seven-swims",
+      "displayName": "MCT Seven (Swims)",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "3",
+      "speed": "2W",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 1,
+      "sensor": 1,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      }
+    },
+    {
+      "id": "mct-seven-hovers",
+      "displayName": "MCT Seven (Hovers)",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4",
+      "speed": "1P",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 1,
+      "sensor": 1,
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "mct-seven-soars",
+      "displayName": "MCT Seven (Soars)",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "3",
+      "speed": "2J",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 1,
+      "sensor": 1,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "neonet-prairie-dog",
+      "displayName": "Neonet Prairie Dog",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "2/4",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 3,
+      "pilot": 3,
+      "sensor": 4,
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 8000
+      }
+    },
+    {
+      "id": "p-w-sundowner",
+      "displayName": "Pratt & Whitney Sundowner",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "3",
+      "speed": "4P",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "proteus-krake",
+      "displayName": "Proteus Krake",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "5",
+      "speed": "3W",
+      "acceleration": 4,
+      "body": 2,
+      "armor": 2,
+      "pilot": 4,
+      "sensor": 3,
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "s-t-bloodhound",
+      "displayName": "Saab-Thyssen Bloodhound",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "3",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 4,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "renraku-dove-4",
+      "displayName": "Renraku Dove-4",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4",
+      "speed": "2P",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      }
+    },
+    {
+      "id": "renraku-jardinero",
+      "displayName": "Renraku Jardinero",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "2/4",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "renraku-job-a-mat",
+      "displayName": "Renraku Job-A-Mat",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3000
+      }
+    },
+    {
+      "id": "renraku-pelican",
+      "displayName": "Renraku Pelican",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "4",
+      "speed": "2P",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "telestrian-shamus",
+      "displayName": "Telestrian Shamus",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 132,
+        "pdfPage": 133
+      },
+      "handling": "3",
+      "speed": "3G",
+      "acceleration": 1,
+      "body": 4,
+      "armor": 4,
+      "pilot": 3,
+      "sensor": 8,
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30000
+      }
+    },
+    {
+      "id": "ares-cheetah",
+      "displayName": "Ares Cheetah",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 139,
+        "pdfPage": 140
+      },
+      "handling": "4",
+      "speed": "6G",
+      "acceleration": 2,
+      "body": 2,
+      "armor": 6,
+      "pilot": 3,
+      "sensor": 2,
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 14000
+      }
+    },
+    {
+      "id": "evo-krokodil",
+      "displayName": "Evo Krokodil",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 139,
+        "pdfPage": 140
+      },
+      "handling": "3",
+      "speed": "2G/3W",
+      "acceleration": 1,
+      "body": 3,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 12000
+      }
+    },
+    {
+      "id": "federated-boeing-kull",
+      "displayName": "Federated-Boeing Kull",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 139,
+        "pdfPage": 140
+      },
+      "handling": "3",
+      "speed": "4P",
+      "acceleration": 2,
+      "body": 3,
+      "armor": 0,
+      "pilot": 3,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "mct-tunneler",
+      "displayName": "MCT Tunneler",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 139,
+        "pdfPage": 140
+      },
+      "handling": "3",
+      "speed": "0P",
+      "acceleration": 0,
+      "body": 3,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "renraku-lebd-2",
+      "displayName": "Renraku LEBD-2",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 139,
+        "pdfPage": 140
+      },
+      "handling": "4",
+      "speed": "2P",
+      "acceleration": 1,
+      "body": 3,
+      "armor": 9,
+      "pilot": 4,
+      "sensor": 4,
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 20000
+      }
+    },
+    {
+      "id": "transys-steed",
+      "displayName": "Transys Steed",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 139,
+        "pdfPage": 140
+      },
+      "handling": "4/2",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 3,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      }
+    },
+    {
+      "id": "ares-matilda",
+      "displayName": "Ares Matilda",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 142,
+        "pdfPage": 143
+      },
+      "handling": "1",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 8,
+      "armor": 8,
+      "pilot": 2,
+      "sensor": 1,
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 18000
+      }
+    },
+    {
+      "id": "ares-mule",
+      "displayName": "ARES MULE",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 142,
+        "pdfPage": 143
+      },
+      "handling": "4",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 4,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8000
+      }
+    },
+    {
+      "id": "ares-paladin",
+      "displayName": "Ares Paladin",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 142,
+        "pdfPage": 143
+      },
+      "handling": "5",
+      "speed": "4G",
+      "acceleration": 1,
+      "body": 5,
+      "armor": 18,
+      "pilot": 3,
+      "sensor": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 5000
+      }
+    },
+    {
+      "id": "crashcart-medicart",
+      "displayName": "CrashCart MediCart",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 142,
+        "pdfPage": 143
+      },
+      "handling": "5",
+      "speed": "5G",
+      "acceleration": 1,
+      "body": 6,
+      "armor": 5,
+      "pilot": 4,
+      "sensor": 4,
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "gts-tower",
+      "displayName": "GTS Tower",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 142,
+        "pdfPage": 143
+      },
+      "handling": "2",
+      "speed": "1P",
+      "acceleration": 1,
+      "body": 4,
+      "armor": 6,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      }
+    },
+    {
+      "id": "s-k-neptune",
+      "displayName": "Saeder-Krupp Neptune",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 142,
+        "pdfPage": 143
+      },
+      "handling": "2",
+      "speed": "3W",
+      "acceleration": 1,
+      "body": 5,
+      "armor": 3,
+      "pilot": 4,
+      "sensor": 3,
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 17500
+      }
+    },
+    {
+      "id": "mitsuhama-malakim",
+      "displayName": "Mitsuhama Malakim",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 142,
+        "pdfPage": 143
+      },
+      "handling": "3",
+      "speed": "6P",
+      "acceleration": 2,
+      "body": 4,
+      "armor": 9,
+      "pilot": 4,
+      "sensor": 4,
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 40000
+      }
+    },
+    {
+      "id": "ares-kn-y2-deimos",
+      "displayName": "Ares KN-Y2 Deimos",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 144,
+        "pdfPage": 145
+      },
+      "handling": "3",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 6,
+      "armor": 18,
+      "pilot": 5,
+      "sensor": 3,
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 220000
+      }
+    },
+    {
+      "id": "ares-kn-y4-eris",
+      "displayName": "Ares KN-Y4 Eris",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 144,
+        "pdfPage": 145
+      },
+      "handling": "3",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 6,
+      "armor": 18,
+      "pilot": 5,
+      "sensor": 3,
+      "availability": {
+        "fixed": 24,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 270000
+      }
+    },
+    {
+      "id": "ares-kn-y1-phobos",
+      "displayName": "Ares KN-Y1 Phobos",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 144,
+        "pdfPage": 145
+      },
+      "handling": "3",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 6,
+      "armor": 18,
+      "pilot": 5,
+      "sensor": 3,
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 250000
+      }
+    },
+    {
+      "id": "mesametric-kodiak",
+      "displayName": "Mesametric Kodiak",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 144,
+        "pdfPage": 145
+      },
+      "handling": "2/4",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 6,
+      "armor": 12,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 40000
+      }
+    },
+    {
+      "id": "neonet-avenging-angel",
+      "displayName": "Neonet Avenging Angel",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 144,
+        "pdfPage": 145
+      },
+      "handling": "3",
+      "speed": "6J",
+      "acceleration": 2,
+      "body": 6,
+      "armor": 12,
+      "pilot": 6,
+      "sensor": 6,
+      "availability": {
+        "fixed": 40,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1000000
+      }
+    },
+    {
+      "id": "aztech-criado-juan",
+      "displayName": "Aztechnology Criado Juan",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 146,
+        "pdfPage": 147
+      },
+      "handling": "2",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 2,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8000
+      }
+    },
+    {
+      "id": "horizon-little-buddy",
+      "displayName": "Horizon Little Buddy",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 146,
+        "pdfPage": 147
+      },
+      "handling": "2",
+      "speed": "1G",
+      "acceleration": 1,
+      "body": 1,
+      "armor": 0,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "mct-kenchiku-kikai",
+      "displayName": "MCT Kenchiku-Kikai",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 146,
+        "pdfPage": 147
+      },
+      "handling": "2",
+      "speed": "2G",
+      "acceleration": 1,
+      "body": 5,
+      "armor": 3,
+      "pilot": 2,
+      "sensor": 2,
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 20000
+      }
+    },
+    {
+      "id": "neonet-juggernaught",
+      "displayName": "Neonet Juggernaught",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 146,
+        "pdfPage": 147
+      },
+      "handling": "3",
+      "speed": "4G",
+      "acceleration": 1,
+      "body": 6,
+      "armor": 12,
+      "pilot": 3,
+      "sensor": 3,
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 100000
+      }
+    },
+    {
+      "id": "s-k-direktionssekretar",
+      "displayName": "Saeder-Krupp Direktionssekretar",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 146,
+        "pdfPage": 147
+      },
+      "handling": "4",
+      "speed": "4G",
+      "acceleration": 2,
+      "body": 4,
+      "armor": 3,
+      "pilot": 4,
+      "sensor": 4,
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 40000
+      }
+    },
+    {
+      "id": "shiawase-i-doll",
+      "displayName": "Shiawase I-Doll",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 146,
+        "pdfPage": 147
+      },
+      "handling": "3",
+      "speed": "3G",
+      "acceleration": 1,
+      "body": 3,
+      "armor": 0,
+      "pilot": 3,
+      "sensor": 3,
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20000
+      }
+    },
+    {
+      "id": "ares-garuda",
+      "displayName": "Ares Garuda",
+      "vehicleCategoryId": "drone",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 149,
+        "pdfPage": 150
+      },
+      "handling": "6",
+      "speed": "3J/6J",
+      "acceleration": 4,
+      "body": 2,
+      "armor": 2,
+      "pilot": 4,
+      "sensor": 3,
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 8500
+      }
     }
   ],
   "cyberdecks": [
@@ -20136,6 +27828,412 @@
       "cost": {
         "fixed": 250
       }
+    },
+    {
+      "id": "weapon-mod-ammo-skip-system",
+      "displayName": "Ammo Skip System",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "weapon-mod-ceramic-plasteel-components",
+      "displayName": "Ceramic/Plasteel Components",
+      "mount": "none",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 1000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "weapon-mod-chameleon-coating",
+      "displayName": "Chameleon Coating",
+      "mount": "side",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      }
+    },
+    {
+      "id": "weapon-mod-custom-look",
+      "displayName": "Custom Look",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      }
+    },
+    {
+      "id": "weapon-mod-easy-breakdown-manual",
+      "displayName": "Easy Breakdown (manual)",
+      "mount": "side",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      }
+    },
+    {
+      "id": "weapon-mod-easy-breakdown-powered",
+      "displayName": "Easy Breakdown (powered)",
+      "mount": "side",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1250
+      }
+    },
+    {
+      "id": "weapon-mod-electronic-firing",
+      "displayName": "Electronic Firing",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      }
+    },
+    {
+      "id": "weapon-mod-explosive-clip",
+      "displayName": "Explosive Clip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "weapon-mod-extended-clip-1",
+      "displayName": "Extended Clip (Rating 1)",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 35
+      }
+    },
+    {
+      "id": "weapon-mod-extended-clip-2",
+      "displayName": "Extended Clip (Rating 2)",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 35
+      }
+    },
+    {
+      "id": "weapon-mod-holographic-sight",
+      "displayName": "Holographic Sight",
+      "mount": "top",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 125
+      }
+    },
+    {
+      "id": "weapon-mod-longbarrel",
+      "displayName": "Longbarrel",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "weapon-mod-melee-hardening",
+      "displayName": "Melee Hardening",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "weapon-mod-mounted-crossbow",
+      "displayName": "Mounted Crossbow",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "additionalMounts": [
+        "underbarrel"
+      ]
+    },
+    {
+      "id": "weapon-mod-overclocked",
+      "displayName": "Overclocked",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "weapon-mod-personalized-grip",
+      "displayName": "Personalized Grip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "weapon-mod-retractable-bayonet",
+      "displayName": "Retractable Bayonet",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "weapon-mod-sawed-off",
+      "displayName": "Sawed-Off / Shortbarrel",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "weapon-mod-stock-removal",
+      "displayName": "Stock Removal",
+      "mount": "stock",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "weapon-mod-trigger-removal",
+      "displayName": "Trigger Removal",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "weapon-mod-underbarrel-laser",
+      "displayName": "Underbarrel Laser",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 22000
+      },
+      "additionalMounts": [
+        "side"
+      ]
+    },
+    {
+      "id": "weapon-mod-underbarrel-shotgun",
+      "displayName": "Underbarrel Shotgun",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      }
     }
   ],
   "armorModifications": [
@@ -20297,6 +28395,86 @@
       "ratingRange": {
         "minimum": 1,
         "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-biofiber-pocket",
+      "displayName": "Biofiber Pocket",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 700
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "armor-mod-concealed-pockets",
+      "displayName": "Concealed Pockets",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 40
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "armor-mod-faraday-pocket",
+      "displayName": "Faraday Pocket",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "armor-mod-gear-access",
+      "displayName": "Gear Access",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 150
+      },
+      "capacityCost": {
+        "fixed": 4
       }
     }
   ],

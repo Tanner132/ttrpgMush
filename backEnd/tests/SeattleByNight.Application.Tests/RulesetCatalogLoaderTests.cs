@@ -195,18 +195,18 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(157, catalog.Weapons.Count);
+        Assert.Equal(174, catalog.Weapons.Count);
 
-        Assert.Equal(15, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "blades"));
+        Assert.Equal(21, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "blades"));
         Assert.Equal(7, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "clubs"));
-        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "other-melee"));
-        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "bows"));
+        Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "other-melee"));
+        Assert.Equal(2, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "bows"));
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "crossbows"));
-        Assert.Equal(5, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "throwing-weapons"));
+        Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "throwing-weapons"));
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "tasers"));
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "hold-outs"));
         Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "light-pistols"));
-        Assert.Equal(10, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "heavy-pistols"));
+        Assert.Equal(14, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "heavy-pistols"));
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-pistols"));
         Assert.Equal(8, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "submachine-guns"));
         Assert.Equal(15, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "assault-rifles"));
@@ -215,16 +215,16 @@ public sealed class RulesetCatalogLoaderTests
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "special-weapons"));
         Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-guns"));
         Assert.Equal(11, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "cannons-launchers"));
-        Assert.Equal(13, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-ranged"));
+        Assert.Equal(16, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-ranged"));
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "exotic-melee"));
         Assert.Equal(2, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "harpoon-guns"));
         Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "slingshots"));
-        Assert.Equal(3, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "laser-weapons"));
+        Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "laser-weapons"));
         Assert.Equal(1, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "flamethrowers"));
 
         Assert.Equal(6, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.CreationUnavailable));
-        Assert.Equal(1, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.Parameterized));
-        Assert.Equal(7, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.Generated));
+        Assert.Equal(2, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.Parameterized));
+        Assert.Equal(9, catalog.Weapons.Values.Count(w => w.Classification == GearClassification.Generated));
 
         var bow = catalog.Weapons["bow"];
         Assert.Equal(1, bow.RatingRange!.Minimum);
@@ -245,10 +245,10 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(208, catalog.Gear.Count);
+        Assert.Equal(232, catalog.Gear.Count);
         Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "commlink"));
         Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "breaking-and-entering"));
-        Assert.Equal(13, catalog.Gear.Values.Count(item => item.CategoryId == "survival"));
+        Assert.Equal(20, catalog.Gear.Values.Count(item => item.CategoryId == "survival"));
         Assert.Equal(5, catalog.Gear.Values.Count(item => item.CategoryId == "formula"));
 
         var deck = catalog.Gear["commlink-fairlight-caliban"];
@@ -295,14 +295,14 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(40, catalog.Vehicles.Count);
-        Assert.Equal(4, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "bike"));
-        Assert.Equal(7, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "car"));
-        Assert.Equal(4, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "truck-van"));
-        Assert.Equal(3, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "boat"));
+        Assert.Equal(199, catalog.Vehicles.Count);
+        Assert.Equal(16, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "bike"));
+        Assert.Equal(21, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "car"));
+        Assert.Equal(40, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "truck-van"));
+        Assert.Equal(27, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "boat"));
         Assert.Equal(2, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "submarine"));
-        Assert.Equal(9, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "aircraft"));
-        Assert.Equal(11, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "drone"));
+        Assert.Equal(19, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "aircraft"));
+        Assert.Equal(74, catalog.Vehicles.Values.Count(v => v.VehicleCategoryId == "drone"));
 
         var bike = catalog.Vehicles["suzuki-mirage"];
         Assert.Equal("5/3", bike.Handling);
@@ -321,13 +321,13 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(50, catalog.WeaponAccessories.Count);
-        Assert.Equal(19, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.None));
-        Assert.Equal(10, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Top));
-        Assert.Equal(3, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Barrel));
-        Assert.Equal(9, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Underbarrel));
+        Assert.Equal(72, catalog.WeaponAccessories.Count);
+        Assert.Equal(28, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.None));
+        Assert.Equal(11, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Top));
+        Assert.Equal(7, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Barrel));
+        Assert.Equal(13, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Underbarrel));
         Assert.Equal(2, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.TopOrUnderbarrel));
-        Assert.Equal(2, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Stock));
+        Assert.Equal(3, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Stock));
         Assert.Equal(5, catalog.WeaponAccessories.Values.Count(item => item.Mount == WeaponMount.Internal));
 
         var bipod = catalog.WeaponAccessories["accessory-bipod"];
@@ -348,7 +348,7 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(7, catalog.ArmorModifications.Count);
+        Assert.Equal(11, catalog.ArmorModifications.Count);
 
         var chemicalProtection = catalog.ArmorModifications["armor-mod-chemical-protection"];
         Assert.Equal(1, chemicalProtection.CapacityCost!.PerRating);

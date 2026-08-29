@@ -23,7 +23,7 @@ public sealed class RunGunAccessoriesAndAmmoTests
     {
         var catalog = Catalog;
 
-        Assert.Equal(50, catalog.WeaponAccessories.Count);
+        Assert.Equal(72, catalog.WeaponAccessories.Count);
         Assert.Equal(33, catalog.WeaponAccessories.Values.Count(item => item.Source.SourceId == "run-gun"));
         Assert.Equal(17, catalog.WeaponAccessories.Values.Count(item => item.Source.SourceId == "sr5-core"));
     }
