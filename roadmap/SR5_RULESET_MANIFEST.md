@@ -59,10 +59,22 @@ approved source books:
 | `run-faster` | `Shadowrun Run Faster (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `F037FEFADC7FB91EE10180CD0116B55BC5EA825BF4BE56546D80C6F35D555BAF` |
 | `run-gun` | `Shadowrun Run Gun (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `D76698DF6652198B340FD62B99F84C8A232C1EF3CAF8390F32DBACB1C93A371B` |
 | `better-than-bad` | `pdfcoffee.com_better-than-bad-pdf-free.pdf` | `4BEB7F2620BCA5114AD83E297B92C8337062EBE404974C80E25AE39C11965D07` |
+| `chrome-flesh` | `Shadowrun Chrome Flesh (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `78D0B57DDD4618BAE93187007C14C393ACAD99A4B1BE6D8A8513F7E6485CDC98` |
+| `data-trails` | `Shadowrun Data Trails (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `ADB68A0627810408257DB6441DFDE9B7246371240F27B1A8BF4B8B00850CEDAC` |
+| `forbidden-arcana` | `Shadowrun Forbidden Arcana (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `2163ED2D81D90D50AFD0E4B9DB9FDD10F9567564AD1B78A10466A3222B13B11B` |
+| `rigger-5` | `Shadowrun Rigger 5.0 - Core Rigger Handbook (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `19CF526FD757A92D7AA881CB141B58CFA0EBA431AC8645F2021A369F0EC29715` |
+| `street-grimoire` | `Shadowrun Street Grimoire (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `F67B0C8A8A8340135FB83698A201D1336172C2F0C2C6AAF153BE68E1CFCC874B` |
+| `street-lethal` | `Shadowrun Street Lethal (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf` | `F692F286494D71F26E4AFAFFB236A268EF78A314C15F562F917DE32F9098CD9E` |
 
 A checksum or filename change creates a new source revision and requires a new
 baseline review. External errata, summaries, websites, implementations, and
 other books are not approved sources.
+
+No catalog content has been imported from `chrome-flesh`, `data-trails`,
+`forbidden-arcana`, `rigger-5`, `street-grimoire`, or `street-lethal` yet. They
+are registered here so their provenance is pinned before any review begins;
+inclusion in this table is not a scope decision, and each still needs its own
+ledger inventory and baseline review before any of its options may be published.
 
 ## Citation Convention
 
