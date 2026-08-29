@@ -195,7 +195,7 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(190, catalog.Weapons.Count);
+        Assert.Equal(207, catalog.Weapons.Count);
 
         Assert.Equal(21, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "blades"));
         Assert.Equal(7, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "clubs"));
@@ -206,7 +206,7 @@ public sealed class RulesetCatalogLoaderTests
         Assert.Equal(4, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "tasers"));
         Assert.Equal(5, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "hold-outs"));
         Assert.Equal(10, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "light-pistols"));
-        Assert.Equal(14, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "heavy-pistols"));
+        Assert.Equal(15, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "heavy-pistols"));
         Assert.Equal(9, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "machine-pistols"));
         Assert.Equal(11, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "submachine-guns"));
         Assert.Equal(20, catalog.Weapons.Values.Count(w => w.WeaponCategoryId == "assault-rifles"));
@@ -246,11 +246,12 @@ public sealed class RulesetCatalogLoaderTests
     {
         var catalog = CatalogTestData.Catalog;
 
-        Assert.Equal(232, catalog.Gear.Count);
+        Assert.Equal(240, catalog.Gear.Count);
         Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "commlink"));
         Assert.Equal(9, catalog.Gear.Values.Count(item => item.CategoryId == "breaking-and-entering"));
         Assert.Equal(20, catalog.Gear.Values.Count(item => item.CategoryId == "survival"));
         Assert.Equal(5, catalog.Gear.Values.Count(item => item.CategoryId == "formula"));
+        Assert.Equal(8, catalog.Gear.Values.Count(item => item.CategoryId == "vehicle-equipment"));
 
         var deck = catalog.Gear["commlink-fairlight-caliban"];
         Assert.Equal(14, deck.Availability!.Fixed);

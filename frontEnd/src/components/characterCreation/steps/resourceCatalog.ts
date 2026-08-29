@@ -131,6 +131,7 @@ export const RESOURCE_CATEGORY_LABELS: Record<string, string> = {
   'slap-patch': 'Slap Patches',
   'magical-supplies': 'Magical Supplies',
   formula: 'Spell Formulae',
+  'vehicle-equipment': 'Vehicle Equipment',
 }
 
 export const humanizeResourceCategory = (id: string): string =>

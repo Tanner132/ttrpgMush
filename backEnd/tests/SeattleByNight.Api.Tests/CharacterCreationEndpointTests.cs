@@ -29,10 +29,10 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         Assert.Equal(25, body.RootElement.GetProperty("priorityCells").GetArrayLength());
         Assert.Equal(21, body.RootElement.GetProperty("knowledgeSkillSuggestions").GetArrayLength());
         Assert.Equal(9, body.RootElement.GetProperty("languageSuggestions").GetArrayLength());
-        Assert.Equal(50, body.RootElement.GetProperty("weaponAccessories").GetArrayLength());
-        Assert.Equal(7, body.RootElement.GetProperty("armorModifications").GetArrayLength());
+        Assert.Equal(72, body.RootElement.GetProperty("weaponAccessories").GetArrayLength());
+        Assert.Equal(11, body.RootElement.GetProperty("armorModifications").GetArrayLength());
         Assert.Equal(3, body.RootElement.GetProperty("cyberlimbEnhancements").GetArrayLength());
-        Assert.Equal(4, body.RootElement.GetProperty("vehicleModifications").GetArrayLength());
+        Assert.Equal(139, body.RootElement.GetProperty("vehicleModifications").GetArrayLength());
         Assert.Equal(6, body.RootElement.GetProperty("lifestyleTiers").GetArrayLength());
         Assert.Equal(5, body.RootElement.GetProperty("lifestyleOptions").GetArrayLength());
 
