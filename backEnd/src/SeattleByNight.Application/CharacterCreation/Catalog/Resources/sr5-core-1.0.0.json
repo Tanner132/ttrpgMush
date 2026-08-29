@@ -4840,7 +4840,270 @@
         "printedPage": 279,
         "pdfPage": 281
       }
+    },
+    {
+      "id": "aztec",
+      "displayName": "Aztec",
+      "drainAttributes": "Willpower + Charisma",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 41,
+        "pdfPage": 43
+      }
+    },{
+      "id": "black-magic",
+      "displayName": "Black Magic",
+      "drainAttributes": "Willpower + Charisma",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 43,
+        "pdfPage": 45
+      }
+    },{
+      "id": "buddhism",
+      "displayName": "Buddhism",
+      "drainAttributes": "Willpower + Intuition",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 43,
+        "pdfPage": 45
+      }
+    },{
+      "id": "chaos-magic",
+      "displayName": "Chaos Magic",
+      "drainAttributes": "Willpower + Intuition",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 44,
+        "pdfPage": 46
+      }
+    },{
+      "id": "christian-theurgy",
+      "displayName": "Christian Theurgy",
+      "drainAttributes": "Willpower + Charisma",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 45,
+        "pdfPage": 47
+      }
+    },{
+      "id": "druid",
+      "displayName": "Druid",
+      "drainAttributes": "Willpower + Intuition",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 45,
+        "pdfPage": 47
+      }
+    },{
+      "id": "hinduism",
+      "displayName": "Hinduism",
+      "drainAttributes": "Willpower + Logic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 46,
+        "pdfPage": 48
+      }
+    },{
+      "id": "islam",
+      "displayName": "Islam",
+      "drainAttributes": "Willpower + Logic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 47,
+        "pdfPage": 49
+      }
+    },{
+      "id": "path-of-the-wheel",
+      "displayName": "Path of the Wheel",
+      "drainAttributes": "Willpower + Charisma",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 47,
+        "pdfPage": 49
+      }
+    },{
+      "id": "qabbalistic",
+      "displayName": "Qabbalistic",
+      "drainAttributes": "Willpower + Logic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 48,
+        "pdfPage": 50
+      }
+    },{
+      "id": "shinto",
+      "displayName": "Shinto",
+      "drainAttributes": "Willpower + Charisma",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 49,
+        "pdfPage": 51
+      }
+    },{
+      "id": "sioux",
+      "displayName": "Sioux",
+      "drainAttributes": "Willpower + Intuition",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 49,
+        "pdfPage": 51
+      }
+    },{
+      "id": "vodou",
+      "displayName": "Vodou",
+      "drainAttributes": "Willpower + Charisma",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 50,
+        "pdfPage": 52
+      }
+    },{
+      "id": "wicca",
+      "displayName": "Wiccan",
+      "drainAttributes": "Willpower + Intuition",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 51,
+        "pdfPage": 53
+      }
+    },{
+      "id": "wuxing",
+      "displayName": "Wuxing",
+      "drainAttributes": "Willpower + Logic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 51,
+        "pdfPage": 53
+      }
+    },{
+      "id": "zoroastrianism",
+      "displayName": "Zoroastrianism",
+      "drainAttributes": "Willpower + Logic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 53,
+        "pdfPage": 55
+      }
+    },{
+      "id": "cosmic",
+      "displayName": "Cosmic",
+      "drainAttributes": "Willpower + Logic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 76,
+        "pdfPage": 78
+      }
+    },{
+      "id": "draconic",
+      "displayName": "Draconic",
+      "drainAttributes": "Willpower + Magic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 78,
+        "pdfPage": 80
+      }
+    },
+    {
+      "id": "elder-god",
+      "displayName": "Elder God",
+      "drainAttributes": "Willpower + Intuition",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 79,
+        "pdfPage": 81
+      }
+    },
+    {
+      "id": "green-magic",
+      "displayName": "Green Magic",
+      "drainAttributes": "Willpower + Charisma",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 80,
+        "pdfPage": 82
+      }
+    },
+    {
+      "id": "missionist",
+      "displayName": "Missionist",
+      "drainAttributes": "Willpower + Charisma",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 81,
+        "pdfPage": 83
+      }
+    },
+    {
+      "id": "necro-magic",
+      "displayName": "Necro Magic",
+      "drainAttributes": "Willpower + Logic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 83,
+        "pdfPage": 85
+      }
+    },
+    {
+      "id": "olympianism",
+      "displayName": "Olympianism",
+      "drainAttributes": "Willpower + Logic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 85,
+        "pdfPage": 87
+      }
+    },
+    {
+      "id": "path-of-pariah",
+      "displayName": "Path of Pariah",
+      "drainAttributes": "none",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 86,
+        "pdfPage": 88
+      }
+    },
+    {
+      "id": "planar",
+      "displayName": "Planar",
+      "drainAttributes": "Willpower + Logic",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "red-magic",
+      "displayName": "Red Magic",
+      "drainAttributes": "Willpower + Intuition",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 89,
+        "pdfPage": 91
+      }
+    },
+    {
+      "id": "romani",
+      "displayName": "Romani",
+      "drainAttributes": "Willpower + Willpower",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 91,
+        "pdfPage": 93
+      }
+    },{
+      "id": "psionic",
+      "displayName": "Psionic",
+      "drainAttributes": "Willpower + Intuition",
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 5,
+        "pdfPage": 5
+      }
     }
+    
   ],
   "spells": [
     {
