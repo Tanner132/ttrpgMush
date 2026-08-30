@@ -1,0 +1,80 @@
+{
+  "spiritTypes": [
+    {
+      "id": "air-spirit",
+      "displayName": "Spirit of Air",
+      "traditionIds": [
+        "hermetic",
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 303,
+        "pdfPage": 305
+      }
+    },
+    {
+      "id": "beast-spirit",
+      "displayName": "Spirit of Beasts",
+      "traditionIds": [
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 303,
+        "pdfPage": 305
+      }
+    },
+    {
+      "id": "earth-spirit",
+      "displayName": "Spirit of Earth",
+      "traditionIds": [
+        "hermetic",
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 303,
+        "pdfPage": 305
+      }
+    },
+    {
+      "id": "fire-spirit",
+      "displayName": "Spirit of Fire",
+      "traditionIds": [
+        "hermetic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 303,
+        "pdfPage": 305
+      }
+    },
+    {
+      "id": "man-spirit",
+      "displayName": "Spirit of Man",
+      "traditionIds": [
+        "hermetic",
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 304,
+        "pdfPage": 306
+      }
+    },
+    {
+      "id": "water-spirit",
+      "displayName": "Spirit of Water",
+      "traditionIds": [
+        "hermetic",
+        "shamanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 304,
+        "pdfPage": 306
+      }
+    }
+  ]
+}

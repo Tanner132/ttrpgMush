@@ -26,7 +26,7 @@ vi.mock('./api/playSession.ts', () => ({
 
 vi.mock('./api/roomSession.ts', () => ({
   getRoomSession: vi.fn(),
-  MessageType: { Say: 0, Emote: 1, Roll: 2 },
+  MessageType: { Say: 'Say', Emote: 'Emote', Roll: 'Roll' },
 }))
 
 vi.mock('./realtime/useRoomChat.ts', () => ({
@@ -63,7 +63,7 @@ const downtownSession: RoomSession = {
   playSessionId: 'session-1',
   expiresAtUtc: '2026-08-16T12:00:00Z',
   character: { id: 'char-1', name: 'Dev Runner' },
-  room: { id: 'room-1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 0, mapX: 0, mapY: 0, mapLayer: 0 },
+  room: { id: 'room-1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
   exits: [],
   occupants: [],
   messages: [],

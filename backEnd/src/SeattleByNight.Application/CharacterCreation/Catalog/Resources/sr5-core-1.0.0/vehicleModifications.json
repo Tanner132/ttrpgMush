@@ -1,0 +1,4168 @@
+{
+  "vehicleModifications": [
+    {
+      "id": "acceleration-enhancement-1",
+      "displayName": "Acceleration Enhancement (Rating 1)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 10000,
+        "factors": [
+          "acceleration"
+        ]
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "acceleration-enhancement-2",
+      "displayName": "Acceleration Enhancement (Rating 2)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 25000,
+        "factors": [
+          "acceleration"
+        ]
+      },
+      "slotCost": {
+        "fixed": 8
+      }
+    },
+    {
+      "id": "gecko-tips-body-1-3",
+      "displayName": "Gecko Tips (Body 1-3)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "gecko-tips-body-4-6",
+      "displayName": "Gecko Tips (Body 4-6)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "gliding-system-standard",
+      "displayName": "Gliding System (Body 12 or lower)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 3000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "gliding-system-heavy",
+      "displayName": "Gliding System (Body 13+)",
+      "classification": "creationUnavailable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 4000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "handling-enhancement-1",
+      "displayName": "Handling Enhancement (Rating 1)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 2000,
+        "factors": [
+          "handling"
+        ]
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "handling-enhancement-2",
+      "displayName": "Handling Enhancement (Rating 2)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 5000,
+        "factors": [
+          "handling"
+        ]
+      },
+      "slotCost": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "handling-enhancement-3",
+      "displayName": "Handling Enhancement (Rating 3)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 12000,
+        "factors": [
+          "handling"
+        ]
+      },
+      "slotCost": {
+        "fixed": 18
+      }
+    },
+    {
+      "id": "improved-economy",
+      "displayName": "Improved Economy",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "manual-control-override",
+      "displayName": "Manual Control Override",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "multifuel-engine",
+      "displayName": "Multifuel Engine",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 1000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "off-road-suspension",
+      "displayName": "Off-Road Suspension",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 0.25,
+        "factors": [
+          "vehicleCost"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "rigger-cocoon",
+      "displayName": "Rigger Cocoon",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "removed-manual-controls",
+      "displayName": "Removed Manual Controls",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "rocket-booster",
+      "displayName": "Rocket Booster",
+      "classification": "creationUnavailable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "costScaling": {
+        "multiplier": 5000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "secondary-manual-controls",
+      "displayName": "Secondary Manual Controls",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "secondary-propulsion-amphibious-surface",
+      "displayName": "Secondary Propulsion: Amphibious (Surface)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 200,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "secondary-propulsion-amphibious-submersible",
+      "displayName": "Secondary Propulsion: Amphibious (Submersible)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 2000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 8
+      }
+    },
+    {
+      "id": "secondary-propulsion-hovercraft",
+      "displayName": "Secondary Propulsion: Hovercraft",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 1000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 8
+      }
+    },
+    {
+      "id": "secondary-propulsion-rotor",
+      "displayName": "Secondary Propulsion: Rotor",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 3000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "secondary-propulsion-tracked",
+      "displayName": "Secondary Propulsion: Tracked",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 1000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "secondary-propulsion-walker",
+      "displayName": "Secondary Propulsion: Walker",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 2000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 8
+      }
+    },
+    {
+      "id": "speed-enhancement-1",
+      "displayName": "Speed Enhancement (Rating 1)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 2000,
+        "factors": [
+          "speed"
+        ]
+      },
+      "slotCost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "speed-enhancement-2",
+      "displayName": "Speed Enhancement (Rating 2)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 5000,
+        "factors": [
+          "speed"
+        ]
+      },
+      "slotCost": {
+        "fixed": 14
+      }
+    },
+    {
+      "id": "speed-enhancement-3",
+      "displayName": "Speed Enhancement (Rating 3)",
+      "classification": "selectable",
+      "category": "powerTrain",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 158,
+        "pdfPage": 159
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 12000,
+        "factors": [
+          "speed"
+        ]
+      },
+      "slotCost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "anti-theft-1",
+      "displayName": "Anti-Theft System (Rating 1)",
+      "classification": "selectable",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "anti-theft-2",
+      "displayName": "Anti-Theft System (Rating 2)",
+      "classification": "selectable",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "anti-theft-3",
+      "displayName": "Anti-Theft System (Rating 3)",
+      "classification": "selectable",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2500
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "anti-theft-4",
+      "displayName": "Anti-Theft System (Rating 4)",
+      "classification": "selectable",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "slotCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "armor-standard",
+      "displayName": "Armor (Standard)",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "perRating": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 36
+      },
+      "ratingCap": "body"
+    },
+    {
+      "id": "armor-concealed",
+      "displayName": "Armor (Concealed)",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 3000,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "perRating": 3
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 36
+      },
+      "ratingCap": "body"
+    },
+    {
+      "id": "passenger-protection-system",
+      "displayName": "Passenger Protection System",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 2000,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "personal-armor",
+      "displayName": "Personal Armor",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 10
+      }
+    },
+    {
+      "id": "special-armor-chemical-protection",
+      "displayName": "Special Armor Modification (Chemical Protection)",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "ratingCap": "armor"
+    },
+    {
+      "id": "special-armor-fire-resistance",
+      "displayName": "Special Armor Modification (Fire Resistance)",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "ratingCap": "armor"
+    },
+    {
+      "id": "special-armor-insulation",
+      "displayName": "Special Armor Modification (Insulation)",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "ratingCap": "armor"
+    },
+    {
+      "id": "special-armor-nonconductivity",
+      "displayName": "Special Armor Modification (Nonconductivity)",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "ratingCap": "armor"
+    },
+    {
+      "id": "special-armor-radiation-shielding",
+      "displayName": "Special Armor Modification (Radiation Shielding)",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "ratingCap": "armor"
+    },
+    {
+      "id": "special-armor-universal-mirror-material",
+      "displayName": "Special Armor Modification (Universal Mirror Material)",
+      "classification": "parameterized",
+      "category": "protection",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 160,
+        "pdfPage": 161
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "ratingCap": "armor"
+    },
+    {
+      "id": "ammo-bin",
+      "displayName": "Ammo Bin",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-rack-standard-mini",
+      "displayName": "Standard Drone Rack (Mini)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-rack-standard-small",
+      "displayName": "Standard Drone Rack (Small)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "drone-rack-standard-medium",
+      "displayName": "Standard Drone Rack (Medium)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "drone-rack-standard-large",
+      "displayName": "Standard Drone Rack (Large)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "drone-rack-landing-mini",
+      "displayName": "Landing Drone Rack (Mini)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "drone-rack-landing-small",
+      "displayName": "Landing Drone Rack (Small)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "drone-rack-landing-medium",
+      "displayName": "Landing Drone Rack (Medium)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "drone-rack-landing-large",
+      "displayName": "Landing Drone Rack (Large)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "slotCost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "gun-port",
+      "displayName": "Gun Port",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "missile-defense-system",
+      "displayName": "Missile Defense System",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 15000
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "oil-slick-sprayer",
+      "displayName": "Oil Slick Sprayer",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "smoke-projector",
+      "displayName": "Smoke Projector",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "smoke-projector-thermal",
+      "displayName": "Smoke Projector (Thermal Smoke)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 850
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "road-strip-ejector",
+      "displayName": "Road Strip Ejector",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 800
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "weapon-mount-light",
+      "displayName": "Weapon Mount (Light)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "weapon-mount-standard",
+      "displayName": "Weapon Mount (Standard)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "weapon-mount-heavy",
+      "displayName": "Weapon Mount (Heavy)",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "weapon-mount-internal",
+      "displayName": "Weapon Mount Option: Internal Visibility",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "optionGroupId": "weapon-mount-visibility",
+      "appliesToModificationIds": [
+        "weapon-mount-light",
+        "weapon-mount-standard",
+        "weapon-mount-heavy"
+      ],
+      "relative": true
+    },
+    {
+      "id": "weapon-mount-concealed",
+      "displayName": "Weapon Mount Option: Concealed Visibility",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 4
+      },
+      "optionGroupId": "weapon-mount-visibility",
+      "appliesToModificationIds": [
+        "weapon-mount-light",
+        "weapon-mount-standard",
+        "weapon-mount-heavy"
+      ],
+      "relative": true
+    },
+    {
+      "id": "weapon-mount-flexible",
+      "displayName": "Weapon Mount Option: Flexible",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 1
+      },
+      "optionGroupId": "weapon-mount-flexibility",
+      "appliesToModificationIds": [
+        "weapon-mount-light",
+        "weapon-mount-standard",
+        "weapon-mount-heavy"
+      ],
+      "relative": true
+    },
+    {
+      "id": "weapon-mount-turret",
+      "displayName": "Weapon Mount Option: Turret",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "optionGroupId": "weapon-mount-flexibility",
+      "appliesToModificationIds": [
+        "weapon-mount-light",
+        "weapon-mount-standard",
+        "weapon-mount-heavy"
+      ],
+      "relative": true
+    },
+    {
+      "id": "weapon-mount-manual-control",
+      "displayName": "Weapon Mount Option: Manual Control",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 1,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 1
+      },
+      "optionGroupId": "weapon-mount-control",
+      "appliesToModificationIds": [
+        "weapon-mount-light",
+        "weapon-mount-standard",
+        "weapon-mount-heavy"
+      ],
+      "relative": true
+    },
+    {
+      "id": "weapon-mount-armored-manual-control",
+      "displayName": "Weapon Mount Option: Armored Manual Control",
+      "classification": "selectable",
+      "category": "weapons",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 162,
+        "pdfPage": 163
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "slotCost": {
+        "fixed": 2
+      },
+      "optionGroupId": "weapon-mount-control",
+      "appliesToModificationIds": [
+        "weapon-mount-light",
+        "weapon-mount-standard",
+        "weapon-mount-heavy"
+      ],
+      "relative": true
+    },
+    {
+      "id": "assembly-disassembly",
+      "displayName": "Assembly/Disassembly",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "chameleon-coating",
+      "displayName": "Chameleon Coating",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "costScaling": {
+        "multiplier": 1000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "extra-entry-exit-points",
+      "displayName": "Extra Entry/Exit Points",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2500
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "extreme-environment-modification",
+      "displayName": "Extreme Environment Modification",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "increased-seating",
+      "displayName": "Increased Seating",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "life-support-1",
+      "displayName": "Life Support (Level 1)",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "life-support-2",
+      "displayName": "Life Support (Level 2)",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 2000,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "mechanical-arm-basic",
+      "displayName": "Mechanical Arm (Basic)",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "mechanical-arm-articulated",
+      "displayName": "Mechanical Arm (Articulated)",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "nanomaintenance-system",
+      "displayName": "Nanomaintenance System",
+      "classification": "parameterized",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "perRating": 5,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 5000,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "realistic-features",
+      "displayName": "Realistic Features",
+      "classification": "parameterized",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 1000,
+        "factors": [
+          "rating",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "smuggling-compartment",
+      "displayName": "Smuggling Compartment",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "shielding",
+      "displayName": "Shielding",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 3000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "valkyrie-module",
+      "displayName": "Valkyrie Module",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "winch-basic",
+      "displayName": "Winch (Basic)",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "winch-enhanced",
+      "displayName": "Winch (Enhanced)",
+      "classification": "selectable",
+      "category": "body",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 167,
+        "pdfPage": 168
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "electromagnetic-shielding",
+      "displayName": "Electromagnetic Shielding",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "ecm-1",
+      "displayName": "ECM (Rating 1)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "ecm-2",
+      "displayName": "ECM (Rating 2)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "ecm-3",
+      "displayName": "ECM (Rating 3)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "ecm-4",
+      "displayName": "ECM (Rating 4)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "ecm-5",
+      "displayName": "ECM (Rating 5)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 15,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2500
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "ecm-6",
+      "displayName": "ECM (Rating 6)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 3000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "gridlink",
+      "displayName": "Gridlink",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "gridlink-override",
+      "displayName": "Gridlink Override",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "pilot-enhancement-1",
+      "displayName": "Pilot Enhancement (Rating 1)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "pilot-enhancement-2",
+      "displayName": "Pilot Enhancement (Rating 2)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "pilot-enhancement-3",
+      "displayName": "Pilot Enhancement (Rating 3)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 6000
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "pilot-enhancement-4",
+      "displayName": "Pilot Enhancement (Rating 4)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "pilot-enhancement-5",
+      "displayName": "Pilot Enhancement (Rating 5)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 15,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25000
+      },
+      "slotCost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "pilot-enhancement-6",
+      "displayName": "Pilot Enhancement (Rating 6)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30000
+      },
+      "slotCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "retrans-unit",
+      "displayName": "Retrans Unit",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "satellite-link",
+      "displayName": "Satellite Link",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "sensor-enhancement-1",
+      "displayName": "Sensor Enhancement (Rating 1)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "sensor-enhancement-2",
+      "displayName": "Sensor Enhancement (Rating 2)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "sensor-enhancement-3",
+      "displayName": "Sensor Enhancement (Rating 3)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 6000
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "sensor-enhancement-4",
+      "displayName": "Sensor Enhancement (Rating 4)",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "sensor-enhancement-5",
+      "displayName": "Sensor Enhancement (Rating 5)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 15,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25000
+      },
+      "slotCost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "sensor-enhancement-6",
+      "displayName": "Sensor Enhancement (Rating 6)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30000
+      },
+      "slotCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "signature-masking-1",
+      "displayName": "Signature Masking (Rating 1)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "signature-masking-2",
+      "displayName": "Signature Masking (Rating 2)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "signature-masking-3",
+      "displayName": "Signature Masking (Rating 3)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 6000
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "signature-masking-4",
+      "displayName": "Signature Masking (Rating 4)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 8000
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "signature-masking-5",
+      "displayName": "Signature Masking (Rating 5)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "slotCost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "signature-masking-6",
+      "displayName": "Signature Masking (Rating 6)",
+      "classification": "creationUnavailable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 12000
+      },
+      "slotCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "suncell",
+      "displayName": "SunCell",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "touch-sensors",
+      "displayName": "Touch Sensors",
+      "classification": "selectable",
+      "category": "electromagnetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 169,
+        "pdfPage": 170
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "amenities-squatter",
+      "displayName": "Amenities (Squatter)",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "amenities-middle",
+      "displayName": "Amenities (Middle)",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "amenities-high",
+      "displayName": "Amenities (High)",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "amenities-luxury",
+      "displayName": "Amenities (Luxury)",
+      "classification": "creationUnavailable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "enhanced-image-screens",
+      "displayName": "Enhanced Image Screens",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "metahuman-adjustment",
+      "displayName": "Metahuman Adjustment",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "seats"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "rigger-interface",
+      "displayName": "Rigger Interface",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "interior-cameras",
+      "displayName": "Interior Cameras",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "searchlight",
+      "displayName": "Searchlight",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 800
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "vehicle-tag-eraser",
+      "displayName": "Vehicle Tag Eraser",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "yerzed-out-1",
+      "displayName": "Yerzed Out (Rating 1)",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "yerzed-out-2",
+      "displayName": "Yerzed Out (Rating 2)",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "yerzed-out-3",
+      "displayName": "Yerzed Out (Rating 3)",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "yerzed-out-4",
+      "displayName": "Yerzed Out (Rating 4)",
+      "classification": "selectable",
+      "category": "cosmetic",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 171,
+        "pdfPage": 172
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-weapon-mount-micro",
+      "displayName": "Drone Weapon Mount (Micro)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 124,
+        "pdfPage": 125
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-weapon-mount-mini",
+      "displayName": "Drone Weapon Mount (Mini)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 124,
+        "pdfPage": 125
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-weapon-mount-small",
+      "displayName": "Drone Weapon Mount (Small)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 124,
+        "pdfPage": 125
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "drone-weapon-mount-standard",
+      "displayName": "Drone Weapon Mount (Standard)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 124,
+        "pdfPage": 125
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "drone-weapon-mount-large",
+      "displayName": "Drone Weapon Mount (Large)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 124,
+        "pdfPage": 125
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "drone-weapon-mount-huge",
+      "displayName": "Drone Weapon Mount (Huge)",
+      "classification": "creationUnavailable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 124,
+        "pdfPage": 125
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "drone-weapon-mount-heavy",
+      "displayName": "Drone Weapon Mount (Heavy)",
+      "classification": "creationUnavailable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 124,
+        "pdfPage": 125
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "drone-blow-away-panel",
+      "displayName": "Drone Mount Option: Blow-Away Panel",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 124,
+        "pdfPage": 125
+      },
+      "availability": {
+        "fixed": 0,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 25,
+        "factors": [
+          "slotCost"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "optionGroupId": "drone-mount-concealment",
+      "appliesToModificationIds": [
+        "drone-weapon-mount-micro",
+        "drone-weapon-mount-mini",
+        "drone-weapon-mount-small",
+        "drone-weapon-mount-standard",
+        "drone-weapon-mount-large",
+        "drone-weapon-mount-huge",
+        "drone-weapon-mount-heavy"
+      ],
+      "relative": true
+    },
+    {
+      "id": "drone-pop-out-mount",
+      "displayName": "Drone Mount Option: Pop-Out Mount",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 124,
+        "pdfPage": 125
+      },
+      "availability": {
+        "fixed": 0,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 100,
+        "factors": [
+          "slotCost"
+        ]
+      },
+      "slotCost": {
+        "fixed": 1
+      },
+      "optionGroupId": "drone-mount-concealment",
+      "appliesToModificationIds": [
+        "drone-weapon-mount-micro",
+        "drone-weapon-mount-mini",
+        "drone-weapon-mount-small",
+        "drone-weapon-mount-standard",
+        "drone-weapon-mount-large",
+        "drone-weapon-mount-huge",
+        "drone-weapon-mount-heavy"
+      ],
+      "relative": true
+    },
+    {
+      "id": "drone-ammo-bay-second-bin",
+      "displayName": "Drone Expanded Ammunition Bay (Second Bin)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-ammo-bay-belt-feed",
+      "displayName": "Drone Expanded Ammunition Bay (Belt Feed)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "drone-realistic-features-1",
+      "displayName": "Drone Realistic Features (Rating 1)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 100,
+        "factors": [
+          "body",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-realistic-features-2",
+      "displayName": "Drone Realistic Features (Rating 2)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "body",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-realistic-features-3",
+      "displayName": "Drone Realistic Features (Rating 3)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 1000,
+        "factors": [
+          "body",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-realistic-features-4",
+      "displayName": "Drone Realistic Features (Rating 4)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 5000,
+        "factors": [
+          "body",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-amphibious-1",
+      "displayName": "Drone Amphibious (Rating 1)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 100,
+        "factors": [
+          "body",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-amphibious-2",
+      "displayName": "Drone Amphibious (Rating 2)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 1000,
+        "factors": [
+          "body",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "drone-assembly-time-improvement",
+      "displayName": "Drone Assembly Time Improvement",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 100,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-arm",
+      "displayName": "Drone Arm",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-arm-primitive",
+      "displayName": "Drone Arm (Primitive)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-leg",
+      "displayName": "Drone Leg",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 126,
+        "pdfPage": 127
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-gecko-grips",
+      "displayName": "Drone Gecko Grips",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 126,
+        "pdfPage": 127
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 150,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "drone-immobile",
+      "displayName": "Drone Immobile",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 126,
+        "pdfPage": 127
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": -2
+      }
+    },
+    {
+      "id": "drone-skyguide",
+      "displayName": "Drone SkyGuide Link",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 126,
+        "pdfPage": 127
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-spotlight",
+      "displayName": "Drone Spotlight",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 126,
+        "pdfPage": 127
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-suspension-mod",
+      "displayName": "Drone Suspension Mod",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 126,
+        "pdfPage": 127
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 300,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-tire-mod",
+      "displayName": "Drone Tire Mod",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 126,
+        "pdfPage": 127
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 75,
+        "factors": [
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-pilot-1",
+      "displayName": "Drone Pilot Program (Rating 1)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-pilot-2",
+      "displayName": "Drone Pilot Program (Rating 2)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 400
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-pilot-3",
+      "displayName": "Drone Pilot Program (Rating 3)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1800
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-pilot-4",
+      "displayName": "Drone Pilot Program (Rating 4)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 3200
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-pilot-5",
+      "displayName": "Drone Pilot Program (Rating 5)",
+      "classification": "creationUnavailable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-pilot-6",
+      "displayName": "Drone Pilot Program (Rating 6)",
+      "classification": "creationUnavailable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "fixed": 24,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-personality",
+      "displayName": "Drone Pilot Personality Tweak",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-handling-upgrade",
+      "displayName": "Drone Handling Upgrade",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 200,
+        "factors": [
+          "rating",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 12
+      },
+      "attributeModification": {
+        "attribute": "handling",
+        "kind": "upgrade",
+        "freeIncrease": 1
+      }
+    },
+    {
+      "id": "drone-speed-upgrade",
+      "displayName": "Drone Speed Upgrade",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 400,
+        "factors": [
+          "rating",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 12
+      },
+      "attributeModification": {
+        "attribute": "speed",
+        "kind": "upgrade",
+        "freeIncrease": 1
+      }
+    },
+    {
+      "id": "drone-acceleration-upgrade",
+      "displayName": "Drone Acceleration Upgrade",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "perRating": 4,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 200,
+        "factors": [
+          "rating",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 12
+      },
+      "attributeModification": {
+        "attribute": "acceleration",
+        "kind": "upgrade",
+        "freeIncrease": 1
+      }
+    },
+    {
+      "id": "drone-armor-upgrade",
+      "displayName": "Drone Armor Upgrade",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 200,
+        "factors": [
+          "rating",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "attributeModification": {
+        "attribute": "armor",
+        "kind": "upgrade",
+        "freeIncrease": 3
+      }
+    },
+    {
+      "id": "drone-armor-upgrade-restricted",
+      "displayName": "Drone Armor Upgrade (Restricted)",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "restricted"
+      },
+      "costScaling": {
+        "multiplier": 200,
+        "factors": [
+          "rating",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 7,
+        "maximum": 12
+      },
+      "attributeModification": {
+        "attribute": "armor",
+        "kind": "upgrade",
+        "freeIncrease": 3
+      }
+    },
+    {
+      "id": "drone-armor-upgrade-forbidden",
+      "displayName": "Drone Armor Upgrade (Forbidden)",
+      "classification": "creationUnavailable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "forbidden"
+      },
+      "costScaling": {
+        "multiplier": 200,
+        "factors": [
+          "rating",
+          "body"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 13,
+        "maximum": 24
+      },
+      "attributeModification": {
+        "attribute": "armor",
+        "kind": "upgrade",
+        "freeIncrease": 3
+      }
+    },
+    {
+      "id": "drone-sensor-upgrade",
+      "displayName": "Drone Sensor Array Upgrade",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 1000,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 12
+      },
+      "attributeModification": {
+        "attribute": "sensor",
+        "kind": "upgrade",
+        "freeIncrease": 1
+      }
+    },
+    {
+      "id": "drone-sensor-single-upgrade",
+      "displayName": "Drone Single Sensor Upgrade",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 100,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 12
+      },
+      "attributeModification": {
+        "attribute": "sensor",
+        "kind": "upgrade",
+        "freeIncrease": 1
+      }
+    },
+    {
+      "id": "drone-body-reduction",
+      "displayName": "Drone Body Reduction",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "perRating": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "perRating": -1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      },
+      "attributeModification": {
+        "attribute": "body",
+        "kind": "bodyReduction"
+      }
+    },
+    {
+      "id": "drone-downgrade-handling",
+      "displayName": "Enduring Downgrade (Handling)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "fixed": 0,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": -1
+      },
+      "attributeModification": {
+        "attribute": "handling",
+        "kind": "downgrade"
+      }
+    },
+    {
+      "id": "drone-downgrade-speed",
+      "displayName": "Enduring Downgrade (Speed)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "fixed": 0,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": -1
+      },
+      "attributeModification": {
+        "attribute": "speed",
+        "kind": "downgrade"
+      }
+    },
+    {
+      "id": "drone-downgrade-acceleration",
+      "displayName": "Enduring Downgrade (Acceleration)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "fixed": 0,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": -1
+      },
+      "attributeModification": {
+        "attribute": "acceleration",
+        "kind": "downgrade"
+      }
+    },
+    {
+      "id": "drone-downgrade-armor",
+      "displayName": "Enduring Downgrade (Armor)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "fixed": 0,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": -1
+      },
+      "attributeModification": {
+        "attribute": "armor",
+        "kind": "downgrade"
+      }
+    },
+    {
+      "id": "drone-downgrade-sensor",
+      "displayName": "Enduring Downgrade (Sensor)",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 123,
+        "pdfPage": 124
+      },
+      "availability": {
+        "fixed": 0,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 0
+      },
+      "slotCost": {
+        "fixed": -1
+      },
+      "attributeModification": {
+        "attribute": "sensor",
+        "kind": "downgrade"
+      }
+    },
+    {
+      "id": "drone-customized",
+      "displayName": "Customized",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 125,
+        "pdfPage": 126
+      },
+      "availability": {
+        "fixed": 0,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-autosoft",
+      "displayName": "Autosoft",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "drone-autosoft-skillset",
+      "displayName": "Skillset Autosoft",
+      "classification": "parameterized",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "costScaling": {
+        "multiplier": 500,
+        "factors": [
+          "rating"
+        ]
+      },
+      "slotCost": {
+        "fixed": 0
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "drone-autosoft-smartsoft",
+      "displayName": "Smartsoft Autosoft",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-autosoft-group",
+      "displayName": "Group Autosoft",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 127,
+        "pdfPage": 128
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "drone-linguistics",
+      "displayName": "Drone Linguistics",
+      "classification": "selectable",
+      "category": "drone",
+      "source": {
+        "sourceId": "rigger-5",
+        "printedPage": 128,
+        "pdfPage": 129
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "slotCost": {
+        "fixed": 0
+      }
+    }
+  ]
+}

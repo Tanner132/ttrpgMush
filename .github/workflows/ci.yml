@@ -27,6 +27,11 @@ jobs:
       # ubuntu-latest already provides.
       - run: dotnet test backEnd/SeattleByNight.slnx --nologo -v q
 
+      # Building the Api project regenerates openapi/SeattleByNight.Api.json;
+      # a diff here means the committed contract is stale — rebuild and commit it.
+      - name: OpenAPI document is current
+        run: git diff --exit-code -- backEnd/src/SeattleByNight.Api/openapi
+
   frontend:
     name: Frontend checks
     runs-on: ubuntu-latest
@@ -43,6 +48,15 @@ jobs:
           cache-dependency-path: frontEnd/package-lock.json
 
       - run: npm ci
+
+      # src/api/generated is produced from the committed OpenAPI document;
+      # a diff here means someone changed the contract without rerunning
+      # `npm run gen:api` and committing the result.
+      - name: Generated API types are current
+        run: |
+          npm run gen:api
+          git diff --exit-code -- src/api/generated
+
       - name: Typecheck
         run: npx tsc -b
       - name: Lint

@@ -691,6 +691,29 @@ export interface SlotCostDefinition {
     perRating?: number | null
 }
 
+// The drone attributes Rigger 5.0 lets a rigger buy up or trade away
+// (rigger-5 pp. 123-124, PDF 124-125). Pilot is absent deliberately: it is
+// bought as a whole program from the Software Solutions table rather than as a
+// per-point attribute purchase.
+export type DroneAttribute =
+    | 'handling'
+    | 'speed'
+    | 'acceleration'
+    | 'armor'
+    | 'sensor'
+    | 'body'
+
+export type DroneAttributeModificationKind = 'upgrade' | 'downgrade' | 'bodyReduction'
+
+// An upgrade's rating is the upgraded value being bought and it costs
+// (increase - freeIncrease) Mod Points; a bodyReduction's rating is the number
+// of Body points given up; a downgrade carries no rating at all.
+export interface DroneAttributeModificationDefinition {
+    attribute: DroneAttribute
+    kind: DroneAttributeModificationKind
+    freeIncrease?: number | null
+}
+
 export interface VehicleModificationDefinition {
     id: string
     displayName: string
@@ -706,6 +729,7 @@ export interface VehicleModificationDefinition {
     optionGroupId?: string | null
     appliesToModificationIds?: string[] | null
     relative?: boolean
+    attributeModification?: DroneAttributeModificationDefinition | null
 }
 
 export interface LifestyleStartingCashDice {

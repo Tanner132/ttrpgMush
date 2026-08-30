@@ -1,0 +1,49 @@
+{
+  "spriteTypes": [
+    {
+      "id": "courier-sprite",
+      "displayName": "Courier Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    },
+    {
+      "id": "crack-sprite",
+      "displayName": "Crack Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    },
+    {
+      "id": "data-sprite",
+      "displayName": "Data Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    },
+    {
+      "id": "fault-sprite",
+      "displayName": "Fault Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    },
+    {
+      "id": "machine-sprite",
+      "displayName": "Machine Sprite",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 258,
+        "pdfPage": 260
+      }
+    }
+  ]
+}

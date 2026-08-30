@@ -1,0 +1,107 @@
+/* ----------------------------------------------------------------- topbar */
+
+.app__topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-4);
+  min-height: 44px;
+  padding: var(--sb-space-2) var(--sb-space-4);
+  background: var(--sb-surface-sunken);
+  border-bottom: 1px solid var(--sb-border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.app__topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+}
+
+.app__topbar-dot {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  background: var(--sb-accent);
+  box-shadow: var(--sb-glow-accent);
+}
+
+.app__topbar-title {
+  font-family: var(--sb-font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--sb-text);
+  white-space: nowrap;
+}
+
+.app__topbar-subtitle {
+  font-family: var(--sb-font-data);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  color: var(--sb-text-faint);
+  white-space: nowrap;
+}
+
+.app__topbar-domains {
+  display: flex;
+  gap: 2px;
+}
+
+.app__topbar-domain {
+  border: 1px solid var(--sb-border);
+  background: transparent;
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-heading);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  padding: 5px 12px;
+  cursor: not-allowed;
+}
+
+.app__topbar-domain--active {
+  border-color: var(--sb-accent);
+  background: var(--sb-accent-wash);
+  color: var(--sb-accent);
+  cursor: default;
+}
+
+.app__topbar-domain:disabled {
+  opacity: 0.45;
+}
+
+.app__topbar-domain:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 2px;
+}
+
+.app__topbar-spacer {
+  flex: 1;
+}
+
+.app__account {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-3);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  color: var(--sb-text-faint);
+  white-space: nowrap;
+}
+
+.app__account-label {
+  margin-right: var(--sb-space-1);
+}
+
+.app__account-name {
+  color: var(--sb-text);
+}
+
+.app__account-clock {
+  color: var(--sb-text-muted);
+}
+

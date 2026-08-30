@@ -1,0 +1,181 @@
+.auth {
+  max-width: 560px;
+  margin: var(--sb-space-6) auto 0;
+  width: 100%;
+}
+
+.auth__frame {
+  border: 1px solid var(--sb-border-strong);
+  background: var(--sb-surface);
+  box-shadow: var(--sb-shadow-2), inset 0 0 60px rgba(0, 255, 204, 0.03);
+}
+
+.auth__topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-2) var(--sb-space-4);
+  background: var(--sb-surface-sunken);
+  border-bottom: 1px solid var(--sb-border);
+}
+
+.auth__topline-label {
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sb-accent);
+}
+
+.auth__topline-node {
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sb-text-faint);
+}
+
+.auth__body {
+  padding: var(--sb-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-4);
+}
+
+.auth__log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-1);
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+  color: var(--sb-text-faint);
+}
+
+.auth__log p {
+  margin: 0;
+}
+
+.auth__log-ok {
+  color: var(--sb-accent);
+}
+
+/* The tab switcher and field stack sit flush inside the shared terminal
+   frame, so the nested Panel here drops its own box chrome rather than
+   double-bordering the auth frame. */
+.auth__panel {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  clip-path: none;
+}
+
+.auth .ui-tabs__list {
+  gap: 0;
+  margin-bottom: var(--sb-space-4);
+  border: 1px solid var(--sb-border);
+}
+
+.auth .ui-tabs__tab {
+  border: 0;
+  border-radius: 0;
+}
+
+.auth .ui-tabs__tab:not(:last-child) {
+  border-right: 1px solid var(--sb-border);
+}
+
+.auth .ui-tabs__tab[aria-selected='true'] {
+  box-shadow: none;
+}
+
+/* Fields render as a single bordered row — label as a fixed-width prefix
+   tag, input flush against it — matching the design's terminal-prompt style. */
+.auth .ui-field {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sb-space-2);
+  min-height: 44px;
+  padding: 0 var(--sb-space-3);
+  border: 1px solid var(--sb-border);
+  background: var(--sb-bg-inset);
+}
+
+.auth .ui-field:focus-within {
+  border-color: var(--sb-accent);
+}
+
+.auth .ui-field__label {
+  flex-shrink: 0;
+  min-width: 92px;
+  color: var(--sb-accent);
+}
+
+.auth .ui-field__input {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.auth .ui-field__input:focus-visible {
+  outline: none;
+}
+
+.auth__submit {
+  margin-top: var(--sb-space-1);
+  height: 46px;
+  letter-spacing: 0.24em;
+}
+
+.auth__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+  padding-top: var(--sb-space-1);
+  font-family: var(--sb-font-data);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sb-text-dim);
+}
+
+.persona-registry {
+  display: flex;
+  flex-direction: column;
+  max-width: 1040px;
+}
+
+.persona-registry__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sb-space-3);
+  margin-bottom: 2px;
+}
+
+.persona-registry__title {
+  margin: 0;
+  font-family: var(--sb-font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sb-text);
+}
+
+.persona-registry__slots {
+  font-family: var(--sb-font-data);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sb-accent);
+}
+
+.persona-registry__note {
+  margin: 0 0 var(--sb-space-5);
+  font-size: 0.8rem;
+  color: var(--sb-text-faint);
+  letter-spacing: 0.03em;
+}
+

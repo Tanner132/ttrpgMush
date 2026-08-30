@@ -70,7 +70,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
         {
             name = new string('n', 121),
             description = "",
-            accessType = 99,
+            accessType = "Restricted",
             mapX = (long)int.MaxValue + 1,
             mapY = (long)int.MinValue - 1,
             mapLayer = (long?)null
@@ -101,7 +101,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
         {
             name = $"Authority {Guid.NewGuid():N}",
             description = "Created description",
-            accessType = 0,
+            accessType = "Public",
             mapX = coordinate,
             mapY = coordinate + 1,
             mapLayer = 3,
@@ -121,7 +121,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
         {
             name = "Updated authority room",
             description = "Updated description",
-            accessType = 0,
+            accessType = "Public",
             mapX = (int?)null,
             mapY = 7,
             mapLayer = (int?)null,
@@ -246,7 +246,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
         {
             name = $"Room {Guid.NewGuid():N}",
             description = "A room.",
-            accessType = 0,
+            accessType = "Public",
             mapX = coordinate,
             mapY = coordinate,
             mapLayer = 100
@@ -257,7 +257,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
         Guid Id,
         string Name,
         string Description,
-        int AccessType,
+        string AccessType,
         int MapX,
         int MapY,
         int MapLayer,

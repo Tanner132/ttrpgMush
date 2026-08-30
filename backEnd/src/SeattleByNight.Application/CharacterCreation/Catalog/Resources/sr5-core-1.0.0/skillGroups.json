@@ -1,0 +1,215 @@
+{
+  "skillGroups": [
+    {
+      "id": "acting",
+      "displayName": "Acting",
+      "skillIds": [
+        "con",
+        "impersonation",
+        "performance"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "athletics",
+      "displayName": "Athletics",
+      "skillIds": [
+        "gymnastics",
+        "running",
+        "swimming"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "biotech",
+      "displayName": "Biotech",
+      "skillIds": [
+        "cybertechnology",
+        "first-aid",
+        "medicine"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "close-combat",
+      "displayName": "Close Combat",
+      "skillIds": [
+        "blades",
+        "clubs",
+        "unarmed-combat"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "conjuring",
+      "displayName": "Conjuring",
+      "skillIds": [
+        "banishing",
+        "binding",
+        "summoning"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "cracking",
+      "displayName": "Cracking",
+      "skillIds": [
+        "cybercombat",
+        "electronic-warfare",
+        "hacking"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "electronics",
+      "displayName": "Electronics",
+      "skillIds": [
+        "computer",
+        "hardware",
+        "software"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "enchanting",
+      "displayName": "Enchanting",
+      "skillIds": [
+        "alchemy",
+        "artificing",
+        "disenchanting"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "engineering",
+      "displayName": "Engineering",
+      "skillIds": [
+        "aeronautics-mechanic",
+        "automotive-mechanic",
+        "industrial-mechanic",
+        "nautical-mechanic"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "firearms",
+      "displayName": "Firearms",
+      "skillIds": [
+        "automatics",
+        "longarms",
+        "pistols"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "influence",
+      "displayName": "Influence",
+      "skillIds": [
+        "etiquette",
+        "leadership",
+        "negotiation"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "outdoors",
+      "displayName": "Outdoors",
+      "skillIds": [
+        "navigation",
+        "survival",
+        "tracking"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "sorcery",
+      "displayName": "Sorcery",
+      "skillIds": [
+        "counterspelling",
+        "ritual-spellcasting",
+        "spellcasting"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "stealth",
+      "displayName": "Stealth",
+      "skillIds": [
+        "disguise",
+        "palming",
+        "sneaking"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    },
+    {
+      "id": "tasking",
+      "displayName": "Tasking",
+      "skillIds": [
+        "compiling",
+        "decompiling",
+        "registering"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 153,
+        "pdfPage": 155
+      }
+    }
+  ]
+}

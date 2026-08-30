@@ -1,0 +1,52 @@
+/* ─── Method selection ──────────────────────────────────────────────────── */
+
+.method-selection__methods {
+  border: 1px solid var(--sb-border);
+  padding: var(--sb-space-3);
+  margin: 0;
+  background: var(--sb-surface);
+}
+
+.method-selection__option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-3);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color var(--sb-duration-fast) var(--sb-ease), border-color var(--sb-duration-fast) var(--sb-ease);
+}
+
+.method-selection__option:hover {
+  background: var(--sb-surface-raised);
+}
+
+.method-selection__option:has(input:checked) {
+  background: var(--sb-accent-wash);
+  border-color: var(--sb-accent);
+}
+
+.method-selection__radio {
+  margin-top: 4px;
+  accent-color: var(--sb-accent);
+}
+
+.method-selection__option-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-1);
+}
+
+.method-selection__option-label {
+  font-family: var(--sb-font-heading);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.method-selection__option-desc {
+  font-family: var(--sb-font-data);
+  font-size: 0.8rem;
+  color: var(--sb-text-muted);
+}
+

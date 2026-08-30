@@ -1,0 +1,201 @@
+/* World graph editor: a coordinate console with a persistent text fallback. */
+.world-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-4);
+}
+
+.world-editor__titlebar,
+.world-editor__toolbar,
+.world-editor__actions,
+.world-editor__checks,
+.world-editor__pan-controls,
+.world-editor__layer-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sb-space-3);
+}
+
+.world-editor__titlebar h2,
+.world-editor__titlebar p {
+  margin: 0;
+}
+
+.world-editor__eyebrow,
+.world-editor__viewport-readout {
+  color: var(--sb-info);
+  font-family: var(--sb-font-data);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.world-editor__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+  gap: var(--sb-space-4);
+  align-items: start;
+}
+
+.world-editor__map-column,
+.world-editor__inspector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-4);
+  min-width: 0;
+}
+
+.world-map {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(3rem, 1fr));
+  grid-template-rows: repeat(7, minmax(3.5rem, 1fr));
+  min-height: 440px;
+  margin-top: var(--sb-space-3);
+  overflow: auto;
+  border: 1px solid var(--sb-border-strong);
+  background-color: var(--sb-bg-inset);
+  background-image: linear-gradient(var(--sb-border) 1px, transparent 1px), linear-gradient(90deg, var(--sb-border) 1px, transparent 1px);
+  background-size: calc(100% / 9) calc(100% / 7);
+  box-shadow: inset 0 0 34px rgba(0, 210, 255, 0.08);
+}
+
+.world-map__cell {
+  min-width: 3rem;
+  min-height: 3.5rem;
+  overflow: hidden;
+  border: 1px solid var(--sb-border);
+  background: transparent;
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.world-map__cell--empty:hover {
+  border-color: var(--sb-info);
+  color: var(--sb-info);
+  background: var(--sb-surface);
+}
+
+.world-map__cell--occupied {
+  border-color: var(--sb-info);
+  background: var(--sb-surface-raised);
+  color: var(--sb-text);
+}
+
+.world-map__cell--occupied[aria-pressed='true'] {
+  border-color: var(--sb-accent);
+  color: var(--sb-accent);
+  box-shadow: var(--sb-glow-accent);
+}
+
+.world-editor__room-list {
+  max-height: 18rem;
+  overflow: auto;
+}
+
+.world-editor__list-button {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-2) var(--sb-space-3);
+  border: 1px solid var(--sb-border);
+  background: var(--sb-bg-inset);
+  color: var(--sb-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.world-editor__list-button small,
+.world-editor__exit small,
+.world-editor__exit span {
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-data);
+}
+
+.world-editor__list-button[aria-pressed='true'] {
+  border-color: var(--sb-accent);
+}
+
+.world-editor__coordinate-fields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sb-space-2);
+}
+
+.world-editor__subheading {
+  margin: var(--sb-space-2) 0 0;
+  color: var(--sb-text-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.world-editor__exit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-3);
+  border: 1px solid var(--sb-border-strong);
+  background: var(--sb-bg-inset);
+}
+
+.world-editor__exit > div:first-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.world-editor__confirm {
+  color: var(--sb-warning);
+  font-family: var(--sb-font-data);
+}
+
+.ui-modal__overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--sb-space-4);
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.ui-modal {
+  width: min(38rem, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  padding: var(--sb-space-5);
+  border: 1px solid var(--sb-info);
+  background: var(--sb-surface-raised);
+  color: var(--sb-text);
+  box-shadow: var(--sb-shadow-2), var(--sb-glow-info);
+}
+
+.ui-modal--wide {
+  width: min(96vw, 1600px);
+}
+
+.ui-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+  margin-bottom: var(--sb-space-4);
+}
+
+.ui-modal__header h2 {
+  margin: 0;
+}
+
+.ui-modal__close {
+  border: 0;
+  background: transparent;
+  color: var(--sb-text-muted);
+  font-size: 1.75rem;
+  cursor: pointer;
+}
+

@@ -1,0 +1,32 @@
+/* ─── Shared select treatment ──────────────────────────────────────────── */
+
+/* Matches the stepper's field chrome so a dropdown never reads as a raw
+   browser control next to one. */
+.creation-select {
+  min-width: 0;
+  min-height: 2.2rem;
+  padding: 0 26px 0 var(--sb-space-2);
+  border: 1px solid var(--sb-border-strong);
+  border-radius: 0;
+  color: var(--sb-text);
+  background-color: var(--sb-bg-inset);
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--sb-text-faint) 50%), linear-gradient(135deg, var(--sb-text-faint) 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% + 2px), calc(100% - 9px) calc(50% + 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.creation-select:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 0;
+  border-color: var(--sb-accent);
+}
+
+.creation-select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

@@ -9,7 +9,7 @@ vi.mock('../api/roomSession.ts', () => ({
 }))
 
 function message(id: string, createdAtUtc: string): RoomMessage {
-  return { id, roomId: 'room-1', characterId: 'char-1', characterName: 'Dev Runner', content: id, type: 0, createdAtUtc }
+  return { id, roomId: 'room-1', characterId: 'char-1', characterName: 'Dev Runner', content: id, type: 'Say', createdAtUtc }
 }
 
 const msg1 = message('msg-1', '2026-08-16T11:00:00Z')
@@ -57,7 +57,7 @@ describe('useTranscript', () => {
       playSessionId: 'session-1',
       expiresAtUtc: '2026-08-16T12:00:00Z',
       character: { id: 'char-1', name: 'Dev Runner' },
-      room: { id: 'room-1', name: 'Downtown Street', description: '', accessType: 0, mapX: 0, mapY: 0, mapLayer: 0 },
+      room: { id: 'room-1', name: 'Downtown Street', description: '', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
       exits: [],
       occupants: [],
       messages: [msg1],
@@ -84,7 +84,7 @@ describe('useTranscript', () => {
       playSessionId: 'session-1',
       expiresAtUtc: '2026-08-16T12:00:00Z',
       character: { id: 'char-1', name: 'Dev Runner' },
-      room: { id: 'room-1', name: 'Downtown Street', description: '', accessType: 0, mapX: 0, mapY: 0, mapLayer: 0 },
+      room: { id: 'room-1', name: 'Downtown Street', description: '', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
       exits: [],
       occupants: [],
       messages: [msg1],

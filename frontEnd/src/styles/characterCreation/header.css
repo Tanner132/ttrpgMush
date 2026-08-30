@@ -1,0 +1,205 @@
+/* ─── Header ────────────────────────────────────────────────────────────── */
+
+.creator-header {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-4);
+  height: 44px;
+  padding: 0 var(--sb-space-4);
+  background: var(--sb-surface-sunken);
+  border-bottom: 1px solid var(--sb-border);
+  flex-shrink: 0;
+}
+
+.creator-header__dot {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  background: var(--sb-accent);
+  box-shadow: var(--sb-glow-accent);
+}
+
+.creator-header__name {
+  font-family: var(--sb-font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--sb-text);
+}
+
+.creator-header__meta {
+  font-family: var(--sb-font-data);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--sb-text-faint);
+  white-space: nowrap;
+}
+
+.creator-header__spacer {
+  flex: 1;
+  min-width: var(--sb-space-2);
+}
+
+.creator-header__chips {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.creator-header__chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 var(--sb-space-2);
+  border: 1px solid var(--sb-border);
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.creator-header__chip-label {
+  color: var(--sb-text-faint);
+}
+
+.creator-header__chip-value {
+  font-weight: 600;
+}
+
+.creator-header__chip--danger {
+  border-color: var(--sb-danger);
+  background: color-mix(in srgb, var(--sb-danger) 8%, transparent);
+}
+
+.creator-header__save {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.creator-header__save-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.creator-header__save--idle,
+.creator-header__save--saved {
+  color: var(--sb-save-saved);
+}
+
+.creator-header__save--unsaved {
+  color: var(--sb-save-unsaved);
+}
+
+.creator-header__save--saving {
+  color: var(--sb-save-saving);
+}
+
+.creator-header__save--failed,
+.creator-header__save--conflict {
+  color: var(--sb-save-failed);
+}
+
+.creator-header__btn {
+  display: flex;
+  align-items: center;
+  height: 26px;
+  border: 1px solid var(--sb-accent);
+  background: var(--sb-accent-wash);
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: 0 var(--sb-space-2);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.creator-header__btn:hover {
+  background: var(--sb-accent);
+  color: var(--sb-accent-ink);
+}
+
+.creator-header__blocking {
+  display: flex;
+  align-items: center;
+  height: 26px;
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--sb-danger);
+  border: 1px solid var(--sb-danger);
+  background: transparent;
+  padding: 0 var(--sb-space-2);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.creator-header__blocking:hover {
+  background: var(--sb-danger);
+  color: var(--sb-bg);
+}
+
+.creator-header__blocking:disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: transparent;
+  color: var(--sb-text-faint);
+  border-color: var(--sb-border-strong);
+}
+
+.creator-header__discard {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+  flex-shrink: 0;
+}
+
+.creator-header__discard-confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--sb-text-muted);
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.creator-header__discard-error {
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  color: var(--sb-save-failed);
+  white-space: nowrap;
+}
+
+.creator-header .ui-button {
+  min-height: 26px;
+  padding: 0 var(--sb-space-2);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+

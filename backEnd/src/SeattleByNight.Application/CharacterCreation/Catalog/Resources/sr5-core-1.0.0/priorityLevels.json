@@ -1,0 +1,54 @@
+{
+  "priorityLevels": [
+    {
+      "id": "a",
+      "displayName": "A",
+      "sumToTenCost": 4,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    },
+    {
+      "id": "b",
+      "displayName": "B",
+      "sumToTenCost": 3,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    },
+    {
+      "id": "c",
+      "displayName": "C",
+      "sumToTenCost": 2,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    },
+    {
+      "id": "d",
+      "displayName": "D",
+      "sumToTenCost": 1,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    },
+    {
+      "id": "e",
+      "displayName": "E",
+      "sumToTenCost": 0,
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    }
+  ]
+}

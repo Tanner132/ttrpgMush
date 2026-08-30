@@ -12,7 +12,7 @@ const session: RoomSession = {
   playSessionId: 'session-1',
   expiresAtUtc: '2026-08-16T12:00:00Z',
   character: { id: 'char-1', name: 'Dev Runner' },
-  room: { id: 'room-1', name: 'Downtown Street', description: '', accessType: 0, mapX: 0, mapY: 0, mapLayer: 0 },
+  room: { id: 'room-1', name: 'Downtown Street', description: '', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
   exits: [],
   occupants: [],
   messages: [],

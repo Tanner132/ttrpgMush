@@ -1,0 +1,8 @@
+/* --------------------------------------------------------------- utilities */
+
+.app__status {
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-data);
+  font-size: 0.85rem;
+}
+

@@ -12,7 +12,7 @@ internal static class WorldMutationValidation
         AddRequiredLength(errors, "name", mutation.Name, 120);
         AddRequiredLength(errors, "description", mutation.Description, 4000);
 
-        if (mutation.AccessType != (long)RoomAccessType.Public)
+        if (mutation.AccessType != nameof(RoomAccessType.Public))
         {
             errors["accessType"] = ["Access type must be Public."];
         }
@@ -30,7 +30,7 @@ internal static class WorldMutationValidation
         AddRequiredLength(errors, "name", mutation.Name, 120);
         AddRequiredLength(errors, "description", mutation.Description, 4000);
 
-        if (mutation.AccessType != (long)RoomAccessType.Public)
+        if (mutation.AccessType != nameof(RoomAccessType.Public))
         {
             errors["accessType"] = ["Access type must be Public."];
         }

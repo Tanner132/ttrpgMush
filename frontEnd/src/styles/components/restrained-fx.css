@@ -1,0 +1,33 @@
+/* ------------------------------------------------------------ restrained fx */
+
+/* A brief, finite glitch used only when a real event (a dropped connection)
+   occurs. Never continuous; disabled entirely under reduced motion. */
+@keyframes sb-glitch {
+  0% {
+    transform: translate(0);
+    clip-path: inset(0);
+  }
+  20% {
+    transform: translate(-2px, 1px);
+  }
+  40% {
+    transform: translate(2px, -1px);
+    clip-path: inset(12% 0 40% 0);
+  }
+  60% {
+    transform: translate(-1px, 1px);
+    clip-path: inset(44% 0 8% 0);
+  }
+  80% {
+    transform: translate(1px, 0);
+  }
+  100% {
+    transform: translate(0);
+    clip-path: inset(0);
+  }
+}
+
+.ui-glitch {
+  animation: sb-glitch 320ms steps(2, end) 1;
+}
+

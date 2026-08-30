@@ -78,7 +78,7 @@ export async function apiGet<T>(url: string, signal?: AbortSignal): Promise<T> {
   return request<T>(url, { signal })
 }
 
-export async function apiPost<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
+async function send<T>(method: 'POST' | 'PUT' | 'DELETE', url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const token = await ensureCsrfToken()
 
   const headers: Record<string, string> = { 'X-XSRF-TOKEN': token }
@@ -87,41 +87,21 @@ export async function apiPost<T>(url: string, body?: unknown, signal?: AbortSign
   }
 
   return request<T>(url, {
-    method: 'POST',
+    method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
     signal,
   })
+}
+
+export async function apiPost<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
+  return send<T>('POST', url, body, signal)
 }
 
 export async function apiPut<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
-  const token = await ensureCsrfToken()
-
-  const headers: Record<string, string> = { 'X-XSRF-TOKEN': token }
-  if (body !== undefined) {
-    headers['Content-Type'] = 'application/json'
-  }
-
-  return request<T>(url, {
-    method: 'PUT',
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal,
-  })
+  return send<T>('PUT', url, body, signal)
 }
 
 export async function apiDelete<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
-  const token = await ensureCsrfToken()
-
-  const headers: Record<string, string> = { 'X-XSRF-TOKEN': token }
-  if (body !== undefined) {
-    headers['Content-Type'] = 'application/json'
-  }
-
-  return request<T>(url, {
-    method: 'DELETE',
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal,
-  })
+  return send<T>('DELETE', url, body, signal)
 }

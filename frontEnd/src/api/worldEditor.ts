@@ -6,7 +6,7 @@ export interface WorldRoom {
   id: string
   name: string
   description: string
-  accessType: 0
+  accessType: 'Public'
   mapX: number
   mapY: number
   mapLayer: number
@@ -56,7 +56,7 @@ export type ExitDirection = (typeof ExitDirections)[number]
 export interface CreateRoomMutation {
   name: string
   description: string
-  accessType: 0
+  accessType: 'Public'
   mapX: number
   mapY: number
   mapLayer: number
@@ -65,7 +65,7 @@ export interface CreateRoomMutation {
 export interface UpdateRoomMutation {
   name: string
   description: string
-  accessType: 0
+  accessType: 'Public'
 }
 
 export interface ExitMutation {

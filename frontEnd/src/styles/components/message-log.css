@@ -1,0 +1,118 @@
+/* -------------------------------------------------------------- transcript */
+
+.message-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-2);
+}
+
+.message-log--empty {
+  margin: 0;
+  color: var(--sb-text-muted);
+}
+
+.message-log__entry {
+  display: flex;
+  gap: var(--sb-space-3);
+  align-items: baseline;
+  line-height: 1.65;
+}
+
+.message-log__time {
+  flex-shrink: 0;
+  min-width: 40px;
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  color: var(--sb-text-dim);
+}
+
+.message-log__character {
+  flex-shrink: 0;
+  font-family: var(--sb-font-heading);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sb-accent);
+}
+
+.message-log__content {
+  font-family: var(--sb-font-data);
+  font-size: 0.85rem;
+  max-width: var(--sb-measure);
+  color: var(--sb-text);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.message-log__local {
+  font-family: var(--sb-font-data);
+  font-size: 0.85rem;
+  max-width: var(--sb-measure);
+  color: var(--sb-text-muted);
+}
+
+.message-log__local--error {
+  color: var(--sb-danger);
+}
+
+.message-log__character--inline {
+  display: inline;
+  font-family: var(--sb-font-heading);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--sb-accent);
+}
+
+.message-log__emote {
+  font-style: italic;
+  color: var(--sb-info);
+}
+
+.message-log__roll {
+  color: var(--sb-warning);
+}
+
+.message-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.message-filter__option {
+  font-family: var(--sb-font-data);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  color: var(--sb-text-faint);
+  background: transparent;
+  border: 1px solid var(--sb-border);
+  cursor: pointer;
+}
+
+.message-filter__option:hover {
+  color: var(--sb-text);
+  border-color: var(--sb-border-strong);
+}
+
+.message-filter__option--active {
+  color: var(--sb-accent-ink);
+  background: var(--sb-accent);
+  border-color: var(--sb-accent);
+}
+
+.message-filter__note {
+  margin: 0;
+  padding: 0 var(--sb-space-4) var(--sb-space-2);
+  font-family: var(--sb-font-data);
+  font-size: 0.75rem;
+  color: var(--sb-warning);
+}
+

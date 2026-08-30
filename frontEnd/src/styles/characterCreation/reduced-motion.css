@@ -1,0 +1,8 @@
+/* ─── Reduced motion ────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .method-selection__option {
+    transition: none;
+  }
+}
+

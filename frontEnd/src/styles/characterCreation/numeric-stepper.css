@@ -1,0 +1,46 @@
+/* ─── Shared numeric stepper ───────────────────────────────────────────── */
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+}
+
+.stepper .stepper__input {
+  flex: none;
+  width: 52px;
+  min-width: 0;
+  min-height: 2.2rem;
+  padding: 0 var(--sb-space-1);
+  border: 1px solid var(--sb-border-strong);
+  border-radius: 0;
+  color: var(--sb-text);
+  background: var(--sb-bg-inset);
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+/* The step buttons replace the native spinner, which otherwise renders as an
+   unstyled control against the console chrome. */
+.stepper .stepper__input::-webkit-outer-spin-button,
+.stepper .stepper__input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.stepper .stepper__input[type='number'] {
+  appearance: textfield;
+}
+
+.stepper .stepper__input:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 0;
+  border-color: var(--sb-accent);
+}
+
+.stepper .stepper__input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+

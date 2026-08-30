@@ -1,0 +1,69 @@
+{
+  "augmentationGrades": [
+    {
+      "id": "standard",
+      "displayName": "Standard",
+      "essenceMultiplier": 1,
+      "availabilityModifier": 0,
+      "costMultiplier": 1,
+      "creationEligible": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 95,
+        "pdfPage": 97
+      }
+    },
+    {
+      "id": "alphaware",
+      "displayName": "Alphaware",
+      "essenceMultiplier": 0.8,
+      "availabilityModifier": 2,
+      "costMultiplier": 1.2,
+      "creationEligible": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 95,
+        "pdfPage": 97
+      }
+    },
+    {
+      "id": "betaware",
+      "displayName": "Betaware",
+      "essenceMultiplier": 0.7,
+      "availabilityModifier": 4,
+      "costMultiplier": 1.5,
+      "creationEligible": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 95,
+        "pdfPage": 97
+      }
+    },
+    {
+      "id": "deltaware",
+      "displayName": "Deltaware",
+      "essenceMultiplier": 0.5,
+      "availabilityModifier": 8,
+      "costMultiplier": 2.5,
+      "creationEligible": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 95,
+        "pdfPage": 97
+      }
+    },
+    {
+      "id": "used",
+      "displayName": "Used",
+      "essenceMultiplier": 1.25,
+      "availabilityModifier": -4,
+      "costMultiplier": 0.75,
+      "creationEligible": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 451,
+        "pdfPage": 453
+      }
+    }
+  ]
+}

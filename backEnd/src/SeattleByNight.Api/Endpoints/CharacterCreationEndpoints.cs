@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -135,10 +134,6 @@ public sealed record FinalizedCharacterSheetResponse(
 public static class CharacterCreationEndpoints
 {
     private static readonly ConcurrentDictionary<string, CatalogResponse> CatalogResponses = new(StringComparer.Ordinal);
-    private static readonly JsonSerializerOptions CatalogJsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        Converters = { new JsonStringEnumConverter() },
-    };
 
     public static IEndpointRouteBuilder MapCharacterCreationEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -196,7 +191,7 @@ public static class CharacterCreationEndpoints
 
         var key = $"{catalog.RulesetId}\n{catalog.Version}\n{catalog.SemanticDigest}";
         var response = CatalogResponses.GetOrAdd(key, _ => ToResponse(catalog));
-        return Results.Json(response, CatalogJsonOptions);
+        return Results.Ok(response);
     }
 
     private static async Task<IResult> StartDraftAsync(

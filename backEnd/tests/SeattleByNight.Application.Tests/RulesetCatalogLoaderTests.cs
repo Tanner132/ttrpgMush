@@ -67,20 +67,15 @@ public sealed class RulesetCatalogLoaderTests
     {
         foreach (var pin in EmbeddedRulesetCatalogProvider.RetainedVersions)
         {
-            using var stream = typeof(RulesetCatalog).Assembly.GetManifestResourceStream(pin.ResourceName)
-                ?? throw new InvalidOperationException($"Embedded catalog resource '{pin.ResourceName}' was not found.");
-            using var reader = new StreamReader(stream);
-            var json = reader.ReadToEnd();
+            var json = EmbeddedRulesetCatalogProvider.ReadCatalogJson(pin.ResourceName);
             if (pin.BaseResourceName is null)
             {
                 Assert.Equal(pin.SemanticDigest, RulesetCatalogLoader.ComputeSemanticDigest(json));
                 continue;
             }
 
-            using var baseStream = typeof(RulesetCatalog).Assembly.GetManifestResourceStream(pin.BaseResourceName)
-                ?? throw new InvalidOperationException($"Embedded base catalog resource '{pin.BaseResourceName}' was not found.");
-            using var baseReader = new StreamReader(baseStream);
-            Assert.Equal(pin.SemanticDigest, RulesetCatalogLoader.LoadOverlay(baseReader.ReadToEnd(), json).SemanticDigest);
+            var baseJson = EmbeddedRulesetCatalogProvider.ReadCatalogJson(pin.BaseResourceName);
+            Assert.Equal(pin.SemanticDigest, RulesetCatalogLoader.LoadOverlay(baseJson, json).SemanticDigest);
         }
     }
 

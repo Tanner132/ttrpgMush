@@ -1,0 +1,230 @@
+{
+  "armor": [
+    {
+      "id": "actioneer-business-clothes",
+      "displayName": "Actioneer Business Clothes",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "armorRating": 8,
+      "capacity": 8
+    },
+    {
+      "id": "armor-clothing",
+      "displayName": "Armor Clothing",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 450
+      },
+      "armorRating": 6,
+      "capacity": 6
+    },
+    {
+      "id": "armor-jacket",
+      "displayName": "Armor Jacket",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "armorRating": 12,
+      "capacity": 12
+    },
+    {
+      "id": "armor-vest",
+      "displayName": "Armor Vest",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "armorRating": 9,
+      "capacity": 9
+    },
+    {
+      "id": "chameleon-suit",
+      "displayName": "Chameleon Suit",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1700
+      },
+      "armorRating": 9,
+      "capacity": 9
+    },
+    {
+      "id": "full-body-armor",
+      "displayName": "Full Body Armor",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "armorRating": 15,
+      "capacity": 15
+    },
+    {
+      "id": "lined-coat",
+      "displayName": "Lined Coat",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "armorRating": 9,
+      "capacity": 9
+    },
+    {
+      "id": "urban-explorer-jumpsuit",
+      "displayName": "Urban Explorer Jumpsuit",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 650
+      },
+      "armorRating": 9,
+      "capacity": 9
+    },
+    {
+      "id": "helmet",
+      "displayName": "Helmet",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 438,
+        "pdfPage": 440
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "armorRating": 2,
+      "capacity": 6
+    },
+    {
+      "id": "ballistic-shield",
+      "displayName": "Ballistic Shield",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 438,
+        "pdfPage": 440
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1200
+      },
+      "armorRating": 6,
+      "capacity": 6
+    },
+    {
+      "id": "riot-shield",
+      "displayName": "Riot Shield",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 438,
+        "pdfPage": 440
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "armorRating": 6,
+      "capacity": 6
+    },
+    {
+      "id": "leather-jacket-duster",
+      "displayName": "Leather Jacket/Duster",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 436,
+        "pdfPage": 438
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "armorRating": 4
+    }
+  ]
+}

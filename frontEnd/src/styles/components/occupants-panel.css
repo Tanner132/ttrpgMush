@@ -1,0 +1,32 @@
+/* -------------------------------------------------------------- occupants */
+
+.grid-occupants {
+  flex-shrink: 0;
+  max-height: 30vh;
+  overflow-y: auto;
+  padding: var(--sb-space-3);
+  border-top: 1px solid var(--sb-border);
+}
+
+.grid-occupants__header {
+  margin-bottom: var(--sb-space-2);
+  font-family: var(--sb-font-data);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  color: var(--sb-text-faint);
+}
+
+.grid-occupants__empty {
+  margin: 0;
+  color: var(--sb-text-muted);
+}
+
+.grid-occupants__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+

@@ -1,0 +1,212 @@
+/* ─── Step content primitives (form-layout steps + readout configure) ──── */
+
+.creation-step {
+  max-width: 980px;
+}
+
+.creation-step__eyebrow {
+  margin: 0 0 var(--sb-space-2);
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.creation-step h3,
+.creation-step h4 {
+  margin: 0;
+  font-family: var(--sb-font-heading);
+  letter-spacing: 0.02em;
+}
+
+.creation-step h3 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  text-transform: uppercase;
+}
+
+.creation-step__intro,
+.creation-step__special p {
+  max-width: 70ch;
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-data);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.creation-step__priority-grid,
+.creation-step__metatypes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sb-space-3);
+  margin-top: var(--sb-space-5);
+}
+
+.creation-card {
+  display: flex;
+  min-height: 150px;
+  flex-direction: column;
+  gap: var(--sb-space-2);
+  padding: var(--sb-space-4);
+  color: var(--sb-text);
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+  text-align: left;
+}
+
+.creation-card--choice {
+  cursor: pointer;
+  font: inherit;
+}
+
+.creation-card--choice:hover:not(:disabled):not([aria-disabled="true"]),
+.creation-card--selected {
+  border-color: var(--sb-accent);
+  box-shadow: inset 3px 0 0 var(--sb-accent), var(--sb-glow-accent);
+}
+
+.creation-card--choice:disabled,
+.creation-card--choice[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.creation-card__kicker,
+.creation-card__hint,
+.creation-card__range,
+.creation-card__warning {
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.creation-card__title {
+  font-family: var(--sb-font-heading);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.creation-card select,
+.creation-card input,
+.creation-step input {
+  min-height: 2.4rem;
+  padding: 0 var(--sb-space-2);
+  color: var(--sb-text);
+  background: var(--sb-bg-inset);
+  border: 1px solid var(--sb-border-strong);
+  border-radius: 0;
+  font-family: var(--sb-font-data);
+}
+
+.creation-card select:focus-visible,
+.creation-card input:focus-visible,
+.creation-step input:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 0;
+  border-color: var(--sb-accent);
+}
+
+.creation-card__warning {
+  color: var(--sb-danger);
+}
+
+.creation-step__special {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sb-space-5);
+  margin-top: var(--sb-space-5);
+  padding: var(--sb-space-4);
+  background: var(--sb-surface);
+  box-shadow: inset 3px 0 0 var(--sb-accent);
+}
+
+.creation-step__number-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(72px, 1fr));
+  gap: var(--sb-space-3);
+}
+
+.creation-step__number-grid label,
+.creation-attribute {
+  display: grid;
+  gap: var(--sb-space-1);
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.creation-step__allocation-status {
+  margin: var(--sb-space-5) 0 var(--sb-space-3);
+  padding: var(--sb-space-3);
+  color: var(--sb-text-muted);
+  background: var(--sb-surface);
+  font-family: var(--sb-font-data);
+  font-size: 0.8rem;
+}
+
+.creation-step__allocation-status strong {
+  color: var(--sb-accent);
+  font-family: var(--sb-font-heading);
+  font-size: 1.3rem;
+}
+
+.creation-step__attributes {
+  display: grid;
+  gap: var(--sb-space-2);
+}
+
+.creation-attribute {
+  grid-template-columns: minmax(140px, 1fr) auto 45px;
+  align-items: center;
+  padding: var(--sb-space-3);
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+}
+
+.creation-attribute span {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.creation-attribute strong {
+  color: var(--sb-text);
+  font-family: var(--sb-font-body);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.creation-attribute small {
+  color: var(--sb-text-faint);
+  font-size: 0.68rem;
+  text-transform: none;
+}
+
+.creation-attribute output {
+  color: var(--sb-accent);
+  font-family: var(--sb-font-heading);
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.creation-attribute--stacked {
+  grid-template-columns: 1fr;
+  margin-top: var(--sb-space-3);
+}
+
+.creation-attribute--stacked textarea {
+  width: 100%;
+  resize: vertical;
+  background: var(--sb-bg-inset);
+  border: 1px solid var(--sb-border);
+  color: var(--sb-text);
+  font-family: var(--sb-font-body);
+  font-size: 0.85rem;
+  padding: var(--sb-space-2);
+}
+

@@ -1,0 +1,12 @@
+/* ─── Body / view switch ────────────────────────────────────────────────── */
+
+.creator-shell__body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  overflow: clip;
+  display: flex;
+  flex-direction: column;
+}
+

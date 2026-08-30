@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using MediatR;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR;
@@ -476,6 +477,9 @@ public sealed class RoomChatHubTests : IClassFixture<ApiTestFactory>
                     options.Headers["Cookie"] = cookieHeader;
                 }
             })
+            // The server's hub protocol writes enums as name strings.
+            .AddJsonProtocol(options =>
+                options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
             .Build();
     }
 

@@ -10,19 +10,21 @@
 
   <ItemGroup>
     <!--
-      Pre-alpha: a single mutable canonical development schema. See
+      Pre-alpha: a single mutable canonical development schema, split into one
+      file per top-level collection (plus catalog.json for rulesetId/version)
+      and merged back into one document at load. See
       EmbeddedRulesetCatalogProvider's RetainedVersions comment and
       roadmap/SR5_RULESET_MANIFEST.md's "Schema Lifecycle" section. Once the
       schema is locked, new content becomes additional immutable resources
-      here (sr5-core-1.1.0.json, etc.) rather than edits to this file.
+      here (a sr5-core-1.1.0 folder, etc.) rather than edits to these files.
     -->
-    <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.0.0.json" />
+    <!--
+      LogicalName is explicit because MSBuild would otherwise mangle the
+      version folder name into an identifier-safe form (sr5_core_1._0._0).
+    -->
+    <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.0.0/*.json">
+      <LogicalName>SeattleByNight.Application.CharacterCreation.Catalog.Resources.sr5-core-1.0.0.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
 
 </Project>

@@ -5,6 +5,7 @@ import type {
   AugmentationDefinition,
   CatalogContract,
   CyberlimbEnhancementDefinition,
+  DroneAttribute,
   GearDefinition,
   VehicleModificationCategory,
   WeaponMount,
@@ -17,6 +18,8 @@ import {
   MOUNTS_BY_WEAPON_CATEGORY,
   MOUNT_LABELS,
   attachmentCapacityCost,
+  droneAttributeRatingRange,
+  droneDowngradeAvailable,
   effectiveWeaponMount,
   resolveVehicleModificationOptions,
   vehicleModificationAvailability,
@@ -167,12 +170,23 @@ export function GearAttachmentModal({
     // than against one shared mount pool (rigger-5 p. 151, PDF 152). Drone
     // modifications use the parallel Mod Point pool, also Body.
     const usedByCategory = new Map<VehicleModificationCategory, number>()
+    // "No matter how many Downgrades you make, you only receive a single extra
+    // Mod Point", so every downgrade after the first is worth nothing
+    // (rigger-5 p. 123, PDF 124).
+    const tradedAttributes = new Set<DroneAttribute>()
+    let downgradesTaken = 0
     for (const item of attachments) {
       const installed = catalog.vehicleModifications.find((entry) => entry.id === item.accessoryId)
       if (!installed) continue
       const installedOptions = resolveVehicleModificationOptions(catalog, installed, item.options)
-      const cost = [installed, ...installedOptions]
-        .reduce((total, entry) => total + vehicleModificationSlotCost(entry, item.rating ?? null), 0)
+      let cost = [installed, ...installedOptions]
+        .reduce((total, entry) => total + vehicleModificationSlotCost(entry, item.rating ?? null, vehicle), 0)
+      const traded = installed.attributeModification
+      if (traded) {
+        if (traded.kind === 'downgrade' && downgradesTaken > 0) cost = 0
+        if (traded.kind === 'downgrade') downgradesTaken += 1
+        tradedAttributes.add(traded.attribute)
+      }
       usedByCategory.set(installed.category, (usedByCategory.get(installed.category) ?? 0) + cost)
     }
 
@@ -183,10 +197,22 @@ export function GearAttachmentModal({
     // selectors on the modification they qualify.
     const modifications = catalog.vehicleModifications.filter((modification) => {
       if (modification.relative) return false
+      // Mod Points are the drone half of Rigger 5.0's two parallel systems, so
+      // those rows never appear on a car (rigger-5 p. 122, PDF 123).
+      if (modification.category === 'drone' && vehicle?.vehicleCategoryId !== 'drone') return false
+      const traded = modification.attributeModification
+      if (traded) {
+        if (tradedAttributes.has(traded.attribute)) return false
+        if (!droneDowngradeAvailable(modification, vehicle)) return false
+        const reachable = droneAttributeRatingRange(modification, vehicle)
+        if (reachable && reachable.maximum < reachable.minimum) return false
+      }
       const pool = vehicleModificationSlots(vehicle, modification.category)
       const used = usedByCategory.get(modification.category) ?? 0
-      const minimumRating = modification.ratingRange?.minimum ?? null
-      return vehicleModificationSlotCost(modification, minimumRating) <= pool - used
+      const minimumRating = droneAttributeRatingRange(modification, vehicle)?.minimum
+        ?? modification.ratingRange?.minimum
+        ?? null
+      return vehicleModificationSlotCost(modification, minimumRating, vehicle) <= pool - used
     })
 
     return (
@@ -209,11 +235,15 @@ export function GearAttachmentModal({
               const ratingCap = modification.ratingCap === 'body'
                 ? vehicle?.body ?? 0
                 : modification.ratingCap === 'armor' ? vehicle?.armor ?? 0 : null
-              const maximumRating = ratingCap == null
+              // An attribute trade's reachable ratings come from the drone's
+              // own stat line and already fold in the printed range.
+              const droneRange = droneAttributeRatingRange(modification, vehicle)
+              const minimumRating = droneRange?.minimum ?? modification.ratingRange?.minimum
+              const maximumRating = droneRange?.maximum ?? (ratingCap == null
                 ? modification.ratingRange?.maximum
-                : Math.min(modification.ratingRange?.maximum ?? 0, ratingCap)
+                : Math.min(modification.ratingRange?.maximum ?? 0, ratingCap))
               const rating = modification.ratingRange
-                ? pendingRatings[modification.id] ?? modification.ratingRange.minimum
+                ? pendingRatings[modification.id] ?? minimumRating
                 : undefined
               const chosenOptions = pendingOptions[modification.id] ?? {}
               const optionIds = Object.values(chosenOptions).filter((id): id is string => id != null && id !== '')
@@ -221,11 +251,11 @@ export function GearAttachmentModal({
               const cost = vehicleModificationCost(catalog, vehicle, modification, attachment)
               const optionRows = resolveVehicleModificationOptions(catalog, modification, optionIds)
               const slotCost = [modification, ...optionRows]
-                .reduce((total, entry) => total + vehicleModificationSlotCost(entry, rating ?? null), 0)
+                .reduce((total, entry) => total + vehicleModificationSlotCost(entry, rating ?? null, vehicle), 0)
               const availability = vehicleModificationAvailability(catalog, modification, attachment)
               const pool = vehicleModificationSlots(vehicle, modification.category)
               const remainingSlots = pool - (usedByCategory.get(modification.category) ?? 0)
-              const ratingUnavailable = modification.ratingRange != null && (maximumRating ?? 0) < modification.ratingRange.minimum
+              const ratingUnavailable = modification.ratingRange != null && (maximumRating ?? 0) < (minimumRating ?? 0)
               return (
                 <li key={modification.id} className="creation-attachment-modal__option">
                   <span>
@@ -237,7 +267,7 @@ export function GearAttachmentModal({
                   {modification.ratingRange && !ratingUnavailable && (
                     <Stepper
                       label={`${modification.displayName} rating`}
-                      min={modification.ratingRange.minimum}
+                      min={minimumRating ?? modification.ratingRange.minimum}
                       max={maximumRating ?? modification.ratingRange.maximum}
                       value={rating}
                       onChange={(next) => setPendingRatings((prev) => ({ ...prev, [modification.id]: next }))}

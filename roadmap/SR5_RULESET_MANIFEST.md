@@ -18,13 +18,18 @@ first runtime catalog foundation and its semantic digest.
 ## Schema Lifecycle
 
 The runtime catalog schema (`backEnd/.../CharacterCreation/Catalog/Resources/
-sr5-core-1.0.0.json`) moves through three phases as content is imported from
+sr5-core-1.0.0/`) moves through three phases as content is imported from
 approved source books:
 
 1. **Pre-alpha / development (current phase).** One mutable canonical schema
-   (`sr5-core-1.0.0.json`) holds the full runtime catalog. All schema changes
+   holds the full runtime catalog, split into one embedded JSON file per
+   top-level collection (plus `catalog.json` for `rulesetId`/`version`) under
+   the `sr5-core-1.0.0/` resource folder; the parts are merged back into a
+   single document at load by `EmbeddedRulesetCatalogProvider.ReadCatalogJson`
+   before validation and digest computation, so the semantic digest is
+   identical to the pre-split monolithic file's. All schema changes
    — new fields, new content types, new source-book slices — are written
-   directly into this file rather than published as a new version. Digest and
+   directly into these files rather than published as a new version. Digest and
    version-pin integrity enforcement is disabled (commented out, not
    deleted, with matching comments) in `RulesetCatalogLoader.Load`,
    `CharacterCreationDraftEvaluator.Evaluate`, and
@@ -42,7 +47,7 @@ approved source books:
    becomes the first immutable published version: its digest is recorded and
    enforcement is re-enabled by un-commenting the three checks above.
 3. **Post-lock / production.** Every subsequent schema change publishes a new
-   immutable version (a new resource file plus a new
+   immutable version (a new resource file or folder plus a new
    `EmbeddedRulesetCatalogProvider.CatalogVersionPin` entry) rather than
    editing a locked file. `RulesetCatalogLoader.LoadOverlay` and the
    `RetainedVersions` append-only-lockfile pattern (both preserved

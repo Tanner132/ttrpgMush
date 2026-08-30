@@ -1,0 +1,164 @@
+{
+  "mentorSpirits": [
+    {
+      "id": "bear",
+      "displayName": "Bear",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 321,
+        "pdfPage": 323
+      }
+    },
+    {
+      "id": "cat",
+      "displayName": "Cat",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 321,
+        "pdfPage": 323
+      }
+    },
+    {
+      "id": "dog",
+      "displayName": "Dog",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 321,
+        "pdfPage": 323
+      }
+    },
+    {
+      "id": "dragonslayer",
+      "displayName": "Dragonslayer",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 321,
+        "pdfPage": 323
+      }
+    },
+    {
+      "id": "eagle",
+      "displayName": "Eagle",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 322,
+        "pdfPage": 324
+      }
+    },
+    {
+      "id": "fire-bringer",
+      "displayName": "Fire-Bringer",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 322,
+        "pdfPage": 324
+      }
+    },
+    {
+      "id": "mountain",
+      "displayName": "Mountain",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 322,
+        "pdfPage": 324
+      }
+    },
+    {
+      "id": "rat",
+      "displayName": "Rat",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "raven",
+      "displayName": "Raven",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "sea",
+      "displayName": "Sea",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "seducer",
+      "displayName": "Seducer",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "shark",
+      "displayName": "Shark",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 323,
+        "pdfPage": 325
+      }
+    },
+    {
+      "id": "snake",
+      "displayName": "Snake",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 324,
+        "pdfPage": 326
+      }
+    },
+    {
+      "id": "thunderbird",
+      "displayName": "Thunderbird",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 324,
+        "pdfPage": 326
+      }
+    },
+    {
+      "id": "wise-warrior",
+      "displayName": "Wise Warrior",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 324,
+        "pdfPage": 326
+      }
+    },
+    {
+      "id": "wolf",
+      "displayName": "Wolf",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 324,
+        "pdfPage": 326
+      }
+    }
+  ]
+}

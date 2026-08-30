@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -53,48 +54,50 @@ public static partial class RulesetCatalogLoader
         //         $"Catalog semantic digest mismatch. Expected {expectedSemanticDigest}, calculated {digest}.");
         // }
 
-        return new RulesetCatalog(
-            document.RulesetId,
-            document.Version,
-            digest,
-            ToDictionary(document.Sources!, item => item.Id),
-            ToDictionary(document.CreationMethods!, item => item.Id),
-            ToDictionary(document.PriorityLevels!, item => item.Id),
-            document.PriorityCategories!.ToImmutableArray(),
-            ToDictionary(document.PriorityCells!, item => item.Id),
-            ToDictionary(document.Metatypes!, item => item.Id),
-            ToDictionary(document.Metavariants ?? [], item => item.Id),
-            ToDictionary(document.Attributes!, item => item.Id),
-            ToDictionary(document.Qualities!, item => item.Id),
-            ToDictionary(document.Skills!, item => item.Id),
-            ToDictionary(document.SkillGroups!, item => item.Id),
-            ToDictionary(document.KnowledgeCategories!, item => item.Id),
-            ToDictionary(document.KnowledgeSkillSuggestions ?? [], item => item.Id),
-            ToDictionary(document.LanguageSuggestions ?? [], item => item.Id),
-            ToDictionary(document.CreationPaths!, item => item.Id),
-            ToDictionary(document.AspectedValues!, item => item.Id),
-            ToDictionary(document.Traditions!, item => item.Id),
-            ToDictionary(document.Spells!, item => item.Id),
-            ToDictionary(document.Rituals!, item => item.Id),
-            ToDictionary(document.AdeptPowers!, item => item.Id),
-            ToDictionary(document.MentorSpirits!, item => item.Id),
-            ToDictionary(document.ComplexForms!, item => item.Id),
-            ToDictionary(document.SpiritTypes!, item => item.Id),
-            ToDictionary(document.SpriteTypes!, item => item.Id),
-            ToDictionary(document.Foci!, item => item.Id),
-            ToDictionary(document.Gear!, item => item.Id),
-            ToDictionary(document.Weapons!, item => item.Id),
-            ToDictionary(document.Armor!, item => item.Id),
-            ToDictionary(document.AugmentationGrades!, item => item.Id),
-            ToDictionary(document.Augmentations!, item => item.Id),
-            ToDictionary(document.Vehicles!, item => item.Id),
-            ToDictionary(document.Cyberdecks!, item => item.Id),
-            ToDictionary(document.WeaponAccessories!, item => item.Id),
-            ToDictionary(document.ArmorModifications!, item => item.Id),
-            ToDictionary(document.CyberlimbEnhancements!, item => item.Id),
-            ToDictionary(document.VehicleModifications!, item => item.Id),
-            ToDictionary(document.LifestyleTiers!, item => item.Id),
-            ToDictionary(document.LifestyleOptions!, item => item.Id));
+        return new RulesetCatalog
+        {
+            RulesetId = document.RulesetId,
+            Version = document.Version,
+            SemanticDigest = digest,
+            Sources = ToDictionary(document.Sources!, item => item.Id),
+            CreationMethods = ToDictionary(document.CreationMethods!, item => item.Id),
+            PriorityLevels = ToDictionary(document.PriorityLevels!, item => item.Id),
+            PriorityCategories = document.PriorityCategories!.ToImmutableArray(),
+            PriorityCells = ToDictionary(document.PriorityCells!, item => item.Id),
+            Metatypes = ToDictionary(document.Metatypes!, item => item.Id),
+            Metavariants = ToDictionary(document.Metavariants ?? [], item => item.Id),
+            Attributes = ToDictionary(document.Attributes!, item => item.Id),
+            Qualities = ToDictionary(document.Qualities!, item => item.Id),
+            Skills = ToDictionary(document.Skills!, item => item.Id),
+            SkillGroups = ToDictionary(document.SkillGroups!, item => item.Id),
+            KnowledgeCategories = ToDictionary(document.KnowledgeCategories!, item => item.Id),
+            KnowledgeSkillSuggestions = ToDictionary(document.KnowledgeSkillSuggestions ?? [], item => item.Id),
+            LanguageSuggestions = ToDictionary(document.LanguageSuggestions ?? [], item => item.Id),
+            CreationPaths = ToDictionary(document.CreationPaths!, item => item.Id),
+            AspectedValues = ToDictionary(document.AspectedValues!, item => item.Id),
+            Traditions = ToDictionary(document.Traditions!, item => item.Id),
+            Spells = ToDictionary(document.Spells!, item => item.Id),
+            Rituals = ToDictionary(document.Rituals!, item => item.Id),
+            AdeptPowers = ToDictionary(document.AdeptPowers!, item => item.Id),
+            MentorSpirits = ToDictionary(document.MentorSpirits!, item => item.Id),
+            ComplexForms = ToDictionary(document.ComplexForms!, item => item.Id),
+            SpiritTypes = ToDictionary(document.SpiritTypes!, item => item.Id),
+            SpriteTypes = ToDictionary(document.SpriteTypes!, item => item.Id),
+            Foci = ToDictionary(document.Foci!, item => item.Id),
+            Gear = ToDictionary(document.Gear!, item => item.Id),
+            Weapons = ToDictionary(document.Weapons!, item => item.Id),
+            Armor = ToDictionary(document.Armor!, item => item.Id),
+            AugmentationGrades = ToDictionary(document.AugmentationGrades!, item => item.Id),
+            Augmentations = ToDictionary(document.Augmentations!, item => item.Id),
+            Vehicles = ToDictionary(document.Vehicles!, item => item.Id),
+            Cyberdecks = ToDictionary(document.Cyberdecks!, item => item.Id),
+            WeaponAccessories = ToDictionary(document.WeaponAccessories!, item => item.Id),
+            ArmorModifications = ToDictionary(document.ArmorModifications!, item => item.Id),
+            CyberlimbEnhancements = ToDictionary(document.CyberlimbEnhancements!, item => item.Id),
+            VehicleModifications = ToDictionary(document.VehicleModifications!, item => item.Id),
+            LifestyleTiers = ToDictionary(document.LifestyleTiers!, item => item.Id),
+            LifestyleOptions = ToDictionary(document.LifestyleOptions!, item => item.Id),
+        };
     }
 
     public static RulesetCatalog LoadOverlay(
@@ -161,44 +164,43 @@ public static partial class RulesetCatalogLoader
             throw new RulesetCatalogException("Catalog version is required.");
         }
 
-        if (document.Sources is null
-            || document.CreationMethods is null
-            || document.PriorityLevels is null
-            || document.PriorityCategories is null
-            || document.PriorityCells is null
-            || document.Metatypes is null
-            || document.Attributes is null
-            || document.Qualities is null
-            || document.Skills is null
-            || document.SkillGroups is null
-            || document.KnowledgeCategories is null
-            || document.CreationPaths is null
-            || document.AspectedValues is null
-            || document.Traditions is null
-            || document.Spells is null
-            || document.Rituals is null
-            || document.AdeptPowers is null
-            || document.MentorSpirits is null
-            || document.ComplexForms is null
-            || document.SpiritTypes is null
-            || document.SpriteTypes is null
-            || document.Foci is null
-            || document.Gear is null
-            || document.Weapons is null
-            || document.Armor is null
-            || document.AugmentationGrades is null
-            || document.Augmentations is null
-            || document.Vehicles is null
-            || document.Cyberdecks is null
-            || document.WeaponAccessories is null
-            || document.ArmorModifications is null
-            || document.CyberlimbEnhancements is null
-            || document.VehicleModifications is null
-            || document.LifestyleTiers is null
-            || document.LifestyleOptions is null)
-        {
-            throw new RulesetCatalogException("The catalog is missing a required collection.");
-        }
+        // Metavariants, KnowledgeSkillSuggestions, and LanguageSuggestions are
+        // the only optional collections; everything else must be present.
+        RequireCollection(document.Sources, "sources");
+        RequireCollection(document.CreationMethods, "creationMethods");
+        RequireCollection(document.PriorityLevels, "priorityLevels");
+        RequireCollection(document.PriorityCategories, "priorityCategories");
+        RequireCollection(document.PriorityCells, "priorityCells");
+        RequireCollection(document.Metatypes, "metatypes");
+        RequireCollection(document.Attributes, "attributes");
+        RequireCollection(document.Qualities, "qualities");
+        RequireCollection(document.Skills, "skills");
+        RequireCollection(document.SkillGroups, "skillGroups");
+        RequireCollection(document.KnowledgeCategories, "knowledgeCategories");
+        RequireCollection(document.CreationPaths, "creationPaths");
+        RequireCollection(document.AspectedValues, "aspectedValues");
+        RequireCollection(document.Traditions, "traditions");
+        RequireCollection(document.Spells, "spells");
+        RequireCollection(document.Rituals, "rituals");
+        RequireCollection(document.AdeptPowers, "adeptPowers");
+        RequireCollection(document.MentorSpirits, "mentorSpirits");
+        RequireCollection(document.ComplexForms, "complexForms");
+        RequireCollection(document.SpiritTypes, "spiritTypes");
+        RequireCollection(document.SpriteTypes, "spriteTypes");
+        RequireCollection(document.Foci, "foci");
+        RequireCollection(document.Gear, "gear");
+        RequireCollection(document.Weapons, "weapons");
+        RequireCollection(document.Armor, "armor");
+        RequireCollection(document.AugmentationGrades, "augmentationGrades");
+        RequireCollection(document.Augmentations, "augmentations");
+        RequireCollection(document.Vehicles, "vehicles");
+        RequireCollection(document.Cyberdecks, "cyberdecks");
+        RequireCollection(document.WeaponAccessories, "weaponAccessories");
+        RequireCollection(document.ArmorModifications, "armorModifications");
+        RequireCollection(document.CyberlimbEnhancements, "cyberlimbEnhancements");
+        RequireCollection(document.VehicleModifications, "vehicleModifications");
+        RequireCollection(document.LifestyleTiers, "lifestyleTiers");
+        RequireCollection(document.LifestyleOptions, "lifestyleOptions");
 
         ValidateUnique(document.Sources, item => item.Id, "source");
         ValidateUnique(document.CreationMethods, item => item.Id, "creation method");
@@ -614,8 +616,7 @@ public static partial class RulesetCatalogLoader
             }
 
             if (modification.SlotCost is null
-                || (modification.SlotCost.Fixed is null && modification.SlotCost.PerRating is null)
-                || modification.SlotCost.PerRating is < 0)
+                || (modification.SlotCost.Fixed is null && modification.SlotCost.PerRating is null))
             {
                 throw new RulesetCatalogException($"{label} has an invalid slot cost.");
             }
@@ -625,11 +626,16 @@ public static partial class RulesetCatalogLoader
                 throw new RulesetCatalogException($"{label} has a Rating-scaled slot cost but declares no Rating range.");
             }
 
-            // Drone Immobile is the only entry allowed to return slots.
-            if (modification.SlotCost.Fixed is < 0 && modification.Category != VehicleModificationCategory.Drone)
+            // Only the drone Mod Point pool ever hands points back: Drone
+            // Immobile, the Enduring Downgrade rows, and Body reduction, which
+            // returns one point per Body point given up.
+            if ((modification.SlotCost.Fixed is < 0 || modification.SlotCost.PerRating is < 0)
+                && modification.Category != VehicleModificationCategory.Drone)
             {
                 throw new RulesetCatalogException($"{label} has a negative slot cost outside the drone Mod Point pool.");
             }
+
+            ValidateDroneAttributeModification(modification, label);
 
             if (modification.RatingCap != VehicleRatingCap.None && modification.RatingRange is null)
             {
@@ -780,6 +786,14 @@ public static partial class RulesetCatalogLoader
         }
     }
 
+    private static void RequireCollection([NotNull] object? collection, string name)
+    {
+        if (collection is null)
+        {
+            throw new RulesetCatalogException($"The catalog is missing a required collection: '{name}'.");
+        }
+    }
+
     private static void RequireId(string? value, string field)
     {
         if (value is null || !IdPattern().IsMatch(value))
@@ -804,6 +818,50 @@ public static partial class RulesetCatalogLoader
             || citation.PdfPage <= 0)
         {
             throw new RulesetCatalogException($"Catalog entry '{entryId}' has an invalid or dangling source citation.");
+        }
+    }
+
+    // Drone attribute modifications are the one modification family whose Mod
+    // Point cost and Rating ceiling are derived from the host drone's own stat
+    // line rather than from the catalog row, so the row only has to declare
+    // which attribute it touches and how it is being traded
+    // (rigger-5 pp. 122-124, PDF 123-125).
+    private static void ValidateDroneAttributeModification(
+        VehicleModificationDefinition modification,
+        string label)
+    {
+        var attribute = modification.AttributeModification;
+        if (attribute is null)
+        {
+            return;
+        }
+
+        if (modification.Category != VehicleModificationCategory.Drone)
+        {
+            throw new RulesetCatalogException($"{label} modifies a drone attribute outside the drone Mod Point pool.");
+        }
+
+        if (attribute.FreeIncrease < 0)
+        {
+            throw new RulesetCatalogException($"{label} has a negative free attribute increase.");
+        }
+
+        switch (attribute.Kind)
+        {
+            case DroneAttributeModificationKind.Upgrade when attribute.Attribute == DroneAttribute.Body:
+                throw new RulesetCatalogException($"{label} upgrades Body, which a drone frame never allows.");
+            case DroneAttributeModificationKind.Upgrade when modification.RatingRange is null:
+                throw new RulesetCatalogException($"{label} upgrades an attribute but declares no Rating range.");
+            case DroneAttributeModificationKind.BodyReduction when attribute.Attribute != DroneAttribute.Body:
+                throw new RulesetCatalogException($"{label} reduces Body but names another attribute.");
+            case DroneAttributeModificationKind.BodyReduction when modification.RatingRange is null:
+                throw new RulesetCatalogException($"{label} reduces Body but declares no Rating range.");
+            case DroneAttributeModificationKind.Downgrade when modification.RatingRange is not null:
+                throw new RulesetCatalogException($"{label} is a downgrade and must not declare a Rating range.");
+            case DroneAttributeModificationKind.Downgrade when modification.SlotCost?.Fixed is not < 0:
+                throw new RulesetCatalogException($"{label} is a downgrade and must hand Mod Points back.");
+            default:
+                break;
         }
     }
 

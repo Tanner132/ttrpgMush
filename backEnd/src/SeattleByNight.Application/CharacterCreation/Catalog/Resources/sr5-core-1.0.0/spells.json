@@ -1,0 +1,3049 @@
+{
+  "spells": [
+    {
+      "id": "acid-stream",
+      "displayName": "Acid Stream",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 283,
+        "pdfPage": 285
+      }
+    },
+    {
+      "id": "agony",
+      "displayName": "Agony",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "analyze-device",
+      "displayName": "Analyze Device",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "analyze-magic",
+      "displayName": "Analyze Magic",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "analyze-truth",
+      "displayName": "Analyze Truth",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "animate",
+      "displayName": "Animate",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "antidote",
+      "displayName": "Antidote",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "armor",
+      "displayName": "Armor",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "ball-lightning",
+      "displayName": "Ball Lightning",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "blast",
+      "displayName": "Blast",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "bugs",
+      "displayName": "Bugs",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "chaos",
+      "displayName": "Chaos",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "chaotic-world",
+      "displayName": "Chaotic World",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "clairaudience",
+      "displayName": "Clairaudience",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "clairvoyance",
+      "displayName": "Clairvoyance",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "clout",
+      "displayName": "Clout",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "combat-sense",
+      "displayName": "Combat Sense",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "confusion",
+      "displayName": "Confusion",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "control-actions",
+      "displayName": "Control Actions",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "control-thoughts",
+      "displayName": "Control Thoughts",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "cure-disease",
+      "displayName": "Cure Disease",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "death-touch",
+      "displayName": "Death Touch",
+      "category": "combat",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "decrease-attribute",
+      "displayName": "Decrease Attribute",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "detect-enemies",
+      "displayName": "Detect Enemies",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "detect-enemies-extended",
+      "displayName": "Detect Enemies Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "detect-individual",
+      "displayName": "Detect Individual",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "detect-life",
+      "displayName": "Detect Life",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 286,
+        "pdfPage": 288
+      }
+    },
+    {
+      "id": "detect-life-extended",
+      "displayName": "Detect Life Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-life-form",
+      "displayName": "Detect Life Form",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-life-form-extended",
+      "displayName": "Detect Life Form Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-magic",
+      "displayName": "Detect Magic",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-magic-extended",
+      "displayName": "Detect Magic Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detect-object",
+      "displayName": "Detect Object",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "detox",
+      "displayName": "Detox",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "entertainment",
+      "displayName": "Entertainment",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "fireball",
+      "displayName": "Fireball",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "flamethrower",
+      "displayName": "Flamethrower",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "fling",
+      "displayName": "Fling",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "heal",
+      "displayName": "Heal",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "hush",
+      "displayName": "Hush",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "ice-sheet",
+      "displayName": "Ice Sheet",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "ignite",
+      "displayName": "Ignite",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "improved-invisibility",
+      "displayName": "Improved Invisibility",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "increase-attribute",
+      "displayName": "Increase Attribute",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "increase-reflexes",
+      "displayName": "Increase Reflexes",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "influence",
+      "displayName": "Influence",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "invisibility",
+      "displayName": "Invisibility",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "knockout",
+      "displayName": "Knockout",
+      "category": "combat",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 285,
+        "pdfPage": 287
+      }
+    },
+    {
+      "id": "levitate",
+      "displayName": "Levitate",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "light",
+      "displayName": "Light",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "lightning-bolt",
+      "displayName": "Lightning Bolt",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "magic-fingers",
+      "displayName": "Magic Fingers",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "mana-barrier",
+      "displayName": "Mana Barrier",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "manaball",
+      "displayName": "Manaball",
+      "category": "combat",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "manabolt",
+      "displayName": "Manabolt",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "mask",
+      "displayName": "Mask",
+      "category": "illusion",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "mass-agony",
+      "displayName": "Mass Agony",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "mass-animate",
+      "displayName": "Mass Animate",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "mass-confusion",
+      "displayName": "Mass Confusion",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "mind-probe",
+      "displayName": "Mind Probe",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "mindlink",
+      "displayName": "Mindlink",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 287,
+        "pdfPage": 289
+      }
+    },
+    {
+      "id": "mob-control",
+      "displayName": "Mob Control",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "mob-mind",
+      "displayName": "Mob Mind",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 292,
+        "pdfPage": 294
+      }
+    },
+    {
+      "id": "oxygenate",
+      "displayName": "Oxygenate",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 5",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 288,
+        "pdfPage": 290
+      }
+    },
+    {
+      "id": "phantasm",
+      "displayName": "Phantasm",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "physical-barrier",
+      "displayName": "Physical Barrier",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "physical-mask",
+      "displayName": "Physical Mask",
+      "category": "illusion",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "poltergeist",
+      "displayName": "Poltergeist",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "powerball",
+      "displayName": "Powerball",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "powerbolt",
+      "displayName": "Powerbolt",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "prophylaxis",
+      "displayName": "Prophylaxis",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 289,
+        "pdfPage": 291
+      }
+    },
+    {
+      "id": "punch",
+      "displayName": "Punch",
+      "category": "combat",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "resist-pain",
+      "displayName": "Resist Pain",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "DV - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 289,
+        "pdfPage": 291
+      }
+    },
+    {
+      "id": "shadow",
+      "displayName": "Shadow",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 293,
+        "pdfPage": 295
+      }
+    },
+    {
+      "id": "shatter",
+      "displayName": "Shatter",
+      "category": "combat",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 284,
+        "pdfPage": 286
+      }
+    },
+    {
+      "id": "silence",
+      "displayName": "Silence",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "stabilize",
+      "displayName": "Stabilize",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 289,
+        "pdfPage": 291
+      }
+    },
+    {
+      "id": "stealth",
+      "displayName": "Stealth",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "stunball",
+      "displayName": "Stunball",
+      "category": "combat",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 285,
+        "pdfPage": 287
+      }
+    },
+    {
+      "id": "stunbolt",
+      "displayName": "Stunbolt",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 285,
+        "pdfPage": 287
+      }
+    },
+    {
+      "id": "swarm",
+      "displayName": "Swarm",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "toxic-wave",
+      "displayName": "Toxic Wave",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 283,
+        "pdfPage": 285
+      }
+    },
+    {
+      "id": "trid-entertainment",
+      "displayName": "Trid Entertainment",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 290,
+        "pdfPage": 292
+      }
+    },
+    {
+      "id": "trid-phantasm",
+      "displayName": "Trid Phantasm",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 291,
+        "pdfPage": 293
+      }
+    },
+    {
+      "id": "catch",
+      "displayName": "Catch",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "conceal-scent",
+      "displayName": "Conceal Scent",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "snakeblood",
+      "displayName": "Snakeblood",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "recharge-potency",
+      "displayName": "Recharge Potency",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "manablade",
+      "displayName": "Manablade",
+      "category": "combat",
+      "type": "mana",
+      "range": "special",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 192,
+        "pdfPage": 193
+      }
+    },
+    {
+      "id": "powerblade",
+      "displayName": "Powerblade",
+      "category": "combat",
+      "type": "physical",
+      "range": "special",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 192,
+        "pdfPage": 193
+      }
+    },
+    {
+      "id": "corrode-object",
+      "displayName": "Corrode [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 102,
+        "pdfPage": 104
+      }
+    },
+    {
+      "id": "melt-object",
+      "displayName": "Melt [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 102,
+        "pdfPage": 104
+      }
+    },
+    {
+      "id": "sludge-object",
+      "displayName": "Sludge [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 102,
+        "pdfPage": 104
+      }
+    },
+    {
+      "id": "disrupt-focus",
+      "displayName": "Disrupt [Focus]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 102,
+        "pdfPage": 104
+      }
+    },
+    {
+      "id": "destroy-free-spirit",
+      "displayName": "Destroy [Free Spirit]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "destroy-vehicle",
+      "displayName": "Destroy [Vehicle]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "firewater",
+      "displayName": "Firewater",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "napalm",
+      "displayName": "Napalm",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "insecticide-insect-spirit",
+      "displayName": "Insecticide [Insect Spirit]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F + 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "ice-spear",
+      "displayName": "Ice Spear",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "ice-storm",
+      "displayName": "Ice Storm",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 103,
+        "pdfPage": 105
+      }
+    },
+    {
+      "id": "one-less-metatype",
+      "displayName": "One Less [Metatype/Species]",
+      "category": "combat",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 6",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 104,
+        "pdfPage": 106
+      }
+    },
+    {
+      "id": "slay-metatype",
+      "displayName": "Slay [Metatype/Species]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 4",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 104,
+        "pdfPage": 106
+      }
+    },
+    {
+      "id": "slaughter-metatype",
+      "displayName": "Slaughter [Metatype/Species]",
+      "category": "combat",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 104,
+        "pdfPage": 106
+      }
+    },
+    {
+      "id": "ram-object",
+      "displayName": "Ram [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 5",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 104,
+        "pdfPage": 106
+      }
+    },
+    {
+      "id": "wreck-object",
+      "displayName": "Wreck [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 105,
+        "pdfPage": 107
+      }
+    },
+    {
+      "id": "demolish-object",
+      "displayName": "Demolish [Object]",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 105,
+        "pdfPage": 107
+      }
+    },
+    {
+      "id": "radiation-beam",
+      "displayName": "Radiation Beam",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 105,
+        "pdfPage": 107
+      }
+    },
+    {
+      "id": "radiation-burst",
+      "displayName": "Radiation Burst",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 105,
+        "pdfPage": 107
+      }
+    },
+    {
+      "id": "pollutant-stream",
+      "displayName": "Pollutant Stream",
+      "category": "combat",
+      "type": "physical",
+      "range": "los",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "pollutant-wave",
+      "displayName": "Pollutant Wave",
+      "category": "combat",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "shattershield",
+      "displayName": "Shattershield",
+      "category": "combat",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "astral-message",
+      "displayName": "Astral Message",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "astral-clairvoyance",
+      "displayName": "Astral Clairvoyance",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "borrow-sense",
+      "displayName": "Borrow Sense",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "animal-sense",
+      "displayName": "Animal Sense",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 5",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "eyes-of-the-pack",
+      "displayName": "Eyes of the Pack",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 106,
+        "pdfPage": 108
+      }
+    },
+    {
+      "id": "catalog",
+      "displayName": "Catalog",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "diagnose",
+      "displayName": "Diagnose",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "dragon-astral-signature",
+      "displayName": "Dragon Astral Signature",
+      "category": "detection",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 5",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "enhance-aim",
+      "displayName": "Enhance Aim",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "hawkeye",
+      "displayName": "Hawkeye",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "mana-window",
+      "displayName": "Mana Window",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "astral-window",
+      "displayName": "Astral Window",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 107,
+        "pdfPage": 109
+      }
+    },
+    {
+      "id": "mindnet",
+      "displayName": "Mindnet",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "mindnet-extended",
+      "displayName": "Mindnet Extended",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "night-vision",
+      "displayName": "Night Vision",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "sense-cryptesthesia",
+      "displayName": "[Sense] Cryptesthesia",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "spatial-sense",
+      "displayName": "Spatial Sense",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "spatial-sense-extended",
+      "displayName": "Spatial Sense, Extended",
+      "category": "detection",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "thought-recognition",
+      "displayName": "Thought Recognition",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "area-thought-recognition",
+      "displayName": "Area Thought Recognition",
+      "category": "detection",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 108,
+        "pdfPage": 110
+      }
+    },
+    {
+      "id": "translate",
+      "displayName": "Translate",
+      "category": "detection",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "ambidexterity",
+      "displayName": "Ambidexterity",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "alleviate-addiction",
+      "displayName": "Alleviate Addiction",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 6",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "alleviate-allergy",
+      "displayName": "Alleviate [Allergy]",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 6",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "awaken",
+      "displayName": "Awaken",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "crank",
+      "displayName": "Crank",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 109,
+        "pdfPage": 111
+      }
+    },
+    {
+      "id": "decrease-reflexes",
+      "displayName": "Decrease Reflexes",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "enabler",
+      "displayName": "Enabler",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "fast",
+      "displayName": "Fast",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "forced-defense",
+      "displayName": "Forced Defense",
+      "category": "health",
+      "type": "mana",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "increase-inherent-limits",
+      "displayName": "Increase Inherent Limits",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "decrease-inherent-limits",
+      "displayName": "Decrease Inherent Limits",
+      "category": "health",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 110,
+        "pdfPage": 112
+      }
+    },
+    {
+      "id": "camouflage",
+      "displayName": "Camouflage",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "physical-camouflage",
+      "displayName": "Physical Camouflage",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "decoy",
+      "displayName": "Decoy",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "chaff",
+      "displayName": "Chaff",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "double-image",
+      "displayName": "Double Image",
+      "category": "illusion",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "dream",
+      "displayName": "Dream",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "euphoria",
+      "displayName": "Euphoria",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "opium-den",
+      "displayName": "Opium Den",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 111,
+        "pdfPage": 113
+      }
+    },
+    {
+      "id": "foreboding",
+      "displayName": "Foreboding",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 112,
+        "pdfPage": 114
+      }
+    },
+    {
+      "id": "hot-potato",
+      "displayName": "Hot Potato",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 112,
+        "pdfPage": 114
+      }
+    },
+    {
+      "id": "sense-removal",
+      "displayName": "[Sense] Removal",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 112,
+        "pdfPage": 114
+      }
+    },
+    {
+      "id": "mass-sense-removal",
+      "displayName": "Mass [Sense] Removal",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 112,
+        "pdfPage": 114
+      }
+    },
+    {
+      "id": "stink",
+      "displayName": "Stink",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "stench",
+      "displayName": "Stench",
+      "category": "illusion",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "sound-barrier",
+      "displayName": "Sound Barrier",
+      "category": "illusion",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "switch-vehicle-signature",
+      "displayName": "Switch Vehicle Signature",
+      "category": "illusion",
+      "type": "physical",
+      "range": "touch",
+      "duration": "special",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "vehicle-mask",
+      "displayName": "Vehicle Mask",
+      "category": "illusion",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "bind",
+      "displayName": "Bind",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "net-bind",
+      "displayName": "Net Bind",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 113,
+        "pdfPage": 115
+      }
+    },
+    {
+      "id": "mana-bind",
+      "displayName": "Mana Bind",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "mana-net",
+      "displayName": "Mana Net",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "bug-zapper",
+      "displayName": "Bug Zapper",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "calm-animal",
+      "displayName": "Calm Animal",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "calm-pack",
+      "displayName": "Calm Pack",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "catfall",
+      "displayName": "Catfall",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "clean-element",
+      "displayName": "Clean [Element]",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "permanent",
+      "drain": "F - 3",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "compel-truth",
+      "displayName": "Compel Truth",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "special",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 114,
+        "pdfPage": 116
+      }
+    },
+    {
+      "id": "control-animal",
+      "displayName": "Control Animal",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "control-pack",
+      "displayName": "Control Pack",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "deflection",
+      "displayName": "Deflection",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "element-aura",
+      "displayName": "[Element] Aura",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "element-wall",
+      "displayName": "[Element] Wall",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "fashion",
+      "displayName": "Fashion",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 115,
+        "pdfPage": 117
+      }
+    },
+    {
+      "id": "fix",
+      "displayName": "Fix",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "gecko-crawl",
+      "displayName": "Gecko Crawl",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "glue",
+      "displayName": "Glue",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "permanent",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "glue-strip",
+      "displayName": "Glue Strip",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "increase-noise",
+      "displayName": "Increase Noise",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "decrease-noise",
+      "displayName": "Decrease Noise",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "increase-gear-limits",
+      "displayName": "Increase Gear Limits",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "decrease-gear-limits",
+      "displayName": "Decrease Gear Limits",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 116,
+        "pdfPage": 118
+      }
+    },
+    {
+      "id": "interference",
+      "displayName": "Interference",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "lock",
+      "displayName": "Lock",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "mana-static",
+      "displayName": "Mana Static",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "permanent",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "makeover",
+      "displayName": "Makeover",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "permanent",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "mist",
+      "displayName": "Mist",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "offensive-mana-barrier",
+      "displayName": "Offensive Mana Barrier",
+      "category": "manipulation",
+      "type": "mana",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "preserve",
+      "displayName": "Preserve",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "protect-vehicle",
+      "displayName": "Protect Vehicle",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "touch",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 117,
+        "pdfPage": 119
+      }
+    },
+    {
+      "id": "pulse",
+      "displayName": "Pulse",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "reinforce",
+      "displayName": "Reinforce",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "slow-vehicle",
+      "displayName": "Slow Vehicle",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F + 4",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "shape-material",
+      "displayName": "Shape [Material]",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "shapechange",
+      "displayName": "Shapechange",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "critter-form",
+      "displayName": "(Critter) Form",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F - 2",
+      "parameterized": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 118,
+        "pdfPage": 120
+      }
+    },
+    {
+      "id": "spirit-barrier",
+      "displayName": "Spirit Barrier",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F - 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 119,
+        "pdfPage": 121
+      }
+    },
+    {
+      "id": "spirit-zapper",
+      "displayName": "Spirit Zapper",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 119,
+        "pdfPage": 121
+      }
+    },
+    {
+      "id": "sterilize",
+      "displayName": "Sterilize",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los-area",
+      "duration": "instantaneous",
+      "drain": "F - 3",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 119,
+        "pdfPage": 121
+      }
+    },
+    {
+      "id": "turn-to-goo",
+      "displayName": "Turn to Goo",
+      "category": "manipulation",
+      "type": "physical",
+      "range": "los",
+      "duration": "sustained",
+      "drain": "F + 1",
+      "parameterized": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 119,
+        "pdfPage": 121
+      }
+    }
+  ]
+}

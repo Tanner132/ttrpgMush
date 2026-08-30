@@ -1,0 +1,44 @@
+{
+  "knowledgeCategories": [
+    {
+      "id": "academic",
+      "displayName": "Academic",
+      "linkedAttribute": "logic",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "interests",
+      "displayName": "Interests",
+      "linkedAttribute": "intuition",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "professional",
+      "displayName": "Professional",
+      "linkedAttribute": "logic",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    },
+    {
+      "id": "street",
+      "displayName": "Street",
+      "linkedAttribute": "intuition",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 148,
+        "pdfPage": 150
+      }
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "creationPaths": [
+    {
+      "id": "adept",
+      "displayName": "Adept",
+      "kind": "adept",
+      "attributeId": "magic",
+      "requiresTradition": false,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "aspected-magician",
+      "displayName": "Aspected Magician",
+      "kind": "aspectedMagician",
+      "attributeId": "magic",
+      "requiresTradition": true,
+      "aspectedValueIds": [
+        "sorcery",
+        "conjuring",
+        "enchanting"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    },
+    {
+      "id": "magician",
+      "displayName": "Magician",
+      "kind": "magician",
+      "attributeId": "magic",
+      "requiresTradition": true,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "mundane",
+      "displayName": "Mundane",
+      "kind": "mundane",
+      "requiresTradition": false,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "mystic-adept",
+      "displayName": "Mystic Adept",
+      "kind": "mysticAdept",
+      "attributeId": "magic",
+      "requiresTradition": true,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "technomancer",
+      "displayName": "Technomancer",
+      "kind": "technomancer",
+      "attributeId": "resonance",
+      "requiresTradition": false,
+      "aspectedValueIds": [],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    }
+  ]
+}

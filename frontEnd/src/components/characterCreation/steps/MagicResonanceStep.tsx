@@ -12,6 +12,7 @@ import { Diagnostics } from '../Diagnostics.tsx'
 import { Readout } from '../Readout.tsx'
 import { Stepper } from '../Stepper.tsx'
 import { CatalogRail, type CatalogSectionNavItem } from '../CatalogRail.tsx'
+import { ToggleListHead, ToggleRow } from '../ToggleList.tsx'
 import { onKeyActivate } from '../../ui/keyboardActivation.ts'
 import {
   describeAdeptPower,
@@ -286,9 +287,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {activeSec === 'path' && (
           <>
-            <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 110px minmax(0,1fr) 96px' }}>
-              <span>PATH</span><span>ATTRIBUTE</span><span>GRANTS</span><span />
-            </div>
+            <ToggleListHead columns="minmax(140px,1fr) 110px minmax(0,1fr) 96px" labels={['PATH', 'ATTRIBUTE', 'GRANTS']} />
             <div className="console__list">
               {grants.map(item => {
                 const definition = catalog.creationPaths.find(p => p.id === item.pathId)
@@ -299,26 +298,20 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                   item.complexFormGrants > 0 ? `${item.complexFormGrants} complex forms` : '',
                 ].filter(Boolean).join(' · ')
                 return (
-                  <div
+                  <ToggleRow
                     key={item.pathId}
-                    className={`console__row${isFocused('path', item.pathId) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                    style={{ gridTemplateColumns: 'minmax(140px,1fr) 110px minmax(0,1fr) 96px' }}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setFocused({ kind: 'path', id: item.pathId })}
-                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'path', id: item.pathId }))}
-                    aria-label={definition?.displayName ?? item.pathId}
-                  >
-                    <span className="console__row-name"><span className="console__row-name-text">{definition?.displayName ?? item.pathId}</span></span>
-                    <span className="console__row-col">{item.attributeRating > 0 ? `${item.attributeRating} ${definition?.attributeId}` : '—'}</span>
-                    <span className="console__row-col">{grantText || '—'}</span>
-                    <span className="console__row-end">
-                      <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                        <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => selectPath(item.pathId)} aria-label={definition?.displayName ?? item.pathId} />
-                        {selected ? 'TAKEN ✓' : '+ SELECT'}
-                      </label>
-                    </span>
-                  </div>
+                    columns="minmax(140px,1fr) 110px minmax(0,1fr) 96px"
+                    label={definition?.displayName ?? item.pathId}
+                    cells={[
+                      item.attributeRating > 0 ? `${item.attributeRating} ${definition?.attributeId}` : '—',
+                      grantText || '—',
+                    ]}
+                    active={isFocused('path', item.pathId)}
+                    selected={selected}
+                    toggleText={selected ? 'TAKEN ✓' : '+ SELECT'}
+                    onFocus={() => setFocused({ kind: 'path', id: item.pathId })}
+                    onToggle={() => selectPath(item.pathId)}
+                  />
                 )
               })}
             </div>
@@ -327,32 +320,22 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {path && grant && activeSec === 'tradition' && (
           <>
-            <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 1fr 96px' }}>
-              <span>TRADITION</span><span>DRAIN</span><span />
-            </div>
+            <ToggleListHead columns="minmax(140px,1fr) 1fr 96px" labels={['TRADITION', 'DRAIN']} />
             <div className="console__list">
               {catalog.traditions.map(tradition => {
                 const selected = selection?.traditionId === tradition.id
                 return (
-                  <div
+                  <ToggleRow
                     key={tradition.id}
-                    className={`console__row${isFocused('tradition', tradition.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                    style={{ gridTemplateColumns: 'minmax(140px,1fr) 1fr 96px' }}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setFocused({ kind: 'tradition', id: tradition.id })}
-                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'tradition', id: tradition.id }))}
-                    aria-label={tradition.displayName}
-                  >
-                    <span className="console__row-name"><span className="console__row-name-text">{tradition.displayName}</span></span>
-                    <span className="console__row-col">{tradition.drainAttributes}</span>
-                    <span className="console__row-end">
-                      <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                        <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => update({ traditionId: selected ? null : tradition.id })} aria-label={tradition.displayName} />
-                        {selected ? 'TAKEN ✓' : '+ SELECT'}
-                      </label>
-                    </span>
-                  </div>
+                    columns="minmax(140px,1fr) 1fr 96px"
+                    label={tradition.displayName}
+                    cells={[tradition.drainAttributes]}
+                    active={isFocused('tradition', tradition.id)}
+                    selected={selected}
+                    toggleText={selected ? 'TAKEN ✓' : '+ SELECT'}
+                    onFocus={() => setFocused({ kind: 'tradition', id: tradition.id })}
+                    onToggle={() => update({ traditionId: selected ? null : tradition.id })}
+                  />
                 )
               })}
             </div>
@@ -361,32 +344,22 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {path && grant && activeSec === 'aspect' && (
           <>
-            <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}>
-              <span>ASPECT</span><span />
-            </div>
+            <ToggleListHead columns="minmax(140px,1fr) 96px" labels={['ASPECT']} />
             <div className="console__list">
               {path.aspectedValueIds.map(id => {
                 const aspect = catalog.aspectedValues.find(item => item.id === id)
                 const selected = selection?.aspectedValueId === id
                 return (
-                  <div
+                  <ToggleRow
                     key={id}
-                    className={`console__row${isFocused('aspect', id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                    style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setFocused({ kind: 'aspect', id })}
-                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'aspect', id }))}
-                    aria-label={aspect?.displayName ?? id}
-                  >
-                    <span className="console__row-name"><span className="console__row-name-text">{aspect?.displayName ?? id}</span></span>
-                    <span className="console__row-end">
-                      <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                        <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => update({ aspectedValueId: selected ? null : id })} aria-label={aspect?.displayName ?? id} />
-                        {selected ? 'TAKEN ✓' : '+ SELECT'}
-                      </label>
-                    </span>
-                  </div>
+                    columns="minmax(140px,1fr) 96px"
+                    label={aspect?.displayName ?? id}
+                    active={isFocused('aspect', id)}
+                    selected={selected}
+                    toggleText={selected ? 'TAKEN ✓' : '+ SELECT'}
+                    onFocus={() => setFocused({ kind: 'aspect', id })}
+                    onToggle={() => update({ aspectedValueId: selected ? null : id })}
+                  />
                 )
               })}
             </div>
@@ -397,9 +370,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
           <div className="console__list">
             {(staleSkillGrants.length > 0 || staleSkillGroupGrants.length > 0) && (
               <div>
-                <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}>
-                  <span>INCOMPATIBLE PRIOR SELECTIONS</span><span />
-                </div>
+                <ToggleListHead columns="minmax(140px,1fr) 96px" labels={['INCOMPATIBLE PRIOR SELECTIONS']} />
                 {staleSkillGrants.map((item) => {
                   const skill = catalog.skills.find((candidate) => candidate.id === item.skillId)
                   return (
@@ -422,66 +393,48 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
             )}
             {grant.skillGrants.map(skillGrant => skillGrant.domain === 'magical-group' ? (
               <div key="magical-group">
-                <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}>
-                  <span>MAGICAL GROUP @{skillGrant.rating}</span><span />
-                </div>
+                <ToggleListHead columns="minmax(140px,1fr) 96px" labels={[<>MAGICAL GROUP @{skillGrant.rating}</>]} />
                 {catalog.skillGroups.filter(group => MAGICAL_GROUP_IDS.includes(group.id)).map(group => {
                   const selected = (selection?.skillGroupGrants ?? []).some(item => item.skillGroupId === group.id)
                   const domainFull = (selection?.skillGroupGrants?.length ?? 0) >= skillGrant.count
                   return (
-                    <div
+                    <ToggleRow
                       key={group.id}
-                      className={`console__row${isFocused('skill-group', group.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                      style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setFocused({ kind: 'skill-group', id: group.id })}
-                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'skill-group', id: group.id }))}
-                      aria-label={group.displayName}
-                    >
-                      <span className="console__row-name"><span className="console__row-name-text">{group.displayName}</span></span>
-                      <span className="console__row-end">
-                        <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                          <input type="checkbox" className="console__toggle-input" checked={selected} disabled={!selected && domainFull} onChange={() => update({ skillGroupGrants: selected
-                            ? (selection?.skillGroupGrants ?? []).filter(item => item.skillGroupId !== group.id)
-                            : [...(selection?.skillGroupGrants ?? []), { skillGroupId: group.id }] })} aria-label={group.displayName} />
-                          {selected ? 'TAKEN ✓' : '+ SELECT'}
-                        </label>
-                      </span>
-                    </div>
+                      columns="minmax(140px,1fr) 96px"
+                      label={group.displayName}
+                      active={isFocused('skill-group', group.id)}
+                      selected={selected}
+                      disabled={!selected && domainFull}
+                      toggleText={selected ? 'TAKEN ✓' : '+ SELECT'}
+                      onFocus={() => setFocused({ kind: 'skill-group', id: group.id })}
+                      onToggle={() => update({ skillGroupGrants: selected
+                        ? (selection?.skillGroupGrants ?? []).filter(item => item.skillGroupId !== group.id)
+                        : [...(selection?.skillGroupGrants ?? []), { skillGroupId: group.id }] })}
+                    />
                   )
                 })}
               </div>
             ) : (
               <div key={skillGrant.domain}>
-                <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}>
-                  <span>{skillGrant.domain.toUpperCase()} SKILLS · {skillGrant.count} @ {skillGrant.rating}</span><span />
-                </div>
+                <ToggleListHead columns="minmax(140px,1fr) 96px" labels={[<>{skillGrant.domain.toUpperCase()} SKILLS · {skillGrant.count} @ {skillGrant.rating}</>]} />
                 {catalog.skills.filter(skill => skill.domain === skillGrant.domain).map(skill => {
                   const selected = (selection?.skillGrants ?? []).some(item => item.skillId === skill.id)
                   const selectedInDomain = (selection?.skillGrants ?? []).filter(item => catalog.skills.find(candidate => candidate.id === item.skillId)?.domain === skillGrant.domain).length
                   const domainFull = selectedInDomain >= skillGrant.count
                   return (
-                    <div
+                    <ToggleRow
                       key={skill.id}
-                      className={`console__row${isFocused('skill', skill.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                      style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setFocused({ kind: 'skill', id: skill.id })}
-                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'skill', id: skill.id }))}
-                      aria-label={skill.displayName}
-                    >
-                      <span className="console__row-name"><span className="console__row-name-text">{skill.displayName}</span></span>
-                      <span className="console__row-end">
-                        <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                          <input type="checkbox" className="console__toggle-input" checked={selected} disabled={!selected && domainFull} onChange={() => update({ skillGrants: selected
-                            ? (selection?.skillGrants ?? []).filter(item => item.skillId !== skill.id)
-                            : [...(selection?.skillGrants ?? []), { skillId: skill.id }] })} aria-label={skill.displayName} />
-                          {selected ? 'TAKEN ✓' : '+ SELECT'}
-                        </label>
-                      </span>
-                    </div>
+                      columns="minmax(140px,1fr) 96px"
+                      label={skill.displayName}
+                      active={isFocused('skill', skill.id)}
+                      selected={selected}
+                      disabled={!selected && domainFull}
+                      toggleText={selected ? 'TAKEN ✓' : '+ SELECT'}
+                      onFocus={() => setFocused({ kind: 'skill', id: skill.id })}
+                      onToggle={() => update({ skillGrants: selected
+                        ? (selection?.skillGrants ?? []).filter(item => item.skillId !== skill.id)
+                        : [...(selection?.skillGrants ?? []), { skillId: skill.id }] })}
+                    />
                   )
                 })}
               </div>
@@ -491,34 +444,23 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {path && grant && activeSec === 'spells' && (
           <>
-            <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 130px 96px 96px' }}>
-              <span>SPELL · cap {attributeValue * 2}</span><span>CATEGORY / TYPE</span><span>DRAIN</span><span />
-            </div>
+            <ToggleListHead columns="minmax(140px,1fr) 130px 96px 96px" labels={[<>SPELL · cap {attributeValue * 2}</>, 'CATEGORY / TYPE', 'DRAIN']} />
             <div className="console__list">
               {catalog.spells.map(spell => {
                 const selectedSpell = spells.find(item => item.spellId === spell.id)
                 const selected = selectedSpell !== undefined
                 return (
                   <div key={spell.id}>
-                    <div
-                      className={`console__row${isFocused('spell', spell.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                      style={{ gridTemplateColumns: 'minmax(140px,1fr) 130px 96px 96px' }}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setFocused({ kind: 'spell', id: spell.id })}
-                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'spell', id: spell.id }))}
-                      aria-label={spell.displayName}
-                    >
-                      <span className="console__row-name"><span className="console__row-name-text">{spell.displayName}</span></span>
-                      <span className="console__row-col">{spell.category} / {spell.type}</span>
-                      <span className="console__row-col">{spell.drain}</span>
-                      <span className="console__row-end">
-                        <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                          <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => toggleSpell(spell)} aria-label={spell.displayName} />
-                          {selected ? (selectedSpell?.granted ? 'FREE ✓' : '5K ✓') : '+ ADD'}
-                        </label>
-                      </span>
-                    </div>
+                    <ToggleRow
+                      columns="minmax(140px,1fr) 130px 96px 96px"
+                      label={spell.displayName}
+                      cells={[<>{spell.category} / {spell.type}</>, spell.drain]}
+                      active={isFocused('spell', spell.id)}
+                      selected={selected}
+                      toggleText={selected ? (selectedSpell?.granted ? 'FREE ✓' : '5K ✓') : '+ ADD'}
+                      onFocus={() => setFocused({ kind: 'spell', id: spell.id })}
+                      onToggle={() => toggleSpell(spell)}
+                    />
                     {spell.parameterized && selectedSpell && (
                       <div style={{ padding: '0 var(--sb-space-4) 8px' }}>
                         <input aria-label={`${spell.displayName} parameter`} placeholder="Required parameter" maxLength={120} value={selectedSpell.parameter ?? ''} onChange={event => updateSpellParameter(spell.id, event.target.value)} />
@@ -533,32 +475,22 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {path && grant && activeSec === 'rituals' && (
           <>
-            <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 1fr 96px' }}>
-              <span>RITUAL</span><span>KEYWORDS</span><span />
-            </div>
+            <ToggleListHead columns="minmax(140px,1fr) 1fr 96px" labels={['RITUAL', 'KEYWORDS']} />
             <div className="console__list">
               {catalog.rituals.map(ritual => {
                 const selected = rituals.some(item => item.ritualId === ritual.id)
                 return (
-                  <div
+                  <ToggleRow
                     key={ritual.id}
-                    className={`console__row${isFocused('ritual', ritual.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                    style={{ gridTemplateColumns: 'minmax(140px,1fr) 1fr 96px' }}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setFocused({ kind: 'ritual', id: ritual.id })}
-                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'ritual', id: ritual.id }))}
-                    aria-label={ritual.displayName}
-                  >
-                    <span className="console__row-name"><span className="console__row-name-text">{ritual.displayName}</span></span>
-                    <span className="console__row-col">{ritual.keywords.join(', ')}</span>
-                    <span className="console__row-end">
-                      <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                        <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => toggleRitual(ritual.id)} aria-label={ritual.displayName} />
-                        {selected ? '✓' : '+ ADD'}
-                      </label>
-                    </span>
-                  </div>
+                    columns="minmax(140px,1fr) 1fr 96px"
+                    label={ritual.displayName}
+                    cells={[ritual.keywords.join(', ')]}
+                    active={isFocused('ritual', ritual.id)}
+                    selected={selected}
+                    toggleText={selected ? '✓' : '+ ADD'}
+                    onFocus={() => setFocused({ kind: 'ritual', id: ritual.id })}
+                    onToggle={() => toggleRitual(ritual.id)}
+                  />
                 )
               })}
             </div>
@@ -567,9 +499,7 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {path && grant && activeSec === 'preparations' && (
           <>
-            <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 110px 110px 60px' }}>
-              <span>SPELL</span><span>TRIGGER</span><span>DELAY</span><span />
-            </div>
+            <ToggleListHead columns="minmax(140px,1fr) 110px 110px 60px" labels={['SPELL', 'TRIGGER', 'DELAY']} />
             <div className="console__list">
               {preparations.map((preparation, index) => (
                 <div
@@ -614,12 +544,16 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {path && grant && activeSec === 'powers' && (
           <>
-            <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 130px 96px' }}>
-              <span>
-                ADEPT POWER · {usedPowerPoints}/{totalPowerPoints} PP
-                {unconfiguredPowers.length > 0 && ` · ${unconfiguredPowers.join(', ')} needs a target`}
-              </span><span /><span />
-            </div>
+            <ToggleListHead
+              columns="minmax(140px,1fr) 130px 96px"
+              labels={[
+                <>
+                  ADEPT POWER · {usedPowerPoints}/{totalPowerPoints} PP
+                  {unconfiguredPowers.length > 0 && ` · ${unconfiguredPowers.join(', ')} needs a target`}
+                </>,
+                '',
+              ]}
+            />
             {path.kind === 'MysticAdept' && (
               <div style={{ padding: 'var(--sb-space-2) var(--sb-space-4)' }}>
                 <div className="creation-attribute">
@@ -647,28 +581,22 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
                   && isAdeptPowerParameterIncomplete(catalog, document, power.id, selectedPower.parameter)
                 return (
                   <div key={power.id}>
-                    <div
-                      className={`console__row${isFocused('power', power.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                      style={{ gridTemplateColumns: 'minmax(140px,1fr) 130px 96px' }}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setFocused({ kind: 'power', id: power.id })}
-                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'power', id: power.id }))}
-                      aria-label={power.displayName}
-                    >
-                      <span className="console__row-name">
-                        <span className="console__row-name-text">{power.displayName}</span>
-                        {parameterLabel && <small className="console__row-name-note">{parameterLabel}</small>}
-                        {needsParameter && <span className="console__row-flag">CHOOSE</span>}
-                      </span>
-                      <span className="console__row-col">{selectedPower ? `${effectivePowerPointCost(power, selectedPower.rank ?? 1)} PP` : `${power.powerPointCost} PP${power.ranked ? ' per rank' : ''}`}</span>
-                      <span className="console__row-end">
-                        <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                          <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => togglePower(power)} aria-label={power.displayName} />
-                          {selected ? '✓' : '+ ADD'}
-                        </label>
-                      </span>
-                    </div>
+                    <ToggleRow
+                      columns="minmax(140px,1fr) 130px 96px"
+                      label={power.displayName}
+                      nameExtra={
+                        <>
+                          {parameterLabel && <small className="console__row-name-note">{parameterLabel}</small>}
+                          {needsParameter && <span className="console__row-flag">CHOOSE</span>}
+                        </>
+                      }
+                      cells={[selectedPower ? `${effectivePowerPointCost(power, selectedPower.rank ?? 1)} PP` : `${power.powerPointCost} PP${power.ranked ? ' per rank' : ''}`]}
+                      active={isFocused('power', power.id)}
+                      selected={selected}
+                      toggleText={selected ? '✓' : '+ ADD'}
+                      onFocus={() => setFocused({ kind: 'power', id: power.id })}
+                      onToggle={() => togglePower(power)}
+                    />
                     {power.ranked && selectedPower && (
                       <div style={{ padding: '0 var(--sb-space-4) 8px', display: 'flex', gap: 'var(--sb-space-2)' }}>
                         <Stepper
@@ -689,32 +617,22 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {path && grant && activeSec === 'forms' && (
           <>
-            <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 1fr 96px' }}>
-              <span>COMPLEX FORM</span><span>TARGET / DURATION / FADE</span><span />
-            </div>
+            <ToggleListHead columns="minmax(140px,1fr) 1fr 96px" labels={['COMPLEX FORM', 'TARGET / DURATION / FADE']} />
             <div className="console__list">
               {catalog.complexForms.map(form => {
                 const selected = forms.some(item => item.complexFormId === form.id)
                 return (
-                  <div
+                  <ToggleRow
                     key={form.id}
-                    className={`console__row${isFocused('form', form.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                    style={{ gridTemplateColumns: 'minmax(140px,1fr) 1fr 96px' }}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setFocused({ kind: 'form', id: form.id })}
-                    onKeyDown={onKeyActivate(() => setFocused({ kind: 'form', id: form.id }))}
-                    aria-label={form.displayName}
-                  >
-                    <span className="console__row-name"><span className="console__row-name-text">{form.displayName}</span></span>
-                    <span className="console__row-col">{form.target} / {form.duration} / {form.fade}</span>
-                    <span className="console__row-end">
-                      <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                        <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => toggleForm(form.id)} aria-label={form.displayName} />
-                        {selected ? '✓' : '+ ADD'}
-                      </label>
-                    </span>
-                  </div>
+                    columns="minmax(140px,1fr) 1fr 96px"
+                    label={form.displayName}
+                    cells={[<>{form.target} / {form.duration} / {form.fade}</>]}
+                    active={isFocused('form', form.id)}
+                    selected={selected}
+                    toggleText={selected ? '✓' : '+ ADD'}
+                    onFocus={() => setFocused({ kind: 'form', id: form.id })}
+                    onToggle={() => toggleForm(form.id)}
+                  />
                 )
               })}
             </div>
@@ -723,31 +641,21 @@ export function MagicResonanceStep({ catalog, document, onChange, diagnostics = 
 
         {isAwakened && hasMentorQuality && activeSec === 'mentor' && (
           <>
-            <div className="console__table-head" style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}>
-              <span>MENTOR SPIRIT</span><span />
-            </div>
+            <ToggleListHead columns="minmax(140px,1fr) 96px" labels={['MENTOR SPIRIT']} />
             <div className="console__list">
               {catalog.mentorSpirits.map(spirit => {
                 const selected = mentor?.mentorSpiritId === spirit.id
                 return (
                   <div key={spirit.id}>
-                    <div
-                      className={`console__row${isFocused('mentor', spirit.id) ? ' console__row--active' : ''}${selected ? ' console__row--taken' : ''}`}
-                      style={{ gridTemplateColumns: 'minmax(140px,1fr) 96px' }}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setFocused({ kind: 'mentor', id: spirit.id })}
-                      onKeyDown={onKeyActivate(() => setFocused({ kind: 'mentor', id: spirit.id }))}
-                      aria-label={spirit.displayName}
-                    >
-                      <span className="console__row-name"><span className="console__row-name-text">{spirit.displayName}</span></span>
-                      <span className="console__row-end">
-                        <label className={`console__toggle${selected ? ' console__toggle--on' : ''}`}>
-                          <input type="checkbox" className="console__toggle-input" checked={selected} onChange={() => update({ mentorSpirit: selected ? null : { mentorSpiritId: spirit.id } })} aria-label={spirit.displayName} />
-                          {selected ? 'TAKEN ✓' : '+ SELECT'}
-                        </label>
-                      </span>
-                    </div>
+                    <ToggleRow
+                      columns="minmax(140px,1fr) 96px"
+                      label={spirit.displayName}
+                      active={isFocused('mentor', spirit.id)}
+                      selected={selected}
+                      toggleText={selected ? 'TAKEN ✓' : '+ SELECT'}
+                      onFocus={() => setFocused({ kind: 'mentor', id: spirit.id })}
+                      onToggle={() => update({ mentorSpirit: selected ? null : { mentorSpiritId: spirit.id } })}
+                    />
                     {selected && spirit.parameterized && (
                       <div style={{ padding: '0 var(--sb-space-4) 8px' }}>
                         <input aria-label="Mentor choice" placeholder="Required choice" maxLength={120} value={mentor?.choice ?? ''} onChange={event => update({ mentorSpirit: { ...mentor!, choice: event.target.value } })} />

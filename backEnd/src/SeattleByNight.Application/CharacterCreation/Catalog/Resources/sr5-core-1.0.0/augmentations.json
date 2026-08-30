@@ -1,0 +1,2565 @@
+{
+  "augmentations": [
+    {
+      "id": "commlink-implanted",
+      "displayName": "Commlink",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 451,
+        "pdfPage": 453
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "essence": {
+        "fixed": 0.2
+      },
+      "requiresParameter": true,
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "control-rig",
+      "displayName": "Control Rig",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 451,
+        "pdfPage": 453
+      },
+      "availability": {
+        "byRating": {
+          "1": 5,
+          "2": 10,
+          "3": 15
+        },
+        "legality": "restricted"
+      },
+      "cost": {
+        "byRating": {
+          "1": 43000,
+          "2": 97000,
+          "3": 208000
+        }
+      },
+      "essence": {
+        "byRating": {
+          "1": 1,
+          "2": 2,
+          "3": 3
+        }
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "cortex-bomb-kink",
+      "displayName": "Cortex Bomb, Kink",
+      "augmentationCategoryId": "headware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "essence": {
+        "fixed": 0
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cortex-bomb-microbomb",
+      "displayName": "Cortex Bomb, Microbomb",
+      "augmentationCategoryId": "headware",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 25000
+      },
+      "essence": {
+        "fixed": 0
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "cortex-bomb-area-bomb",
+      "displayName": "Cortex Bomb, Area Bomb",
+      "augmentationCategoryId": "headware",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 40000
+      },
+      "essence": {
+        "fixed": 0
+      },
+      "capacityCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "cyberdeck-implanted",
+      "displayName": "Cyberdeck",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "essence": {
+        "fixed": 0.4
+      },
+      "requiresParameter": true,
+      "capacityCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "datajack",
+      "displayName": "Datajack",
+      "augmentationCategoryId": "headware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "essence": {
+        "fixed": 0.1
+      }
+    },
+    {
+      "id": "data-lock",
+      "displayName": "Data Lock",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 1000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 12
+      }
+    },
+    {
+      "id": "olfactory-booster",
+      "displayName": "Olfactory Booster",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "essence": {
+        "fixed": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "simrig-implanted",
+      "displayName": "Simrig",
+      "augmentationCategoryId": "headware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "essence": {
+        "fixed": 0.2
+      }
+    },
+    {
+      "id": "skilljack",
+      "displayName": "Skilljack",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 20000
+      },
+      "essence": {
+        "perRating": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "taste-booster",
+      "displayName": "Taste Booster",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 3000
+      },
+      "essence": {
+        "fixed": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "tooth-compartment",
+      "displayName": "Tooth Compartment",
+      "augmentationCategoryId": "headware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 800
+      },
+      "requiresParameter": true
+    },
+    {
+      "id": "ultrasound-sensor-implanted",
+      "displayName": "Ultrasound Sensor",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 12000
+      },
+      "essence": {
+        "fixed": 0.25
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "voice-modulator",
+      "displayName": "Voice Modulator",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 452,
+        "pdfPage": 454
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 5000
+      },
+      "essence": {
+        "fixed": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "cybereyes",
+      "displayName": "Cybereyes basic system",
+      "augmentationCategoryId": "eyeware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "byRating": {
+          "1": 3,
+          "2": 6,
+          "3": 9,
+          "4": 12
+        },
+        "legality": "legal"
+      },
+      "cost": {
+        "byRating": {
+          "1": 4000,
+          "2": 6000,
+          "3": 10000,
+          "4": 14000
+        }
+      },
+      "essence": {
+        "byRating": {
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5
+        }
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      },
+      "capacity": {
+        "perRating": 4
+      }
+    },
+    {
+      "id": "flare-compensation-implanted",
+      "displayName": "Flare compensation",
+      "augmentationCategoryId": "eyeware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "image-link-implanted",
+      "displayName": "Image link",
+      "augmentationCategoryId": "eyeware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "essence": {
+        "fixed": 0.1
+      }
+    },
+    {
+      "id": "low-light-vision-implanted",
+      "displayName": "Low-light vision",
+      "augmentationCategoryId": "eyeware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "retinal-duplication",
+      "displayName": "Retinal duplication",
+      "augmentationCategoryId": "eyeware",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 20000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "smartlink-implanted",
+      "displayName": "Smartlink",
+      "augmentationCategoryId": "eyeware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "essence": {
+        "fixed": 0.2
+      },
+      "capacityCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "thermographic-vision-implanted",
+      "displayName": "Thermographic vision",
+      "augmentationCategoryId": "eyeware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "vision-enhancement-implanted",
+      "displayName": "Vision enhancement",
+      "augmentationCategoryId": "eyeware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      },
+      "capacityCost": {
+        "perRating": 1
+      }
+    },
+    {
+      "id": "vision-magnification-implanted",
+      "displayName": "Vision magnification",
+      "augmentationCategoryId": "eyeware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "cyberears",
+      "displayName": "Cyberears",
+      "augmentationCategoryId": "earware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "byRating": {
+          "1": 3,
+          "2": 6,
+          "3": 9,
+          "4": 12
+        },
+        "legality": "legal"
+      },
+      "cost": {
+        "byRating": {
+          "1": 3000,
+          "2": 4500,
+          "3": 7500,
+          "4": 11000
+        }
+      },
+      "essence": {
+        "byRating": {
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5
+        }
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      },
+      "capacity": {
+        "perRating": 4
+      }
+    },
+    {
+      "id": "audio-enhancement-implanted",
+      "displayName": "Audio Enhancement",
+      "augmentationCategoryId": "earware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      },
+      "capacityCost": {
+        "perRating": 1
+      }
+    },
+    {
+      "id": "balance-augmenter",
+      "displayName": "Balance Augmenter",
+      "augmentationCategoryId": "earware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "damper-implanted",
+      "displayName": "Damper",
+      "augmentationCategoryId": "earware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2250
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "select-sound-filter-implanted",
+      "displayName": "Select Sound Filter",
+      "augmentationCategoryId": "earware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 3500
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      },
+      "capacityCost": {
+        "perRating": 1
+      }
+    },
+    {
+      "id": "sound-link-implanted",
+      "displayName": "Sound Link",
+      "augmentationCategoryId": "earware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "essence": {
+        "fixed": 0.1
+      }
+    },
+    {
+      "id": "spatial-recognizer-implanted",
+      "displayName": "Spatial Recognizer",
+      "augmentationCategoryId": "earware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 453,
+        "pdfPage": 455
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "bone-lacing-plastic",
+      "displayName": "Bone Lacing, Plastic",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 454,
+        "pdfPage": 456
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 8000
+      },
+      "essence": {
+        "fixed": 0.5
+      }
+    },
+    {
+      "id": "bone-lacing-aluminum",
+      "displayName": "Bone Lacing, Aluminum",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 454,
+        "pdfPage": 456
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 18000
+      },
+      "essence": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "bone-lacing-titanium",
+      "displayName": "Bone Lacing, Titanium",
+      "augmentationCategoryId": "bodyware",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 454,
+        "pdfPage": 456
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 30000
+      },
+      "essence": {
+        "fixed": 1.5
+      }
+    },
+    {
+      "id": "dermal-plating",
+      "displayName": "Dermal Plating",
+      "augmentationCategoryId": "bodyware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 454,
+        "pdfPage": 456
+      },
+      "availability": {
+        "perRating": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 3000
+      },
+      "essence": {
+        "perRating": 0.5
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "fingertip-compartment",
+      "displayName": "Fingertip Compartment",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 454,
+        "pdfPage": 456
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 3000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "grapple-gun-implanted",
+      "displayName": "Grapple Gun",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 455,
+        "pdfPage": 457
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "essence": {
+        "fixed": 0.5
+      },
+      "capacityCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "internal-air-tank",
+      "displayName": "Internal Air Tank",
+      "augmentationCategoryId": "bodyware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 455,
+        "pdfPage": 457
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 4500
+      },
+      "essence": {
+        "fixed": 0.25
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      },
+      "capacityCost": {
+        "fixed": 3
+      }
+    },
+    {
+      "id": "muscle-replacement",
+      "displayName": "Muscle Replacement",
+      "augmentationCategoryId": "bodyware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 455,
+        "pdfPage": 457
+      },
+      "availability": {
+        "perRating": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 25000
+      },
+      "essence": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "reaction-enhancers",
+      "displayName": "Reaction Enhancers",
+      "augmentationCategoryId": "bodyware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 455,
+        "pdfPage": 457
+      },
+      "availability": {
+        "perRating": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 13000
+      },
+      "essence": {
+        "perRating": 0.3
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "skillwires",
+      "displayName": "Skillwires",
+      "augmentationCategoryId": "bodyware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 455,
+        "pdfPage": 457
+      },
+      "availability": {
+        "perRating": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 20000
+      },
+      "essence": {
+        "perRating": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "smuggling-compartment",
+      "displayName": "Smuggling Compartment",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 455,
+        "pdfPage": 457
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "essence": {
+        "fixed": 0.2
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "wired-reflexes",
+      "displayName": "Wired Reflexes",
+      "augmentationCategoryId": "bodyware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 455,
+        "pdfPage": 457
+      },
+      "availability": {
+        "byRating": {
+          "1": 8,
+          "2": 12,
+          "3": 20
+        },
+        "legality": "restricted"
+      },
+      "cost": {
+        "byRating": {
+          "1": 39000,
+          "2": 149000,
+          "3": 217000
+        }
+      },
+      "essence": {
+        "byRating": {
+          "1": 2,
+          "2": 3,
+          "3": 5
+        }
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "obvious-cyberlimb-full-arm",
+      "displayName": "Obvious Full Arm",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 15000
+      },
+      "essence": {
+        "fixed": 1
+      },
+      "capacity": {
+        "fixed": 15
+      }
+    },
+    {
+      "id": "obvious-cyberlimb-full-leg",
+      "displayName": "Obvious Full Leg",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 15000
+      },
+      "essence": {
+        "fixed": 1
+      },
+      "capacity": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "obvious-cyberlimb-hand-foot",
+      "displayName": "Obvious Hand/Foot",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "essence": {
+        "fixed": 0.25
+      },
+      "requiresParameter": true,
+      "capacity": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "obvious-cyberlimb-lower-arm",
+      "displayName": "Obvious Lower Arm",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "essence": {
+        "fixed": 0.45
+      },
+      "capacity": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "obvious-cyberlimb-lower-leg",
+      "displayName": "Obvious Lower Leg",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "essence": {
+        "fixed": 0.45
+      },
+      "capacity": {
+        "fixed": 12
+      }
+    },
+    {
+      "id": "obvious-cyberlimb-torso",
+      "displayName": "Obvious Torso",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "essence": {
+        "fixed": 1.5
+      },
+      "capacity": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "obvious-cyberlimb-skull",
+      "displayName": "Obvious Skull",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "essence": {
+        "fixed": 0.75
+      },
+      "capacity": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "synthetic-cyberlimb-full-arm",
+      "displayName": "Synthetic Full Arm",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "essence": {
+        "fixed": 1
+      },
+      "capacity": {
+        "fixed": 8
+      }
+    },
+    {
+      "id": "synthetic-cyberlimb-full-leg",
+      "displayName": "Synthetic Full Leg",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "essence": {
+        "fixed": 1
+      },
+      "capacity": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "synthetic-cyberlimb-hand-foot",
+      "displayName": "Synthetic Hand/Foot",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 6000
+      },
+      "essence": {
+        "fixed": 0.25
+      },
+      "requiresParameter": true,
+      "capacity": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "synthetic-cyberlimb-lower-arm",
+      "displayName": "Synthetic Lower Arm",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 12000
+      },
+      "essence": {
+        "fixed": 0.45
+      },
+      "capacity": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "synthetic-cyberlimb-lower-leg",
+      "displayName": "Synthetic Lower Leg",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 12000
+      },
+      "essence": {
+        "fixed": 0.45
+      },
+      "capacity": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "synthetic-cyberlimb-torso",
+      "displayName": "Synthetic Torso",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25000
+      },
+      "essence": {
+        "fixed": 1.5
+      },
+      "capacity": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "synthetic-cyberlimb-skull",
+      "displayName": "Synthetic Skull",
+      "augmentationCategoryId": "cyberlimb",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 457,
+        "pdfPage": 459
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 15000
+      },
+      "essence": {
+        "fixed": 0.75
+      },
+      "capacity": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "cybergun-hold-out-pistol",
+      "displayName": "Cybergun, Hold-out pistol",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "cybergun-light-pistol",
+      "displayName": "Cybergun, Light pistol",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 3900
+      },
+      "essence": {
+        "fixed": 0.25
+      },
+      "capacityCost": {
+        "fixed": 4
+      }
+    },
+    {
+      "id": "cybergun-machine-pistol",
+      "displayName": "Cybergun, Machine pistol",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 3500
+      },
+      "essence": {
+        "fixed": 0.5
+      },
+      "capacityCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "cybergun-heavy-pistol",
+      "displayName": "Cybergun, Heavy pistol",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4300
+      },
+      "essence": {
+        "fixed": 0.5
+      },
+      "capacityCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "cybergun-submachine-gun",
+      "displayName": "Cybergun, Submachine gun",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4800
+      },
+      "essence": {
+        "fixed": 1
+      },
+      "capacityCost": {
+        "fixed": 8
+      }
+    },
+    {
+      "id": "cybergun-shotgun",
+      "displayName": "Cybergun, Shotgun",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 8500
+      },
+      "essence": {
+        "fixed": 1.25
+      },
+      "capacityCost": {
+        "fixed": 10
+      }
+    },
+    {
+      "id": "cybergun-grenade-launcher",
+      "displayName": "Cybergun, Grenade launcher",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 30000
+      },
+      "essence": {
+        "fixed": 1.5
+      },
+      "capacityCost": {
+        "fixed": 15
+      }
+    },
+    {
+      "id": "hand-blade-retractable",
+      "displayName": "Hand blade (retractable)",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2500
+      },
+      "essence": {
+        "fixed": 0.25
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "hand-razors-retractable",
+      "displayName": "Hand razors (retractable)",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "essence": {
+        "fixed": 0.2
+      }
+    },
+    {
+      "id": "spurs-retractable",
+      "displayName": "Spurs (retractable)",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "essence": {
+        "fixed": 0.3
+      }
+    },
+    {
+      "id": "shock-hand",
+      "displayName": "Shock hand",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "essence": {
+        "fixed": 0.25
+      }
+    },
+    {
+      "id": "adrenaline-pump",
+      "displayName": "Adrenaline pump",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 55000
+      },
+      "essence": {
+        "perRating": 0.75
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "bone-density-augmentation",
+      "displayName": "Bone density augmentation",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 5000
+      },
+      "essence": {
+        "perRating": 0.3
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "cats-eye",
+      "displayName": "Cat's eye",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "essence": {
+        "fixed": 0.1
+      }
+    },
+    {
+      "id": "enhanced-articulation",
+      "displayName": "Enhanced articulation",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 24000
+      },
+      "essence": {
+        "fixed": 0.3
+      }
+    },
+    {
+      "id": "muscle-augmentation",
+      "displayName": "Muscle augmentation",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 31000
+      },
+      "essence": {
+        "perRating": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "muscle-toner",
+      "displayName": "Muscle toner",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 32000
+      },
+      "essence": {
+        "perRating": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "orthoskin",
+      "displayName": "Orthoskin",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 6000
+      },
+      "essence": {
+        "perRating": 0.25
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "pathogenic-defense",
+      "displayName": "Pathogenic Defense",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 4500
+      },
+      "essence": {
+        "perRating": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "platelet-factories",
+      "displayName": "Platelet factories",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 17000
+      },
+      "essence": {
+        "fixed": 0.2
+      }
+    },
+    {
+      "id": "skin-pocket",
+      "displayName": "Skin pocket",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 12000
+      },
+      "essence": {
+        "fixed": 0.1
+      }
+    },
+    {
+      "id": "suprathyroid-gland",
+      "displayName": "Suprathyroid gland",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 140000
+      },
+      "essence": {
+        "fixed": 0.7
+      }
+    },
+    {
+      "id": "symbiotes",
+      "displayName": "Symbiotes",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 5,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 3500
+      },
+      "essence": {
+        "perRating": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    {
+      "id": "synthacardium",
+      "displayName": "Synthacardium",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 30000
+      },
+      "essence": {
+        "perRating": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "tailored-pheromones",
+      "displayName": "Tailored pheromones",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 31000
+      },
+      "essence": {
+        "perRating": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "toxin-extractor",
+      "displayName": "Toxin extractor",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 4800
+      },
+      "essence": {
+        "perRating": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "tracheal-filter",
+      "displayName": "Tracheal Filter",
+      "augmentationCategoryId": "basic-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 459,
+        "pdfPage": 461
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 4500
+      },
+      "essence": {
+        "perRating": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "cerebral-booster",
+      "displayName": "Cerebral booster",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 460,
+        "pdfPage": 462
+      },
+      "availability": {
+        "perRating": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 31500
+      },
+      "essence": {
+        "perRating": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "damage-compensators",
+      "displayName": "Damage compensators",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 460,
+        "pdfPage": 462
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 2000
+      },
+      "essence": {
+        "perRating": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 12
+      }
+    },
+    {
+      "id": "mnemonic-enhancer",
+      "displayName": "Mnemonic enhancer",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 460,
+        "pdfPage": 462
+      },
+      "availability": {
+        "perRating": 5,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 9000
+      },
+      "essence": {
+        "perRating": 0.1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "pain-editor",
+      "displayName": "Pain editor",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 460,
+        "pdfPage": 462
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 48000
+      },
+      "essence": {
+        "fixed": 0.3
+      }
+    },
+    {
+      "id": "reflex-recorder",
+      "displayName": "Reflex recorder (Skill)",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 460,
+        "pdfPage": 462
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 14000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "requiresParameter": true
+    },
+    {
+      "id": "sleep-regulator",
+      "displayName": "Sleep regulator",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 460,
+        "pdfPage": 462
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 12000
+      },
+      "essence": {
+        "fixed": 0.1
+      }
+    },
+    {
+      "id": "synaptic-booster",
+      "displayName": "Synaptic booster",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 460,
+        "pdfPage": 462
+      },
+      "availability": {
+        "perRating": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 95000
+      },
+      "essence": {
+        "perRating": 0.5
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "ocular-drone",
+      "displayName": "Ocular Drone",
+      "augmentationCategoryId": "eyeware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 454,
+        "pdfPage": 456
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 6000
+      },
+      "capacityCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "cybergun-external-clip-port",
+      "displayName": "External Clip Port",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "essence": {
+        "fixed": 0.1
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cybergun-laser-sight",
+      "displayName": "Laser Sight (Cybergun)",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cybergun-silencer",
+      "displayName": "Silencer/Suppressor (Cybergun)",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 458,
+        "pdfPage": 460
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "bilateral-coordination-co-processor",
+      "displayName": "Bilateral Coordination Co-Processor",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 4500
+      },
+      "essence": {
+        "fixed": 0.2
+      }
+    },
+    {
+      "id": "biospike",
+      "displayName": "Biospike",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 20000
+      },
+      "essence": {
+        "fixed": 0.2
+      }
+    },
+    {
+      "id": "spur-pocket",
+      "displayName": "Spur Pocket",
+      "augmentationCategoryId": "cultured-bioware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 8000
+      },
+      "essence": {
+        "fixed": 0.1
+      }
+    },
+    {
+      "id": "foot-blade",
+      "displayName": "Foot Blade",
+      "augmentationCategoryId": "implant-weapon",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 28000
+      },
+      "essence": {
+        "fixed": 0.2
+      }
+    },
+    {
+      "id": "cybergland",
+      "displayName": "Cybergland",
+      "augmentationCategoryId": "bodyware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "perRating": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 12000
+      },
+      "essence": {
+        "perRating": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      },
+      "capacityCost": {
+        "perRating": 1
+      }
+    },
+    {
+      "id": "cyberfingers-credstick",
+      "displayName": "Cyberfingers (Credstick)",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "essence": {
+        "fixed": 0.05
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cyberfingers-glass-cutter",
+      "displayName": "Cyberfingers (Glass Cutter)",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 550
+      },
+      "essence": {
+        "fixed": 0.05
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cyberfingers-injector",
+      "displayName": "Cyberfingers (Injector)",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 650
+      },
+      "essence": {
+        "fixed": 0.05
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "cyberfingers-lockpick",
+      "displayName": "Cyberfingers (Lockpick)",
+      "augmentationCategoryId": "bodyware",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "essence": {
+        "fixed": 0.05
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "infrasonic-generator",
+      "displayName": "Infrasonic Generator",
+      "augmentationCategoryId": "headware",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 186,
+        "pdfPage": 187
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "essence": {
+        "fixed": 0.2
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 4
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    }
+  ]
+}

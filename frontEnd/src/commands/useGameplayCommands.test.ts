@@ -8,7 +8,7 @@ const session: RoomSession = {
   playSessionId: 's1',
   expiresAtUtc: '2026-08-16T12:00:00Z',
   character: { id: 'c1', name: 'Ace' },
-  room: { id: 'r1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 0, mapX: 0, mapY: 0, mapLayer: 0 },
+  room: { id: 'r1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
   exits: [
     { id: 'e1', direction: 'north', destinationRoomId: 'r2', destinationRoomName: 'Coffee Shop', isLocked: false },
     { id: 'e2', direction: 'northeast', destinationRoomId: 'r3', destinationRoomName: 'Alley', isLocked: false },

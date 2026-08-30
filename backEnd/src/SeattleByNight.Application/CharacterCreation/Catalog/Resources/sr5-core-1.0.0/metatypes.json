@@ -1,0 +1,244 @@
+{
+  "metatypes": [
+    {
+      "id": "dwarf",
+      "displayName": "Dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "strength": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "willpower": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Pathogen and toxin resistance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "elf",
+      "displayName": "Elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "human",
+      "displayName": "Human",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 2,
+          "maximum": 7
+        }
+      },
+      "traits": "None",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "ork",
+      "displayName": "Ork",
+      "attributes": {
+        "body": {
+          "minimum": 4,
+          "maximum": 9
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "troll",
+      "displayName": "Troll",
+      "attributes": {
+        "body": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Thermographic Vision, Reach +1, dermal armor +1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    }
+  ]
+}

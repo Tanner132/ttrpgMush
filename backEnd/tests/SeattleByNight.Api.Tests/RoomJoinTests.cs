@@ -1,8 +1,10 @@
 using System.Net;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomSessions;
 using SeattleByNight.Domain.Enums;
@@ -127,6 +129,9 @@ public sealed class RoomJoinTests : IClassFixture<ApiTestFactory>
                     options.Headers["Cookie"] = cookieHeader;
                 }
             })
+            // The server's hub protocol writes enums as name strings.
+            .AddJsonProtocol(options =>
+                options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
             .Build();
     }
 

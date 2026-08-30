@@ -1,0 +1,79 @@
+{
+  "cyberlimbEnhancements": [
+    {
+      "id": "cyberlimb-enhancement-agility",
+      "displayName": "Cyberlimb Enhancement, Agility",
+      "enhancementType": "agility",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 456,
+        "pdfPage": 458
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 6500
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "cyberlimb-enhancement-armor",
+      "displayName": "Cyberlimb Enhancement, Armor",
+      "enhancementType": "armor",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 456,
+        "pdfPage": 458
+      },
+      "availability": {
+        "perRating": 5,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 3000
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "cyberlimb-enhancement-strength",
+      "displayName": "Cyberlimb Enhancement, Strength",
+      "enhancementType": "strength",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 456,
+        "pdfPage": 458
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 6500
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    }
+  ]
+}

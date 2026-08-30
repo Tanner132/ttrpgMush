@@ -152,14 +152,14 @@ vi.mock('../realtime/useRoomChat.ts', () => ({
 
 vi.mock('../api/roomSession.ts', () => ({
   getRoomSession: vi.fn(),
-  MessageType: { Say: 0, Emote: 1, Roll: 2 },
+  MessageType: { Say: 'Say', Emote: 'Emote', Roll: 'Roll' },
 }))
 
 const emptySession: RoomSession = {
   playSessionId: 'session-1',
   expiresAtUtc: '2026-08-16T12:00:00Z',
   character: { id: 'char-1', name: 'Dev Runner' },
-  room: { id: 'room-1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 0, mapX: 0, mapY: 0, mapLayer: 0 },
+  room: { id: 'room-1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
   exits: [
     { id: 'exit-1', direction: 'north', destinationRoomId: 'room-2', destinationRoomName: 'Coffee Shop', isLocked: false },
     { id: 'exit-2', direction: 'east', destinationRoomId: 'room-3', destinationRoomName: 'Alley', isLocked: false },
@@ -171,7 +171,7 @@ const emptySession: RoomSession = {
 
 const coffeeShopSession: RoomSession = {
   ...emptySession,
-  room: { id: 'room-2', name: 'Coffee Shop', description: 'A cramped cafe.', accessType: 0, mapX: 1, mapY: 0, mapLayer: 0 },
+  room: { id: 'room-2', name: 'Coffee Shop', description: 'A cramped cafe.', accessType: 'Public', mapX: 1, mapY: 0, mapLayer: 0 },
   exits: [],
 }
 
@@ -226,7 +226,7 @@ describe('realtime chat', () => {
       characterId: 'char-2',
       characterName: 'Street Sam',
       content: 'hello there',
-      type: 0,
+      type: MessageType.Say,
       createdAtUtc: '2026-08-16T11:30:00Z',
     }
 

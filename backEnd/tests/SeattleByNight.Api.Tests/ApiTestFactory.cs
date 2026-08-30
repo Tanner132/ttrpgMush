@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +17,14 @@ namespace SeattleByNight.Api.Tests;
 
 public sealed class ApiTestFactory : IAsyncLifetime
 {
+    // Mirrors the API's wire format (Program.cs ConfigureHttpJsonOptions):
+    // enums cross as PascalCase name strings, which the Web defaults alone
+    // cannot read back into enum-typed response records.
+    public static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() },
+    };
+
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17").Build();
 
     private WebApplicationFactory<Program> _factory = null!;
@@ -169,7 +179,7 @@ public sealed class ApiTestFactory : IAsyncLifetime
             return (response.StatusCode, null);
         }
 
-        var body = await response.Content.ReadFromJsonAsync<RoomSession>();
+        var body = await response.Content.ReadFromJsonAsync<RoomSession>(JsonOptions);
         return (response.StatusCode, body);
     }
 

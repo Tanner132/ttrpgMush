@@ -1,0 +1,1136 @@
+{
+  "metavariants": [
+    {
+      "id": "gnome",
+      "displayName": "Gnome",
+      "parentMetatypeId": "dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "willpower": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "logic": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+20% lifestyle cost; Arcane Arrester 2 (add rating x 2 dice to resist any spell targeted at the character); Neoteny (Physical Condition Monitor becomes 6 + (Body/2, rounded up)); Thermographic Vision.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 87,
+        "pdfPage": 89
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 7
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 7
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 7
+        }
+      ]
+    },
+    {
+      "id": "hanuman",
+      "displayName": "Hanuman",
+      "parentMetatypeId": "dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+20% lifestyle cost; Monkey Paws (+2 dice pool, or +1 if shod, to non-tumbling Gymnastics/Climbing/zero-G movement tests); Functional Tail (Prehensile) (effective Strength half unaugmented Strength, rounded down; -4 dice pool for fine manipulation); Thermographic Vision; Unusual Hair (Body).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 88,
+        "pdfPage": 90
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 5
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 5
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 5
+        }
+      ]
+    },
+    {
+      "id": "koborokuru",
+      "displayName": "Koborokuru",
+      "parentMetatypeId": "dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+20% lifestyle cost; Celerity (Walking Agility x 3, Running Agility x 6, +1 m/hit Sprint Increase); +2 dice pathogen/toxin resistance (as core Dwarf); Thermographic Vision; Unusual Hair.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 89,
+        "pdfPage": 91
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 0
+        }
+      ]
+    },
+    {
+      "id": "menehune",
+      "displayName": "Menehune",
+      "parentMetatypeId": "dwarf",
+      "attributes": {
+        "body": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+20% lifestyle cost; +2 dice pathogen resistance; Thermographic Vision; Underwater Vision (unrestricted vision underwater); Webbed Digits (+2 dice pool Swimming Tests, -1 dice pool fine manipulation with the digits).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 89,
+        "pdfPage": 91
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 2
+        }
+      ]
+    },
+    {
+      "id": "hobgoblin",
+      "displayName": "Hobgoblin",
+      "parentMetatypeId": "ork",
+      "attributes": {
+        "body": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Fangs (Unarmed Combat DV (STR+1)P, Reach -1, AP --); Keen-Eared (+1 dice pool audio-based Perception Tests); Low-Light Vision; Poor Self Control (Vindictive).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 91,
+        "pdfPage": 93
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 5
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 5
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 5
+        }
+      ]
+    },
+    {
+      "id": "ogre",
+      "displayName": "Ogre",
+      "parentMetatypeId": "ork",
+      "attributes": {
+        "body": {
+          "minimum": 4,
+          "maximum": 9
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "strength": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "willpower": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision; Ogre Stomach (-20% lifestyle cost; +2 dice pool Toxin Resistance Tests for ingested toxins).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 91,
+        "pdfPage": 93
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 8
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 8
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 8
+        }
+      ]
+    },
+    {
+      "id": "oni",
+      "displayName": "Oni",
+      "parentMetatypeId": "ork",
+      "attributes": {
+        "body": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision; Striking Skin Pigmentation (+2 dice pool to Matrix Search/identify/locate tests against the character).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 92,
+        "pdfPage": 94
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 4
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 4
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 4
+        }
+      ]
+    },
+    {
+      "id": "satyr",
+      "displayName": "Satyr",
+      "parentMetatypeId": "ork",
+      "attributes": {
+        "body": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "strength": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Low-Light Vision; Satyr Legs (Running rate Agility x 6, +1 m/hit Sprint Increase, +2 Strength to kicking-attack damage; social stigma).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 92,
+        "pdfPage": 94
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 7,
+          "additionalKarmaCost": 10
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 10
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 10
+        }
+      ]
+    },
+    {
+      "id": "cyclops",
+      "displayName": "Cyclops",
+      "parentMetatypeId": "troll",
+      "attributes": {
+        "body": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 6,
+          "maximum": 11
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+100% lifestyle cost; Cyclopean Eye (-1 dice pool to Combat Tests and precision skill tests; social stigma); +1 Reach; Thermographic Vision.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 93,
+        "pdfPage": 95
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 5,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 2
+        }
+      ]
+    },
+    {
+      "id": "fomorian",
+      "displayName": "Fomorian",
+      "parentMetatypeId": "troll",
+      "attributes": {
+        "body": {
+          "minimum": 4,
+          "maximum": 9
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+100% lifestyle cost; Arcane Arrester 1 (add rating x 2 dice to resist any spell targeted at the character); Thermographic Vision; +1 Reach.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 94,
+        "pdfPage": 96
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 5,
+          "additionalKarmaCost": 12
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 12
+        }
+      ]
+    },
+    {
+      "id": "giant",
+      "displayName": "Giant",
+      "parentMetatypeId": "troll",
+      "attributes": {
+        "body": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "strength": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+100% lifestyle cost; Dermal Alteration (Bark Skin) (+2 armor, cumulative with worn armor); Thermographic Vision; +1 Reach.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 95,
+        "pdfPage": 97
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 5,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 2
+        }
+      ]
+    },
+    {
+      "id": "minotaur",
+      "displayName": "Minotaur",
+      "parentMetatypeId": "troll",
+      "attributes": {
+        "body": {
+          "minimum": 6,
+          "maximum": 11
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 5,
+          "maximum": 10
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 4
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "+100% lifestyle cost; Goring Horns (Exotic Melee Weapon [Horns] DV (STR+2)P, Reach --, AP -1); Thermographic Vision; +1 Reach.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 95,
+        "pdfPage": 97
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 5,
+          "additionalKarmaCost": 2
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 2
+        }
+      ]
+    },
+    {
+      "id": "dryad",
+      "displayName": "Dryad",
+      "parentMetatypeId": "elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Glamour (+2 Social limit; +1 dice pool Social Skill Tests except Intimidation; incurs the core Distinctive Style effect); Low-Light Vision; Symbiosis (bonded-location social/Outdoor/Healing bonuses; environmental harm imposes a persistent Mild-Allergy-equivalent penalty).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 96,
+        "pdfPage": 98
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 3,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 0
+        }
+      ]
+    },
+    {
+      "id": "nocturna",
+      "displayName": "Nocturna",
+      "parentMetatypeId": "elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "agility": {
+          "minimum": 3,
+          "maximum": 8
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Allergy (Sunlight, Mild); Low-Light Vision; Keen-Eared (+1 dice pool audio-based Perception Tests); Nocturnal (Mental attributes -1 during daylight hours); Unusual Hair (Colored Fur).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 96,
+        "pdfPage": 98
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 3,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 0
+        }
+      ]
+    },
+    {
+      "id": "wakyambi",
+      "displayName": "Wakyambi",
+      "parentMetatypeId": "elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Celerity (Walking Agility x 3, Running Agility x 6, +1 m/hit Sprint Increase); Elongated Limbs (+1 Reach, cumulative; +10% cost for accommodating armor/clothing); Low-Light Vision.",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 97,
+        "pdfPage": 99
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 12
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 12
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 3,
+          "additionalKarmaCost": 12
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 12
+        }
+      ]
+    },
+    {
+      "id": "xapiri-thepe",
+      "displayName": "Xapiri Thëpë",
+      "parentMetatypeId": "elf",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 2,
+          "maximum": 7
+        },
+        "edge": {
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "traits": "Allergy (Pollutants, Mild); Low-Light Vision; Photometabolism (-10% lifestyle cost; -1 dice pool Social Tests at night/in shade).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 99,
+        "pdfPage": 101
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 3,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 0,
+          "additionalKarmaCost": 0
+        }
+      ]
+    },
+    {
+      "id": "nartaki",
+      "displayName": "Nartaki",
+      "parentMetatypeId": "human",
+      "attributes": {
+        "body": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "agility": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "reaction": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "strength": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "willpower": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "logic": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "intuition": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "charisma": {
+          "minimum": 1,
+          "maximum": 6
+        },
+        "edge": {
+          "minimum": 2,
+          "maximum": 7
+        }
+      },
+      "traits": "Shiva Arms (one extra pair of arms; can wield/use extra weapons per the Multiple Attacks rules with the normal off-hand penalty; social stigma); Striking Skin Pigmentation (+2 dice pool to Matrix Search/identify/locate tests against the character).",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 99,
+        "pdfPage": 101
+      },
+      "priorityGrants": [
+        {
+          "levelId": "a",
+          "specialAttributePoints": 8,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "b",
+          "specialAttributePoints": 6,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "c",
+          "specialAttributePoints": 4,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "d",
+          "specialAttributePoints": 2,
+          "additionalKarmaCost": 0
+        },
+        {
+          "levelId": "e",
+          "specialAttributePoints": 1,
+          "additionalKarmaCost": 0
+        }
+      ]
+    }
+  ]
+}

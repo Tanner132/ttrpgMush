@@ -1,0 +1,905 @@
+{
+  "adeptPowers": [
+    {
+      "id": "adrenaline-boost",
+      "displayName": "Adrenaline Boost",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "astral-perception",
+      "displayName": "Astral Perception",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "attribute-boost",
+      "displayName": "Attribute Boost",
+      "powerPointCost": 0.25,
+      "parameterized": true,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "combat-sense",
+      "displayName": "Combat Sense",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "critical-strike",
+      "displayName": "Critical Strike",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "danger-sense",
+      "displayName": "Danger Sense",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "enhanced-accuracy",
+      "displayName": "Enhanced Accuracy",
+      "powerPointCost": 0.25,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "enhanced-perception",
+      "displayName": "Enhanced Perception",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-ability",
+      "displayName": "Improved Ability",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-physical-attribute",
+      "displayName": "Improved Physical Attribute",
+      "powerPointCost": 1,
+      "parameterized": true,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-potential",
+      "displayName": "Improved Potential",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-reflexes",
+      "displayName": "Improved Reflexes",
+      "powerPointCost": 1.5,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "powerPointCostByRank": {
+        "1": 1.5,
+        "2": 2.5,
+        "3": 3.5
+      },
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "improved-sense",
+      "displayName": "Improved Sense",
+      "powerPointCost": 0.25,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "killing-hands",
+      "displayName": "Killing Hands",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "kinesics",
+      "displayName": "Kinesics",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "light-body",
+      "displayName": "Light Body",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "missile-parry",
+      "displayName": "Missile Parry",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "mystic-armor",
+      "displayName": "Mystic Armor",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "natural-immunity",
+      "displayName": "Natural Immunity",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "pain-resistance",
+      "displayName": "Pain Resistance",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "rapid-healing",
+      "displayName": "Rapid Healing",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "spell-resistance",
+      "displayName": "Spell Resistance",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "traceless-walk",
+      "displayName": "Traceless Walk",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "voice-control",
+      "displayName": "Voice Control",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "wall-running",
+      "displayName": "Wall Running",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 308,
+        "pdfPage": 310
+      }
+    },
+    {
+      "id": "mystic-aptitude",
+      "displayName": "Mystic Aptitude",
+      "powerPointCost": 0.75,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 159,
+        "pdfPage": 160
+      }
+    },
+    {
+      "id": "state-of-purity",
+      "displayName": "State of Purity",
+      "powerPointCost": 1.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "better-than-bad",
+        "printedPage": 160,
+        "pdfPage": 161
+      }
+    },
+    {
+      "id": "adept-spell",
+      "displayName": "Adept Spell",
+      "powerPointCost": 1.0,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      }
+    },
+    {
+      "id": "adept-accident",
+      "displayName": "Adept Accident",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      }
+    },
+    {
+      "id": "focused-archery",
+      "displayName": "Focused Archery",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      }
+    },
+    {
+      "id": "kiai",
+      "displayName": "Kiai",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 6,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 190,
+        "pdfPage": 191
+      }
+    },
+    {
+      "id": "master-archer",
+      "displayName": "Master Archer",
+      "powerPointCost": 1.0,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "precision-throwing",
+      "displayName": "Precision Throwing",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 191,
+        "pdfPage": 192
+      }
+    },
+    {
+      "id": "analytics",
+      "displayName": "Analytics",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "animal-empathy",
+      "displayName": "Animal Empathy",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "berserk",
+      "displayName": "Berserk",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "berserkers-rage",
+      "displayName": "Berserker's Rage",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "blind-fighting",
+      "displayName": "Blind Fighting",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "cloak",
+      "displayName": "Cloak",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "cool-resolve",
+      "displayName": "Cool Resolve",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 169,
+        "pdfPage": 171
+      }
+    },
+    {
+      "id": "commanding-voice",
+      "displayName": "Commanding Voice",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "counterstrike",
+      "displayName": "Counterstrike",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "elemental-body",
+      "displayName": "Elemental Body",
+      "powerPointCost": 1,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "elemental-strike",
+      "displayName": "Elemental Strike",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "elemental-weapon",
+      "displayName": "Elemental Weapon",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 170,
+        "pdfPage": 172
+      }
+    },
+    {
+      "id": "empathic-healing",
+      "displayName": "Empathic Healing",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "facial-sculpt",
+      "displayName": "Facial Sculpt",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "flexibility",
+      "displayName": "Flexibility",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "freefall",
+      "displayName": "Freefall",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "hang-time",
+      "displayName": "Hang Time",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 171,
+        "pdfPage": 173
+      }
+    },
+    {
+      "id": "inertia-strike",
+      "displayName": "Inertia Strike",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "kinesics-mastery",
+      "displayName": "Kinesics Mastery",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "linguistics",
+      "displayName": "Linguistics",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "magic-sense",
+      "displayName": "Magic Sense",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "melanin-control",
+      "displayName": "Melanin Control",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "metabolic-control",
+      "displayName": "Metabolic Control",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "missile-mastery",
+      "displayName": "Missile Mastery",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "motion-sense",
+      "displayName": "Motion Sense",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 172,
+        "pdfPage": 174
+      }
+    },
+    {
+      "id": "nerve-strike",
+      "displayName": "Nerve Strike",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "nimble-fingers",
+      "displayName": "Nimble Fingers",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "pain-relief",
+      "displayName": "Pain Relief",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "penetrating-strike",
+      "displayName": "Penetrating Strike",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 4,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "plague-cloud",
+      "displayName": "Plague Cloud",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 173,
+        "pdfPage": 175
+      }
+    },
+    {
+      "id": "rapid-draw",
+      "displayName": "Rapid Draw",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "riposte",
+      "displayName": "Riposte",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "skate",
+      "displayName": "Skate",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "smashing-blow",
+      "displayName": "Smashing Blow",
+      "powerPointCost": 1,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "spirit-claw",
+      "displayName": "Spirit Claw",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "spirit-ram",
+      "displayName": "Spirit Ram",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "stillness",
+      "displayName": "Stillness",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "maxRank": 3,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 174,
+        "pdfPage": 176
+      }
+    },
+    {
+      "id": "sustenance",
+      "displayName": "Sustenance",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 175,
+        "pdfPage": 177
+      }
+    },
+    {
+      "id": "temperature-tolerance",
+      "displayName": "Temperature Tolerance",
+      "powerPointCost": 0.25,
+      "parameterized": false,
+      "ranked": true,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 175,
+        "pdfPage": 177
+      }
+    },
+    {
+      "id": "three-dimensional-memory",
+      "displayName": "Three-Dimensional Memory",
+      "powerPointCost": 0.5,
+      "parameterized": false,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 175,
+        "pdfPage": 177
+      }
+    },
+    {
+      "id": "toxic-strike",
+      "displayName": "Toxic Strike",
+      "powerPointCost": 0.5,
+      "parameterized": true,
+      "ranked": false,
+      "source": {
+        "sourceId": "street-grimoire",
+        "printedPage": 176,
+        "pdfPage": 178
+      }
+    }
+  ]
+}

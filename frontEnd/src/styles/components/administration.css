@@ -1,0 +1,90 @@
+/* ------------------------------------------------------------ administration */
+
+.admin-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-4);
+  max-width: 860px;
+}
+
+.form--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--sb-space-3);
+}
+
+.admin-user {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-3);
+  border: 1px solid var(--sb-border-strong);
+  background: var(--sb-bg-inset);
+}
+
+.admin-user__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-1);
+}
+
+.admin-user__name {
+  font-family: var(--sb-font-heading);
+  font-weight: 700;
+}
+
+.admin-user__email {
+  font-family: var(--sb-font-data);
+  font-size: 0.85rem;
+  color: var(--sb-text-muted);
+}
+
+.admin-user__role-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sb-space-2);
+}
+
+.admin-user__role {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+  padding: var(--sb-space-1) var(--sb-space-2);
+  border: 1px solid var(--sb-border-strong);
+  font-family: var(--sb-font-data);
+  font-size: 0.85rem;
+}
+
+.admin-user__picker {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--sb-font-data);
+  font-size: 0.85rem;
+}
+
+.audit-table th,
+.audit-table td {
+  text-align: left;
+  padding: var(--sb-space-2);
+  border-bottom: 1px solid var(--sb-border-strong);
+  vertical-align: top;
+}
+
+.audit-table th {
+  font-family: var(--sb-font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  color: var(--sb-text-muted);
+}
+

@@ -1,0 +1,4622 @@
+{
+  "weapons": [
+    {
+      "id": "combat-axe",
+      "displayName": "Combat Axe",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "accuracy": "4",
+      "reach": "2",
+      "damage": "(STR + 5)P",
+      "ap": "-4"
+    },
+    {
+      "id": "combat-knife",
+      "displayName": "Combat Knife",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "6",
+      "damage": "(STR + 2)P",
+      "ap": "-3"
+    },
+    {
+      "id": "forearm-snap-blades",
+      "displayName": "Forearm Snap-blades",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "accuracy": "4",
+      "damage": "(STR + 2)P",
+      "ap": "-2"
+    },
+    {
+      "id": "katana",
+      "displayName": "Katana",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "7",
+      "reach": "1",
+      "damage": "(STR + 3)P",
+      "ap": "-3"
+    },
+    {
+      "id": "knife",
+      "displayName": "Knife",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "cost": {
+        "fixed": 10
+      },
+      "accuracy": "5",
+      "damage": "(STR + 1)P",
+      "ap": "-1"
+    },
+    {
+      "id": "pole-arm",
+      "displayName": "Pole Arm",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "5",
+      "reach": "3",
+      "damage": "(STR + 3)P",
+      "ap": "-2"
+    },
+    {
+      "id": "survival-knife",
+      "displayName": "Survival Knife",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "accuracy": "5",
+      "damage": "(STR + 2)P",
+      "ap": "-1"
+    },
+    {
+      "id": "sword",
+      "displayName": "Sword",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "6",
+      "reach": "1",
+      "damage": "(STR + 3)P",
+      "ap": "-2"
+    },
+    {
+      "id": "club",
+      "displayName": "Club",
+      "weaponCategoryId": "clubs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "cost": {
+        "fixed": 30
+      },
+      "accuracy": "4",
+      "reach": "1",
+      "damage": "(STR + 3)P"
+    },
+    {
+      "id": "extendable-baton",
+      "displayName": "Extendable Baton",
+      "weaponCategoryId": "clubs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "accuracy": "5",
+      "reach": "1",
+      "damage": "(STR + 2)P"
+    },
+    {
+      "id": "sap",
+      "displayName": "Sap",
+      "weaponCategoryId": "clubs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30
+      },
+      "accuracy": "5",
+      "damage": "(STR + 2)P"
+    },
+    {
+      "id": "staff",
+      "displayName": "Staff",
+      "weaponCategoryId": "clubs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "accuracy": "6",
+      "reach": "2",
+      "damage": "(STR + 3)P"
+    },
+    {
+      "id": "stun-baton",
+      "displayName": "Stun Baton",
+      "weaponCategoryId": "clubs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "accuracy": "4",
+      "reach": "1",
+      "damage": "9S(e)",
+      "ap": "-5"
+    },
+    {
+      "id": "telescoping-staff",
+      "displayName": "Telescoping Staff",
+      "weaponCategoryId": "clubs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 350
+      },
+      "accuracy": "4",
+      "reach": "2",
+      "damage": "(STR + 2)P"
+    },
+    {
+      "id": "knucks",
+      "displayName": "Knucks",
+      "weaponCategoryId": "other-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "accuracy": "Physical",
+      "damage": "(STR + 1)P"
+    },
+    {
+      "id": "monofilament-whip",
+      "displayName": "Monofilament Whip",
+      "weaponCategoryId": "other-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "accuracy": "5 (7)",
+      "reach": "2",
+      "damage": "12P",
+      "ap": "-8"
+    },
+    {
+      "id": "shock-gloves",
+      "displayName": "Shock Gloves",
+      "weaponCategoryId": "other-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 423,
+        "pdfPage": 425
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 550
+      },
+      "accuracy": "Physical",
+      "damage": "8S(e)",
+      "ap": "-5"
+    },
+    {
+      "id": "bow",
+      "displayName": "Bow",
+      "weaponCategoryId": "bows",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "perRating": 1,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 100
+      },
+      "accuracy": "6",
+      "damage": "(Rating + 2)P",
+      "ap": "-(Rating / 4)",
+      "ammo": "1 arrow",
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 10
+      }
+    },
+    {
+      "id": "crossbow-light",
+      "displayName": "Light Crossbow",
+      "weaponCategoryId": "crossbows",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "7",
+      "damage": "5P",
+      "ap": "-1"
+    },
+    {
+      "id": "crossbow-medium",
+      "displayName": "Medium Crossbow",
+      "weaponCategoryId": "crossbows",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "ap": "-2"
+    },
+    {
+      "id": "crossbow-heavy",
+      "displayName": "Heavy Crossbow",
+      "weaponCategoryId": "crossbows",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-3"
+    },
+    {
+      "id": "throwing-knife",
+      "displayName": "Throwing Knife/Shuriken",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 424,
+        "pdfPage": 426
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 25
+      },
+      "accuracy": "Physical",
+      "damage": "(STR + 1)P",
+      "ap": "-1"
+    },
+    {
+      "id": "defiance-ex-shocker",
+      "displayName": "Defiance EX Shocker",
+      "weaponCategoryId": "tasers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "cost": {
+        "fixed": 250
+      },
+      "accuracy": "4",
+      "damage": "9S(e)",
+      "ap": "-5",
+      "mode": "SS",
+      "ammo": "4 (m)"
+    },
+    {
+      "id": "yamaha-pulsar",
+      "displayName": "Yamaha Pulsar",
+      "weaponCategoryId": "tasers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "cost": {
+        "fixed": 180
+      },
+      "accuracy": "5",
+      "damage": "7S(e)",
+      "ap": "-5",
+      "mode": "SA",
+      "ammo": "4 (m)"
+    },
+    {
+      "id": "fichetti-tiffani-needler",
+      "displayName": "Fichetti Tiffani Needler",
+      "weaponCategoryId": "hold-outs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "5",
+      "damage": "8P(f)",
+      "ap": "+5",
+      "mode": "SA",
+      "ammo": "4 (c)"
+    },
+    {
+      "id": "streetline-special",
+      "displayName": "Streetline Special",
+      "weaponCategoryId": "hold-outs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 120
+      },
+      "accuracy": "4",
+      "damage": "6P",
+      "mode": "SA",
+      "ammo": "6 (c)"
+    },
+    {
+      "id": "walther-palm-pistol",
+      "displayName": "Walther Palm Pistol",
+      "weaponCategoryId": "hold-outs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 425,
+        "pdfPage": 427
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 180
+      },
+      "accuracy": "4",
+      "damage": "7P",
+      "mode": "SS/BF",
+      "ammo": "2 (b)"
+    },
+    {
+      "id": "ares-light-fire-75",
+      "displayName": "Ares Light Fire 75",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "accuracy": "6 (8)",
+      "damage": "6P",
+      "mode": "SA",
+      "ammo": "16 (c)"
+    },
+    {
+      "id": "ares-light-fire-70",
+      "displayName": "Ares Light Fire 70",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "accuracy": "7",
+      "damage": "6P",
+      "mode": "SA",
+      "ammo": "16 (c)"
+    },
+    {
+      "id": "beretta-201t",
+      "displayName": "Beretta 201T",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 210
+      },
+      "accuracy": "6",
+      "damage": "6P",
+      "mode": "SA/BF",
+      "rc": "(1)",
+      "ammo": "21 (c)"
+    },
+    {
+      "id": "colt-america-l36",
+      "displayName": "Colt America L36",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 320
+      },
+      "accuracy": "7",
+      "damage": "7P",
+      "mode": "SA",
+      "ammo": "11 (c)"
+    },
+    {
+      "id": "fichetti-security-600",
+      "displayName": "Fichetti Security 600",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      },
+      "accuracy": "6 (7)",
+      "damage": "7P",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "taurus-omni-6",
+      "displayName": "Taurus Omni-6",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "5 (6)",
+      "damage": "6P / 7P",
+      "ap": "0 / -1",
+      "mode": "SA/SS",
+      "ammo": "6 (cy)"
+    },
+    {
+      "id": "ares-predator-v",
+      "displayName": "Ares Predator V",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 725
+      },
+      "accuracy": "5 (7)",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "15 (c)"
+    },
+    {
+      "id": "ares-viper-slivergun",
+      "displayName": "Ares Viper Slivergun",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 380
+      },
+      "accuracy": "4",
+      "damage": "9P(f)",
+      "ap": "+4",
+      "mode": "SA/BF",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "browning-ultra-power",
+      "displayName": "Browning Ultra-Power",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 640
+      },
+      "accuracy": "5 (6)",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "colt-government-2066",
+      "displayName": "Colt Government 2066",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 425
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "14 (c)"
+    },
+    {
+      "id": "remington-roomsweeper",
+      "displayName": "Remington Roomsweeper",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      },
+      "accuracy": "4",
+      "damage": "7P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "8 (m)"
+    },
+    {
+      "id": "ruger-super-warhawk",
+      "displayName": "Ruger Super Warhawk",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 426,
+        "pdfPage": 428
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 400
+      },
+      "accuracy": "5",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SS",
+      "ammo": "6 (cy)"
+    },
+    {
+      "id": "ares-crusader-ii",
+      "displayName": "Ares Crusader II",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 830
+      },
+      "accuracy": "5 (7)",
+      "damage": "7P",
+      "mode": "SA/BF",
+      "rc": "2",
+      "ammo": "40 (c)"
+    },
+    {
+      "id": "ceska-black-scorpion",
+      "displayName": "Ceska Black Scorpion",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 270
+      },
+      "accuracy": "5",
+      "damage": "6P",
+      "mode": "SA/BF",
+      "rc": "(1)",
+      "ammo": "35 (c)"
+    },
+    {
+      "id": "steyr-tmp",
+      "displayName": "Steyr TMP",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      },
+      "accuracy": "4",
+      "damage": "7P",
+      "mode": "SA/BF/FA",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "colt-cobra-tz-120",
+      "displayName": "Colt Cobra TZ-120",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 660
+      },
+      "accuracy": "4 (5)",
+      "damage": "7P",
+      "mode": "SA/BF/FA",
+      "rc": "2 (3)",
+      "ammo": "32 (c)"
+    },
+    {
+      "id": "fn-p93-praetor",
+      "displayName": "FN P93 Praetor",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "accuracy": "6",
+      "damage": "8P",
+      "mode": "SA/BF/FA",
+      "rc": "1 (2)",
+      "ammo": "50 (c)"
+    },
+    {
+      "id": "hk-227",
+      "displayName": "HK-227",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 730
+      },
+      "accuracy": "5 (7)",
+      "damage": "7P",
+      "mode": "SA/BF/FA",
+      "rc": "(1)",
+      "ammo": "28 (c)"
+    },
+    {
+      "id": "ingram-smartgun-x",
+      "displayName": "Ingram Smartgun X",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 800
+      },
+      "accuracy": "4 (6)",
+      "damage": "8P",
+      "mode": "BF/FA",
+      "rc": "2",
+      "ammo": "32 (c)"
+    },
+    {
+      "id": "sck-model-100",
+      "displayName": "SCK Model 100",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 875
+      },
+      "accuracy": "5 (7)",
+      "damage": "8P",
+      "mode": "SA/BF",
+      "rc": "(1)",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "uzi-iv",
+      "displayName": "Uzi IV",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 427,
+        "pdfPage": 429
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 450
+      },
+      "accuracy": "4 (5)",
+      "damage": "7P",
+      "mode": "BF",
+      "rc": "(1)",
+      "ammo": "24 (c)"
+    },
+    {
+      "id": "ak-97",
+      "displayName": "AK-97",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 950
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "ammo": "38 (c)"
+    },
+    {
+      "id": "ares-alpha",
+      "displayName": "Ares Alpha",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2650
+      },
+      "accuracy": "5 (7)",
+      "damage": "11P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "rc": "2",
+      "ammo": "42 (c)"
+    },
+    {
+      "id": "colt-m23",
+      "displayName": "Colt M23",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 550
+      },
+      "accuracy": "4",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "ammo": "40 (c)"
+    },
+    {
+      "id": "fn-har",
+      "displayName": "FN HAR",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "accuracy": "5 (6)",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "rc": "2",
+      "ammo": "35 (c)"
+    },
+    {
+      "id": "yamaha-raiden",
+      "displayName": "Yamaha Raiden",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2600
+      },
+      "accuracy": "6 (8)",
+      "damage": "11P",
+      "ap": "-2",
+      "mode": "BF/FA",
+      "rc": "1",
+      "ammo": "60 (c)"
+    },
+    {
+      "id": "ares-desert-strike",
+      "displayName": "Ares Desert Strike",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 17500
+      },
+      "accuracy": "7",
+      "damage": "13P",
+      "ap": "-4",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "14 (c)"
+    },
+    {
+      "id": "cavalier-arms-crockett-ebr",
+      "displayName": "Cavalier Arms Crockett EBR",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10300
+      },
+      "accuracy": "6",
+      "damage": "12P",
+      "ap": "-3",
+      "mode": "SA/BF",
+      "rc": "(1)",
+      "ammo": "20 (c)"
+    },
+    {
+      "id": "ranger-arms-sm-5",
+      "displayName": "Ranger Arms SM-5",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 28000
+      },
+      "accuracy": "8",
+      "damage": "14P",
+      "ap": "-5",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "15 (c)"
+    },
+    {
+      "id": "remington-950",
+      "displayName": "Remington 950",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2100
+      },
+      "accuracy": "7",
+      "damage": "12P",
+      "ap": "-4",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "ruger-101",
+      "displayName": "Ruger 101",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 428,
+        "pdfPage": 430
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1300
+      },
+      "accuracy": "6",
+      "damage": "11P",
+      "ap": "-3",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "8 (m)"
+    },
+    {
+      "id": "defiance-t-250",
+      "displayName": "Defiance T-250",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 450
+      },
+      "accuracy": "4",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SS/SA",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "enfield-as-7",
+      "displayName": "Enfield AS-7",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1100
+      },
+      "accuracy": "4 (5)",
+      "damage": "13P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "ammo": "10 (c) or 24 (d)"
+    },
+    {
+      "id": "pjss-model-55",
+      "displayName": "PJSS Model 55",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "6",
+      "damage": "11P",
+      "ap": "-1",
+      "mode": "SS",
+      "rc": "(1)",
+      "ammo": "2 (b)"
+    },
+    {
+      "id": "ares-siii-super-squirt",
+      "displayName": "Ares S-III Super Squirt",
+      "weaponCategoryId": "special-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 950
+      },
+      "accuracy": "3",
+      "damage": "Chemical",
+      "mode": "SA",
+      "ammo": "20 (c)"
+    },
+    {
+      "id": "fichetti-pain-inducer",
+      "displayName": "Fichetti Pain Inducer",
+      "weaponCategoryId": "special-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "accuracy": "3",
+      "damage": "Special",
+      "mode": "SS",
+      "ammo": "Special"
+    },
+    {
+      "id": "parashield-dart-pistol",
+      "displayName": "Parashield Dart Pistol",
+      "weaponCategoryId": "special-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      },
+      "accuracy": "5",
+      "damage": "as Drug/Toxin",
+      "mode": "SA",
+      "ammo": "5 (c)"
+    },
+    {
+      "id": "parashield-dart-rifle",
+      "displayName": "Parashield Dart Rifle",
+      "weaponCategoryId": "special-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 429,
+        "pdfPage": 431
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1200
+      },
+      "accuracy": "6",
+      "damage": "as Drug/Toxin",
+      "mode": "SA",
+      "ammo": "6 (m)"
+    },
+    {
+      "id": "ingram-valiant",
+      "displayName": "Ingram Valiant",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 430,
+        "pdfPage": 432
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 5800
+      },
+      "accuracy": "5 (6)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "BF/FA",
+      "rc": "2 (3)",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "stoner-ares-m202",
+      "displayName": "Stoner-Ares M202",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 430,
+        "pdfPage": 432
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 7000
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-3",
+      "mode": "FA",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "rpk-hmg",
+      "displayName": "RPK HMG",
+      "weaponCategoryId": "machine-guns",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 430,
+        "pdfPage": 432
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 16300
+      },
+      "accuracy": "5",
+      "damage": "12P",
+      "ap": "-4",
+      "mode": "FA",
+      "rc": "(6)",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "ares-antioch-2",
+      "displayName": "Ares Antioch-2",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 3200
+      },
+      "accuracy": "4 (6)",
+      "damage": "Grenade",
+      "mode": "SS",
+      "ammo": "8 (m)"
+    },
+    {
+      "id": "armtech-mgl-12",
+      "displayName": "ArmTech MGL-12",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 5000
+      },
+      "accuracy": "4",
+      "damage": "Grenade",
+      "mode": "SA",
+      "ammo": "12 (c)"
+    },
+    {
+      "id": "aztechnology-striker",
+      "displayName": "Aztechnology Striker",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1200
+      },
+      "accuracy": "5",
+      "damage": "Missile",
+      "mode": "SS",
+      "ammo": "1 (ml)"
+    },
+    {
+      "id": "krime-cannon",
+      "displayName": "Krime Cannon",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 21000
+      },
+      "accuracy": "4",
+      "damage": "16P",
+      "ap": "-6",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "6 (m)"
+    },
+    {
+      "id": "onotari-interceptor",
+      "displayName": "Onotari Interceptor",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 14000
+      },
+      "accuracy": "4 (6)",
+      "damage": "Missile",
+      "mode": "SS",
+      "ammo": "2 (ml)"
+    },
+    {
+      "id": "panther-xxl",
+      "displayName": "Panther XXL",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "creationUnavailable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 43000
+      },
+      "accuracy": "5 (7)",
+      "damage": "17P",
+      "ap": "-6",
+      "mode": "SS",
+      "ammo": "15 (c)"
+    },
+    {
+      "id": "grapple-gun",
+      "displayName": "Grapple Gun",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 450,
+        "pdfPage": 452
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "3",
+      "damage": "7S",
+      "ap": "-2",
+      "mode": "SS",
+      "ammo": "1 (ml)"
+    },
+    {
+      "id": "micro-flare-launcher",
+      "displayName": "Micro Flare Launcher",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 449,
+        "pdfPage": 451
+      },
+      "availability": {
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 175
+      },
+      "accuracy": "3",
+      "damage": "5P (Fire)",
+      "ap": "-5",
+      "mode": "SS",
+      "ammo": "1 (ml)"
+    },
+    {
+      "id": "monofilament-chainsaw",
+      "displayName": "Monofilament Chainsaw",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 448,
+        "pdfPage": 450
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "3",
+      "reach": "1",
+      "damage": "8P",
+      "ap": "-6"
+    },
+    {
+      "id": "highland-forge-claymore",
+      "displayName": "Highland Forge Claymore",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 18,
+        "pdfPage": 20
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 4500
+      },
+      "accuracy": "5",
+      "reach": "2",
+      "damage": "(STR + 5)P",
+      "ap": "-5"
+    },
+    {
+      "id": "horizon-flynn-rapier",
+      "displayName": "Horizon-Flynn Rapier",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 18,
+        "pdfPage": 20
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "7",
+      "reach": "1",
+      "damage": "(STR + 2)P",
+      "ap": "-3"
+    },
+    {
+      "id": "victorinox-memory-blade-sword",
+      "displayName": "Victorinox Memory Blade (sword)",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 19,
+        "pdfPage": 21
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "accuracy": "5",
+      "reach": "1",
+      "damage": "(STR + 2)P",
+      "ap": "-2"
+    },
+    {
+      "id": "victorinox-memory-blade-dagger",
+      "displayName": "Victorinox Memory Blade (dagger)",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 19,
+        "pdfPage": 21
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "accuracy": "5",
+      "reach": "none",
+      "damage": "(STR + 1)P",
+      "ap": "-2"
+    },
+    {
+      "id": "ares-one-monosword",
+      "displayName": "Ares \"One\" Monosword",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 19,
+        "pdfPage": 21
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "accuracy": "5",
+      "reach": "1",
+      "damage": "(STR + 3)P",
+      "ap": "-3"
+    },
+    {
+      "id": "cougar-fineblades-short",
+      "displayName": "Cougar Fineblades (short)",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      },
+      "accuracy": "6",
+      "reach": "none",
+      "damage": "(STR + 2)P",
+      "ap": "-1"
+    },
+    {
+      "id": "cougar-fineblades-long",
+      "displayName": "Cougar Fineblades (long)",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      },
+      "accuracy": "6",
+      "reach": "none",
+      "damage": "(STR + 3)P",
+      "ap": "-1"
+    },
+    {
+      "id": "nemesis-arms-maul-stun-staff",
+      "displayName": "Nemesis Arms Maul Stun Staff",
+      "weaponCategoryId": "clubs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "6",
+      "reach": "2",
+      "damage": "9S(e)",
+      "ap": "-5"
+    },
+    {
+      "id": "standard-garrote",
+      "displayName": "Standard Garrote",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "accuracy": "5",
+      "reach": "none",
+      "damage": "(STR + 4)S",
+      "ap": "-6"
+    },
+    {
+      "id": "ares-queen-of-hearts-monofilament-garrote",
+      "displayName": "Ares \"Queen of Hearts\" Monofilament Garrote",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "accuracy": "5",
+      "reach": "none",
+      "damage": "(STR + 6)P",
+      "ap": "-8"
+    },
+    {
+      "id": "bullwhip",
+      "displayName": "Bullwhip",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 20,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      },
+      "accuracy": "6",
+      "reach": "2",
+      "damage": "(STR + 1)P",
+      "ap": "+3"
+    },
+    {
+      "id": "ash-arms-combat-chainsaw",
+      "displayName": "Ash Arms Combat Chainsaw",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 21,
+        "pdfPage": 23
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "accuracy": "5",
+      "reach": "1",
+      "damage": "8P",
+      "ap": "-4"
+    },
+    {
+      "id": "ash-arms-monofilament-chainsaw",
+      "displayName": "Ash Arms Monofilament Chainsaw",
+      "weaponCategoryId": "exotic-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 21,
+        "pdfPage": 23
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "accuracy": "5",
+      "reach": "1",
+      "damage": "12P",
+      "ap": "-8"
+    },
+    {
+      "id": "boomerang",
+      "displayName": "Boomerang",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "accuracy": "Physical - 1",
+      "damage": "(STR + 2)P"
+    },
+    {
+      "id": "harpoon-javelin",
+      "displayName": "Harpoon/Javelin",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 125
+      },
+      "accuracy": "Physical",
+      "damage": "(STR + 3)P",
+      "ap": "-1"
+    },
+    {
+      "id": "net",
+      "displayName": "Net",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 24,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 350
+      },
+      "accuracy": "Physical - 2"
+    },
+    {
+      "id": "cavalier-arms-urban-tribe-tomahawk",
+      "displayName": "Cavalier Arms Urban Tribe Tomahawk",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 25,
+        "pdfPage": 27
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "accuracy": "Physical + 1",
+      "damage": "(STR + 2)P",
+      "ap": "-1"
+    },
+    {
+      "id": "standard-harpoon-gun",
+      "displayName": "Standard Harpoon Gun",
+      "weaponCategoryId": "harpoon-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 22,
+        "pdfPage": 24
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "accuracy": "5",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SS",
+      "ammo": "1"
+    },
+    {
+      "id": "aquadyne-shark-xs-harpoon-gun",
+      "displayName": "Aquadyne Shark-XS Harpoon Gun",
+      "weaponCategoryId": "harpoon-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 22,
+        "pdfPage": 24
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 800
+      },
+      "accuracy": "5",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "ranger-sliver-pistol-crossbow",
+      "displayName": "Ranger Sliver Pistol Crossbow",
+      "weaponCategoryId": "crossbows",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 23,
+        "pdfPage": 25
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "7",
+      "damage": "4P",
+      "mode": "SS"
+    },
+    {
+      "id": "ares-giantslayer-slingshot",
+      "displayName": "Ares Giantslayer Slingshot",
+      "weaponCategoryId": "slingshots",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 23,
+        "pdfPage": 25
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "accuracy": "7",
+      "damage": "2P",
+      "mode": "SS"
+    },
+    {
+      "id": "ares-screech-sonic-rifle",
+      "displayName": "Ares Screech Sonic Rifle",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 8000
+      },
+      "accuracy": "6",
+      "damage": "7S",
+      "ap": "*",
+      "mode": "SS",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "blowgun",
+      "displayName": "Blowgun",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 15
+      },
+      "accuracy": "8",
+      "damage": "1P",
+      "mode": "SS",
+      "ammo": "1 (ml)"
+    },
+    {
+      "id": "standard-bola",
+      "displayName": "Standard Bola",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 75
+      },
+      "accuracy": "Physical",
+      "damage": "(STR + 3)S",
+      "ap": "+4"
+    },
+    {
+      "id": "nemesis-arms-suruchin-monofilament-bolas",
+      "displayName": "Nemesis Arms Suruchin Monofilament Bolas",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 4000
+      },
+      "accuracy": "Physical",
+      "damage": "(STR + 3)S",
+      "ap": "+4",
+      "generatedProfileIds": [
+        "nemesis-arms-suruchin-monofilament-bolas-wrap"
+      ]
+    },
+    {
+      "id": "fn-aal-gyrojet-pistol",
+      "displayName": "FN-AAL Gyrojet Pistol",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "SA",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "mortimer-trafalgar-gun-cane",
+      "displayName": "Mortimer of London \"Trafalgar\" Gun Cane",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 27,
+        "pdfPage": 29
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "mode": "SS",
+      "ammo": "1 (b)"
+    },
+    {
+      "id": "mortimer-knockoff-gun-cane",
+      "displayName": "Mortimer of London Knockoff Gun Cane",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 27,
+        "pdfPage": 29
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 150
+      },
+      "accuracy": "5",
+      "damage": "9P",
+      "mode": "SS"
+    },
+    {
+      "id": "sa-retiarus-net-gun-basic",
+      "displayName": "SA Retiarus Net Gun (basic)",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 28,
+        "pdfPage": 30
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "accuracy": "5",
+      "mode": "SS",
+      "ammo": "4 (b)"
+    },
+    {
+      "id": "sa-retiarus-net-gun-xl",
+      "displayName": "SA Retiarus Net Gun (XL)",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 28,
+        "pdfPage": 30
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "5",
+      "mode": "SS",
+      "ammo": "2 (b)"
+    },
+    {
+      "id": "tiffani-elegance-shooting-bracers",
+      "displayName": "Tiffani Élégance Shooting Bracers",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 28,
+        "pdfPage": 30
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "accuracy": "5 (6)",
+      "damage": "7P",
+      "mode": "SS",
+      "ammo": "1 (b)"
+    },
+    {
+      "id": "cavalier-safeguard",
+      "displayName": "Cavalier SafeGuard",
+      "weaponCategoryId": "tasers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 29,
+        "pdfPage": 31
+      },
+      "cost": {
+        "fixed": 275
+      },
+      "accuracy": "5 (6)",
+      "damage": "6S(e)",
+      "ap": "-5",
+      "mode": "SA",
+      "ammo": "6 (m)"
+    },
+    {
+      "id": "tiffani-defiance-protector",
+      "displayName": "Tiffani-Defiance Protector",
+      "weaponCategoryId": "tasers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 29,
+        "pdfPage": 31
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "5 (6)",
+      "damage": "7S(e)",
+      "ap": "-5",
+      "mode": "SA",
+      "ammo": "3 (m)"
+    },
+    {
+      "id": "fichetti-tiffani-self-defender-2075",
+      "displayName": "Fichetti-Tiffani Self-Defender 2075",
+      "weaponCategoryId": "hold-outs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 30,
+        "pdfPage": 32
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      },
+      "accuracy": "4",
+      "damage": "6P",
+      "mode": "SS",
+      "ammo": "4 (c)"
+    },
+    {
+      "id": "fichetti-executive-action",
+      "displayName": "Fichetti Executive Action",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 30,
+        "pdfPage": 32
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "mode": "SA/BF",
+      "ammo": "18 (c)"
+    },
+    {
+      "id": "shiawase-armaments-puzzler",
+      "displayName": "Shiawase Armaments Puzzler",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 31,
+        "pdfPage": 33
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "accuracy": "4",
+      "damage": "6P",
+      "mode": "SA",
+      "ammo": "12 (c)"
+    },
+    {
+      "id": "nitama-sporter",
+      "displayName": "Nitama Sporter",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 31,
+        "pdfPage": 33
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "6 (7)",
+      "damage": "6P",
+      "mode": "SA",
+      "ammo": "18 (c)"
+    },
+    {
+      "id": "cavalier-deputy",
+      "displayName": "Cavalier Deputy",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 32,
+        "pdfPage": 34
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 225
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "7 (cy)"
+    },
+    {
+      "id": "psk-3-collapsible-heavy-pistol",
+      "displayName": "PSK-3 Collapsible Heavy Pistol",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 32,
+        "pdfPage": 34
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1050
+      },
+      "accuracy": "4",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "savalette-guardian",
+      "displayName": "Savalette Guardian",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 33,
+        "pdfPage": 35
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 870
+      },
+      "accuracy": "5 (7)",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "rc": "1",
+      "ammo": "12 (c)"
+    },
+    {
+      "id": "onotari-arms-violator",
+      "displayName": "Onotari Arms Violator",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 33,
+        "pdfPage": 35
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 550
+      },
+      "accuracy": "5 (7)",
+      "damage": "7P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "1",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "ppsk-4-collapsible-machine-pistol",
+      "displayName": "PPSK-4 Collapsible Machine Pistol",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 34,
+        "pdfPage": 36
+      },
+      "availability": {
+        "fixed": 17,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2800
+      },
+      "accuracy": "5 (6)",
+      "damage": "6P",
+      "mode": "SA/BF",
+      "rc": "(1)",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "onotari-arms-equalizer",
+      "displayName": "Onotari Arms Equalizer",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 34,
+        "pdfPage": 36
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      },
+      "accuracy": "4 (5)",
+      "damage": "7P",
+      "mode": "BF/FA",
+      "rc": "(1)",
+      "ammo": "12 (c)"
+    },
+    {
+      "id": "ultimax-70",
+      "displayName": "Ultimax 70",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 35,
+        "pdfPage": 37
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 800
+      },
+      "accuracy": "5 (6)",
+      "damage": "6P",
+      "mode": "BF/FA",
+      "rc": "2",
+      "ammo": "15 (c)"
+    },
+    {
+      "id": "ares-executioner",
+      "displayName": "Ares Executioner",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 35,
+        "pdfPage": 37
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "4 (6)",
+      "damage": "7P",
+      "mode": "SA/BF/FA",
+      "rc": "(1)",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "hk-urban-combat",
+      "displayName": "HK Urban Combat",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 36,
+        "pdfPage": 38
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2300
+      },
+      "accuracy": "7 (9)",
+      "damage": "8P",
+      "mode": "SA/BF/FA",
+      "rc": "2",
+      "ammo": "36 (c)"
+    },
+    {
+      "id": "ak-98",
+      "displayName": "AK-98",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 36,
+        "pdfPage": 38
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "ammo": "38 (c)",
+      "generatedProfileIds": [
+        "ak-98-grenade-launcher"
+      ]
+    },
+    {
+      "id": "ares-hvar",
+      "displayName": "Ares HVAR",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2400
+      },
+      "accuracy": "5 (7)",
+      "damage": "8P",
+      "mode": "SA/BF/FA",
+      "rc": "3 (4)",
+      "ammo": "50 (c)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle",
+      "displayName": "HK XM30 Assault Rifle",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "availability": {
+        "fixed": 15,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 4500
+      },
+      "accuracy": "6 (8)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "rc": "(1)",
+      "ammo": "30 (c)",
+      "generatedProfileIds": [
+        "hk-xm30-assault-rifle-sniper",
+        "hk-xm30-assault-rifle-lmg",
+        "hk-xm30-assault-rifle-shotgun",
+        "hk-xm30-assault-rifle-grenade-launcher"
+      ]
+    },
+    {
+      "id": "nissan-optimum-ii",
+      "displayName": "Nissan Optimum II",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 38,
+        "pdfPage": 40
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2300
+      },
+      "accuracy": "5 (7)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SA/BF/FA",
+      "rc": "1",
+      "ammo": "30 (c)",
+      "generatedProfileIds": [
+        "nissan-optimum-ii-shotgun"
+      ]
+    },
+    {
+      "id": "terracotta-arms-am-47",
+      "displayName": "Terracotta Arms AM-47",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 36,
+        "pdfPage": 38
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 35000
+      },
+      "accuracy": "7 (9)",
+      "damage": "15P",
+      "ap": "-4",
+      "mode": "SA",
+      "rc": "1 (3)",
+      "ammo": "18 (c)"
+    },
+    {
+      "id": "onotari-arms-jp-k50",
+      "displayName": "Onotari Arms JP-K50",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 39,
+        "pdfPage": 41
+      },
+      "availability": {
+        "fixed": 13,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 12500
+      },
+      "accuracy": "7",
+      "damage": "12P",
+      "ap": "-3",
+      "mode": "SA/BF",
+      "rc": "1",
+      "ammo": "25 (c)"
+    },
+    {
+      "id": "pioneer-60",
+      "displayName": "Pioneer 60",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 39,
+        "pdfPage": 41
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "barret-model-122",
+      "displayName": "Barret Model 122",
+      "weaponCategoryId": "sniper-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 40,
+        "pdfPage": 42
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 38500
+      },
+      "accuracy": "7 (9)",
+      "damage": "14P",
+      "ap": "-6",
+      "mode": "SA",
+      "rc": "(2)",
+      "ammo": "14 (c)"
+    },
+    {
+      "id": "auto-assault-16",
+      "displayName": "Auto-Assault 16",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 40,
+        "pdfPage": 42
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1800
+      },
+      "accuracy": "4",
+      "damage": "13P",
+      "ap": "-1",
+      "mode": "SA/BF/FA",
+      "rc": "-2",
+      "ammo": "10 (c) or 32 (d)"
+    },
+    {
+      "id": "mossberg-am-cmdt",
+      "displayName": "Mossberg AM-CMDT",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 41,
+        "pdfPage": 43
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1400
+      },
+      "accuracy": "5 (7)",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SA/BF/FA",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "franchi-spas-24",
+      "displayName": "Franchi SPAS-24",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 41,
+        "pdfPage": 43
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1050
+      },
+      "accuracy": "4 (6)",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "rc": "-1",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "remington-990",
+      "displayName": "Remington 990",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 42,
+        "pdfPage": 44
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 950
+      },
+      "accuracy": "4",
+      "damage": "11P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "8 (c)"
+    },
+    {
+      "id": "ge-vindicator-mini-gun",
+      "displayName": "GE Vindicator Mini-Gun",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 42,
+        "pdfPage": 44
+      },
+      "availability": {
+        "fixed": 24,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 6000
+      },
+      "accuracy": "4 (6)",
+      "damage": "9P",
+      "ap": "-4",
+      "mode": "FA",
+      "rc": "-2",
+      "ammo": "200 (belt)"
+    },
+    {
+      "id": "sa-nemesis",
+      "displayName": "SA Nemesis",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 43,
+        "pdfPage": 45
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 6500
+      },
+      "accuracy": "5 (7)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "BF/FA",
+      "rc": "-2",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "fn-mag-5",
+      "displayName": "FN MAG-5",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 43,
+        "pdfPage": 45
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 8500
+      },
+      "accuracy": "4 (5)",
+      "damage": "11P",
+      "ap": "-3",
+      "mode": "FA",
+      "rc": "-2 (-8)",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "ultamax-mmg",
+      "displayName": "Ultamax MMG",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 44,
+        "pdfPage": 46
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 7600
+      },
+      "accuracy": "5 (6)",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "FA",
+      "rc": "-1 / -6",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "ruhrmetall-sf-20",
+      "displayName": "Ruhrmetall SF-20",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 44,
+        "pdfPage": 46
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 19600
+      },
+      "accuracy": "5 (6)",
+      "damage": "12P",
+      "ap": "-4",
+      "mode": "FA",
+      "rc": "-1 (-4)",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "ultamax-hmg-2",
+      "displayName": "Ultamax HMG-2",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 44,
+        "pdfPage": 46
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 16000
+      },
+      "accuracy": "4 (5)",
+      "damage": "11P",
+      "ap": "-4",
+      "mode": "FA",
+      "rc": "-6",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "ares-thunderstruck-gauss-rifle",
+      "displayName": "Ares Thunderstruck Gauss Rifle",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 45,
+        "pdfPage": 47
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 26000
+      },
+      "accuracy": "7 (8)",
+      "damage": "15P",
+      "ap": "-8",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "10 (c) + Energy"
+    },
+    {
+      "id": "ogre-hammer-sws-assault-cannon",
+      "displayName": "Ogre Hammer SWS Assault Cannon",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 46,
+        "pdfPage": 48
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 32000
+      },
+      "accuracy": "6",
+      "damage": "16P",
+      "ap": "-4",
+      "mode": "SA",
+      "ammo": "6 (c)"
+    },
+    {
+      "id": "ares-vigorous-assault-cannon",
+      "displayName": "Ares Vigorous Assault Cannon",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 46,
+        "pdfPage": 48
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 24500
+      },
+      "accuracy": "4",
+      "damage": "16P",
+      "ap": "-6",
+      "mode": "SS",
+      "ammo": "12 (c)"
+    },
+    {
+      "id": "onotari-arms-ballista-mml",
+      "displayName": "Onotari Arms Ballista MML",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 46,
+        "pdfPage": 48
+      },
+      "availability": {
+        "fixed": 19,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "accuracy": "Missile",
+      "damage": "Missile",
+      "mode": "SS",
+      "ammo": "4 (m)"
+    },
+    {
+      "id": "mitsubishi-yakusoku-mrl",
+      "displayName": "Mitsubishi Yakusoku MRL",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 47,
+        "pdfPage": 49
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 14000
+      },
+      "accuracy": "Missile",
+      "damage": "Missile",
+      "mode": "SA/BF",
+      "ammo": "4 x 2 (m)"
+    },
+    {
+      "id": "ares-redline",
+      "displayName": "Ares Redline",
+      "weaponCategoryId": "laser-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 48,
+        "pdfPage": 50
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 7500
+      },
+      "accuracy": "9",
+      "damage": "5P",
+      "ap": "-10",
+      "mode": "SA",
+      "ammo": "10 (c) or external source"
+    },
+    {
+      "id": "ares-lancer-mp-laser",
+      "displayName": "Ares Lancer MP Laser",
+      "weaponCategoryId": "laser-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 48,
+        "pdfPage": 50
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 16000
+      },
+      "accuracy": "7",
+      "damage": "7P",
+      "ap": "-10",
+      "mode": "SA",
+      "ammo": "2x 10 (c) or external source"
+    },
+    {
+      "id": "ares-archon-heavy-mp-laser",
+      "displayName": "Ares Archon Heavy MP Laser",
+      "weaponCategoryId": "laser-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 49,
+        "pdfPage": 51
+      },
+      "availability": {
+        "fixed": 24,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 35000
+      },
+      "accuracy": "7",
+      "damage": "10P",
+      "ap": "-10",
+      "mode": "SA",
+      "ammo": "External source"
+    },
+    {
+      "id": "shiawase-blazer",
+      "displayName": "Shiawase Blazer",
+      "weaponCategoryId": "flamethrowers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 49,
+        "pdfPage": 51
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2200
+      },
+      "accuracy": "6",
+      "damage": "10P",
+      "ap": "-6",
+      "mode": "SA/BF/FA",
+      "ammo": "4 (c)"
+    },
+    {
+      "id": "nemesis-arms-suruchin-monofilament-bolas-wrap",
+      "displayName": "Nemesis Arms Suruchin Monofilament Bolas (wrap)",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 26,
+        "pdfPage": 28
+      },
+      "damage": "12P",
+      "ap": "-8"
+    },
+    {
+      "id": "ak-98-grenade-launcher",
+      "displayName": "AK-98 (grenade launcher)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 36,
+        "pdfPage": 38
+      },
+      "accuracy": "3",
+      "damage": "Grenade",
+      "ap": "Grenade",
+      "mode": "SS",
+      "ammo": "6 (m)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle-sniper",
+      "displayName": "HK XM30 (sniper configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "accuracy": "7 (9)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "SA",
+      "rc": "2 (3)",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle-lmg",
+      "displayName": "HK XM30 (LMG configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "accuracy": "6 (8)",
+      "damage": "9P",
+      "ap": "-2",
+      "mode": "BF/FA",
+      "rc": "2 (3)",
+      "ammo": "100 (belt)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle-shotgun",
+      "displayName": "HK XM30 (shotgun configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "accuracy": "3 (5)",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "hk-xm30-assault-rifle-grenade-launcher",
+      "displayName": "HK XM30 (grenade launcher configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 37,
+        "pdfPage": 39
+      },
+      "accuracy": "4",
+      "damage": "Grenade",
+      "ap": "Grenade",
+      "mode": "SS",
+      "ammo": "6 (c)"
+    },
+    {
+      "id": "nissan-optimum-ii-shotgun",
+      "displayName": "Nissan Optimum II (shotgun configuration)",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "generated",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 38,
+        "pdfPage": 40
+      },
+      "accuracy": "4 (6)",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "1",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "colt-new-model-revolver",
+      "displayName": "Colt New Model Revolver",
+      "weaponCategoryId": "hold-outs",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 4,
+        "pdfPage": 4
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 180
+      },
+      "accuracy": "6",
+      "damage": "5P",
+      "ap": "--",
+      "mode": "SA",
+      "ammo": "5 (cy)"
+    },
+    {
+      "id": "colt-agent-special",
+      "displayName": "Colt Agent Special",
+      "weaponCategoryId": "light-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 5,
+        "pdfPage": 5
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      },
+      "accuracy": "5",
+      "damage": "8P",
+      "ap": "--",
+      "mode": "SA",
+      "ammo": "8 (c)"
+    },
+    {
+      "id": "colt-future-frontier",
+      "displayName": "Colt Future Frontier",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 6,
+        "pdfPage": 6
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "5",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "7 (cy)"
+    },
+    {
+      "id": "fianchetti-military-100",
+      "displayName": "Fianchetti Military 100",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 7,
+        "pdfPage": 7
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 850
+      },
+      "accuracy": "5 (7)",
+      "damage": "6P",
+      "ap": "--",
+      "mode": "SA/BF/FA",
+      "ammo": "20 (c)"
+    },
+    {
+      "id": "cavalier-evanator",
+      "displayName": "Cavalier Evanator",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 8,
+        "pdfPage": 8
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 775
+      },
+      "accuracy": "5 (6)",
+      "damage": "6P",
+      "ap": "--",
+      "mode": "BF/FA",
+      "rc": "1 (2)",
+      "ammo": "20 (c)"
+    },
+    {
+      "id": "remington-suppressor",
+      "displayName": "Remington Suppressor",
+      "weaponCategoryId": "machine-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 9,
+        "pdfPage": 9
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 700
+      },
+      "accuracy": "6",
+      "damage": "7P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "ammo": "15 (c)"
+    },
+    {
+      "id": "krime-spree",
+      "displayName": "Krime Spree",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 10,
+        "pdfPage": 10
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 425
+      },
+      "accuracy": "4",
+      "damage": "7P",
+      "ap": "--",
+      "mode": "FA",
+      "rc": "1",
+      "ammo": "30 (c)"
+    },
+    {
+      "id": "ares-sigma-3",
+      "displayName": "Ares Sigma-3",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 11,
+        "pdfPage": 11
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "4 (6)",
+      "damage": "8P",
+      "ap": "--",
+      "mode": "SA/BF/FA",
+      "rc": "(2)",
+      "ammo": "50 (d)"
+    },
+    {
+      "id": "cavalier-arms-gladius",
+      "displayName": "Cavalier Arms Gladius",
+      "weaponCategoryId": "submachine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 12,
+        "pdfPage": 12
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 400
+      },
+      "accuracy": "3 (4)",
+      "damage": "7P",
+      "ap": "--",
+      "mode": "BF/FA",
+      "rc": "1 (2)",
+      "ammo": "32 (c)"
+    },
+    {
+      "id": "shiawase-arms-monsoon",
+      "displayName": "Shiawase Arms Monsoon",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 13,
+        "pdfPage": 13
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 1900
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA/FA",
+      "rc": "1",
+      "ammo": "20 (ml) x6"
+    },
+    {
+      "id": "colt-inception",
+      "displayName": "Colt Inception",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 14,
+        "pdfPage": 14
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2250
+      },
+      "accuracy": "7 (8)",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "rc": "1 (3)",
+      "ammo": "35 (c)"
+    },
+    {
+      "id": "krupp-arms-kriegfaust",
+      "displayName": "Krupp Arms Kriegfaust",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 15,
+        "pdfPage": 15
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1300
+      },
+      "accuracy": "8",
+      "damage": "9P",
+      "ap": "-1",
+      "mode": "SA/BF",
+      "rc": "1",
+      "ammo": "25 (d)"
+    },
+    {
+      "id": "sbd-44",
+      "displayName": "SBd-44",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 16,
+        "pdfPage": 16
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 500
+      },
+      "accuracy": "3",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA/BF/FA",
+      "ammo": "32 (c)"
+    },
+    {
+      "id": "krime-boss",
+      "displayName": "Krime Boss",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 17,
+        "pdfPage": 17
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      },
+      "accuracy": "3",
+      "damage": "13P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "1",
+      "ammo": "15 (d)"
+    },
+    {
+      "id": "winchester-model-201",
+      "displayName": "Winchester Model 201",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 18,
+        "pdfPage": 18
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1300
+      },
+      "accuracy": "8",
+      "damage": "11P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "2 (b)"
+    },
+    {
+      "id": "winchester-model-2066",
+      "displayName": "Winchester Model 2066",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 19,
+        "pdfPage": 19
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "4",
+      "damage": "11P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "winchester-model-2054",
+      "displayName": "Winchester Model 2054",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 20,
+        "pdfPage": 20
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "accuracy": "4 (5)",
+      "damage": "11P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "7 (m)"
+    },
+    {
+      "id": "shiawase-arms-rain",
+      "displayName": "Shiawase Arms Rain",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 21,
+        "pdfPage": 21
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 450
+      },
+      "accuracy": "4",
+      "damage": "10P",
+      "ap": "-1",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "5 (ml)"
+    },
+    {
+      "id": "cavalier-falchion",
+      "displayName": "Cavalier Falchion",
+      "weaponCategoryId": "shotguns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 22,
+        "pdfPage": 22
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1200
+      },
+      "accuracy": "5 (7)",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "8 (m)"
+    },
+    {
+      "id": "springfield-2003",
+      "displayName": "Springfield 2003",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 23,
+        "pdfPage": 23
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 3600
+      },
+      "accuracy": "9",
+      "damage": "12P",
+      "ap": "-2",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "winchester-model-2024",
+      "displayName": "Winchester Model 2024",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 24,
+        "pdfPage": 24
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1800
+      },
+      "accuracy": "6",
+      "damage": "12P",
+      "ap": "--",
+      "mode": "SA",
+      "ammo": "7 (m)"
+    },
+    {
+      "id": "marlin-3468ss",
+      "displayName": "Marlin 3468SS",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 25,
+        "pdfPage": 25
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "accuracy": "4",
+      "damage": "13P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "4 (m)"
+    },
+    {
+      "id": "springfield-m1a",
+      "displayName": "Springfield M1A",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 26,
+        "pdfPage": 26
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1700
+      },
+      "accuracy": "6",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "20 (c)"
+    },
+    {
+      "id": "m1-garand",
+      "displayName": "M1 Garand",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 27,
+        "pdfPage": 27
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1100
+      },
+      "accuracy": "5",
+      "damage": "12P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "8 (c)"
+    },
+    {
+      "id": "springfield-model-1855-reproduction",
+      "displayName": "Springfield Model 1855 Reproduction",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 28,
+        "pdfPage": 28
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 850
+      },
+      "accuracy": "2",
+      "damage": "10P",
+      "ap": "--",
+      "mode": "SS",
+      "ammo": "1 (cb)"
+    },
+    {
+      "id": "marlin-3041-bl",
+      "displayName": "Marlin 3041 BL",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 29,
+        "pdfPage": 29
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1100
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-3",
+      "mode": "SA",
+      "ammo": "6 (m)"
+    },
+    {
+      "id": "marlin-x71",
+      "displayName": "Marlin X71",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 30,
+        "pdfPage": 30
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "accuracy": "5",
+      "damage": "12P",
+      "ap": "-4",
+      "mode": "SS",
+      "ammo": "5 (m)"
+    },
+    {
+      "id": "marlin-79s",
+      "displayName": "Marlin 79S",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 31,
+        "pdfPage": 31
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "accuracy": "4",
+      "damage": "6P",
+      "ap": "--",
+      "mode": "SA",
+      "ammo": "10 (c)"
+    },
+    {
+      "id": "ultimax-rain-forest-carbine",
+      "displayName": "Ultimax Rain Forest Carbine",
+      "weaponCategoryId": "assault-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 32,
+        "pdfPage": 32
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2800
+      },
+      "accuracy": "7",
+      "damage": "14P",
+      "ap": "-4",
+      "mode": "SA",
+      "rc": "(1)",
+      "ammo": "18 (c)"
+    },
+    {
+      "id": "winchester-model-2067",
+      "displayName": "Winchester Model 2067",
+      "weaponCategoryId": "sporting-rifles",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 33,
+        "pdfPage": 33
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 650
+      },
+      "accuracy": "5",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "15 (m)"
+    },
+    {
+      "id": "krime-wave",
+      "displayName": "Krime Wave",
+      "weaponCategoryId": "machine-guns",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 34,
+        "pdfPage": 34
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2000
+      },
+      "accuracy": "5",
+      "damage": "10P",
+      "ap": "-2",
+      "mode": "FA",
+      "rc": "(2)",
+      "ammo": "50 (c) or 100 (belt)"
+    },
+    {
+      "id": "krime-bomb",
+      "displayName": "Krime Bomb",
+      "weaponCategoryId": "cannons-launchers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 35,
+        "pdfPage": 35
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 23000
+      },
+      "accuracy": "6 (7)",
+      "damage": "16P",
+      "ap": "-6",
+      "mode": "SS",
+      "ammo": "4 (m)"
+    },
+    {
+      "id": "shiawase-arms-incinerator",
+      "displayName": "Shiawase Arms Incinerator",
+      "weaponCategoryId": "flamethrowers",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "gun-heaven-3",
+        "printedPage": 36,
+        "pdfPage": 36
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "accuracy": "4",
+      "damage": "12P",
+      "ap": "-6",
+      "mode": "SS",
+      "ammo": "6 (c)"
+    },
+    {
+      "id": "cavalier-adder-slivergun",
+      "displayName": "Cavalier Adder Slivergun",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 178,
+        "pdfPage": 179
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 320
+      },
+      "accuracy": "5",
+      "damage": "8P(f)",
+      "ap": "+5",
+      "mode": "SA",
+      "ammo": "20(c)"
+    },
+    {
+      "id": "colt-manhunter",
+      "displayName": "Colt Manhunter",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 178,
+        "pdfPage": 179
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 700
+      },
+      "accuracy": "5 (6)",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SA",
+      "ammo": "16(c)"
+    },
+    {
+      "id": "lemat-2072",
+      "displayName": "Lemat 2072",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 178,
+        "pdfPage": 179
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1080
+      },
+      "accuracy": "5",
+      "damage": "8P",
+      "ap": "-1",
+      "mode": "SS",
+      "ammo": "9(cy)",
+      "generatedProfileIds": [
+        "lemat-2072-shotgun"
+      ]
+    },
+    {
+      "id": "lemat-2072-shotgun",
+      "displayName": "Lemat 2072 (shotgun barrel)",
+      "weaponCategoryId": "heavy-pistols",
+      "classification": "generated",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 178,
+        "pdfPage": 179
+      },
+      "accuracy": "5",
+      "damage": "10P(f)",
+      "ap": "+4",
+      "mode": "SS",
+      "ammo": "1(b)"
+    },
+    {
+      "id": "plasteel-toe-boots",
+      "displayName": "Plasteel Toe Boots",
+      "weaponCategoryId": "other-melee",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      },
+      "accuracy": "Physical",
+      "damage": "(STR+1)P"
+    },
+    {
+      "id": "sapphire-knife",
+      "displayName": "Sapphire Knife",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 900
+      },
+      "accuracy": "5",
+      "damage": "(STR+2)P",
+      "ap": "-3"
+    },
+    {
+      "id": "ceramic-plasteel-knife",
+      "displayName": "Ceramic/Plasteel Knife",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 75
+      },
+      "accuracy": "5",
+      "damage": "(STR+1)P",
+      "ap": "-1"
+    },
+    {
+      "id": "dynamic-tension-bow",
+      "displayName": "Dynamic Tension Bow",
+      "weaponCategoryId": "bows",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1200
+      },
+      "accuracy": "5",
+      "damage": "(Rating + 2)P",
+      "ap": "-(Rating / 4)",
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 10
+      }
+    },
+    {
+      "id": "victorinox-collapsible-hatchet",
+      "displayName": "Victorinox Collapsible Hatchet",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 179,
+        "pdfPage": 180
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250
+      },
+      "accuracy": "5",
+      "damage": "(STR+2)P",
+      "ap": "-1",
+      "reach": "1"
+    },
+    {
+      "id": "cougar-collapsible-spear",
+      "displayName": "Cougar Collapsible Spear",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 180,
+        "pdfPage": 181
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1250
+      },
+      "accuracy": "5",
+      "damage": "(STR+1)P",
+      "ap": "-1",
+      "reach": "0",
+      "generatedProfileIds": [
+        "cougar-collapsible-spear-extended"
+      ]
+    },
+    {
+      "id": "cougar-collapsible-spear-extended",
+      "displayName": "Cougar Collapsible Spear (extended)",
+      "weaponCategoryId": "blades",
+      "classification": "generated",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 180,
+        "pdfPage": 181
+      },
+      "accuracy": "5",
+      "damage": "(STR+3)P",
+      "ap": "-2",
+      "reach": "3"
+    },
+    {
+      "id": "collapsible-scythe",
+      "displayName": "Collapsible Scythe",
+      "weaponCategoryId": "blades",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2350
+      },
+      "accuracy": "5",
+      "damage": "(STR+2)P",
+      "ap": "-2",
+      "reach": "2"
+    },
+    {
+      "id": "flame-bracer",
+      "displayName": "Flame Bracer",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 184,
+        "pdfPage": 185
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 775
+      },
+      "accuracy": "4",
+      "damage": "6P(fire)",
+      "ap": "-6",
+      "mode": "SS",
+      "ammo": "2(c)"
+    },
+    {
+      "id": "ares-armatus",
+      "displayName": "Ares Armatus",
+      "weaponCategoryId": "laser-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 184,
+        "pdfPage": 185
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 19000
+      },
+      "accuracy": "6",
+      "damage": "6P",
+      "ap": "-5",
+      "mode": "SA",
+      "ammo": "10(c) or external source"
+    },
+    {
+      "id": "shiawase-arms-simoom",
+      "displayName": "Shiawase Arms Simoom",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 184,
+        "pdfPage": 185
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1500
+      },
+      "accuracy": "5",
+      "damage": "6P",
+      "mode": "SA/FA",
+      "ammo": "6(ml)"
+    },
+    {
+      "id": "throwing-syringe",
+      "displayName": "Throwing Syringe",
+      "weaponCategoryId": "throwing-weapons",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 184,
+        "pdfPage": 185
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 40
+      },
+      "accuracy": "Physical",
+      "damage": "(STR-2)P",
+      "ap": "-2"
+    },
+    {
+      "id": "tactical-grapple-gun",
+      "displayName": "Tactical Grapple Gun",
+      "weaponCategoryId": "exotic-ranged",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 187,
+        "pdfPage": 188
+      },
+      "availability": {
+        "fixed": 15,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 10000
+      },
+      "accuracy": "4 (6)",
+      "damage": "9S",
+      "ap": "-2",
+      "mode": "SS",
+      "rc": "1",
+      "ammo": "1(b)"
+    }
+  ]
+}

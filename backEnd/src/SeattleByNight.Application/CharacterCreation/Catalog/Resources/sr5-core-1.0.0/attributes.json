@@ -1,0 +1,124 @@
+{
+  "attributes": [
+    {
+      "id": "agility",
+      "displayName": "Agility",
+      "group": "physical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "body",
+      "displayName": "Body",
+      "group": "physical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "charisma",
+      "displayName": "Charisma",
+      "group": "mental",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "edge",
+      "displayName": "Edge",
+      "group": "special",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "essence",
+      "displayName": "Essence",
+      "group": "special",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 52,
+        "pdfPage": 54
+      }
+    },
+    {
+      "id": "intuition",
+      "displayName": "Intuition",
+      "group": "mental",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "logic",
+      "displayName": "Logic",
+      "group": "mental",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "magic",
+      "displayName": "Magic",
+      "group": "special",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "reaction",
+      "displayName": "Reaction",
+      "group": "physical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "resonance",
+      "displayName": "Resonance",
+      "group": "special",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "strength",
+      "displayName": "Strength",
+      "group": "physical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    },
+    {
+      "id": "willpower",
+      "displayName": "Willpower",
+      "group": "mental",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 66,
+        "pdfPage": 68
+      }
+    }
+  ]
+}

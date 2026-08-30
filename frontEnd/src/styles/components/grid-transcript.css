@@ -1,0 +1,57 @@
+/* ------------------------------------------------------------- transcript */
+
+.grid-transcript {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--sb-border);
+  background: var(--sb-bg-inset);
+}
+
+.grid-transcript__header {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-3);
+  min-height: 36px;
+  padding: var(--sb-space-2) var(--sb-space-4);
+  border-bottom: 1px solid var(--sb-border);
+  background: var(--sb-surface-sunken);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.grid-transcript__channel {
+  font-family: var(--sb-font-data);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  color: var(--sb-accent);
+  white-space: nowrap;
+}
+
+.grid-transcript__room {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--sb-font-data);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: var(--sb-text-faint);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.grid-transcript__header-spacer {
+  flex: 1;
+}
+
+.grid-transcript__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--sb-space-4);
+}
+
+.grid-transcript__note {
+  padding: 0 var(--sb-space-4);
+}
+

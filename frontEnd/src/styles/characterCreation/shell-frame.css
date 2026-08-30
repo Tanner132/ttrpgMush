@@ -1,0 +1,43 @@
+/* ─── Shell frame ───────────────────────────────────────────────────────── */
+
+.app__content:has(> .creator-shell) {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.creator-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  overflow: clip;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: var(--sb-bg);
+  color: var(--sb-text);
+  font-family: var(--sb-font-body);
+}
+
+.creator-shell__loading {
+  padding: var(--sb-space-6);
+  text-align: center;
+  font-family: var(--sb-font-data);
+  color: var(--sb-text-muted);
+}
+
+.creator-shell__actions {
+  padding: var(--sb-space-4);
+}
+
+.creator-shell__reload-btn {
+  margin-left: var(--sb-space-3);
+}
+
+.creator-shell__save-banner {
+  flex-shrink: 0;
+  margin: 0 var(--sb-space-4);
+}
+

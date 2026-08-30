@@ -1,0 +1,356 @@
+{
+  "foci": [
+    {
+      "id": "alchemical-focus",
+      "displayName": "Alchemical Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 318,
+        "pdfPage": 320
+      },
+      "focusCategoryId": "enchanting",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 5000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "banishing-focus",
+      "displayName": "Banishing Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 320,
+        "pdfPage": 322
+      },
+      "focusCategoryId": "spirit",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "binding-focus",
+      "displayName": "Binding Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 320,
+        "pdfPage": 322
+      },
+      "focusCategoryId": "spirit",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "centering-focus",
+      "displayName": "Centering Focus",
+      "creationUnavailable": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "metamagic",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 9000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "counterspelling-focus",
+      "displayName": "Counterspelling Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "spell",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "disenchanting-focus",
+      "displayName": "Disenchanting Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 318,
+        "pdfPage": 320
+      },
+      "focusCategoryId": "enchanting",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 5000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "flexible-signature-focus",
+      "displayName": "Flexible Signature Focus",
+      "creationUnavailable": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "metamagic",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 9000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "masking-focus",
+      "displayName": "Masking Focus",
+      "creationUnavailable": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "metamagic",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 9000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "power-focus",
+      "displayName": "Power Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "power",
+      "availability": {
+        "perRating": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 18000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "qi-focus",
+      "displayName": "Qi Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "qi",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 3000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "ritual-spellcasting-focus",
+      "displayName": "Ritual Spellcasting Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "spell",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "spell-shaping-focus",
+      "displayName": "Spell Shaping Focus",
+      "creationUnavailable": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "metamagic",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 9000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "spellcasting-focus",
+      "displayName": "Spellcasting Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "spell",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "summoning-focus",
+      "displayName": "Summoning Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 320,
+        "pdfPage": 322
+      },
+      "focusCategoryId": "spirit",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "sustaining-focus",
+      "displayName": "Sustaining Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 319,
+        "pdfPage": 321
+      },
+      "focusCategoryId": "spell",
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 4000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "weapon-focus",
+      "displayName": "Weapon Focus",
+      "creationUnavailable": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 320,
+        "pdfPage": 322
+      },
+      "focusCategoryId": "weapon",
+      "availability": {
+        "perRating": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 7000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    }
+  ]
+}

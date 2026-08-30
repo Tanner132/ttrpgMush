@@ -6,6 +6,7 @@ import type {
   CatalogContract,
   CostDefinition,
   CyberlimbEnhancementDefinition,
+  DroneAttribute,
   GearClassification,
   GearDefinition,
   RatingRangeDefinition,
@@ -244,12 +245,77 @@ export function vehicleModificationSlots(
   return Math.max(0, (vehicle.body ?? 0) + bonus)
 }
 
-// Slot cost is flat ("2") or scales with the modification's Rating ("Rating",
-// "Rating x 2"). Drone Immobile is the one entry that hands slots back.
-export function vehicleModificationSlotCost(
-  modification: Pick<VehicleModificationDefinition, 'slotCost'>,
-  rating: number | null | undefined,
+// The stat a drone attribute trade reads off its host. Handling and Speed are
+// printed with an on-road/off-road pair and a travel-mode letter, both of which
+// leadingRating drops (rigger-5 pp. 123-124, PDF 124-125).
+export function droneAttributeBase(
+  vehicle: Pick<VehicleDefinition, 'handling' | 'speed' | 'acceleration' | 'armor' | 'sensor' | 'body'> | undefined,
+  attribute: DroneAttribute,
 ): number {
+  switch (attribute) {
+    case 'handling': return leadingRating(vehicle?.handling)
+    case 'speed': return leadingRating(vehicle?.speed)
+    case 'acceleration': return vehicle?.acceleration ?? 0
+    case 'armor': return vehicle?.armor ?? 0
+    case 'sensor': return vehicle?.sensor ?? 0
+    case 'body': return vehicle?.body ?? 0
+    default: return 0
+  }
+}
+
+// The printed range narrowed to what this drone can actually reach: an upgrade
+// runs from one better than the printed value up to twice it, while a Body
+// reduction may not pass half the starting Body. Null for rows that are not
+// rated attribute trades; a maximum below the minimum means nothing is
+// reachable (rigger-5 pp. 122-123, PDF 123-124).
+export function droneAttributeRatingRange(
+  modification: Pick<VehicleModificationDefinition, 'ratingRange' | 'attributeModification'>,
+  vehicle: VehicleDefinition | undefined,
+): RatingRangeDefinition | null {
+  const attribute = modification.attributeModification
+  if (!attribute || attribute.kind === 'downgrade' || !modification.ratingRange) return null
+
+  const base = droneAttributeBase(vehicle, attribute.attribute)
+  const [minimum, maximum] = attribute.kind === 'bodyReduction'
+    ? [1, Math.floor(base / 2)]
+    : [base + 1, base === 0 ? 1 : base * 2]
+  return {
+    minimum: Math.max(modification.ratingRange.minimum, minimum),
+    maximum: Math.min(modification.ratingRange.maximum, maximum),
+  }
+}
+
+// A Downgrade takes 3 Armor and 1 of anything else, and cannot drop an
+// attribute below 1 -- Speed, which may reach 0, excepted
+// (rigger-5 p. 123, PDF 124).
+export function droneDowngradeAvailable(
+  modification: Pick<VehicleModificationDefinition, 'attributeModification'>,
+  vehicle: VehicleDefinition | undefined,
+): boolean {
+  const attribute = modification.attributeModification
+  if (!attribute || attribute.kind !== 'downgrade') return true
+
+  const floor = attribute.attribute === 'speed' ? 0 : 1
+  const step = attribute.attribute === 'armor' ? 3 : 1
+  return droneAttributeBase(vehicle, attribute.attribute) - step >= floor
+}
+
+// Slot cost is flat ("2") or scales with the modification's Rating ("Rating",
+// "Rating x 2"). Drone Immobile is the one entry that hands slots back. An
+// attribute upgrade is the exception: it costs the increase over the drone's
+// printed value less the free +1 (+3 for Armor), so its Mod Points come from
+// the host rather than the row (rigger-5 p. 122, PDF 123).
+export function vehicleModificationSlotCost(
+  modification: Pick<VehicleModificationDefinition, 'slotCost' | 'attributeModification'>,
+  rating: number | null | undefined,
+  vehicle?: VehicleDefinition,
+): number {
+  const attribute = modification.attributeModification
+  if (attribute?.kind === 'upgrade') {
+    const base = droneAttributeBase(vehicle, attribute.attribute)
+    return Math.max(0, (rating ?? base) - base - (attribute.freeIncrease ?? 0))
+  }
+
   if (modification.slotCost?.perRating != null) return modification.slotCost.perRating * (rating ?? 0)
   return modification.slotCost?.fixed ?? 0
 }
@@ -295,7 +361,7 @@ export function vehicleModificationCost(
 ): number {
   const options = resolveVehicleModificationOptions(catalog, modification, attachment.options)
   const slotCost = [modification, ...options]
-    .reduce((total, item) => total + vehicleModificationSlotCost(item, attachment.rating), 0)
+    .reduce((total, item) => total + vehicleModificationSlotCost(item, attachment.rating, vehicle), 0)
   return [modification, ...options].reduce((total, item) => {
     if (!item.costScaling) return total + (item.cost?.fixed ?? 0)
     return total + item.costScaling.factors.reduce(

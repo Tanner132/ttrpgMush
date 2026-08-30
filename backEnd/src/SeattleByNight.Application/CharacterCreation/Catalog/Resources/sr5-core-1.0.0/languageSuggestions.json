@@ -1,0 +1,85 @@
+{
+  "languageSuggestions": [
+    {
+      "id": "cantonese",
+      "displayName": "Cantonese",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "english",
+      "displayName": "English",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "french",
+      "displayName": "French",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "german",
+      "displayName": "German",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "italian",
+      "displayName": "Italian",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "japanese",
+      "displayName": "Japanese",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "mandarin",
+      "displayName": "Mandarin",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "russian",
+      "displayName": "Russian",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    },
+    {
+      "id": "spanish",
+      "displayName": "Spanish",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 88,
+        "pdfPage": 90
+      }
+    }
+  ]
+}

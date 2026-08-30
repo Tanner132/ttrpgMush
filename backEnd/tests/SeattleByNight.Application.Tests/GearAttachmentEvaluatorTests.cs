@@ -720,6 +720,284 @@ public sealed class GearAttachmentEvaluatorTests
     }
 
     [Fact]
+    public void Drone_attribute_upgrades_spend_mod_points_only_past_the_free_increase()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // The Roto-Drone starts at Handling 4, and every drone gets its first +1
+        // free. Handling 5 therefore costs no Mod Points but still costs
+        // (upgraded Handling x Body) x 200 = (5 x 4) x 200 = 4,000 nuyen, which
+        // leaves all four Mod Points for a standard weapon mount plus gecko
+        // grips (rigger-5 pp. 122-123, PDF 123-124).
+        var free = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-handling-upgrade", Rating: 5),
+                new AttachmentSelection("drone-1", "drone-weapon-mount-standard"),
+                new AttachmentSelection("drone-1", "drone-gecko-grips"),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, free, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(4000 + 600, evaluation.Attachments!.TotalNuyenSpent);
+
+        // Handling 6 is +2 over the printed value, so it burns increase minus
+        // one: a single Mod Point, which no longer leaves room for the mount.
+        var paid = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-handling-upgrade", Rating: 6),
+                new AttachmentSelection("drone-1", "drone-weapon-mount-standard"),
+                new AttachmentSelection("drone-1", "drone-gecko-grips"),
+            ]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, paid, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.capacity.exceeded");
+    }
+
+    [Fact]
+    public void Drone_attributes_stop_at_twice_their_printed_value()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Handling 4 can never be modified past 8 (rigger-5 p. 123, PDF 124).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments: [new AttachmentSelection("drone-1", "drone-handling-upgrade", Rating: 9)]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, document, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.rating.out-of-range");
+
+        // Nor can an upgrade land on or below the value the drone already has.
+        var sideways = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments: [new AttachmentSelection("drone-1", "drone-handling-upgrade", Rating: 4)]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, sideways, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.rating.out-of-range");
+    }
+
+    [Fact]
+    public void Drone_armor_gets_three_free_points_and_turns_restricted_past_six()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Armor is the one attribute whose free increase is +3, so the Body 4,
+        // Armor 4 Roto-Drone reaches Armor 7 without spending a Mod Point. Past
+        // 6 the row is Restricted, and the price is still (7 x 4) x 200
+        // (rigger-5 pp. 122-123, PDF 123-124).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-armor-upgrade-restricted", Rating: 7),
+                new AttachmentSelection("drone-1", "drone-weapon-mount-standard"),
+                new AttachmentSelection("drone-1", "drone-gecko-grips"),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(5600 + 600, evaluation.Attachments!.TotalNuyenSpent);
+    }
+
+    [Fact]
+    public void Drone_speed_upgrades_read_past_the_printed_travel_mode()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // The Noizquito prints Speed as "3R" -- the R is its rotor travel mode,
+        // not part of the rating. Speed 4 is the free +1, so it costs no Mod
+        // Points on a drone that only has one, and (4 x 1) x 2 x 200 = 1,600
+        // nuyen (rigger-5 pp. 122-123, PDF 123-124).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("horizon-noizquito", InstanceId: "drone-1")],
+            Attachments: [new AttachmentSelection("drone-1", "drone-speed-upgrade", Rating: 4)]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(1600, evaluation.Attachments!.TotalNuyenSpent);
+    }
+
+    [Fact]
+    public void Enduring_downgrades_hand_back_exactly_one_mod_point()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Worsening the Roto-Drone's sensors frees a fifth Mod Point, which is
+        // enough for the second ammunition bin the four-point pool could not
+        // hold (rigger-5 p. 123, PDF 124).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-downgrade-sensor"),
+                new AttachmentSelection("drone-1", "drone-weapon-mount-standard"),
+                new AttachmentSelection("drone-1", "drone-gecko-grips"),
+                new AttachmentSelection("drone-1", "drone-ammo-bay-second-bin"),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(600 + 50, evaluation.Attachments!.TotalNuyenSpent);
+
+        // A second downgrade is legal but grants nothing further, so the sixth
+        // Mod Point this build wants never arrives.
+        var greedy = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-downgrade-sensor"),
+                new AttachmentSelection("drone-1", "drone-downgrade-handling"),
+                new AttachmentSelection("drone-1", "drone-weapon-mount-standard"),
+                new AttachmentSelection("drone-1", "drone-gecko-grips"),
+                new AttachmentSelection("drone-1", "drone-ammo-bay-second-bin"),
+                new AttachmentSelection("drone-1", "drone-ammo-bay-second-bin"),
+            ]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, greedy, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.capacity.exceeded");
+    }
+
+    [Fact]
+    public void An_attribute_that_cannot_be_lowered_cannot_be_downgraded()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // The Noizquito is printed at Armor 0, and a downgrade takes 3 Armor
+        // (rigger-5 p. 123, PDF 124).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("horizon-noizquito", InstanceId: "drone-1")],
+            Attachments: [new AttachmentSelection("drone-1", "drone-downgrade-armor")]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, document, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.vehicle.drone-downgrade-unavailable");
+    }
+
+    [Fact]
+    public void One_attribute_cannot_be_traded_in_both_directions()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-downgrade-handling"),
+                new AttachmentSelection("drone-1", "drone-handling-upgrade", Rating: 5),
+            ]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, document, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.vehicle.drone-attribute-duplicated");
+    }
+
+    [Fact]
+    public void Trading_body_away_nets_one_mod_point_per_point_given_up()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Body 4 may fall to 2. Each point surrendered returns 2 Mod Points
+        // against a pool that shrinks by 1, so giving up 2 turns a 4-point pool
+        // into a 6-point one -- room for the mount, the grips, and both extra
+        // ammunition bins (rigger-5 p. 123, PDF 124).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-body-reduction", Rating: 2),
+                new AttachmentSelection("drone-1", "drone-weapon-mount-standard"),
+                new AttachmentSelection("drone-1", "drone-gecko-grips"),
+                new AttachmentSelection("drone-1", "drone-ammo-bay-second-bin"),
+                new AttachmentSelection("drone-1", "drone-ammo-bay-second-bin"),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(600 + 50 + 50, evaluation.Attachments!.TotalNuyenSpent);
+
+        // Body may never drop below half its starting value.
+        var gutted = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments: [new AttachmentSelection("drone-1", "drone-body-reduction", Rating: 3)]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, gutted, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.rating.out-of-range");
+    }
+
+    [Fact]
+    public void Drone_modifications_do_not_install_on_a_vehicle()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Mod Points are the drone system; vehicles use Modification Slots
+        // instead (rigger-5 p. 122, PDF 123).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("ares-roadmaster", InstanceId: "truck-1")],
+            Attachments: [new AttachmentSelection("truck-1", "drone-gecko-grips")]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, document, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.host.category-mismatch");
+    }
+
+    [Fact]
+    public void Autosofts_and_cosmetic_drone_mods_cost_no_mod_points()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Software and paint sit outside the Mod Point pool entirely, so a
+        // fully modded four-point drone can still carry them. A Rating 3
+        // autosoft is (3 x 500) nuyen, Smartsoft is a Rating 3 autosoft at
+        // 1,500, Linguistics is 50, and Customization starts at 10
+        // (rigger-5 pp. 125-128, PDF 126-129).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-weapon-mount-standard"),
+                new AttachmentSelection("drone-1", "drone-gecko-grips"),
+                new AttachmentSelection("drone-1", "drone-autosoft", Rating: 3),
+                new AttachmentSelection("drone-1", "drone-autosoft-smartsoft"),
+                new AttachmentSelection("drone-1", "drone-linguistics"),
+                new AttachmentSelection("drone-1", "drone-customized"),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(600 + 1500 + 1500 + 50 + 10, evaluation.Attachments!.TotalNuyenSpent);
+    }
+
+    [Fact]
     public void Printed_extra_modification_slots_widen_their_own_category()
     {
         var catalog = CatalogTestData.Catalog;

@@ -27,8 +27,8 @@ vi.mock('../../api/worldEditor.ts', async (importOriginal) => {
   }
 })
 
-const alpha: WorldRoom = { id: 'room-a', name: 'Alpha', description: 'Alpha room', accessType: 0, mapX: 0, mapY: 0, mapLayer: 0, createdAtUtc: '2026-01-01Z', version: 'room-version-2' }
-const beta: WorldRoom = { id: 'room-b', name: 'Beta', description: 'Beta room', accessType: 0, mapX: 2, mapY: 1, mapLayer: 0, createdAtUtc: '2026-01-01Z', version: 'room-version-3' }
+const alpha: WorldRoom = { id: 'room-a', name: 'Alpha', description: 'Alpha room', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0, createdAtUtc: '2026-01-01Z', version: 'room-version-2' }
+const beta: WorldRoom = { id: 'room-b', name: 'Beta', description: 'Beta room', accessType: 'Public', mapX: 2, mapY: 1, mapLayer: 0, createdAtUtc: '2026-01-01Z', version: 'room-version-3' }
 const oneWay = { id: 'exit-1', sourceRoomId: alpha.id, sourceRoomName: alpha.name, destinationRoomId: beta.id, destinationRoomName: beta.name, direction: 'north' as const, isHidden: true, isLocked: false, createdAtUtc: '2026-01-01Z', version: 'exit-version-4' }
 let graph: WorldGraph
 
@@ -66,7 +66,7 @@ describe('WorldEditorPage', () => {
     await user.type(within(dialog).getByLabelText('Description'), 'Crowded stalls')
     await user.click(within(dialog).getByRole('button', { name: 'Create room' }))
 
-    await waitFor(() => expect(createWorldRoom).toHaveBeenCalledWith({ name: 'Neon Market', description: 'Crowded stalls', accessType: 0, mapX: 1, mapY: 0, mapLayer: 0 }))
+    await waitFor(() => expect(createWorldRoom).toHaveBeenCalledWith({ name: 'Neon Market', description: 'Crowded stalls', accessType: 'Public', mapX: 1, mapY: 0, mapLayer: 0 }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(await screen.findByLabelText('Room name')).toHaveValue('Neon Market')
     expect(screen.queryByRole('button', { name: /delete|unplace|position room|new room/i })).not.toBeInTheDocument()
@@ -121,7 +121,7 @@ describe('WorldEditorPage', () => {
     await user.type(name, 'Alpha Prime')
     await user.click(screen.getByRole('button', { name: 'Save room' }))
 
-    await waitFor(() => expect(updateWorldRoom).toHaveBeenCalledWith(alpha.id, { name: 'Alpha Prime', description: 'Alpha room', accessType: 0, version: 'room-version-2' }))
+    await waitFor(() => expect(updateWorldRoom).toHaveBeenCalledWith(alpha.id, { name: 'Alpha Prime', description: 'Alpha room', accessType: 'Public', version: 'room-version-2' }))
   })
 
   it('reports a committed room update separately when graph refresh fails', async () => {

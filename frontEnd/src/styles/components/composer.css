@@ -1,0 +1,83 @@
+/* --------------------------------------------------------------- composer */
+
+.grid-composer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--sb-border);
+  background: var(--sb-surface-sunken);
+}
+
+.grid-composer__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-3);
+  min-height: 52px;
+  padding: var(--sb-space-2) var(--sb-space-4);
+}
+
+.grid-composer__row:focus-within {
+  box-shadow: inset 0 -2px 0 var(--sb-accent);
+}
+
+.grid-composer__prompt {
+  flex-shrink: 0;
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+  color: var(--sb-accent);
+  text-shadow: 0 0 10px var(--sb-accent-wash);
+  white-space: nowrap;
+}
+
+.composer {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-3);
+}
+
+.composer .ui-field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Matches textarea.ui-field__input's specificity so this actually overrides
+   the primitive's default min-height instead of losing to source order. */
+textarea.composer__input {
+  min-height: 0;
+  height: 1.4em;
+  max-height: 4.5em;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  resize: none;
+  line-height: 1.4;
+  font-size: 0.95rem;
+}
+
+textarea.composer__input:focus-visible {
+  outline: none;
+}
+
+.composer__send {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 var(--sb-space-3);
+  font-size: 0.7rem;
+}
+
+.grid-composer__hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sb-space-4);
+  padding: 0 var(--sb-space-4) var(--sb-space-2);
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--sb-text-dim);
+}
+
+.grid-composer__error {
+  margin: 0;
+  padding: 0 var(--sb-space-4) var(--sb-space-2);
+}
+

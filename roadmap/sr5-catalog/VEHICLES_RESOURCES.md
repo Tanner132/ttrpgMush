@@ -48,7 +48,7 @@ four-row table. The core rows (`rigger-interface` aside, which *Rigger 5.0*
 reprints unchanged as a Cosmetic modification) are no longer catalogued:
 `standard-weapon-mount`, `heavy-weapon-mount` and `manual-operation` are
 replaced by `weapon-mount-light`/`-standard`/`-heavy` plus their option rows.
-Source: `rigger-5` pp. 151-171 (PDF 152-172), drones pp. 122-127 (PDF 123-128).
+Source: `rigger-5` pp. 151-171 (PDF 152-172), drones pp. 122-128 (PDF 123-129).
 
 ### Modification Slots
 
@@ -62,9 +62,36 @@ and a category's pool can never be exceeded. Source: `rigger-5` p. 151 (PDF
 `modificationSlotBonuses`. Source: `rigger-5` p. 155 (PDF 156).
 
 Drone modifications use the parallel Mod Point system — one pool, also equal to
-Body — modelled here as a seventh category, `drone`. Drone Immobile is the only
-entry with a negative slot cost: it hands back 2 Mod Points. Source: `rigger-5`
-p. 122 (PDF 123).
+Body — modelled here as a seventh category, `drone`. Source: `rigger-5` p. 122
+(PDF 123).
+
+Five drone attributes can be traded in either direction against that pool
+(`rigger-5` pp. 122-123, PDF 123-124), carried on a modification as
+`attributeModification` (`attribute`, `kind`, `freeIncrease`):
+
+- **Upgrade** rows (`drone-handling-upgrade`, `-speed-`, `-acceleration-`,
+  `-armor-`, `-sensor-`, `drone-sensor-single-upgrade`) take the *new* attribute
+  value as their Rating. The first point is free (the first **three** for
+  Armor), and every point past that costs 1 Mod Point, so the slot cost is
+  `max(0, Rating - printed value - freeIncrease)` rather than a printed figure.
+  No attribute may exceed twice its printed value, which is the `ratingRange`
+  each row carries; Armor is split across three rows so the Restricted band
+  (7-12) and the Forbidden band (13+) carry their own legality.
+- **Downgrade** rows (`drone-downgrade-handling` and friends) hand back exactly
+  1 Mod Point for lowering an attribute by 1 (by 3 for Armor), so they carry a
+  flat `slotCost.fixed` of -1 and no Rating. Only the first downgrade of a given
+  attribute pays out, and an attribute already at its floor (1, or 0 for Speed)
+  cannot be downgraded at all.
+- **Body reduction** (`drone-body-reduction`) gives up 1-3 Body for 2 Mod Points
+  each. Because the pool is sized from *printed* Body, the row's net effect is
+  `-1` Mod Point per point surrendered, encoded as `slotCost.perRating: -1`.
+
+An attribute may be traded in one direction only: taking both an upgrade and a
+downgrade of the same attribute raises
+`attachment.vehicle.drone-attribute-duplicated`.
+
+Drone Immobile is the other entry with a negative slot cost: it hands back 2
+Mod Points outright. Source: `rigger-5` p. 122 (PDF 123).
 
 ### Cost scaling
 
@@ -123,10 +150,9 @@ records them back.
   the row with no Availability and no cost (`rigger-5` p. 167, PDF 168).
 - **Special Equipment** (Body category) is `variable` on every column — a
   gamemaster-defined row rather than a purchasable entry.
-- **Drone attribute modifications** (buying up a drone's Handling, Speed,
-  Acceleration, Armor or Sensor for Mod Points) are per-point purchases against
-  the drone's own stat line rather than catalog rows, and are not modelled.
-  Source: `rigger-5` pp. 123-124 (PDF 124-125).
+- **Drone Customized** (`drone-customized`) is printed with a 10-10,000 nuyen
+  range for cosmetic detailing. The row is stored at the 10 nuyen floor; the
+  spread above it is descriptive only. Source: `rigger-5` p. 125 (PDF 126).
 - The **standard upgrades** core vehicles ship with (`rigger-5` p. 155, PDF 156)
   are recorded only where they grant extra slots; the pre-installed
   modifications themselves do not yet consume their categories' slots.
@@ -521,6 +547,16 @@ payload child does not increase the base-model count.
 
 ### Genuine Source Gaps And Adjudicated Differences
 
+- *Rigger 5.0* p. 122 (PDF 123) states both that the first point of an attribute
+  upgrade is free (the first three for Armor) and, a paragraph later, that the
+  Mod Point cost is "the increase minus 1". These are the same rule stated twice
+  for the general case and only once for Armor, so the catalog adjudicates a
+  single formula: `max(0, increase - freeIncrease)`, with `freeIncrease` 1
+  everywhere and 3 for Armor.
+- Smartsoft and Group autosofts are printed with a fixed Rating (3 and 2) rather
+  than a Rating column, so `drone-autosoft-smartsoft` and `drone-autosoft-group`
+  are stored as flat 1,500 nuyen / 6R and 1,000 nuyen / 4 rows instead of
+  Rating-scaled ones. Source: `rigger-5` p. 127 (PDF 128).
 - The Nissan Hound's two included mount types are genuinely unspecified. The
   parent profile is complete, but runtime data must preserve an unspecified
   included-mount kind unless the owner approves an interpretation.

@@ -176,7 +176,7 @@ public sealed class WorldGraphEndpointTests : IClassFixture<ApiTestFactory>
         Guid Id,
         string Name,
         string Description,
-        int AccessType,
+        string AccessType,
         int MapX,
         int MapY,
         int MapLayer,

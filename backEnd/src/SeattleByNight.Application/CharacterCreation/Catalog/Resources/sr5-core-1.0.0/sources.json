@@ -1,0 +1,64 @@
+{
+  "sources": [
+    {
+      "id": "run-faster",
+      "fileName": "Shadowrun Run Faster (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "F037FEFADC7FB91EE10180CD0116B55BC5EA825BF4BE56546D80C6F35D555BAF"
+    },
+    {
+      "id": "sr5-core",
+      "fileName": "Shadowrun 5th Edition Core Rulebook (Jennifer Brozek, Raymond Croteau etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "4928B5F45F94C542820D7A7688BD68B7940BF2E9480898CCAFA6111996497F79"
+    },
+    {
+      "id": "run-gun",
+      "fileName": "Shadowrun Run Gun (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "D76698DF6652198B340FD62B99F84C8A232C1EF3CAF8390F32DBACB1C93A371B"
+    },
+    {
+      "id": "better-than-bad",
+      "fileName": "pdfcoffee.com_better-than-bad-pdf-free.pdf",
+      "sha256": "4BEB7F2620BCA5114AD83E297B92C8337062EBE404974C80E25AE39C11965D07"
+    },
+    {
+      "id": "chrome-flesh",
+      "fileName": "Shadowrun Chrome Flesh (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "78D0B57DDD4618BAE93187007C14C393ACAD99A4B1BE6D8A8513F7E6485CDC98"
+    },
+    {
+      "id": "data-trails",
+      "fileName": "Shadowrun Data Trails (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "ADB68A0627810408257DB6441DFDE9B7246371240F27B1A8BF4B8B00850CEDAC"
+    },
+    {
+      "id": "forbidden-arcana",
+      "fileName": "Shadowrun Forbidden Arcana (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "2163ED2D81D90D50AFD0E4B9DB9FDD10F9567564AD1B78A10466A3222B13B11B"
+    },
+    {
+      "id": "rigger-5",
+      "fileName": "Shadowrun Rigger 5.0 - Core Rigger Handbook (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "19CF526FD757A92D7AA881CB141B58CFA0EBA431AC8645F2021A369F0EC29715"
+    },
+    {
+      "id": "street-grimoire",
+      "fileName": "Shadowrun Street Grimoire (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "F67B0C8A8A8340135FB83698A201D1336172C2F0C2C6AAF153BE68E1CFCC874B"
+    },
+    {
+      "id": "street-lethal",
+      "fileName": "Shadowrun Street Lethal (Catalyst Game Labs) (z-library.sk, 1lib.sk, z-lib.sk).pdf",
+      "sha256": "F692F286494D71F26E4AFAFFB236A268EF78A314C15F562F917DE32F9098CD9E"
+    },
+    {
+      "id": "hard-targets",
+      "fileName": "Shadowrun_5E_Hard_Targets.pdf",
+      "sha256": "BD2357860819D12A003600500BDE19C9B4915F47EBACF940CA0390AAA97B2873"
+    },
+    {
+      "id": "gun-heaven-3",
+      "fileName": "Shadowrun_5E_Gun_Heaven_3.pdf",
+      "sha256": "9B7CDC932905E2B9E462C10790FE4A2D39CDB1E33DDC5D47AA3C843E78F0649D"
+    }
+  ]
+}

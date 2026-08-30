@@ -1,0 +1,40 @@
+{
+  "aspectedValues": [
+    {
+      "id": "conjuring",
+      "displayName": "Conjuring",
+      "canSelectSpells": false,
+      "canSelectRituals": false,
+      "canSelectPreparations": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    },
+    {
+      "id": "enchanting",
+      "displayName": "Enchanting",
+      "canSelectSpells": false,
+      "canSelectRituals": false,
+      "canSelectPreparations": true,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    },
+    {
+      "id": "sorcery",
+      "displayName": "Sorcery",
+      "canSelectSpells": true,
+      "canSelectRituals": true,
+      "canSelectPreparations": false,
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 68,
+        "pdfPage": 70
+      }
+    }
+  ]
+}

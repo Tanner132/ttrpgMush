@@ -1,0 +1,100 @@
+{
+  "lifestyleTiers": [
+    {
+      "id": "street-lifestyle",
+      "displayName": "Street Lifestyle",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
+      "baseCostPerMonth": 0,
+      "startingCashDice": {
+        "count": 1,
+        "sides": 6,
+        "multiplier": 20
+      }
+    },
+    {
+      "id": "squatter-lifestyle",
+      "displayName": "Squatter Lifestyle",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
+      "baseCostPerMonth": 500,
+      "startingCashDice": {
+        "count": 2,
+        "sides": 6,
+        "multiplier": 40
+      }
+    },
+    {
+      "id": "low-lifestyle",
+      "displayName": "Low Lifestyle",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
+      "baseCostPerMonth": 2000,
+      "startingCashDice": {
+        "count": 3,
+        "sides": 6,
+        "multiplier": 60
+      }
+    },
+    {
+      "id": "middle-lifestyle",
+      "displayName": "Middle Lifestyle",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
+      "baseCostPerMonth": 5000,
+      "startingCashDice": {
+        "count": 4,
+        "sides": 6,
+        "multiplier": 100
+      }
+    },
+    {
+      "id": "high-lifestyle",
+      "displayName": "High Lifestyle",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
+      "baseCostPerMonth": 10000,
+      "startingCashDice": {
+        "count": 5,
+        "sides": 6,
+        "multiplier": 500
+      }
+    },
+    {
+      "id": "luxury-lifestyle",
+      "displayName": "Luxury Lifestyle",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 373,
+        "pdfPage": 375
+      },
+      "baseCostPerMonth": 100000,
+      "startingCashDice": {
+        "count": 6,
+        "sides": 6,
+        "multiplier": 1000
+      }
+    }
+  ]
+}

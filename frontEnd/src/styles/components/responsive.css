@@ -1,0 +1,59 @@
+/* --------------------------------------------------------------- responsive */
+
+@media (max-width: 900px) {
+  .grid-screen__body {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .grid-transcript {
+    border-right: 0;
+    border-bottom: 1px solid var(--sb-border);
+  }
+
+  .grid-room {
+    max-height: 46vh;
+  }
+
+  .world-editor__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .app__topbar {
+    gap: var(--sb-space-2);
+  }
+
+  .app__content {
+    padding: var(--sb-space-4);
+  }
+
+  .grid-screen {
+    margin: calc(-1 * var(--sb-space-4));
+  }
+
+  .world-map {
+    min-height: 330px;
+  }
+
+  .ui-modal__overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .ui-modal {
+    width: 100%;
+    max-height: 100vh;
+    height: 100%;
+  }
+
+  .world-editor__coordinate-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .world-editor__exit {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

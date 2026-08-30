@@ -9,7 +9,7 @@ namespace SeattleByNight.Api.Endpoints;
 public sealed record CreateWorldRoomRequest(
     string? Name,
     string? Description,
-    long? AccessType,
+    string? AccessType,
     long? MapX,
     long? MapY,
     long? MapLayer);
@@ -17,7 +17,7 @@ public sealed record CreateWorldRoomRequest(
 public sealed record UpdateWorldRoomRequest(
     string? Name,
     string? Description,
-    long? AccessType,
+    string? AccessType,
     Guid Version);
 
 public sealed record CreateWorldExitRequest(

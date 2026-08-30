@@ -1,0 +1,244 @@
+{
+  "complexForms": [
+    {
+      "id": "cleaner",
+      "displayName": "Cleaner",
+      "target": "persona",
+      "duration": "permanent",
+      "fade": "L + 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "diffusion-of-attack",
+      "displayName": "Diffusion of Attack",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L + 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "diffusion-of-data-processing",
+      "displayName": "Diffusion of Data Processing",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L + 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "diffusion-of-firewall",
+      "displayName": "Diffusion of Firewall",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L + 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "diffusion-of-sleaze",
+      "displayName": "Diffusion of Sleaze",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L + 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "editor",
+      "displayName": "Editor",
+      "target": "file",
+      "duration": "permanent",
+      "fade": "L + 2",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "infusion-of-attack",
+      "displayName": "Infusion of Attack",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L + 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "infusion-of-data-processing",
+      "displayName": "Infusion of Data Processing",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L + 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "infusion-of-firewall",
+      "displayName": "Infusion of Firewall",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L + 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "infusion-of-sleaze",
+      "displayName": "Infusion of Sleaze",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L + 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "pulse-storm",
+      "displayName": "Pulse Storm",
+      "target": "persona",
+      "duration": "instantaneous",
+      "fade": "L",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "puppeteer",
+      "displayName": "Puppeteer",
+      "target": "device",
+      "duration": "instantaneous",
+      "fade": "L + 4",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "resonance-channel",
+      "displayName": "Resonance Channel",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L - 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "resonance-spike",
+      "displayName": "Resonance Spike",
+      "target": "device",
+      "duration": "instantaneous",
+      "fade": "L",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "resonance-veil",
+      "displayName": "Resonance Veil",
+      "target": "device",
+      "duration": "sustained",
+      "fade": "L - 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "static-bomb",
+      "displayName": "Static Bomb",
+      "target": "self",
+      "duration": "instantaneous",
+      "fade": "L + 2",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "static-veil",
+      "displayName": "Static Veil",
+      "target": "persona",
+      "duration": "sustained",
+      "fade": "L - 1",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 252,
+        "pdfPage": 254
+      }
+    },
+    {
+      "id": "stitches",
+      "displayName": "Stitches",
+      "target": "sprite",
+      "duration": "permanent",
+      "fade": "L - 2",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "tattletale",
+      "displayName": "Tattletale",
+      "target": "persona",
+      "duration": "permanent",
+      "fade": "L - 2",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    },
+    {
+      "id": "transcendent-grid",
+      "displayName": "Transcendent Grid",
+      "target": "self",
+      "duration": "instantaneous",
+      "fade": "L - 3",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 253,
+        "pdfPage": 255
+      }
+    }
+  ]
+}

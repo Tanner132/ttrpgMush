@@ -1,0 +1,56 @@
+/* ─── Footer ────────────────────────────────────────────────────────────── */
+
+.creator-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-3);
+  height: var(--sb-creator-commandbar-height);
+  padding: 0 var(--sb-space-4);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--sb-surface-sunken);
+  border-top: 1px solid var(--sb-border);
+  flex-shrink: 0;
+}
+
+.creator-footer__nav {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.creator-footer__progress {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-3);
+  min-width: 0;
+}
+
+.creator-footer__track {
+  flex: 1;
+  height: 3px;
+  background: var(--sb-track);
+  min-width: 40px;
+}
+
+.creator-footer__fill {
+  height: 100%;
+  background: var(--sb-accent);
+  box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+}
+
+.creator-footer__label {
+  font-family: var(--sb-font-data);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--sb-text-faint);
+  white-space: nowrap;
+}
+
+.creator-footer .ui-button {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+

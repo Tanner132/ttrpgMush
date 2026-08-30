@@ -1,0 +1,15 @@
+<Project>
+
+  <!--
+    Shared build settings for every project under backEnd/. Individual
+    csproj files only declare what differs (package refs, project refs,
+    embedded resources).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

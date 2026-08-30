@@ -518,6 +518,43 @@ public enum VehicleRatingCap
     Armor,
 }
 
+// The drone attributes Rigger 5.0 lets a rigger buy up or trade away
+// (rigger-5 pp. 123-124, PDF 124-125). Pilot is excluded deliberately: it is
+// bought as a whole program from the Software Solutions table rather than as a
+// per-point attribute purchase (rigger-5 p. 127, PDF 128).
+public enum DroneAttribute
+{
+    Handling,
+    Speed,
+    Acceleration,
+    Armor,
+    Sensor,
+    Body,
+}
+
+// Upgrade prices off the *upgraded* rating and charges (increase - FreeIncrease)
+// Mod Points; the first +1 (+3 for Armor) is free and no attribute may exceed
+// twice its starting value. Downgrade worsens one attribute for a single Mod
+// Point, and no matter how many are taken a drone gains only that one point.
+// BodyReduction is printed apart from both: each point of Body given up hands
+// back 2 Mod Points against a pool that shrinks by 1, for a net gain of 1, and
+// Body may never fall below half its starting value (rigger-5 pp. 122-124,
+// PDF 123-125).
+public enum DroneAttributeModificationKind
+{
+    Upgrade,
+    Downgrade,
+    BodyReduction,
+}
+
+// Rating on an Upgrade row is the upgraded value being bought, not the size of
+// the increase; on a BodyReduction row it is the number of Body points given
+// up. Downgrade rows carry no Rating at all.
+public sealed record DroneAttributeModificationDefinition(
+    DroneAttribute Attribute,
+    DroneAttributeModificationKind Kind,
+    int FreeIncrease = 0);
+
 // Relative entries are the option rows a base modification is built up from --
 // a weapon mount's visibility/flexibility/control choices, a drone mount's
 // concealment (rigger-5 p. 162/124, PDF 163/125). Their Availability, Cost and
@@ -537,7 +574,8 @@ public sealed record VehicleModificationDefinition(
     VehicleRatingCap RatingCap = VehicleRatingCap.None,
     string? OptionGroupId = null,
     IReadOnlyList<string>? AppliesToModificationIds = null,
-    bool Relative = false);
+    bool Relative = false,
+    DroneAttributeModificationDefinition? AttributeModification = null);
 
 public sealed record CyberdeckDefinition(
     string Id,
@@ -585,138 +623,70 @@ public sealed record MagicResonancePathGrant(
 
 public sealed class RulesetCatalog
 {
-    private readonly IReadOnlyDictionary<(string CategoryId, string LevelId), PriorityCellDefinition> priorityCellLookup;
+    private readonly IReadOnlyDictionary<string, PriorityCellDefinition> priorityCells =
+        ImmutableDictionary<string, PriorityCellDefinition>.Empty;
+    private readonly IReadOnlyDictionary<(string CategoryId, string LevelId), PriorityCellDefinition> priorityCellLookup =
+        ImmutableDictionary<(string CategoryId, string LevelId), PriorityCellDefinition>.Empty;
 
-    internal RulesetCatalog(
-        string rulesetId,
-        string version,
-        string semanticDigest,
-        ImmutableDictionary<string, CatalogSource> sources,
-        ImmutableDictionary<string, CreationMethodDefinition> creationMethods,
-        ImmutableDictionary<string, PriorityLevelDefinition> priorityLevels,
-        ImmutableArray<PriorityCategoryDefinition> priorityCategories,
-        ImmutableDictionary<string, PriorityCellDefinition> priorityCells,
-        ImmutableDictionary<string, MetatypeDefinition> metatypes,
-        ImmutableDictionary<string, MetavariantDefinition> metavariants,
-        ImmutableDictionary<string, AttributeDefinition> attributes,
-        ImmutableDictionary<string, QualityDefinition> qualities,
-        ImmutableDictionary<string, SkillDefinition> skills,
-        ImmutableDictionary<string, SkillGroupDefinition> skillGroups,
-        ImmutableDictionary<string, KnowledgeCategoryDefinition> knowledgeCategories,
-        ImmutableDictionary<string, KnowledgeSkillSuggestionDefinition> knowledgeSkillSuggestions,
-        ImmutableDictionary<string, LanguageSuggestionDefinition> languageSuggestions,
-        ImmutableDictionary<string, CreationPathDefinition> creationPaths,
-        ImmutableDictionary<string, AspectedValueDefinition> aspectedValues,
-        ImmutableDictionary<string, TraditionDefinition> traditions,
-        ImmutableDictionary<string, SpellDefinition> spells,
-        ImmutableDictionary<string, RitualDefinition> rituals,
-        ImmutableDictionary<string, AdeptPowerDefinition> adeptPowers,
-        ImmutableDictionary<string, MentorSpiritDefinition> mentorSpirits,
-        ImmutableDictionary<string, ComplexFormDefinition> complexForms,
-        ImmutableDictionary<string, SpiritTypeDefinition> spiritTypes,
-        ImmutableDictionary<string, SpriteTypeDefinition> spriteTypes,
-        ImmutableDictionary<string, FocusDefinition> foci,
-        ImmutableDictionary<string, GearDefinition> gear,
-        ImmutableDictionary<string, WeaponDefinition> weapons,
-        ImmutableDictionary<string, ArmorDefinition> armor,
-        ImmutableDictionary<string, AugmentationGradeDefinition> augmentationGrades,
-        ImmutableDictionary<string, AugmentationDefinition> augmentations,
-        ImmutableDictionary<string, VehicleDefinition> vehicles,
-        ImmutableDictionary<string, CyberdeckDefinition> cyberdecks,
-        ImmutableDictionary<string, WeaponAccessoryDefinition> weaponAccessories,
-        ImmutableDictionary<string, ArmorModificationDefinition> armorModifications,
-        ImmutableDictionary<string, CyberlimbEnhancementDefinition> cyberlimbEnhancements,
-        ImmutableDictionary<string, VehicleModificationDefinition> vehicleModifications,
-        ImmutableDictionary<string, LifestyleTierDefinition> lifestyleTiers,
-        ImmutableDictionary<string, LifestyleOptionDefinition> lifestyleOptions)
+    // Only RulesetCatalogLoader may construct catalogs, and only after
+    // validating the source document.
+    internal RulesetCatalog()
     {
-        RulesetId = rulesetId;
-        Version = version;
-        SemanticDigest = semanticDigest;
-        Sources = sources;
-        CreationMethods = creationMethods;
-        PriorityLevels = priorityLevels;
-        PriorityCategories = priorityCategories;
-        PriorityCells = priorityCells;
-        priorityCellLookup = priorityCells.Values.ToImmutableDictionary(
-            cell => (cell.CategoryId, cell.LevelId),
-            cell => cell);
-        Metatypes = metatypes;
-        Metavariants = metavariants;
-        Attributes = attributes;
-        Qualities = qualities;
-        Skills = skills;
-        SkillGroups = skillGroups;
-        KnowledgeCategories = knowledgeCategories;
-        KnowledgeSkillSuggestions = knowledgeSkillSuggestions;
-        LanguageSuggestions = languageSuggestions;
-        CreationPaths = creationPaths;
-        AspectedValues = aspectedValues;
-        Traditions = traditions;
-        Spells = spells;
-        Rituals = rituals;
-        AdeptPowers = adeptPowers;
-        MentorSpirits = mentorSpirits;
-        ComplexForms = complexForms;
-        SpiritTypes = spiritTypes;
-        SpriteTypes = spriteTypes;
-        Foci = foci;
-        Gear = gear;
-        Weapons = weapons;
-        Armor = armor;
-        AugmentationGrades = augmentationGrades;
-        Augmentations = augmentations;
-        Vehicles = vehicles;
-        Cyberdecks = cyberdecks;
-        WeaponAccessories = weaponAccessories;
-        ArmorModifications = armorModifications;
-        CyberlimbEnhancements = cyberlimbEnhancements;
-        VehicleModifications = vehicleModifications;
-        LifestyleTiers = lifestyleTiers;
-        LifestyleOptions = lifestyleOptions;
     }
 
-    public string RulesetId { get; }
-    public string Version { get; }
-    public string SemanticDigest { get; }
-    public IReadOnlyDictionary<string, CatalogSource> Sources { get; }
-    public IReadOnlyDictionary<string, CreationMethodDefinition> CreationMethods { get; }
-    public IReadOnlyDictionary<string, PriorityLevelDefinition> PriorityLevels { get; }
-    public IReadOnlyList<PriorityCategoryDefinition> PriorityCategories { get; }
-    public IReadOnlyDictionary<string, PriorityCellDefinition> PriorityCells { get; }
-    public IReadOnlyDictionary<string, MetatypeDefinition> Metatypes { get; }
-    public IReadOnlyDictionary<string, MetavariantDefinition> Metavariants { get; }
-    public IReadOnlyDictionary<string, AttributeDefinition> Attributes { get; }
-    public IReadOnlyDictionary<string, QualityDefinition> Qualities { get; }
-    public IReadOnlyDictionary<string, SkillDefinition> Skills { get; }
-    public IReadOnlyDictionary<string, SkillGroupDefinition> SkillGroups { get; }
-    public IReadOnlyDictionary<string, KnowledgeCategoryDefinition> KnowledgeCategories { get; }
-    public IReadOnlyDictionary<string, KnowledgeSkillSuggestionDefinition> KnowledgeSkillSuggestions { get; }
-    public IReadOnlyDictionary<string, LanguageSuggestionDefinition> LanguageSuggestions { get; }
-    public IReadOnlyDictionary<string, CreationPathDefinition> CreationPaths { get; }
-    public IReadOnlyDictionary<string, AspectedValueDefinition> AspectedValues { get; }
-    public IReadOnlyDictionary<string, TraditionDefinition> Traditions { get; }
-    public IReadOnlyDictionary<string, SpellDefinition> Spells { get; }
-    public IReadOnlyDictionary<string, RitualDefinition> Rituals { get; }
-    public IReadOnlyDictionary<string, AdeptPowerDefinition> AdeptPowers { get; }
-    public IReadOnlyDictionary<string, MentorSpiritDefinition> MentorSpirits { get; }
-    public IReadOnlyDictionary<string, ComplexFormDefinition> ComplexForms { get; }
-    public IReadOnlyDictionary<string, SpiritTypeDefinition> SpiritTypes { get; }
-    public IReadOnlyDictionary<string, SpriteTypeDefinition> SpriteTypes { get; }
-    public IReadOnlyDictionary<string, FocusDefinition> Foci { get; }
-    public IReadOnlyDictionary<string, GearDefinition> Gear { get; }
-    public IReadOnlyDictionary<string, WeaponDefinition> Weapons { get; }
-    public IReadOnlyDictionary<string, ArmorDefinition> Armor { get; }
-    public IReadOnlyDictionary<string, AugmentationGradeDefinition> AugmentationGrades { get; }
-    public IReadOnlyDictionary<string, AugmentationDefinition> Augmentations { get; }
-    public IReadOnlyDictionary<string, VehicleDefinition> Vehicles { get; }
-    public IReadOnlyDictionary<string, CyberdeckDefinition> Cyberdecks { get; }
-    public IReadOnlyDictionary<string, WeaponAccessoryDefinition> WeaponAccessories { get; }
-    public IReadOnlyDictionary<string, ArmorModificationDefinition> ArmorModifications { get; }
-    public IReadOnlyDictionary<string, CyberlimbEnhancementDefinition> CyberlimbEnhancements { get; }
-    public IReadOnlyDictionary<string, VehicleModificationDefinition> VehicleModifications { get; }
-    public IReadOnlyDictionary<string, LifestyleTierDefinition> LifestyleTiers { get; }
-    public IReadOnlyDictionary<string, LifestyleOptionDefinition> LifestyleOptions { get; }
+    public required string RulesetId { get; init; }
+    public required string Version { get; init; }
+    public required string SemanticDigest { get; init; }
+    public required IReadOnlyDictionary<string, CatalogSource> Sources { get; init; }
+    public required IReadOnlyDictionary<string, CreationMethodDefinition> CreationMethods { get; init; }
+    public required IReadOnlyDictionary<string, PriorityLevelDefinition> PriorityLevels { get; init; }
+    public required IReadOnlyList<PriorityCategoryDefinition> PriorityCategories { get; init; }
+
+    public required IReadOnlyDictionary<string, PriorityCellDefinition> PriorityCells
+    {
+        get => priorityCells;
+        init
+        {
+            priorityCells = value;
+            priorityCellLookup = value.Values.ToImmutableDictionary(
+                cell => (cell.CategoryId, cell.LevelId),
+                cell => cell);
+        }
+    }
+
+    public required IReadOnlyDictionary<string, MetatypeDefinition> Metatypes { get; init; }
+    public required IReadOnlyDictionary<string, MetavariantDefinition> Metavariants { get; init; }
+    public required IReadOnlyDictionary<string, AttributeDefinition> Attributes { get; init; }
+    public required IReadOnlyDictionary<string, QualityDefinition> Qualities { get; init; }
+    public required IReadOnlyDictionary<string, SkillDefinition> Skills { get; init; }
+    public required IReadOnlyDictionary<string, SkillGroupDefinition> SkillGroups { get; init; }
+    public required IReadOnlyDictionary<string, KnowledgeCategoryDefinition> KnowledgeCategories { get; init; }
+    public required IReadOnlyDictionary<string, KnowledgeSkillSuggestionDefinition> KnowledgeSkillSuggestions { get; init; }
+    public required IReadOnlyDictionary<string, LanguageSuggestionDefinition> LanguageSuggestions { get; init; }
+    public required IReadOnlyDictionary<string, CreationPathDefinition> CreationPaths { get; init; }
+    public required IReadOnlyDictionary<string, AspectedValueDefinition> AspectedValues { get; init; }
+    public required IReadOnlyDictionary<string, TraditionDefinition> Traditions { get; init; }
+    public required IReadOnlyDictionary<string, SpellDefinition> Spells { get; init; }
+    public required IReadOnlyDictionary<string, RitualDefinition> Rituals { get; init; }
+    public required IReadOnlyDictionary<string, AdeptPowerDefinition> AdeptPowers { get; init; }
+    public required IReadOnlyDictionary<string, MentorSpiritDefinition> MentorSpirits { get; init; }
+    public required IReadOnlyDictionary<string, ComplexFormDefinition> ComplexForms { get; init; }
+    public required IReadOnlyDictionary<string, SpiritTypeDefinition> SpiritTypes { get; init; }
+    public required IReadOnlyDictionary<string, SpriteTypeDefinition> SpriteTypes { get; init; }
+    public required IReadOnlyDictionary<string, FocusDefinition> Foci { get; init; }
+    public required IReadOnlyDictionary<string, GearDefinition> Gear { get; init; }
+    public required IReadOnlyDictionary<string, WeaponDefinition> Weapons { get; init; }
+    public required IReadOnlyDictionary<string, ArmorDefinition> Armor { get; init; }
+    public required IReadOnlyDictionary<string, AugmentationGradeDefinition> AugmentationGrades { get; init; }
+    public required IReadOnlyDictionary<string, AugmentationDefinition> Augmentations { get; init; }
+    public required IReadOnlyDictionary<string, VehicleDefinition> Vehicles { get; init; }
+    public required IReadOnlyDictionary<string, CyberdeckDefinition> Cyberdecks { get; init; }
+    public required IReadOnlyDictionary<string, WeaponAccessoryDefinition> WeaponAccessories { get; init; }
+    public required IReadOnlyDictionary<string, ArmorModificationDefinition> ArmorModifications { get; init; }
+    public required IReadOnlyDictionary<string, CyberlimbEnhancementDefinition> CyberlimbEnhancements { get; init; }
+    public required IReadOnlyDictionary<string, VehicleModificationDefinition> VehicleModifications { get; init; }
+    public required IReadOnlyDictionary<string, LifestyleTierDefinition> LifestyleTiers { get; init; }
+    public required IReadOnlyDictionary<string, LifestyleOptionDefinition> LifestyleOptions { get; init; }
 
     public PriorityCellDefinition? GetPriorityCell(string categoryId, string levelId) =>
         priorityCellLookup.TryGetValue((categoryId, levelId), out var cell) ? cell : null;

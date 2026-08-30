@@ -30,7 +30,7 @@ public sealed record WorldMutationResult<T>(
 public sealed record CreateRoomMutation(
     string Name,
     string Description,
-    long? AccessType,
+    string? AccessType,
     long? MapX,
     long? MapY,
     long? MapLayer);
@@ -38,7 +38,7 @@ public sealed record CreateRoomMutation(
 public sealed record UpdateRoomMutation(
     string Name,
     string Description,
-    long? AccessType);
+    string? AccessType);
 
 public sealed record RoomExitMutation(
     Guid SourceRoomId,

@@ -1,0 +1,189 @@
+/* ─── Slot dashboard (persona registry) ────────────────────────────────── */
+/* Lives here (not characterCreation.css) because CharactersPage/SlotCard are
+   eagerly loaded, while characterCreation.css only loads once the lazy
+   character-creation route is visited — keeping these rules there meant a
+   hard reload of /characters rendered unstyled. */
+
+.slot-dashboard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sb-space-4);
+  margin-bottom: var(--sb-space-4);
+}
+
+.slot-dashboard__cta {
+  text-align: center;
+  padding-top: var(--sb-space-3);
+}
+
+.slot-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border-strong);
+  min-height: 180px;
+}
+
+.slot-card--draft {
+  box-shadow: inset 3px 0 0 var(--sb-warning);
+}
+
+.slot-card--finalized {
+  box-shadow: inset 3px 0 0 var(--sb-accent);
+}
+
+.slot-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-2) var(--sb-space-3);
+  background: var(--sb-surface-sunken);
+  border-bottom: 1px solid var(--sb-border);
+}
+
+.slot-card__header-label {
+  font-family: var(--sb-font-data);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sb-text-faint);
+}
+
+.slot-card__header-label--draft {
+  color: var(--sb-warning);
+}
+
+.slot-card__header-label--finalized {
+  color: var(--sb-accent);
+}
+
+.slot-card__header-status {
+  font-family: var(--sb-font-data);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sb-text-dim);
+}
+
+.slot-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sb-space-4);
+}
+
+.slot-card__body--empty {
+  align-items: center;
+  justify-content: center;
+  gap: var(--sb-space-2);
+  text-align: center;
+}
+
+.slot-card--empty {
+  border-style: dashed;
+  border-color: var(--sb-border);
+  opacity: 0.75;
+}
+
+.slot-card__icon {
+  font-family: var(--sb-font-heading);
+  font-size: 2rem;
+  color: var(--sb-text-faint);
+}
+
+.slot-card__label {
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-data);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.slot-card__name {
+  font-family: var(--sb-font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+  color: var(--sb-text);
+}
+
+.slot-card__meta {
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--sb-text-muted);
+  margin: 4px 0 0;
+}
+
+.slot-card__meta--faint {
+  color: var(--sb-text-faint);
+}
+
+.slot-card__progress {
+  margin: var(--sb-space-4) 0;
+}
+
+.slot-card__progress-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sb-text-muted);
+  margin-bottom: 6px;
+}
+
+.slot-card__progress-track {
+  height: 5px;
+  background: var(--sb-track);
+  border: 1px solid var(--sb-border);
+}
+
+.slot-card__progress-fill {
+  height: 100%;
+  background: var(--sb-warning);
+  box-shadow: var(--sb-glow-warning);
+}
+
+.slot-card__blocking {
+  margin: var(--sb-space-2) 0 0;
+  font-family: var(--sb-font-data);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--sb-danger);
+}
+
+.slot-card__actions {
+  margin-top: auto;
+  padding-top: var(--sb-space-4);
+  width: 100%;
+}
+
+.slot-card__actions .ui-button {
+  width: 100%;
+  height: 44px;
+  letter-spacing: 0.2em;
+}
+
+.panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-2);
+}
+
+.character-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+}
+
+.character-list__item span {
+  font-family: var(--sb-font-data);
+}
+

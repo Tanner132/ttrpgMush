@@ -1,10 +1,14 @@
+using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using SeattleByNight.Api.BackgroundServices;
 using SeattleByNight.Api.Authorization;
 using SeattleByNight.Api.Endpoints;
@@ -23,9 +27,25 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
+// Every JSON payload -- HTTP responses/requests and SignalR hub messages --
+// carries enums as PascalCase name strings, the format the catalog endpoints
+// established and the frontend's union types are written against. The
+// converter still accepts integers on read, so a stale client keeps working.
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 var connectionString = builder.Configuration.GetConnectionString("SeattleByNight");
 
-if (string.IsNullOrWhiteSpace(connectionString) && builder.Environment.IsDevelopment())
+// Build-time OpenAPI generation (Microsoft.Extensions.ApiDescription.Server)
+// runs this entire entry point in-process under the GetDocument.Insider tool
+// with no configuration, so it needs a well-formed connection string to build
+// the host -- and must skip everything that touches the database
+// (see the guard on the migration block below).
+var isBuildTimeOpenApiGeneration =
+    Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+
+if (string.IsNullOrWhiteSpace(connectionString)
+    && (builder.Environment.IsDevelopment() || isBuildTimeOpenApiGeneration))
 {
     connectionString = "Host=localhost;Port=5432;Database=seattlebynight;Username=seattlebynight;Password=localdevpassword";
 }
@@ -36,51 +56,37 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "Connection string 'ConnectionStrings:SeattleByNight' is not configured.");
 }
 
-var playSessionOptions = builder.Configuration.GetSection(PlaySessionOptions.SectionName).Get<PlaySessionOptions>()
-    ?? new PlaySessionOptions();
+// Options are validated eagerly at host start (ValidateOnStart) instead of on
+// first use. Consumers inject the plain options type, so each block also
+// re-registers the validated IOptions value as a singleton.
+builder.Services.AddOptions<PlaySessionOptions>()
+    .Bind(builder.Configuration.GetSection(PlaySessionOptions.SectionName))
+    .Validate(o => o.IdleTimeout > TimeSpan.Zero,
+        "PlaySession:IdleTimeout must be positive.")
+    .Validate(o => o.ExpiryWarning >= TimeSpan.Zero && o.ExpiryWarning < o.IdleTimeout,
+        "PlaySession:ExpiryWarning must be non-negative and less than IdleTimeout.")
+    .Validate(o => o.ExpirationScanInterval > TimeSpan.Zero,
+        "PlaySession:ExpirationScanInterval must be positive.")
+    .ValidateOnStart();
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<PlaySessionOptions>>().Value);
 
-if (playSessionOptions.IdleTimeout <= TimeSpan.Zero)
-{
-    throw new InvalidOperationException("PlaySession:IdleTimeout must be positive.");
-}
-
-if (playSessionOptions.ExpiryWarning < TimeSpan.Zero || playSessionOptions.ExpiryWarning >= playSessionOptions.IdleTimeout)
-{
-    throw new InvalidOperationException("PlaySession:ExpiryWarning must be non-negative and less than IdleTimeout.");
-}
-
-if (playSessionOptions.ExpirationScanInterval <= TimeSpan.Zero)
-{
-    throw new InvalidOperationException("PlaySession:ExpirationScanInterval must be positive.");
-}
-
-builder.Services.AddSingleton(playSessionOptions);
 builder.Services.AddSingleton(TimeProvider.System);
 
-var worldOptions = builder.Configuration.GetSection(WorldOptions.SectionName).Get<WorldOptions>()
-    ?? new WorldOptions();
+builder.Services.AddOptions<WorldOptions>()
+    .Bind(builder.Configuration.GetSection(WorldOptions.SectionName))
+    .Validate(o => o.StartingRoomId != Guid.Empty,
+        "World:StartingRoomId must not be an empty GUID.")
+    .ValidateOnStart();
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<WorldOptions>>().Value);
 
-builder.Services.AddSingleton(worldOptions);
-
-var diceOptions = builder.Configuration.GetSection(DiceOptions.SectionName).Get<DiceOptions>()
-    ?? new DiceOptions();
-
-if (diceOptions.MaxDice <= 0)
-{
-    throw new InvalidOperationException("Dice:MaxDice must be positive.");
-}
-
-if (diceOptions.MaxSides <= 0)
-{
-    throw new InvalidOperationException("Dice:MaxSides must be positive.");
-}
-
-if (diceOptions.MaxExpressionLength <= 0)
-{
-    throw new InvalidOperationException("Dice:MaxExpressionLength must be positive.");
-}
-
-builder.Services.AddSingleton(diceOptions);
+builder.Services.AddOptions<DiceOptions>()
+    .Bind(builder.Configuration.GetSection(DiceOptions.SectionName))
+    .Validate(o => o.MaxDice > 0, "Dice:MaxDice must be positive.")
+    .Validate(o => o.MaxSides > 0, "Dice:MaxSides must be positive.")
+    .Validate(o => o.MaxExpressionLength > 0, "Dice:MaxExpressionLength must be positive.")
+    .Validate(o => o.MaxModifierMagnitude > 0, "Dice:MaxModifierMagnitude must be positive.")
+    .ValidateOnStart();
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<DiceOptions>>().Value);
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(connectionString);
@@ -88,7 +94,8 @@ builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddSingleton<IRoomConnectionRegistry, RoomConnectionRegistry>();
 builder.Services.AddSingleton<IRoomChatConnectionManager, RoomChatConnectionManager>();
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR().AddJsonProtocol(options =>
+    options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddHostedService<PlaySessionExpirationService>();
 
@@ -125,7 +132,6 @@ builder.Services.ConfigureApplicationCookie(options =>
         ? CookieSecurePolicy.SameAsRequest
         : CookieSecurePolicy.Always;
     options.SlidingExpiration = false;
-    options.ExpireTimeSpan = playSessionOptions.IdleTimeout;
 
     options.Events.OnRedirectToLogin = context =>
     {
@@ -139,6 +145,12 @@ builder.Services.ConfigureApplicationCookie(options =>
         return Task.CompletedTask;
     };
 });
+
+// The auth cookie lifetime tracks the play-session idle timeout, resolved
+// through the options system so it sees the same validated value.
+builder.Services.AddOptions<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme)
+    .Configure<IOptions<PlaySessionOptions>>((options, playSessions) =>
+        options.ExpireTimeSpan = playSessions.Value.IdleTimeout);
 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 {
@@ -219,8 +231,11 @@ if (app.Environment.IsDevelopment())
 
 // Migrations run on startup in every environment: this is a single-instance
 // deployment, so there is no second replica to race. Integration tests opt out and
-// prepare their own database.
-if (app.Configuration.GetValue("Database:MigrateOnStartup", true))
+// prepare their own database. Build-time OpenAPI generation must also skip this
+// block -- it drives the entry point through to app.Run() (which it intercepts
+// before the server starts), and a build must not depend on a reachable Postgres.
+if (!isBuildTimeOpenApiGeneration
+    && app.Configuration.GetValue("Database:MigrateOnStartup", true))
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<SeattleByNightDbContext>();

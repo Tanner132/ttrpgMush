@@ -1,0 +1,1370 @@
+{
+  "weaponAccessories": [
+    {
+      "id": "accessory-airburst-link",
+      "displayName": "Airburst Link",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      }
+    },
+    {
+      "id": "accessory-bipod",
+      "displayName": "Bipod",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "accessory-concealable-holster",
+      "displayName": "Concealable Holster",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 150
+      }
+    },
+    {
+      "id": "accessory-gas-vent-system",
+      "displayName": "Gas-Vent System",
+      "mount": "barrel",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "perRating": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 200
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    {
+      "id": "accessory-gyro-mount",
+      "displayName": "Gyro Mount",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 1400
+      }
+    },
+    {
+      "id": "accessory-hidden-arm-slide",
+      "displayName": "Hidden Arm Slide",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      }
+    },
+    {
+      "id": "accessory-imaging-scope",
+      "displayName": "Imaging Scope",
+      "mount": "top",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      },
+      "capacity": 3
+    },
+    {
+      "id": "accessory-laser-sight",
+      "displayName": "Laser Sight",
+      "mount": "topOrUnderbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 125
+      }
+    },
+    {
+      "id": "accessory-periscope",
+      "displayName": "Periscope (Weapon-Mounted)",
+      "mount": "top",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 70
+      }
+    },
+    {
+      "id": "accessory-quick-draw-holster",
+      "displayName": "Quick-Draw Holster",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 175
+      }
+    },
+    {
+      "id": "accessory-shock-pad",
+      "displayName": "Shock Pad",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "accessory-silencer",
+      "displayName": "Silencer/Suppressor",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "accessory-smart-firing-platform",
+      "displayName": "Smart Firing Platform",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2500
+      }
+    },
+    {
+      "id": "accessory-smartgun-external",
+      "displayName": "Smartgun System, External",
+      "mount": "topOrUnderbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "accessory-spare-clip",
+      "displayName": "Spare Clip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 5
+      }
+    },
+    {
+      "id": "accessory-speed-loader",
+      "displayName": "Speed Loader",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "accessory-tripod",
+      "displayName": "Tripod",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 431,
+        "pdfPage": 433
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "accessory-run-gun-advanced-safety-system",
+      "displayName": "Advanced Safety System",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 600
+      }
+    },
+    {
+      "id": "accessory-run-gun-immobilization",
+      "displayName": "Immobilization (Safety System)",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "accessory-run-gun-self-destruct",
+      "displayName": "Self Destruct (Safety System)",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "accessory-run-gun-explosive-self-destruct",
+      "displayName": "Explosive Self Destruct (Safety System)",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 11,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 400
+      }
+    },
+    {
+      "id": "accessory-run-gun-electro-shocker",
+      "displayName": "Electro Shocker (Safety System)",
+      "mount": "internal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      }
+    },
+    {
+      "id": "accessory-run-gun-bayonet",
+      "displayName": "Bayonet",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel"
+      ],
+      "restrictedToWeaponCategoryIds": [
+        "assault-rifles",
+        "sniper-rifles",
+        "shotguns",
+        "special-weapons",
+        "machine-guns",
+        "cannons-launchers"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 50,
+        "pdfPage": 52
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "accessory-run-gun-concealed-quick-draw-holster",
+      "displayName": "Concealed Quick-Draw Holster",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 275
+      }
+    },
+    {
+      "id": "accessory-run-gun-extreme-environment-modification",
+      "displayName": "Extreme Environment Modification",
+      "mount": "none",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 1500
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 2
+      }
+    },
+    {
+      "id": "accessory-run-gun-flashlight-standard",
+      "displayName": "Flashlight, Standard",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "side"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "accessory-run-gun-flashlight-low-light",
+      "displayName": "Flashlight, Low Light",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "side"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "accessory-run-gun-flashlight-infrared",
+      "displayName": "Flashlight, Infrared",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "side"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 400
+      }
+    },
+    {
+      "id": "accessory-run-gun-folding-stock",
+      "displayName": "Folding Stock",
+      "mount": "stock",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 30
+      }
+    },
+    {
+      "id": "accessory-run-gun-foregrip",
+      "displayName": "Foregrip",
+      "mount": "barrel",
+      "restrictedToWeaponCategoryIds": [
+        "submachine-guns",
+        "assault-rifles",
+        "sniper-rifles",
+        "shotguns",
+        "special-weapons",
+        "machine-guns",
+        "cannons-launchers"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "accessory-run-gun-gecko-grip",
+      "displayName": "Gecko Grip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "accessory-run-gun-guncam",
+      "displayName": "Guncam",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "barrel",
+        "side",
+        "internal"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 350
+      }
+    },
+    {
+      "id": "accessory-run-gun-hip-pad-bracing-system",
+      "displayName": "Hip Pad Bracing System",
+      "mount": "stock",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "accessory-run-gun-improved-range-finder",
+      "displayName": "Improved Range Finder",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "barrel",
+        "side",
+        "internal",
+        "stock"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 2000
+      }
+    },
+    {
+      "id": "accessory-run-gun-peak-discharge-power-clip",
+      "displayName": "Peak-Discharge Battery Pack, Power Clip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 14,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 400
+      }
+    },
+    {
+      "id": "accessory-run-gun-peak-discharge-satchel-power-pack",
+      "displayName": "Peak-Discharge Battery Pack, Satchel Power Pack",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 900
+      }
+    },
+    {
+      "id": "accessory-run-gun-peak-discharge-power-backpack",
+      "displayName": "Peak-Discharge Battery Pack, Power Backpack",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 20,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2500
+      }
+    },
+    {
+      "id": "accessory-run-gun-safe-target-system",
+      "displayName": "Safe Target System",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "barrel",
+        "side",
+        "internal"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 750
+      }
+    },
+    {
+      "id": "accessory-run-gun-safe-target-additional-profiles",
+      "displayName": "Safe Target System, Additional RFID/GPS Profiles (10)",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "accessory-run-gun-safe-target-image-recognition",
+      "displayName": "Safe Target System, Image Recognition Capabilities",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      }
+    },
+    {
+      "id": "accessory-run-gun-safe-target-extra-image-profiles",
+      "displayName": "Safe Target System, Extra Image Profiles (10)",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 51,
+        "pdfPage": 53
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 25
+      }
+    },
+    {
+      "id": "accessory-run-gun-slide-mount",
+      "displayName": "Slide Mount",
+      "mount": "top",
+      "additionalMounts": [
+        "underbarrel",
+        "side"
+      ],
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 52,
+        "pdfPage": 54
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "accessory-run-gun-sling",
+      "displayName": "Sling",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 52,
+        "pdfPage": 54
+      },
+      "cost": {
+        "fixed": 15
+      }
+    },
+    {
+      "id": "accessory-run-gun-tracker",
+      "displayName": "Tracker",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 150
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-bola-launcher",
+      "displayName": "Underbarrel Bola Launcher",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 350
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-chainsaw",
+      "displayName": "Underbarrel Chainsaw",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 2500
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-flamethrower",
+      "displayName": "Underbarrel Flamethrower",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 2400
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-grapple-gun",
+      "displayName": "Underbarrel Grapple Gun",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      }
+    },
+    {
+      "id": "accessory-run-gun-underbarrel-grenade-launcher",
+      "displayName": "Underbarrel Grenade Launcher",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 3500
+      }
+    },
+    {
+      "id": "accessory-run-gun-weapon-personality",
+      "displayName": "Weapon Personality",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "run-gun",
+        "printedPage": 53,
+        "pdfPage": 55
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "weapon-mod-ammo-skip-system",
+      "displayName": "Ammo Skip System",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      }
+    },
+    {
+      "id": "weapon-mod-ceramic-plasteel-components",
+      "displayName": "Ceramic/Plasteel Components",
+      "mount": "none",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "perRating": 1000
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "weapon-mod-chameleon-coating",
+      "displayName": "Chameleon Coating",
+      "mount": "side",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      }
+    },
+    {
+      "id": "weapon-mod-custom-look",
+      "displayName": "Custom Look",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 300
+      }
+    },
+    {
+      "id": "weapon-mod-easy-breakdown-manual",
+      "displayName": "Easy Breakdown (manual)",
+      "mount": "side",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 750
+      }
+    },
+    {
+      "id": "weapon-mod-easy-breakdown-powered",
+      "displayName": "Easy Breakdown (powered)",
+      "mount": "side",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1250
+      }
+    },
+    {
+      "id": "weapon-mod-electronic-firing",
+      "displayName": "Electronic Firing",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      }
+    },
+    {
+      "id": "weapon-mod-explosive-clip",
+      "displayName": "Explosive Clip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "weapon-mod-extended-clip-1",
+      "displayName": "Extended Clip (Rating 1)",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 35
+      }
+    },
+    {
+      "id": "weapon-mod-extended-clip-2",
+      "displayName": "Extended Clip (Rating 2)",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 35
+      }
+    },
+    {
+      "id": "weapon-mod-holographic-sight",
+      "displayName": "Holographic Sight",
+      "mount": "top",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 125
+      }
+    },
+    {
+      "id": "weapon-mod-longbarrel",
+      "displayName": "Longbarrel",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 0
+      }
+    },
+    {
+      "id": "weapon-mod-melee-hardening",
+      "displayName": "Melee Hardening",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 500
+      }
+    },
+    {
+      "id": "weapon-mod-mounted-crossbow",
+      "displayName": "Mounted Crossbow",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 8,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 1000
+      },
+      "additionalMounts": [
+        "underbarrel"
+      ]
+    },
+    {
+      "id": "weapon-mod-overclocked",
+      "displayName": "Overclocked",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "weapon-mod-personalized-grip",
+      "displayName": "Personalized Grip",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 100
+      }
+    },
+    {
+      "id": "weapon-mod-retractable-bayonet",
+      "displayName": "Retractable Bayonet",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 200
+      }
+    },
+    {
+      "id": "weapon-mod-sawed-off",
+      "displayName": "Sawed-Off / Shortbarrel",
+      "mount": "barrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "weapon-mod-stock-removal",
+      "displayName": "Stock Removal",
+      "mount": "stock",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 20
+      }
+    },
+    {
+      "id": "weapon-mod-trigger-removal",
+      "displayName": "Trigger Removal",
+      "mount": "none",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 2,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 50
+      }
+    },
+    {
+      "id": "weapon-mod-underbarrel-laser",
+      "displayName": "Underbarrel Laser",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 16,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 22000
+      },
+      "additionalMounts": [
+        "side"
+      ]
+    },
+    {
+      "id": "weapon-mod-underbarrel-shotgun",
+      "displayName": "Underbarrel Shotgun",
+      "mount": "underbarrel",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 183,
+        "pdfPage": 184
+      },
+      "availability": {
+        "fixed": 5,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 600
+      }
+    }
+  ]
+}

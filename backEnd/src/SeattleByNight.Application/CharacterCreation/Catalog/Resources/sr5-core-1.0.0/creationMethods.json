@@ -1,0 +1,24 @@
+{
+  "creationMethods": [
+    {
+      "id": "standard-priority",
+      "displayName": "Standard Priority",
+      "kind": "standardPriority",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "sum-to-ten",
+      "displayName": "Sum-to-Ten",
+      "kind": "sumToTen",
+      "source": {
+        "sourceId": "run-faster",
+        "printedPage": 62,
+        "pdfPage": 64
+      }
+    }
+  ]
+}

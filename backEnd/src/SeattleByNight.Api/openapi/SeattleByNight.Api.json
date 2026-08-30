@@ -1,0 +1,2354 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "SeattleByNight.Api | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/antiforgery/token": {
+      "get": {
+        "tags": [
+          "SeattleByNight.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/characters/{characterId}/sheet": {
+      "get": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/account/register": {
+      "post": {
+        "tags": [
+          "AccountEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/account/login": {
+      "post": {
+        "tags": [
+          "AccountEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/account/logout": {
+      "post": {
+        "tags": [
+          "AccountEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/account/me": {
+      "get": {
+        "tags": [
+          "AccountEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/characters": {
+      "get": {
+        "tags": [
+          "CharacterEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/characters/{characterId}/career-sheet": {
+      "get": {
+        "tags": [
+          "CharacterEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/characters/{characterId}/advancements/attributes": {
+      "post": {
+        "tags": [
+          "CharacterEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceAttributeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/characters/{characterId}/advancements/skills": {
+      "post": {
+        "tags": [
+          "CharacterEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceSkillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/characters/{characterId}/advancements/skills/preview": {
+      "post": {
+        "tags": [
+          "CharacterEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewSkillAdvancementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/characters/{characterId}/advancements/specializations": {
+      "post": {
+        "tags": [
+          "CharacterEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSkillSpecializationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/characters/{characterId}": {
+      "delete": {
+        "tags": [
+          "CharacterEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/character-creation/catalogs/current": {
+      "get": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "method",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/character-creation/catalogs/{catalogId}/{version}": {
+      "get": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "catalogId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/character-creation/drafts": {
+      "post": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartCharacterCreationDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/character-creation/drafts/{characterId}": {
+      "get": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceCharacterCreationDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionedCharacterCreationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/character-creation/drafts/{characterId}/change-preview": {
+      "post": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewCharacterCreationChangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/character-creation/drafts/{characterId}/finalize": {
+      "post": {
+        "tags": [
+          "CharacterCreationEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionedCharacterCreationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/play-session/start": {
+      "post": {
+        "tags": [
+          "PlaySessionEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartPlaySessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/play-session/current": {
+      "get": {
+        "tags": [
+          "PlaySessionEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/play-session/activity": {
+      "post": {
+        "tags": [
+          "PlaySessionEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "tags": [
+          "AdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/users/{userId}/roles": {
+      "post": {
+        "tags": [
+          "AdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/users/{userId}/roles/{roleName}": {
+      "delete": {
+        "tags": [
+          "AdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "roleName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/audit": {
+      "get": {
+        "tags": [
+          "AdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "actor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world": {
+      "get": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/rooms/{roomId}": {
+      "get": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorldRoomRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/rooms": {
+      "post": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorldRoomRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/exits": {
+      "post": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorldExitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/exits/{exitId}": {
+      "put": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "exitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorldExitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddSkillSpecializationRequest": {
+        "required": [
+          "expectedVersion",
+          "requestId",
+          "kind",
+          "id",
+          "name",
+          "parameter",
+          "specialization"
+        ],
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "parameter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "specialization": {
+            "type": "string"
+          }
+        }
+      },
+      "AdeptPowerSelection": {
+        "required": [
+          "powerId"
+        ],
+        "type": "object",
+        "properties": {
+          "powerId": {
+            "type": "string"
+          },
+          "rank": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "parameter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AdvanceAttributeRequest": {
+        "required": [
+          "expectedVersion",
+          "requestId",
+          "attributeId"
+        ],
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "attributeId": {
+            "type": "string"
+          }
+        }
+      },
+      "AdvanceSkillRequest": {
+        "required": [
+          "expectedVersion",
+          "requestId",
+          "kind",
+          "id",
+          "name",
+          "parameter",
+          "categoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "parameter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "categoryId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AssignRoleRequest": {
+        "required": [
+          "roleName"
+        ],
+        "type": "object",
+        "properties": {
+          "roleName": {
+            "type": "string"
+          }
+        }
+      },
+      "AttachmentSelection": {
+        "required": [
+          "hostInstanceId",
+          "accessoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "hostInstanceId": {
+            "type": "string"
+          },
+          "accessoryId": {
+            "type": "string"
+          },
+          "mount": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "options": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AttributeAllocation": {
+        "required": [
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "object",
+            "additionalProperties": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "CharacterCreationDraftDocument": {
+        "required": [
+          "priorityAssignment"
+        ],
+        "type": "object",
+        "properties": {
+          "priorityAssignment": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PriorityAssignment"
+              }
+            ]
+          },
+          "metatype": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MetatypeSelection"
+              }
+            ]
+          },
+          "attributes": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AttributeAllocation"
+              }
+            ]
+          },
+          "specialAttributes": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SpecialAttributeAllocation"
+              }
+            ]
+          },
+          "qualities": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/QualitySelection"
+            }
+          },
+          "skills": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SkillAllocation"
+            }
+          },
+          "skillGroups": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SkillGroupAllocation"
+            }
+          },
+          "knowledgeSkills": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeSkillAllocation"
+            }
+          },
+          "languages": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LanguageAllocation"
+            }
+          },
+          "nativeLanguages": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LanguageSelection"
+            }
+          },
+          "magicResonance": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MagicResonanceSelection"
+              }
+            ]
+          },
+          "resources": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ResourceSelection"
+            }
+          },
+          "nuyenFromKarma": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "attachments": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AttachmentSelection"
+            }
+          },
+          "identity": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CharacterIdentity"
+              }
+            ]
+          },
+          "contacts": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ContactSelection"
+            }
+          },
+          "identities": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/IdentitySelection"
+            }
+          },
+          "licenses": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LicenseSelection"
+            }
+          },
+          "lifestyles": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LifestyleSelection"
+            }
+          }
+        }
+      },
+      "CharacterIdentity": {
+        "type": "object",
+        "properties": {
+          "gender": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "age": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eyeColor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "hairColor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "height": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "weight": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "skinTone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "handedness": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "concept": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "shortDescription": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ComplexFormSelection": {
+        "required": [
+          "complexFormId"
+        ],
+        "type": "object",
+        "properties": {
+          "complexFormId": {
+            "type": "string"
+          },
+          "granted": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "ContactSelection": {
+        "required": [
+          "instanceId",
+          "name",
+          "role",
+          "connection",
+          "loyalty"
+        ],
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "connection": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "loyalty": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "CreateWorldExitRequest": {
+        "required": [
+          "sourceRoomId",
+          "destinationRoomId",
+          "direction",
+          "isHidden",
+          "isLocked"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceRoomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "destinationRoomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "direction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isHidden": {
+            "type": "boolean"
+          },
+          "isLocked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateWorldRoomRequest": {
+        "required": [
+          "name",
+          "description",
+          "accessType",
+          "mapX",
+          "mapY",
+          "mapLayer"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accessType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "mapX": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "mapY": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "mapLayer": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "IdentitySelection": {
+        "required": [
+          "instanceId",
+          "rating",
+          "details"
+        ],
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string"
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "details": {
+            "type": "string"
+          }
+        }
+      },
+      "KnowledgeSkillAllocation": {
+        "required": [
+          "name",
+          "categoryId",
+          "rating"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "specialization": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LanguageAllocation": {
+        "required": [
+          "name",
+          "rating"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "specialization": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LanguageSelection": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "LicenseSelection": {
+        "required": [
+          "instanceId",
+          "sinInstanceId",
+          "rating",
+          "subject"
+        ],
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string"
+          },
+          "sinInstanceId": {
+            "type": "string"
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "subject": {
+            "type": "string"
+          }
+        }
+      },
+      "LifestyleSelection": {
+        "required": [
+          "instanceId",
+          "tierId",
+          "isPrimary",
+          "prepaidMonths"
+        ],
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "type": "string"
+          },
+          "tierId": {
+            "type": "string"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "prepaidMonths": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "optionIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "paymentFormId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "additionalPersons": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "LoginRequest": {
+        "required": [
+          "login",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "login": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "MagicResonanceSelection": {
+        "required": [
+          "pathId"
+        ],
+        "type": "object",
+        "properties": {
+          "pathId": {
+            "type": "string"
+          },
+          "traditionId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "aspectedValueId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "skillGrants": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SkillGrantAllocation"
+            }
+          },
+          "skillGroupGrants": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SkillGroupGrantAllocation"
+            }
+          },
+          "spells": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SpellSelection"
+            }
+          },
+          "rituals": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RitualSelection"
+            }
+          },
+          "preparations": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PreparationSelection"
+            }
+          },
+          "adeptPowers": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AdeptPowerSelection"
+            }
+          },
+          "complexForms": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ComplexFormSelection"
+            }
+          },
+          "mentorSpirit": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MentorSpiritSelection"
+              }
+            ]
+          },
+          "purchasedPowerPoints": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "MentorSpiritSelection": {
+        "required": [
+          "mentorSpiritId"
+        ],
+        "type": "object",
+        "properties": {
+          "mentorSpiritId": {
+            "type": "string"
+          },
+          "choice": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "MetatypeSelection": {
+        "required": [
+          "metatypeId"
+        ],
+        "type": "object",
+        "properties": {
+          "metatypeId": {
+            "type": "string"
+          },
+          "metavariantId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PreparationSelection": {
+        "required": [
+          "spellId",
+          "trigger"
+        ],
+        "type": "object",
+        "properties": {
+          "spellId": {
+            "type": "string"
+          },
+          "trigger": {
+            "type": "string"
+          },
+          "delayHours": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "granted": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "PreviewCharacterCreationChangeRequest": {
+        "required": [
+          "expectedVersion",
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "document": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CharacterCreationDraftDocument"
+              }
+            ]
+          }
+        }
+      },
+      "PreviewSkillAdvancementRequest": {
+        "required": [
+          "kind",
+          "id",
+          "name",
+          "parameter",
+          "categoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "parameter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "categoryId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PriorityAssignment": {
+        "required": [
+          "metatype",
+          "attributes",
+          "magicOrResonance",
+          "skills",
+          "resources"
+        ],
+        "type": "object",
+        "properties": {
+          "metatype": {
+            "type": "string"
+          },
+          "attributes": {
+            "type": "string"
+          },
+          "magicOrResonance": {
+            "type": "string"
+          },
+          "skills": {
+            "type": "string"
+          },
+          "resources": {
+            "type": "string"
+          }
+        }
+      },
+      "QualitySelection": {
+        "required": [
+          "qualityId"
+        ],
+        "type": "object",
+        "properties": {
+          "qualityId": {
+            "type": "string"
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "parameters": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RegisterRequest": {
+        "required": [
+          "email",
+          "username",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "ReplaceCharacterCreationDraftRequest": {
+        "required": [
+          "expectedVersion",
+          "name",
+          "document"
+        ],
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "document": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CharacterCreationDraftDocument"
+              }
+            ]
+          }
+        }
+      },
+      "ResourceSelection": {
+        "required": [
+          "itemId"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "quantity": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 1
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "gradeId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "parameter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instanceId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cyberlimbStrengthCustomization": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "cyberlimbAgilityCustomization": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "RitualSelection": {
+        "required": [
+          "ritualId"
+        ],
+        "type": "object",
+        "properties": {
+          "ritualId": {
+            "type": "string"
+          },
+          "granted": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "SkillAllocation": {
+        "required": [
+          "skillId",
+          "rating"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string"
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "parameter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "specialization": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SkillGrantAllocation": {
+        "required": [
+          "skillId"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string"
+          }
+        }
+      },
+      "SkillGroupAllocation": {
+        "required": [
+          "skillGroupId",
+          "rating"
+        ],
+        "type": "object",
+        "properties": {
+          "skillGroupId": {
+            "type": "string"
+          },
+          "rating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SkillGroupGrantAllocation": {
+        "required": [
+          "skillGroupId"
+        ],
+        "type": "object",
+        "properties": {
+          "skillGroupId": {
+            "type": "string"
+          }
+        }
+      },
+      "SpecialAttributeAllocation": {
+        "required": [
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "object",
+            "additionalProperties": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "SpellSelection": {
+        "required": [
+          "spellId"
+        ],
+        "type": "object",
+        "properties": {
+          "spellId": {
+            "type": "string"
+          },
+          "parameter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "granted": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "StartCharacterCreationDraftRequest": {
+        "required": [
+          "name",
+          "creationMethodId"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "creationMethodId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "StartPlaySessionRequest": {
+        "required": [
+          "characterId"
+        ],
+        "type": "object",
+        "properties": {
+          "characterId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateWorldExitRequest": {
+        "required": [
+          "sourceRoomId",
+          "destinationRoomId",
+          "direction",
+          "isHidden",
+          "isLocked",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceRoomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "destinationRoomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "direction": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isHidden": {
+            "type": "boolean"
+          },
+          "isLocked": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "UpdateWorldRoomRequest": {
+        "required": [
+          "name",
+          "description",
+          "accessType",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accessType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "VersionedCharacterCreationRequest": {
+        "required": [
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "SeattleByNight.Api"
+    },
+    {
+      "name": "CharacterCreationEndpoints"
+    },
+    {
+      "name": "AccountEndpoints"
+    },
+    {
+      "name": "CharacterEndpoints"
+    },
+    {
+      "name": "PlaySessionEndpoints"
+    },
+    {
+      "name": "AdminEndpoints"
+    },
+    {
+      "name": "WorldEditorEndpoints"
+    }
+  ]
+}

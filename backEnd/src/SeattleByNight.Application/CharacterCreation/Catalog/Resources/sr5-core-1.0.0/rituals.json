@@ -1,0 +1,122 @@
+{
+  "rituals": [
+    {
+      "id": "circle-of-healing",
+      "displayName": "Circle of Healing",
+      "keywords": [
+        "Anchored",
+        "Spell"
+      ],
+      "incorporatedSpellCategory": "health",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 298,
+        "pdfPage": 300
+      }
+    },
+    {
+      "id": "circle-of-protection",
+      "displayName": "Circle of Protection",
+      "keywords": [
+        "Anchored"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 298,
+        "pdfPage": 300
+      }
+    },
+    {
+      "id": "curse",
+      "displayName": "Curse",
+      "keywords": [
+        "Material Link",
+        "Spell"
+      ],
+      "incorporatedSpellCategory": "illusion",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "homunculus",
+      "displayName": "Homunculus",
+      "keywords": [
+        "Minion"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "prodigal-spell",
+      "displayName": "Prodigal Spell",
+      "keywords": [
+        "Spell",
+        "Spotter"
+      ],
+      "incorporatedSpellCategory": "combat",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "remote-sensing",
+      "displayName": "Remote Sensing",
+      "keywords": [
+        "Spell",
+        "Spotter"
+      ],
+      "incorporatedSpellCategory": "detection",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "renascence",
+      "displayName": "Renascence",
+      "keywords": [
+        "Anchored",
+        "Spell"
+      ],
+      "incorporatedSpellCategory": "manipulation",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 298,
+        "pdfPage": 300
+      }
+    },
+    {
+      "id": "ward",
+      "displayName": "Ward",
+      "keywords": [
+        "Anchored"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    },
+    {
+      "id": "watcher",
+      "displayName": "Watcher",
+      "keywords": [
+        "Minion"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 297,
+        "pdfPage": 299
+      }
+    }
+  ]
+}

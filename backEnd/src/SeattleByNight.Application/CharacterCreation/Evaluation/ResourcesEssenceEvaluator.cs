@@ -474,38 +474,14 @@ public sealed class ResourcesEssenceEvaluator
     private static decimal ResolveEssence(EssenceDefinition? essence, int? rating) =>
         Resolve(essence?.Fixed, essence?.PerRating, essence?.ByRating, rating);
 
-    private static int? Resolve(int? fixedValue, int? perRating, IReadOnlyDictionary<int, int>? byRating, int? rating)
-    {
-        if (byRating is not null && rating is not null && byRating.TryGetValue(rating.Value, out var byRank))
-        {
-            return byRank;
-        }
+    private static int? Resolve(int? fixedValue, int? perRating, IReadOnlyDictionary<int, int>? byRating, int? rating) =>
+        EvaluationPrimitives.Resolve(fixedValue, perRating, rating, byRating);
 
-        if (perRating is not null && rating is not null)
-        {
-            return perRating * rating;
-        }
-
-        return fixedValue;
-    }
-
-    private static decimal Resolve(decimal? fixedValue, decimal? perRating, IReadOnlyDictionary<int, decimal>? byRating, int? rating)
-    {
-        if (byRating is not null && rating is not null && byRating.TryGetValue(rating.Value, out var byRank))
-        {
-            return byRank;
-        }
-
-        if (perRating is not null && rating is not null)
-        {
-            return perRating.Value * rating.Value;
-        }
-
-        return fixedValue ?? 0m;
-    }
+    private static decimal Resolve(decimal? fixedValue, decimal? perRating, IReadOnlyDictionary<int, decimal>? byRating, int? rating) =>
+        EvaluationPrimitives.Resolve(fixedValue, perRating, rating, byRating);
 
     private static int RoundNuyen(decimal value) =>
-        (int)Math.Round(value, 0, MidpointRounding.AwayFromZero);
+        EvaluationPrimitives.RoundNuyen(value);
 
     private static bool TryResolve(RulesetCatalog catalog, string itemId, out ResolvedItem item)
     {

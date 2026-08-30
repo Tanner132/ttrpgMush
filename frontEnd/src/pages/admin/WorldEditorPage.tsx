@@ -365,7 +365,7 @@ export default function WorldEditorPage() {
 
           <div className="world-editor__inspector">
             {selectedRoom ? <>
-              <Panel title="Room record"><RoomForm room={selectedRoom} busy={busy} onUpdate={async (room, name, description) => { await mutate(() => updateWorldRoom(room.id, { name, description, accessType: 0, version: room.version }), 'Room updated.', room.id) }} /></Panel>
+              <Panel title="Room record"><RoomForm room={selectedRoom} busy={busy} onUpdate={async (room, name, description) => { await mutate(() => updateWorldRoom(room.id, { name, description, accessType: 'Public', version: room.version }), 'Room updated.', room.id) }} /></Panel>
               <Panel title="Coordinates"><div className="ui-panel__body"><p className="form__note">Layer {selectedRoom.mapLayer} · X {selectedRoom.mapX} · Y {selectedRoom.mapY}</p></div></Panel>
               <Panel title="Directed exits">
                 <div className="ui-panel__body">
@@ -382,7 +382,7 @@ export default function WorldEditorPage() {
           </div>
         </div>
       )}
-      {createAt && <CreateRoomDialog coordinates={createAt} busy={busy} onClose={() => { if (!busy) setCreateAt(null) }} onCreate={async (name, description) => mutate(() => createWorldRoom({ name, description, accessType: 0, mapX: createAt.x, mapY: createAt.y, mapLayer: createAt.layer }), 'Room created.')} />}
+      {createAt && <CreateRoomDialog coordinates={createAt} busy={busy} onClose={() => { if (!busy) setCreateAt(null) }} onCreate={async (name, description) => mutate(() => createWorldRoom({ name, description, accessType: 'Public', mapX: createAt.x, mapY: createAt.y, mapLayer: createAt.layer }), 'Room created.')} />}
     </main>
   )
 }

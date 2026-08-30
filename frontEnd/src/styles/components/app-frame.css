@@ -1,0 +1,12 @@
+/* ------------------------------------------------------------------ frame */
+
+.app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--sb-bg);
+  animation: sb-crt-in 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) 1;
+}
+

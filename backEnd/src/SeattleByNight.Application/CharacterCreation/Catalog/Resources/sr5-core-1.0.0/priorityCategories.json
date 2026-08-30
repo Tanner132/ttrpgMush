@@ -1,0 +1,49 @@
+{
+  "priorityCategories": [
+    {
+      "id": "attributes",
+      "displayName": "Attributes",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "magic-resonance",
+      "displayName": "Magic or Resonance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "metatype",
+      "displayName": "Metatype",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "resources",
+      "displayName": "Resources",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    },
+    {
+      "id": "skills",
+      "displayName": "Skills",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      }
+    }
+  ]
+}

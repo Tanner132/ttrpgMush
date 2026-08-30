@@ -1,0 +1,321 @@
+/* ─── Metatype step ────────────────────────────────────────────────────── */
+
+/* The console body is clipped, not scrollable, so the step owns exactly one
+   scroll region and every section lives inside it. */
+.metatype-dossier {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: clamp(var(--sb-space-4), 2.4vw, var(--sb-space-5));
+}
+
+.metatype-section + .metatype-section {
+  margin-top: var(--sb-space-5);
+  border-top: 1px solid var(--sb-border-strong);
+}
+
+.metatype-section__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sb-space-4);
+  padding: var(--sb-space-3) 0 var(--sb-space-4);
+}
+
+.metatype-section__heading > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sb-space-3);
+  min-width: 0;
+}
+
+.metatype-section__index {
+  flex-shrink: 0;
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+}
+
+.metatype-section__heading h4 {
+  margin: 0;
+  color: var(--sb-text);
+  font-family: var(--sb-font-heading);
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metatype-section__heading p {
+  max-width: 74ch;
+  margin: 0.2rem 0 0;
+  color: var(--sb-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.metatype-section__heading .creation-step__eyebrow {
+  margin-bottom: 0.15rem;
+  font-size: 0.62rem;
+}
+
+.metatype-section__tag {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--sb-border-strong);
+  color: var(--sb-text-faint);
+  background: var(--sb-bg-inset);
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+/* Card chrome: a topline that keeps the SELECTED flag off the title's
+   baseline, and a foot that pins the grant/variant row to the card bottom. */
+.creation-card__topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sb-space-2);
+}
+
+.creation-card__flag,
+.creation-card__variants {
+  flex-shrink: 0;
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.creation-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-2);
+  margin-top: auto;
+  padding-top: var(--sb-space-2);
+}
+
+.creation-card__meter {
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+}
+
+.creation-card--selected .creation-card__meter {
+  color: var(--sb-accent);
+}
+
+.creation-card__variants {
+  color: var(--sb-text-faint);
+}
+
+.creation-card--selected .creation-card__variants {
+  color: var(--sb-info);
+}
+
+/* Budget strip — same read as the knowledge step's, so the two steps state
+   their remaining-points story the same way. */
+.metatype-budget {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  margin-bottom: var(--sb-space-4);
+  border: 1px solid var(--sb-border);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sb-accent) 7%, transparent), transparent 60%);
+}
+
+.metatype-budget > div {
+  display: grid;
+  gap: 0.15rem;
+  padding: var(--sb-space-3) var(--sb-space-4);
+}
+
+.metatype-budget > div + div {
+  border-left: 1px solid var(--sb-border);
+}
+
+.metatype-budget span {
+  color: var(--sb-text);
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+}
+
+.metatype-budget strong {
+  color: var(--sb-text);
+  font-family: var(--sb-font-heading);
+  font-size: 1.2rem;
+}
+
+.metatype-budget__cell--warn strong {
+  color: var(--sb-warning);
+}
+
+.special-attributes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--sb-space-3);
+  align-items: start;
+}
+
+.special-attribute {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-3);
+  border: 1px solid var(--sb-border);
+  background: var(--sb-surface);
+}
+
+.special-attribute__readout {
+  min-width: 0;
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-data);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.special-attributes__note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+/* Metavariant picker — lives in the readout's configure slot, so it inherits
+   that panel's chrome and only needs its row treatment. */
+.metavariant-picker {
+  display: grid;
+  gap: 3px;
+}
+
+.metavariant-picker__note {
+  margin: 0 0 var(--sb-space-2);
+  color: var(--sb-text-faint);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.metavariant-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+  padding: 7px var(--sb-space-2);
+  border: 1px solid transparent;
+  color: var(--sb-text-muted);
+  background: var(--sb-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.metavariant-option:hover:not([aria-disabled='true']) {
+  border-color: var(--sb-border-strong);
+  color: var(--sb-text);
+}
+
+.metavariant-option[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.metavariant-option--active {
+  border-color: var(--sb-accent);
+  color: var(--sb-text);
+  background: color-mix(in srgb, var(--sb-accent) 8%, var(--sb-surface));
+}
+
+.metavariant-option__dot {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--sb-border-strong);
+  border-radius: 50%;
+}
+
+.metavariant-option--active .metavariant-option__dot {
+  border-color: var(--sb-accent);
+  background: var(--sb-accent);
+  box-shadow: var(--sb-glow-accent);
+}
+
+.metavariant-option__name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--sb-font-heading);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metavariant-option__karma {
+  flex-shrink: 0;
+  color: var(--sb-warning);
+  font-family: var(--sb-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
+.metavariant-option__karma--locked {
+  color: var(--sb-danger);
+}
+
+.metavariant-option--active .metavariant-option__karma {
+  color: var(--sb-accent);
+}
+
+.metavariant-picker__detail {
+  display: grid;
+  gap: var(--sb-space-2);
+  margin-top: var(--sb-space-2);
+  padding-top: var(--sb-space-2);
+  border-top: 1px solid var(--sb-border);
+}
+
+.metavariant-picker__grant {
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+}
+
+.metavariant-picker__same {
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.66rem;
+}
+
+.metavariant-picker__deltas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+@media (max-width: 900px) {
+  .metatype-section__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--sb-space-2);
+  }
+
+  .metatype-budget {
+    grid-template-columns: 1fr;
+  }
+
+  .metatype-budget > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--sb-border);
+  }
+}
+

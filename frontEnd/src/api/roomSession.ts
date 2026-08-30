@@ -1,12 +1,16 @@
 import { apiGet } from './client.ts'
 
+// Enums cross the wire as PascalCase name strings (the API serializes every
+// enum that way — see Program.cs ConfigureHttpJsonOptions).
 export const MessageType = {
-  Say: 0,
-  Emote: 1,
-  Roll: 2,
+  Say: 'Say',
+  Emote: 'Emote',
+  Roll: 'Roll',
 } as const
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType]
+
+export type RoomAccessType = 'Public'
 
 export interface CharacterSummary {
   id: string
@@ -17,7 +21,7 @@ export interface RoomSummary {
   id: string
   name: string
   description: string
-  accessType: number
+  accessType: RoomAccessType
   mapX: number
   mapY: number
   mapLayer: number

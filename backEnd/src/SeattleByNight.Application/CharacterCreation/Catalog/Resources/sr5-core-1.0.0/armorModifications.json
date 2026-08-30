@@ -1,0 +1,244 @@
+{
+  "armorModifications": [
+    {
+      "id": "armor-mod-chemical-protection",
+      "displayName": "Chemical Protection",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-chemical-seal",
+      "displayName": "Chemical Seal",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 3000
+      },
+      "capacityCost": {
+        "fixed": 6
+      }
+    },
+    {
+      "id": "armor-mod-fire-resistance",
+      "displayName": "Fire Resistance",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-insulation",
+      "displayName": "Insulation",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-nonconductivity",
+      "displayName": "Nonconductivity",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "legal"
+      },
+      "cost": {
+        "perRating": 250
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-shock-frills",
+      "displayName": "Shock Frills",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 250
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "armor-mod-thermal-damping",
+      "displayName": "Thermal Damping",
+      "classification": "parameterized",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 437,
+        "pdfPage": 439
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "restricted"
+      },
+      "cost": {
+        "perRating": 500
+      },
+      "capacityCost": {
+        "perRating": 1
+      },
+      "ratingRange": {
+        "minimum": 1,
+        "maximum": 6
+      }
+    },
+    {
+      "id": "armor-mod-biofiber-pocket",
+      "displayName": "Biofiber Pocket",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 10,
+        "legality": "forbidden"
+      },
+      "cost": {
+        "fixed": 700
+      },
+      "capacityCost": {
+        "fixed": 2
+      }
+    },
+    {
+      "id": "armor-mod-concealed-pockets",
+      "displayName": "Concealed Pockets",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 40
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "armor-mod-faraday-pocket",
+      "displayName": "Faraday Pocket",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 7,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 50
+      },
+      "capacityCost": {
+        "fixed": 1
+      }
+    },
+    {
+      "id": "armor-mod-gear-access",
+      "displayName": "Gear Access",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "hard-targets",
+        "printedPage": 185,
+        "pdfPage": 186
+      },
+      "availability": {
+        "fixed": 4,
+        "legality": "legal"
+      },
+      "cost": {
+        "fixed": 150
+      },
+      "capacityCost": {
+        "fixed": 4
+      }
+    }
+  ]
+}

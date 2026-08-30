@@ -1,0 +1,59 @@
+{
+  "lifestyleOptions": [
+    {
+      "id": "special-work-area",
+      "displayName": "Special Work Area",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
+      "fixedMonthlyAmount": 1000
+    },
+    {
+      "id": "extra-secure",
+      "displayName": "Extra Secure",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
+      "adjustmentPercent": 20
+    },
+    {
+      "id": "obscure-difficult-to-find",
+      "displayName": "Obscure/Difficult to Find",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
+      "adjustmentPercent": 10
+    },
+    {
+      "id": "cramped",
+      "displayName": "Cramped",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
+      "adjustmentPercent": -10
+    },
+    {
+      "id": "dangerous-area",
+      "displayName": "Dangerous Area",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 374,
+        "pdfPage": 376
+      },
+      "adjustmentPercent": -20
+    }
+  ]
+}

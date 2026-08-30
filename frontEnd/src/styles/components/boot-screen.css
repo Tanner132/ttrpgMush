@@ -1,0 +1,111 @@
+/* -------------------------------------------------------------- boot screen */
+
+/* Full-bleed overlay shown while useBootSequence() is booting. Long form on a
+   user's first visit (a scrolling POST log), a ~0.6s flash on repeat visits. */
+.boot-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 8vw;
+  background: var(--sb-bg);
+}
+
+.boot-screen__label {
+  margin-bottom: 22px;
+  font-family: var(--sb-font-data);
+  font-size: 12px;
+  letter-spacing: 0.34em;
+  color: var(--sb-text-faint);
+}
+
+.boot-screen__log {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 44vh;
+  font-family: var(--sb-font-data);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.boot-screen__line {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+}
+
+.boot-screen__line-time {
+  min-width: 74px;
+  /* Dimmer than --sb-text-faint — a boot log timestamp should read as
+     barely-there, not as content. */
+  color: #3d4a52;
+}
+
+.boot-screen__line-message {
+  text-shadow: 0 0 9px currentColor;
+}
+
+.boot-screen__cursor {
+  display: inline-block;
+  width: 9px;
+  height: 16px;
+  background: var(--sb-accent);
+  box-shadow: var(--sb-glow-accent);
+  animation: sb-blink 1s steps(1) infinite;
+}
+
+.boot-screen__progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.boot-screen__track {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  background: var(--sb-track);
+}
+
+.boot-screen__fill {
+  height: 100%;
+  background: var(--sb-accent);
+  box-shadow: var(--sb-glow-accent);
+  transition: width var(--sb-duration-slow) var(--sb-ease);
+}
+
+.boot-screen__pct {
+  min-width: 44px;
+  text-align: right;
+  font-family: var(--sb-font-data);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--sb-text-faint);
+}
+
+.boot-screen__skip {
+  border: 1px solid var(--sb-border-strong);
+  background: transparent;
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-data);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  padding: 7px 13px;
+  cursor: pointer;
+  transition: border-color var(--sb-duration-fast) var(--sb-ease), color var(--sb-duration-fast) var(--sb-ease);
+}
+
+.boot-screen__skip:hover {
+  border-color: var(--sb-accent);
+  color: var(--sb-accent);
+}
+
+.boot-screen__skip:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 2px;
+}
+

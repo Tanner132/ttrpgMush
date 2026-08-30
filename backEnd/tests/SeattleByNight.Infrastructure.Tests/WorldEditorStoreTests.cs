@@ -59,7 +59,7 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
 
         var result = await CreateStore(db).CreateRoomAsync(
             DevelopmentDataSeeder.DevUserId,
-            new CreateRoomMutation(" Center ", "description that must not be audited", 0, 100, 100, 20));
+            new CreateRoomMutation(" Center ", "description that must not be audited", "Public", 100, 100, 20));
 
         Assert.Equal(WorldMutationError.None, result.Error);
         Assert.Equal("Center", result.Value!.Name);
@@ -90,9 +90,9 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
     {
         await using var db = CreateDbContext();
         var first = (await CreateStore(db).CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
-            new CreateRoomMutation("Layer one", "Room", 0, 500, 500, 30))).Value!;
+            new CreateRoomMutation("Layer one", "Room", "Public", 500, 500, 30))).Value!;
         var second = (await CreateStore(db).CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
-            new CreateRoomMutation("Layer two", "Room", 0, 501, 500, 31))).Value!;
+            new CreateRoomMutation("Layer two", "Room", "Public", 501, 500, 31))).Value!;
 
         Assert.False(await db.RoomExits.AnyAsync(exit =>
             (exit.SourceRoomId == first.Id && exit.DestinationRoomId == second.Id) ||
@@ -105,11 +105,11 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
         await using var db = CreateDbContext();
         var store = CreateStore(db);
         var first = await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
-            new CreateRoomMutation("First", "Room", 0, 600, 600, 40));
+            new CreateRoomMutation("First", "Room", "Public", 600, 600, 40));
         var auditCount = await db.AuditRecords.CountAsync();
 
         var conflict = await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
-            new CreateRoomMutation("Conflict", "Room", 0, 600, 600, 40));
+            new CreateRoomMutation("Conflict", "Room", "Public", 600, 600, 40));
 
         Assert.Equal(WorldMutationError.Conflict, conflict.Error);
         Assert.Equal(1, await db.Rooms.CountAsync(room => room.Id == first.Value!.Id || room.Name == "Conflict"));
@@ -122,11 +122,11 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
         await using var db = CreateDbContext();
         var store = CreateStore(db);
         var created = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
-            new CreateRoomMutation("Original", "Original", 0, 700, 701, 50))).Value!;
+            new CreateRoomMutation("Original", "Original", "Public", 700, 701, 50))).Value!;
         var updated = await store.UpdateRoomAsync(DevelopmentDataSeeder.DevUserId, created.Id, created.Version,
-            new UpdateRoomMutation("Current", "Current", 0));
+            new UpdateRoomMutation("Current", "Current", "Public"));
         var stale = await store.UpdateRoomAsync(DevelopmentDataSeeder.DevUserId, created.Id, created.Version,
-            new UpdateRoomMutation("Stale", "Stale", 0));
+            new UpdateRoomMutation("Stale", "Stale", "Public"));
 
         Assert.Equal(WorldMutationError.None, updated.Error);
         Assert.Equal(WorldMutationError.Conflict, stale.Error);
@@ -143,9 +143,9 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
         await using var db = CreateDbContext();
         var store = CreateStore(db);
         var source = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
-            new CreateRoomMutation("Source", "Room", 0, 800, 800, 60))).Value!;
+            new CreateRoomMutation("Source", "Room", "Public", 800, 800, 60))).Value!;
         var destination = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
-            new CreateRoomMutation("Destination", "Room", 0, 900, 900, 61))).Value!;
+            new CreateRoomMutation("Destination", "Room", "Public", 900, 900, 61))).Value!;
 
         var down = await store.CreateExitAsync(DevelopmentDataSeeder.DevUserId,
             new RoomExitMutation(source.Id, destination.Id, RoomDirections.Down, false, false));
@@ -169,7 +169,7 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
             var store = new WorldEditorStore(db, new ThrowingAuditWriter(), TimeProvider.System);
             await Assert.ThrowsAsync<InvalidOperationException>(() => store.CreateRoomAsync(
                 DevelopmentDataSeeder.DevUserId,
-                new CreateRoomMutation(name, "Must roll back", 0, 1, 1, 90)));
+                new CreateRoomMutation(name, "Must roll back", "Public", 1, 1, 90)));
         }
 
         await using var verify = CreateDbContext();

@@ -1,0 +1,510 @@
+{
+  "priorityCells": [
+    {
+      "id": "priority-attributes-a",
+      "categoryId": "attributes",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 24
+    },
+    {
+      "id": "priority-attributes-b",
+      "categoryId": "attributes",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 20
+    },
+    {
+      "id": "priority-attributes-c",
+      "categoryId": "attributes",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 16
+    },
+    {
+      "id": "priority-attributes-d",
+      "categoryId": "attributes",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 14
+    },
+    {
+      "id": "priority-attributes-e",
+      "categoryId": "attributes",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "physicalMentalAttributePoints": 12
+    },
+    {
+      "id": "priority-magic-resonance-a",
+      "categoryId": "magic-resonance",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "magician",
+          "attributeRating": 6,
+          "skillGrants": [
+            {
+              "domain": "magical",
+              "count": 2,
+              "rating": 5
+            }
+          ],
+          "formulaGrants": 10,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "mystic-adept",
+          "attributeRating": 6,
+          "skillGrants": [
+            {
+              "domain": "magical",
+              "count": 2,
+              "rating": 5
+            }
+          ],
+          "formulaGrants": 10,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "technomancer",
+          "attributeRating": 6,
+          "skillGrants": [
+            {
+              "domain": "resonance",
+              "count": 2,
+              "rating": 5
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 5
+        }
+      ]
+    },
+    {
+      "id": "priority-magic-resonance-b",
+      "categoryId": "magic-resonance",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "magician",
+          "attributeRating": 4,
+          "skillGrants": [
+            {
+              "domain": "magical",
+              "count": 2,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 7,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "mystic-adept",
+          "attributeRating": 4,
+          "skillGrants": [
+            {
+              "domain": "magical",
+              "count": 2,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 7,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "adept",
+          "attributeRating": 6,
+          "skillGrants": [
+            {
+              "domain": "active",
+              "count": 1,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "aspected-magician",
+          "attributeRating": 5,
+          "skillGrants": [
+            {
+              "domain": "magical-group",
+              "count": 1,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "technomancer",
+          "attributeRating": 4,
+          "skillGrants": [
+            {
+              "domain": "resonance",
+              "count": 2,
+              "rating": 4
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 2
+        }
+      ]
+    },
+    {
+      "id": "priority-magic-resonance-c",
+      "categoryId": "magic-resonance",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "magician",
+          "attributeRating": 3,
+          "skillGrants": [],
+          "formulaGrants": 5,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "mystic-adept",
+          "attributeRating": 3,
+          "skillGrants": [],
+          "formulaGrants": 5,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "adept",
+          "attributeRating": 4,
+          "skillGrants": [
+            {
+              "domain": "active",
+              "count": 1,
+              "rating": 2
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "aspected-magician",
+          "attributeRating": 3,
+          "skillGrants": [
+            {
+              "domain": "magical-group",
+              "count": 1,
+              "rating": 2
+            }
+          ],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "technomancer",
+          "attributeRating": 3,
+          "skillGrants": [],
+          "formulaGrants": 0,
+          "complexFormGrants": 1
+        }
+      ]
+    },
+    {
+      "id": "priority-magic-resonance-d",
+      "categoryId": "magic-resonance",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "adept",
+          "attributeRating": 2,
+          "skillGrants": [],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        },
+        {
+          "pathId": "aspected-magician",
+          "attributeRating": 2,
+          "skillGrants": [],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        }
+      ]
+    },
+    {
+      "id": "priority-magic-resonance-e",
+      "categoryId": "magic-resonance",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "magicResonancePathGrants": [
+        {
+          "pathId": "mundane",
+          "attributeRating": 0,
+          "skillGrants": [],
+          "formulaGrants": 0,
+          "complexFormGrants": 0
+        }
+      ]
+    },
+    {
+      "id": "priority-metatype-a",
+      "categoryId": "metatype",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 9,
+        "elf": 8,
+        "dwarf": 7,
+        "ork": 7,
+        "troll": 5
+      },
+      "availableMetatypeIds": [
+        "human",
+        "elf",
+        "dwarf",
+        "ork",
+        "troll"
+      ]
+    },
+    {
+      "id": "priority-metatype-b",
+      "categoryId": "metatype",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 7,
+        "elf": 6,
+        "dwarf": 4,
+        "ork": 4,
+        "troll": 0
+      },
+      "availableMetatypeIds": [
+        "human",
+        "elf",
+        "dwarf",
+        "ork",
+        "troll"
+      ]
+    },
+    {
+      "id": "priority-metatype-c",
+      "categoryId": "metatype",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 5,
+        "elf": 3,
+        "dwarf": 1,
+        "ork": 0
+      },
+      "availableMetatypeIds": [
+        "human",
+        "elf",
+        "dwarf",
+        "ork"
+      ]
+    },
+    {
+      "id": "priority-metatype-d",
+      "categoryId": "metatype",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 3,
+        "elf": 0
+      },
+      "availableMetatypeIds": [
+        "human",
+        "elf"
+      ]
+    },
+    {
+      "id": "priority-metatype-e",
+      "categoryId": "metatype",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "metatypeSpecialAttributePoints": {
+        "human": 1
+      },
+      "availableMetatypeIds": [
+        "human"
+      ]
+    },
+    {
+      "id": "priority-resources-a",
+      "categoryId": "resources",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "resourceNuyen": 450000
+    },
+    {
+      "id": "priority-resources-b",
+      "categoryId": "resources",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "resourceNuyen": 275000
+    },
+    {
+      "id": "priority-resources-c",
+      "categoryId": "resources",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "resourceNuyen": 140000
+    },
+    {
+      "id": "priority-resources-d",
+      "categoryId": "resources",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "resourceNuyen": 50000
+    },
+    {
+      "id": "priority-resources-e",
+      "categoryId": "resources",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "resourceNuyen": 6000
+    },
+    {
+      "id": "priority-skills-a",
+      "categoryId": "skills",
+      "levelId": "a",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 46,
+      "skillGroupPoints": 10
+    },
+    {
+      "id": "priority-skills-b",
+      "categoryId": "skills",
+      "levelId": "b",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 36,
+      "skillGroupPoints": 5
+    },
+    {
+      "id": "priority-skills-c",
+      "categoryId": "skills",
+      "levelId": "c",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 28,
+      "skillGroupPoints": 2
+    },
+    {
+      "id": "priority-skills-d",
+      "categoryId": "skills",
+      "levelId": "d",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 22,
+      "skillGroupPoints": 0
+    },
+    {
+      "id": "priority-skills-e",
+      "categoryId": "skills",
+      "levelId": "e",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 65,
+        "pdfPage": 67
+      },
+      "individualSkillPoints": 18,
+      "skillGroupPoints": 0
+    }
+  ]
+}

@@ -1,0 +1,229 @@
+{
+  "cyberdecks": [
+    {
+      "id": "erika-mcd-1",
+      "displayName": "Erika MCD-1",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 49500
+      },
+      "deviceRating": 1,
+      "attributeArray": [
+        4,
+        3,
+        2,
+        1
+      ],
+      "programs": 1
+    },
+    {
+      "id": "microdeck-summit",
+      "displayName": "Microdeck Summit",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 3,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 58000
+      },
+      "deviceRating": 1,
+      "attributeArray": [
+        4,
+        3,
+        3,
+        1
+      ],
+      "programs": 1
+    },
+    {
+      "id": "microtronica-azteca-200",
+      "displayName": "Microtrônica Azteca 200",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 110250
+      },
+      "deviceRating": 2,
+      "attributeArray": [
+        5,
+        4,
+        3,
+        2
+      ],
+      "programs": 2
+    },
+    {
+      "id": "hermes-chariot",
+      "displayName": "Hermes Chariot",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 6,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 123000
+      },
+      "deviceRating": 2,
+      "attributeArray": [
+        5,
+        4,
+        4,
+        2
+      ],
+      "programs": 2
+    },
+    {
+      "id": "novatech-navigator",
+      "displayName": "Novatech Navigator",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 205750
+      },
+      "deviceRating": 3,
+      "attributeArray": [
+        6,
+        5,
+        4,
+        3
+      ],
+      "programs": 3
+    },
+    {
+      "id": "renraku-tsurugi",
+      "displayName": "Renraku Tsurugi",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 9,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 214125
+      },
+      "deviceRating": 3,
+      "attributeArray": [
+        6,
+        5,
+        5,
+        3
+      ],
+      "programs": 3
+    },
+    {
+      "id": "sony-ciy-720",
+      "displayName": "Sony CIY-720",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 12,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 345000
+      },
+      "deviceRating": 4,
+      "attributeArray": [
+        7,
+        6,
+        5,
+        4
+      ],
+      "programs": 4
+    },
+    {
+      "id": "shiawase-cyber-5",
+      "displayName": "Shiawase Cyber-5",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 15,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 549375
+      },
+      "deviceRating": 5,
+      "attributeArray": [
+        8,
+        7,
+        6,
+        5
+      ],
+      "programs": 5
+    },
+    {
+      "id": "fairlight-excalibur",
+      "displayName": "Fairlight Excalibur",
+      "classification": "selectable",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 439,
+        "pdfPage": 441
+      },
+      "availability": {
+        "fixed": 18,
+        "legality": "restricted"
+      },
+      "cost": {
+        "fixed": 823250
+      },
+      "deviceRating": 6,
+      "attributeArray": [
+        9,
+        8,
+        7,
+        6
+      ],
+      "programs": 6
+    }
+  ]
+}

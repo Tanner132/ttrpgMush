@@ -1,0 +1,1025 @@
+{
+  "skills": [
+    {
+      "id": "aeronautics-mechanic",
+      "displayName": "Aeronautics Mechanic",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "engineering",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "alchemy",
+      "displayName": "Alchemy",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "enchanting",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "animal-handling",
+      "displayName": "Animal Handling",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "arcana",
+      "displayName": "Arcana",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "archery",
+      "displayName": "Archery",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "armorer",
+      "displayName": "Armorer",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "artificing",
+      "displayName": "Artificing",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "enchanting",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "artisan",
+      "displayName": "Artisan",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "assensing",
+      "displayName": "Assensing",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "astral-combat",
+      "displayName": "Astral Combat",
+      "category": "active",
+      "linkedAttribute": "willpower",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "automatics",
+      "displayName": "Automatics",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "firearms",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "automotive-mechanic",
+      "displayName": "Automotive Mechanic",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "engineering",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "banishing",
+      "displayName": "Banishing",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "conjuring",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "binding",
+      "displayName": "Binding",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "conjuring",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "biotechnology",
+      "displayName": "Biotechnology",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "blades",
+      "displayName": "Blades",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "close-combat",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "chemistry",
+      "displayName": "Chemistry",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "clubs",
+      "displayName": "Clubs",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "close-combat",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "compiling",
+      "displayName": "Compiling",
+      "category": "active",
+      "linkedAttribute": "resonance",
+      "groupId": "tasking",
+      "parameterized": false,
+      "domain": "resonance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "computer",
+      "displayName": "Computer",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "electronics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "con",
+      "displayName": "Con",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "acting",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "counterspelling",
+      "displayName": "Counterspelling",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "sorcery",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "cybercombat",
+      "displayName": "Cybercombat",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "cracking",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "cybertechnology",
+      "displayName": "Cybertechnology",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "biotech",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "decompiling",
+      "displayName": "Decompiling",
+      "category": "active",
+      "linkedAttribute": "resonance",
+      "groupId": "tasking",
+      "parameterized": false,
+      "domain": "resonance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "demolitions",
+      "displayName": "Demolitions",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "disenchanting",
+      "displayName": "Disenchanting",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "enchanting",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "disguise",
+      "displayName": "Disguise",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "groupId": "stealth",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "diving",
+      "displayName": "Diving",
+      "category": "active",
+      "linkedAttribute": "body",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "electronic-warfare",
+      "displayName": "Electronic Warfare",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "cracking",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "escape-artist",
+      "displayName": "Escape Artist",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "etiquette",
+      "displayName": "Etiquette",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "influence",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "exotic-melee-weapon",
+      "displayName": "Exotic Melee Weapon",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": true,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "exotic-ranged-weapon",
+      "displayName": "Exotic Ranged Weapon",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": true,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "first-aid",
+      "displayName": "First Aid",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "biotech",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "forgery",
+      "displayName": "Forgery",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "free-fall",
+      "displayName": "Free Fall",
+      "category": "active",
+      "linkedAttribute": "body",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "gunnery",
+      "displayName": "Gunnery",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "gymnastics",
+      "displayName": "Gymnastics",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "athletics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "hacking",
+      "displayName": "Hacking",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "cracking",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "hardware",
+      "displayName": "Hardware",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "electronics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "heavy-weapons",
+      "displayName": "Heavy Weapons",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "impersonation",
+      "displayName": "Impersonation",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "acting",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "industrial-mechanic",
+      "displayName": "Industrial Mechanic",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "engineering",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "instruction",
+      "displayName": "Instruction",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "intimidation",
+      "displayName": "Intimidation",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "leadership",
+      "displayName": "Leadership",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "influence",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "locksmith",
+      "displayName": "Locksmith",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "longarms",
+      "displayName": "Longarms",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "firearms",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "medicine",
+      "displayName": "Medicine",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "biotech",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "nautical-mechanic",
+      "displayName": "Nautical Mechanic",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "engineering",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "navigation",
+      "displayName": "Navigation",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "groupId": "outdoors",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "negotiation",
+      "displayName": "Negotiation",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "influence",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "palming",
+      "displayName": "Palming",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "stealth",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "perception",
+      "displayName": "Perception",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "performance",
+      "displayName": "Performance",
+      "category": "active",
+      "linkedAttribute": "charisma",
+      "groupId": "acting",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-aerospace",
+      "displayName": "Pilot Aerospace",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-aircraft",
+      "displayName": "Pilot Aircraft",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-exotic-vehicle",
+      "displayName": "Pilot Exotic Vehicle",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": true,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-ground-craft",
+      "displayName": "Pilot Ground Craft",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-walker",
+      "displayName": "Pilot Walker",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pilot-watercraft",
+      "displayName": "Pilot Watercraft",
+      "category": "active",
+      "linkedAttribute": "reaction",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "pistols",
+      "displayName": "Pistols",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "firearms",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "registering",
+      "displayName": "Registering",
+      "category": "active",
+      "linkedAttribute": "resonance",
+      "groupId": "tasking",
+      "parameterized": false,
+      "domain": "resonance",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "ritual-spellcasting",
+      "displayName": "Ritual Spellcasting",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "sorcery",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "running",
+      "displayName": "Running",
+      "category": "active",
+      "linkedAttribute": "strength",
+      "groupId": "athletics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "sneaking",
+      "displayName": "Sneaking",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "stealth",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "software",
+      "displayName": "Software",
+      "category": "active",
+      "linkedAttribute": "logic",
+      "groupId": "electronics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "spellcasting",
+      "displayName": "Spellcasting",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "sorcery",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "summoning",
+      "displayName": "Summoning",
+      "category": "active",
+      "linkedAttribute": "magic",
+      "groupId": "conjuring",
+      "parameterized": false,
+      "domain": "magical",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "survival",
+      "displayName": "Survival",
+      "category": "active",
+      "linkedAttribute": "willpower",
+      "groupId": "outdoors",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "swimming",
+      "displayName": "Swimming",
+      "category": "active",
+      "linkedAttribute": "strength",
+      "groupId": "athletics",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "throwing-weapons",
+      "displayName": "Throwing Weapons",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "tracking",
+      "displayName": "Tracking",
+      "category": "active",
+      "linkedAttribute": "intuition",
+      "groupId": "outdoors",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    },
+    {
+      "id": "unarmed-combat",
+      "displayName": "Unarmed Combat",
+      "category": "active",
+      "linkedAttribute": "agility",
+      "groupId": "close-combat",
+      "parameterized": false,
+      "domain": "active",
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 131,
+        "pdfPage": 133
+      }
+    }
+  ]
+}

@@ -1,0 +1,348 @@
+{
+  "knowledgeSkillSuggestions": [
+    {
+      "id": "ares-macrotechnology",
+      "displayName": "Ares Macrotechnology",
+      "categoryId": "street",
+      "specializations": [
+        "Personalities",
+        "Security Policies",
+        "Tactics",
+        "Shortcuts",
+        "Guard Posts"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "architecture",
+      "displayName": "Architecture",
+      "categoryId": "professional",
+      "specializations": [
+        "Residential",
+        "Commercial",
+        "Industrial"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "biology",
+      "displayName": "Biology",
+      "categoryId": "academic",
+      "specializations": [
+        "Microbiology",
+        "Parabotany",
+        "Parazoology",
+        "Genetics",
+        "Physiology"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "business",
+      "displayName": "Business",
+      "categoryId": "professional",
+      "specializations": [
+        "Finance",
+        "Investing",
+        "Megacorp",
+        "Small Business",
+        "Economics"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "chemistry",
+      "displayName": "Chemistry",
+      "categoryId": "academic",
+      "specializations": [
+        "Analytical",
+        "Biochemistry",
+        "Inorganic",
+        "Organic",
+        "Physical"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "club-music",
+      "displayName": "Club Music",
+      "categoryId": "interests",
+      "specializations": [
+        "By decade",
+        "By genre",
+        "By club"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "economics",
+      "displayName": "Economics",
+      "categoryId": "academic",
+      "specializations": [
+        "Microeconomics",
+        "Macroeconomics",
+        "Regional"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "engineering",
+      "displayName": "Engineering",
+      "categoryId": "professional",
+      "specializations": [
+        "Chemical",
+        "Civil",
+        "Electrical",
+        "Mechanical",
+        "Nuclear"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "fashion",
+      "displayName": "Fashion",
+      "categoryId": "interests",
+      "specializations": [
+        "Armor",
+        "Clothing",
+        "Cyber",
+        "European",
+        "Hippie",
+        "Street"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "history",
+      "displayName": "History",
+      "categoryId": "academic",
+      "specializations": [
+        "By era",
+        "By region"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "hong-kong-triads",
+      "displayName": "Hong Kong Triads",
+      "categoryId": "street",
+      "specializations": [
+        "Locations",
+        "Identifying Marks",
+        "Criminal Activities"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "literature",
+      "displayName": "Literature",
+      "categoryId": "academic",
+      "specializations": [
+        "American",
+        "English",
+        "Japanese",
+        "Ancient",
+        "Classical",
+        "Science Fiction",
+        "Scandinavian"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "matrix-games",
+      "displayName": "Matrix Games",
+      "categoryId": "interests",
+      "specializations": [
+        "Action",
+        "Horror",
+        "Fantasy",
+        "Role-Playing",
+        "Time Period",
+        "Platform"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "military",
+      "displayName": "Military",
+      "categoryId": "professional",
+      "specializations": [
+        "Mercenaries",
+        "Company",
+        "Army",
+        "Navy",
+        "Air Force",
+        "Marines"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "police-procedures",
+      "displayName": "Police Procedures",
+      "categoryId": "professional",
+      "specializations": [
+        "By company",
+        "By jurisdiction",
+        "By department"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "seattle-street-gangs",
+      "displayName": "Seattle Street Gangs",
+      "categoryId": "street",
+      "specializations": [
+        "Halloweeners",
+        "Ancients",
+        "Brain Eaters"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "security-companies",
+      "displayName": "Security Companies",
+      "categoryId": "street",
+      "specializations": [
+        "Personnel",
+        "Tactics",
+        "Territories",
+        "Equipment",
+        "Companies"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "sprawl-life",
+      "displayName": "Sprawl Life",
+      "categoryId": "street",
+      "specializations": [
+        "Area",
+        "District",
+        "Apartment Living",
+        "Squatter Living",
+        "Shortcuts",
+        "Shelters"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "sports",
+      "displayName": "Sports",
+      "categoryId": "interests",
+      "specializations": [
+        "By sport",
+        "By team",
+        "By position"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "street-drugs",
+      "displayName": "Street Drugs",
+      "categoryId": "interests",
+      "specializations": [
+        "Personality",
+        "Effects",
+        "Recipes",
+        "Locations",
+        "Prices"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    },
+    {
+      "id": "ucas-politics",
+      "displayName": "UCAS Politics",
+      "categoryId": "street",
+      "specializations": [
+        "By region",
+        "By party",
+        "By personality"
+      ],
+      "source": {
+        "sourceId": "sr5-core",
+        "printedPage": 149,
+        "pdfPage": 151
+      }
+    }
+  ]
+}
