@@ -6,6 +6,11 @@ using SeattleByNight.Application.Characters;
 using SeattleByNight.Application.CharacterCareer;
 using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Application.Dice;
+using SeattleByNight.Application.GameEngine.Auditing;
+using SeattleByNight.Application.GameEngine.Dice;
+using SeattleByNight.Application.GameEngine.Effects;
+using SeattleByNight.Application.GameEngine.Runtime;
+using SeattleByNight.Application.GameEngine.StateChanges;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoleAdmin;
@@ -17,6 +22,7 @@ using SeattleByNight.Infrastructure.Characters;
 using SeattleByNight.Infrastructure.CharacterCareer;
 using SeattleByNight.Infrastructure.CharacterCreation;
 using SeattleByNight.Infrastructure.Dice;
+using SeattleByNight.Infrastructure.GameEngine;
 using SeattleByNight.Infrastructure.Identity;
 using SeattleByNight.Infrastructure.Movement;
 using SeattleByNight.Infrastructure.Persistence;
@@ -51,6 +57,11 @@ public static class DependencyInjection
         services.AddScoped<IWorldEditorStore, WorldEditorStore>();
         services.AddSingleton<IDiceRandom, CryptographicDiceRandom>();
         services.AddSingleton<IDiceEngine, DiceEngine>();
+        services.AddScoped<ICharacterRuntimeStateStore, CharacterRuntimeStateStore>();
+        services.AddScoped<IGameTestAuditStore, GameTestAuditStore>();
+        services.AddSingleton<ISeedSource, CryptographicSeedSource>();
+        services.AddScoped<IActiveEffectReader, ActiveEffectStore>();
+        services.AddScoped<IStateChangeApplier, StateChangeApplier>();
 
         services
             .AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>

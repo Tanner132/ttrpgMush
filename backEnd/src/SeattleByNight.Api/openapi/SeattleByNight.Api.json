@@ -587,6 +587,89 @@
         }
       }
     },
+    "/api/game/actions": {
+      "get": {
+        "tags": [
+          "GameActionEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/game/actions/{actionId}": {
+      "post": {
+        "tags": [
+          "GameActionEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PerformGameActionRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/game/decisions/{decisionId}": {
+      "post": {
+        "tags": [
+          "GameActionEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "decisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondToDecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/users": {
       "get": {
         "tags": [
@@ -1822,6 +1905,38 @@
           }
         }
       },
+      "PerformGameActionRequest": {
+        "required": [
+          "requestId",
+          "situationalModifier",
+          "pushTheLimit"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "situationalModifier": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pushTheLimit": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        }
+      },
       "PreparationSelection": {
         "required": [
           "spellId",
@@ -2079,6 +2194,17 @@
               "string"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "RespondToDecisionRequest": {
+        "required": [
+          "optionId"
+        ],
+        "type": "object",
+        "properties": {
+          "optionId": {
+            "type": "string"
           }
         }
       },
@@ -2343,6 +2469,9 @@
     },
     {
       "name": "PlaySessionEndpoints"
+    },
+    {
+      "name": "GameActionEndpoints"
     },
     {
       "name": "AdminEndpoints"

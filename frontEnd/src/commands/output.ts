@@ -1,4 +1,5 @@
 import type { CharacterSummary, RoomSession } from '../api/roomSession.ts'
+import type { GameActionSummary, PendingDecisionInfo } from '../api/gameActions.ts'
 import { COMMANDS } from './commands.ts'
 
 export function renderHelp(): string {
@@ -31,6 +32,25 @@ export function renderLook(
   }
 
   return lines.join('\n')
+}
+
+export function renderGameActions(actions: GameActionSummary[]): string {
+  const tests = actions.filter((action) => action.kind === 'Test')
+  if (tests.length === 0) {
+    return 'No game tests are available.'
+  }
+
+  return [
+    'Available tests (use /test <name>, add "edge" to Push the Limit):',
+    ...tests.map((test) => `${test.displayName}  ${test.description}`),
+  ].join('\n')
+}
+
+export function renderPendingDecision(decision: PendingDecisionInfo): string {
+  return [
+    decision.prompt,
+    `Reply /edge yes or /edge no — defaults to "${decision.defaultOptionId}" in ${decision.timeoutSeconds}s.`,
+  ].join('\n')
 }
 
 export function renderWho(characters: CharacterSummary[]): string {

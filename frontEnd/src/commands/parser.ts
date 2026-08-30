@@ -9,6 +9,10 @@ export type ParsedCommand =
   | { kind: 'look' }
   | { kind: 'character' }
   | { kind: 'go'; selector: string }
+  | { kind: 'test'; selector: string; pushTheLimit: boolean }
+  | { kind: 'run' }
+  | { kind: 'surge' }
+  | { kind: 'edge-response'; optionId: string }
   | { kind: 'unknown'; command: string }
   | { kind: 'usage-error'; command: string; message: string }
 
@@ -67,6 +71,34 @@ export function parseCommand(raw: string): ParsedCommand {
       return { kind: 'usage-error', command, message: `Usage: ${usageFor(command)}` }
     }
     return { kind: 'go', selector: argument }
+  }
+
+  if (command === 'test') {
+    // A trailing "edge" keyword spends Edge to Push the Limit on the test.
+    const match = argument.match(/^(.*?)\s+edge$/i)
+    if (match) {
+      return { kind: 'test', selector: match[1].trim(), pushTheLimit: true }
+    }
+    return { kind: 'test', selector: argument, pushTheLimit: false }
+  }
+
+  if (command === 'run' || command === 'surge') {
+    if (argument.length > 0) {
+      return {
+        kind: 'usage-error',
+        command,
+        message: `/${command} does not accept arguments. Usage: ${usageFor(command)}`,
+      }
+    }
+    return { kind: command }
+  }
+
+  if (command === 'edge') {
+    const option = argument.toLowerCase()
+    if (option !== 'yes' && option !== 'no') {
+      return { kind: 'usage-error', command, message: `Usage: ${usageFor(command)}` }
+    }
+    return { kind: 'edge-response', optionId: option }
   }
 
   return { kind: 'unknown', command: name }

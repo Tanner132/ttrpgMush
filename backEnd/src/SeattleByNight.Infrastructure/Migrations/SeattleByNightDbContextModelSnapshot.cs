@@ -312,6 +312,72 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.ToTable("character_action_receipts", (string)null);
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterActiveEffect", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AppliedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_at_utc");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("DurationType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("duration_type");
+
+                    b.Property<DateTimeOffset?>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at_utc");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload");
+
+                    b.Property<string>("SourceId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("source_id");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("source_type");
+
+                    b.Property<string>("StackingGroup")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("stacking_group");
+
+                    b.Property<string>("StackingRule")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("stacking_rule");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId")
+                        .HasDatabaseName("ix_character_active_effects_character");
+
+                    b.ToTable("character_active_effects", (string)null);
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterAdvancement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -633,6 +699,40 @@ namespace SeattleByNight.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterRuntimeState", b =>
+                {
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<int>("CurrentEdge")
+                        .HasColumnType("integer")
+                        .HasColumnName("current_edge");
+
+                    b.Property<int>("PhysicalDamage")
+                        .HasColumnType("integer")
+                        .HasColumnName("physical_damage");
+
+                    b.Property<int>("StunDamage")
+                        .HasColumnType("integer")
+                        .HasColumnName("stun_damage");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("CharacterId");
+
+                    b.ToTable("character_runtime_states", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_character_runtime_states_nonnegative", "physical_damage >= 0 AND stun_damage >= 0 AND current_edge >= 0");
+                        });
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterSheet", b =>
                 {
                     b.Property<Guid>("CharacterId")
@@ -734,6 +834,55 @@ namespace SeattleByNight.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("ck_chat_messages_type", "type IN ('Say','Emote','Roll')");
                         });
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.GameTestAuditRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("ResultJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("result");
+
+                    b.Property<long>("RngSeed")
+                        .HasColumnType("bigint")
+                        .HasColumnName("rng_seed");
+
+                    b.Property<Guid?>("RoomId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("room_id");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("boolean")
+                        .HasColumnName("success");
+
+                    b.Property<string>("TestId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("test_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId", "CreatedAtUtc")
+                        .HasDatabaseName("ix_game_test_audit_records_character_created");
+
+                    b.ToTable("game_test_audit_records", (string)null);
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.PlaySession", b =>
@@ -1094,6 +1243,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterActiveEffect", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterAdvancement", b =>
                 {
                     b.HasOne("SeattleByNight.Domain.Entities.Character", null)
@@ -1149,6 +1307,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterRuntimeState", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithOne()
+                        .HasForeignKey("SeattleByNight.Domain.Entities.CharacterRuntimeState", "CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterSheet", b =>
                 {
                     b.HasOne("SeattleByNight.Domain.Entities.Character", null)
@@ -1170,6 +1337,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.GameTestAuditRecord", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

@@ -3,6 +3,7 @@ import { act, renderHook } from '@testing-library/react'
 import { useGameplayCommands, type UseGameplayCommandsOptions } from './useGameplayCommands.ts'
 import { MessageType } from '../api/roomSession.ts'
 import type { RoomSession } from '../api/roomSession.ts'
+import type { GameActionSummary, PerformGameActionOptions, PerformGameActionResponse } from '../api/gameActions.ts'
 
 const session: RoomSession = {
   playSessionId: 's1',
@@ -29,6 +30,17 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
   const queryOnlineCharacters = vi
     .fn<() => Promise<Array<{ id: string; name: string }>>>()
     .mockResolvedValue([{ id: 'c1', name: 'Ace' }, { id: 'c2', name: 'Byte' }])
+  const listGameActions = vi
+    .fn<() => Promise<GameActionSummary[]>>()
+    .mockResolvedValue([
+      { actionId: 'observe-area', displayName: 'Observe Area', description: 'Intuition + Perception (2)', kind: 'Test' },
+      { actionId: 'sneaking-test', displayName: 'Sneaking Test', description: 'Agility + Sneaking, opposed', kind: 'Test' },
+      { actionId: 'run', displayName: 'Run', description: 'Toggle running.', kind: 'Utility' },
+    ])
+  const performGameAction = vi
+    .fn<(actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>>()
+    .mockResolvedValue({ status: 'Final', resolution: null, decision: null, message: null })
+  const respondToDecision = vi.fn<(decisionId: string, optionId: string) => Promise<void>>().mockResolvedValue()
   const onOpenCharacterSheet = vi.fn()
 
   const options: UseGameplayCommandsOptions = {
@@ -40,6 +52,9 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
     rollDice,
     moveThroughExit,
     queryOnlineCharacters,
+    listGameActions,
+    performGameAction,
+    respondToDecision,
     appendLocal,
     onOpenCharacterSheet,
     ...overrides,
@@ -47,7 +62,24 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
 
   const { result } = renderHook(() => useGameplayCommands(options))
 
-  return { result, appendLocal, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, onOpenCharacterSheet }
+  return { result, appendLocal, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, listGameActions, performGameAction, respondToDecision, onOpenCharacterSheet }
+}
+
+const awaitingDecisionResponse: PerformGameActionResponse = {
+  status: 'AwaitingDecision',
+  resolution: null,
+  decision: {
+    decisionId: 'd1',
+    kind: 'SecondChance',
+    prompt: 'Spend Edge on Second Chance?',
+    options: [
+      { optionId: 'yes', label: 'Yes' },
+      { optionId: 'no', label: 'No' },
+    ],
+    defaultOptionId: 'no',
+    timeoutSeconds: 30,
+  },
+  message: null,
 }
 
 describe('useGameplayCommands', () => {
@@ -327,6 +359,223 @@ describe('useGameplayCommands', () => {
     })
     expect(moveThroughExit).not.toHaveBeenCalled()
 
+    expect(appendLocal).toHaveBeenCalledWith('error', 'You are not connected.')
+  })
+
+  it('lists game tests for /test with no argument, excluding utility actions', async () => {
+    const { result, appendLocal, performGameAction } = createHarness()
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/test')
+    })
+
+    expect(ok).toBe(true)
+    expect(performGameAction).not.toHaveBeenCalled()
+    const text = appendLocal.mock.calls[0][1] as string
+    expect(text).toContain('Observe Area')
+    expect(text).not.toContain('Toggle running.')
+  })
+
+  it('performs a game test matched case-insensitively by display name', async () => {
+    const { result, performGameAction, appendLocal } = createHarness()
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/test observe area')
+    })
+
+    expect(ok).toBe(true)
+    expect(performGameAction).toHaveBeenCalledWith('observe-area', { pushTheLimit: false })
+    expect(appendLocal).not.toHaveBeenCalled()
+  })
+
+  it('passes pushTheLimit for /test <name> edge', async () => {
+    const { result, performGameAction } = createHarness()
+
+    await act(async () => {
+      await result.current.submit('/test sneaking edge')
+    })
+
+    expect(performGameAction).toHaveBeenCalledWith('sneaking-test', { pushTheLimit: true })
+  })
+
+  it('rejects an ambiguous /test selector with candidate guidance', async () => {
+    const { result, appendLocal, performGameAction } = createHarness()
+
+    await act(async () => {
+      await result.current.submit('/test e')
+    })
+
+    expect(performGameAction).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith(
+      'error',
+      'Which test did you mean? Matches: Observe Area, Sneaking Test.',
+    )
+  })
+
+  it('rejects an unmatched /test selector', async () => {
+    const { result, appendLocal, performGameAction } = createHarness()
+
+    await act(async () => {
+      await result.current.submit('/test juggling')
+    })
+
+    expect(performGameAction).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith('error', 'No matching test. Use /test to list them.')
+  })
+
+  it('renders a local error when performing a game test fails', async () => {
+    const performGameAction = vi
+      .fn<(actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>>()
+      .mockRejectedValue(new Error('No active play session.'))
+    const { result, appendLocal } = createHarness({ performGameAction })
+
+    let ok = true
+    await act(async () => {
+      ok = await result.current.submit('/test sneaking')
+    })
+
+    expect(ok).toBe(false)
+    expect(appendLocal).toHaveBeenCalledWith('error', 'No active play session.')
+  })
+
+  it('fails /test locally while not joined', async () => {
+    const { result, appendLocal, listGameActions } = createHarness({ joined: false })
+
+    await act(async () => {
+      await result.current.submit('/test')
+    })
+
+    expect(listGameActions).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith('error', 'You are not connected.')
+  })
+
+  it('performs /run and renders the returned message locally', async () => {
+    const performGameAction = vi
+      .fn<(actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>>()
+      .mockResolvedValue({
+        status: 'Final',
+        resolution: null,
+        decision: null,
+        message: 'You start running (−2 dice on Physical tests until you stop).',
+      })
+    const { result, appendLocal } = createHarness({ performGameAction })
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/run')
+    })
+
+    expect(ok).toBe(true)
+    expect(performGameAction).toHaveBeenCalledWith('run')
+    expect(appendLocal).toHaveBeenCalledWith(
+      'info',
+      'You start running (−2 dice on Physical tests until you stop).',
+    )
+  })
+
+  it('performs /surge through the action endpoint', async () => {
+    const { result, performGameAction } = createHarness()
+
+    await act(async () => {
+      await result.current.submit('/surge')
+    })
+
+    expect(performGameAction).toHaveBeenCalledWith('surge')
+  })
+
+  it('renders a pending Edge decision prompt and answers it with /edge yes', async () => {
+    const performGameAction = vi
+      .fn<(actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>>()
+      .mockResolvedValue(awaitingDecisionResponse)
+    const { result, appendLocal, respondToDecision } = createHarness({ performGameAction })
+
+    await act(async () => {
+      await result.current.submit('/test sneaking')
+    })
+
+    const prompt = appendLocal.mock.calls[0][1] as string
+    expect(prompt).toContain('Spend Edge on Second Chance?')
+    expect(prompt).toContain('/edge yes')
+    expect(prompt).toContain('30s')
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/edge yes')
+    })
+
+    expect(ok).toBe(true)
+    expect(respondToDecision).toHaveBeenCalledWith('d1', 'yes')
+  })
+
+  it('rejects /edge when no decision is pending', async () => {
+    const { result, appendLocal, respondToDecision } = createHarness()
+
+    let ok = true
+    await act(async () => {
+      ok = await result.current.submit('/edge no')
+    })
+
+    expect(ok).toBe(false)
+    expect(respondToDecision).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith('error', 'There is no pending Edge decision to answer.')
+  })
+
+  it('clears the pending decision after answering so a second /edge fails', async () => {
+    const performGameAction = vi
+      .fn<(actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>>()
+      .mockResolvedValue(awaitingDecisionResponse)
+    const { result, respondToDecision, appendLocal } = createHarness({ performGameAction })
+
+    await act(async () => {
+      await result.current.submit('/test sneaking')
+      await result.current.submit('/edge no')
+      await result.current.submit('/edge no')
+    })
+
+    expect(respondToDecision).toHaveBeenCalledTimes(1)
+    expect(appendLocal).toHaveBeenCalledWith('error', 'There is no pending Edge decision to answer.')
+  })
+
+  it('reports a decision that already timed out and clears it', async () => {
+    const performGameAction = vi
+      .fn<(actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>>()
+      .mockResolvedValue(awaitingDecisionResponse)
+    const respondToDecision = vi
+      .fn<(decisionId: string, optionId: string) => Promise<void>>()
+      .mockRejectedValue(new Error('Decision not found or no longer pending.'))
+    const { result, appendLocal } = createHarness({ performGameAction, respondToDecision })
+
+    await act(async () => {
+      await result.current.submit('/test sneaking')
+    })
+
+    let ok = true
+    await act(async () => {
+      ok = await result.current.submit('/edge yes')
+    })
+
+    expect(ok).toBe(false)
+    expect(appendLocal).toHaveBeenCalledWith('error', 'Decision not found or no longer pending.')
+
+    await act(async () => {
+      await result.current.submit('/edge yes')
+    })
+    expect(appendLocal).toHaveBeenCalledWith('error', 'There is no pending Edge decision to answer.')
+    expect(respondToDecision).toHaveBeenCalledTimes(1)
+  })
+
+  it('fails /run and /edge locally while not joined', async () => {
+    const { result, appendLocal, performGameAction, respondToDecision } = createHarness({ joined: false })
+
+    await act(async () => {
+      await result.current.submit('/run')
+      await result.current.submit('/edge yes')
+    })
+
+    expect(performGameAction).not.toHaveBeenCalled()
+    expect(respondToDecision).not.toHaveBeenCalled()
     expect(appendLocal).toHaveBeenCalledWith('error', 'You are not connected.')
   })
 })

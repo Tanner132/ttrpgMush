@@ -103,6 +103,67 @@ describe('parseCommand', () => {
     })
   })
 
+  it('parses /test with no argument as a listing request', () => {
+    expect(parseCommand('/test')).toEqual({ kind: 'test', selector: '', pushTheLimit: false })
+  })
+
+  it('parses /test with a selector', () => {
+    expect(parseCommand('/test observe area')).toEqual({
+      kind: 'test',
+      selector: 'observe area',
+      pushTheLimit: false,
+    })
+  })
+
+  it('parses a trailing edge keyword on /test as Push the Limit', () => {
+    expect(parseCommand('/test sneaking edge')).toEqual({
+      kind: 'test',
+      selector: 'sneaking',
+      pushTheLimit: true,
+    })
+    expect(parseCommand('/test observe area EDGE')).toEqual({
+      kind: 'test',
+      selector: 'observe area',
+      pushTheLimit: true,
+    })
+  })
+
+  it('parses /run and /surge as no-argument actions', () => {
+    expect(parseCommand('/run')).toEqual({ kind: 'run' })
+    expect(parseCommand('/surge')).toEqual({ kind: 'surge' })
+  })
+
+  it('rejects arguments on /run and /surge', () => {
+    expect(parseCommand('/run fast')).toEqual({
+      kind: 'usage-error',
+      command: 'run',
+      message: '/run does not accept arguments. Usage: /run',
+    })
+    expect(parseCommand('/surge now')).toEqual({
+      kind: 'usage-error',
+      command: 'surge',
+      message: '/surge does not accept arguments. Usage: /surge',
+    })
+  })
+
+  it('parses /edge yes|no case-insensitively into a decision response', () => {
+    expect(parseCommand('/edge yes')).toEqual({ kind: 'edge-response', optionId: 'yes' })
+    expect(parseCommand('/edge NO')).toEqual({ kind: 'edge-response', optionId: 'no' })
+  })
+
+  it('rejects /edge without a valid option', () => {
+    expect(parseCommand('/edge')).toEqual({
+      kind: 'usage-error',
+      command: 'edge',
+      message: 'Usage: /edge <yes|no>',
+    })
+    expect(parseCommand('/edge maybe')).toEqual({
+      kind: 'usage-error',
+      command: 'edge',
+      message: 'Usage: /edge <yes|no>',
+    })
+  })
+
   it('returns an unknown command for unrecognized slash commands', () => {
     expect(parseCommand('/dance')).toEqual({ kind: 'unknown', command: 'dance' })
   })

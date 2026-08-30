@@ -4,6 +4,11 @@ using SeattleByNight.Application.CharacterCreation.Catalog;
 using SeattleByNight.Application.CharacterCreation.Evaluation;
 using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Application.CharacterCreation.Sheets;
+using SeattleByNight.Application.GameEngine.Actions;
+using SeattleByNight.Application.GameEngine.Characters;
+using SeattleByNight.Application.GameEngine.Decisions;
+using SeattleByNight.Application.GameEngine.Dice;
+using SeattleByNight.Application.GameEngine.Resolution;
 
 namespace SeattleByNight.Application;
 
@@ -31,6 +36,12 @@ public static class DependencyInjection
         services.AddSingleton<CareerSheetComposer>();
         services.AddSingleton<AttributeAdvancementEvaluator>();
         services.AddSingleton<SkillAdvancementEvaluator>();
+        services.AddSingleton<IDiceRoller, SeededDiceRoller>();
+        services.AddSingleton<TestResolver>();
+        services.AddScoped<IComposedSheetLoader, ComposedSheetLoader>();
+        services.AddSingleton<IDecisionBroker, DecisionBroker>();
+        services.AddSingleton<IGameCommandQueue, GameCommandQueue>();
+        services.AddScoped<GameActionExecutor>();
 
         return services;
     }

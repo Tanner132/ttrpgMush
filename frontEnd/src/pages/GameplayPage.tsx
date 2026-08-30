@@ -6,6 +6,7 @@ import { useRoomPresence } from '../hooks/useRoomPresence.ts'
 import { useTranscript } from '../hooks/useTranscript.ts'
 import { useRoomChat } from '../realtime/useRoomChat.ts'
 import { useGameplayCommands } from '../commands/useGameplayCommands.ts'
+import { listGameActions, performGameAction, respondToDecision } from '../api/gameActions.ts'
 import type { RoomSession } from '../api/roomSession.ts'
 import { Composer } from '../components/Composer.tsx'
 import { CharacterSheetModal } from '../components/careerSheet/CharacterSheetModal.tsx'
@@ -114,6 +115,9 @@ export default function GameplayPage() {
     rollDice,
     moveThroughExit,
     queryOnlineCharacters,
+    listGameActions,
+    performGameAction,
+    respondToDecision,
     appendLocal,
     onOpenCharacterSheet: handleOpenCharacterSheet,
   })

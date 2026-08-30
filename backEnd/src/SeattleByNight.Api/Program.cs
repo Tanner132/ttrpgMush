@@ -17,6 +17,7 @@ using SeattleByNight.Api.Middleware;
 using SeattleByNight.Application;
 using SeattleByNight.Application.Characters;
 using SeattleByNight.Application.Dice;
+using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Infrastructure;
 using SeattleByNight.Infrastructure.Identity;
@@ -93,6 +94,7 @@ builder.Services.AddInfrastructure(connectionString);
 
 builder.Services.AddSingleton<IRoomConnectionRegistry, RoomConnectionRegistry>();
 builder.Services.AddSingleton<IRoomChatConnectionManager, RoomChatConnectionManager>();
+builder.Services.AddSingleton<IGameMessageBroadcaster, GameMessageBroadcaster>();
 
 builder.Services.AddSignalR().AddJsonProtocol(options =>
     options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -219,6 +221,7 @@ app.MapAccountEndpoints();
 app.MapCharacterEndpoints();
 app.MapCharacterCreationEndpoints();
 app.MapPlaySessionEndpoints();
+app.MapGameActionEndpoints();
 app.MapAdminEndpoints();
 app.MapWorldEditorEndpoints();
 

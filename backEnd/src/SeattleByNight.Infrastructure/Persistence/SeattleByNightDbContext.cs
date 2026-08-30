@@ -28,6 +28,9 @@ public sealed class SeattleByNightDbContext : IdentityDbContext<ApplicationUser,
     public DbSet<PlaySession> PlaySessions => Set<PlaySession>();
     public DbSet<RoomVisit> RoomVisits => Set<RoomVisit>();
     public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>();
+    public DbSet<CharacterRuntimeState> CharacterRuntimeStates => Set<CharacterRuntimeState>();
+    public DbSet<GameTestAuditRecord> GameTestAuditRecords => Set<GameTestAuditRecord>();
+    public DbSet<CharacterActiveEffect> CharacterActiveEffects => Set<CharacterActiveEffect>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
