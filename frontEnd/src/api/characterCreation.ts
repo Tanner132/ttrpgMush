@@ -198,6 +198,10 @@ export interface AttachmentSelection {
     accessoryId: string
     mount?: WeaponMount | null
     rating?: number | null
+    // Relative vehicle-modification rows selected on this modification (a
+    // weapon mount's visibility/flexibility/control picks). Part of the same
+    // purchase, not separate attachments.
+    options?: string[] | null
 }
 
 export interface ContactSelection {
@@ -639,17 +643,69 @@ export interface VehicleDefinition {
     sensor?: number | null
     seats?: number | null
     includedComponentIds?: string[] | null
+    modificationSlotBonuses?: VehicleModificationSlotBonuses | null
+}
+
+// Extra Modification Slots printed for a handful of core vehicles
+// (rigger-5 p. 155, PDF 156).
+export interface VehicleModificationSlotBonuses {
+    powerTrain?: number | null
+    protection?: number | null
+    weapons?: number | null
+    body?: number | null
+    electromagnetic?: number | null
+    cosmetic?: number | null
+}
+
+// Rigger 5.0's six Modification Categories, plus the drone Mod Point pool
+// modelled as a seventh (rigger-5 p. 151/122, PDF 152/123).
+export type VehicleModificationCategory =
+    | 'powerTrain'
+    | 'protection'
+    | 'weapons'
+    | 'body'
+    | 'electromagnetic'
+    | 'cosmetic'
+    | 'drone'
+
+export type VehicleScalingFactor =
+    | 'body'
+    | 'handling'
+    | 'speed'
+    | 'acceleration'
+    | 'armor'
+    | 'seats'
+    | 'rating'
+    | 'vehicleCost'
+    | 'slotCost'
+
+// "Body x 5,000 nuyen", "Handl x 2,000 nuyen", "Vehicle cost x 25%": multiplier
+// is the printed nuyen figure, factors are what it is multiplied by.
+export interface VehicleCostScalingDefinition {
+    multiplier: number
+    factors: VehicleScalingFactor[]
+}
+
+export interface SlotCostDefinition {
+    fixed?: number | null
+    perRating?: number | null
 }
 
 export interface VehicleModificationDefinition {
     id: string
     displayName: string
     classification: GearClassification
+    category: VehicleModificationCategory
     source: SourceCitation
     availability?: AvailabilityDefinition | null
     cost?: CostDefinition | null
-    mountSlotCost: number
-    requiresExistingMount?: boolean
+    costScaling?: VehicleCostScalingDefinition | null
+    slotCost?: SlotCostDefinition | null
+    ratingRange?: RatingRangeDefinition | null
+    ratingCap?: 'none' | 'body' | 'armor' | null
+    optionGroupId?: string | null
+    appliesToModificationIds?: string[] | null
+    relative?: boolean
 }
 
 export interface LifestyleStartingCashDice {

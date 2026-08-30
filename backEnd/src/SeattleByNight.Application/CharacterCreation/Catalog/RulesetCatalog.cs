@@ -388,7 +388,18 @@ public sealed record VehicleDefinition(
     int? Armor = null,
     int? Sensor = null,
     int? Seats = null,
-    IReadOnlyList<string>? IncludedComponentIds = null);
+    IReadOnlyList<string>? IncludedComponentIds = null,
+    VehicleModificationSlotBonuses? ModificationSlotBonuses = null);
+
+// A handful of core-rulebook vehicles are printed with extra Modification Slots
+// in one category (rigger-5 p. 155, PDF 156, "Core Vehicle Modifications").
+public sealed record VehicleModificationSlotBonuses(
+    int PowerTrain = 0,
+    int Protection = 0,
+    int Weapons = 0,
+    int Body = 0,
+    int Electromagnetic = 0,
+    int Cosmetic = 0);
 
 public enum WeaponMount
 {
@@ -455,15 +466,78 @@ public sealed record CyberlimbEnhancementDefinition(
     CapacityCostDefinition? CapacityCost = null,
     RatingRangeDefinition? RatingRange = null);
 
+// Rigger 5.0 gives every vehicle Modification Slots equal to its Body in each
+// of six independent Modification Categories (rigger-5 p. 151, PDF 152); a
+// modification only ever draws on its own category's pool. Drone modifications
+// use the parallel Mod Point system instead -- one pool, also equal to Body
+// (rigger-5 p. 122, PDF 123) -- which is modelled here as a seventh category.
+public enum VehicleModificationCategory
+{
+    PowerTrain,
+    Protection,
+    Weapons,
+    Body,
+    Electromagnetic,
+    Cosmetic,
+    Drone,
+}
+
+// Rigger 5.0 prices most modifications off the host vehicle rather than as a
+// flat figure ("Body x 5,000¥", "Handl x 2,000¥", "Rating x Body x 1,000¥",
+// "Vehicle cost x 25%"). Multiplier is the printed nuyen figure and Factors are
+// the values it is multiplied by, in order.
+public enum VehicleScalingFactor
+{
+    Body,
+    Handling,
+    Speed,
+    Acceleration,
+    Armor,
+    Seats,
+    Rating,
+    VehicleCost,
+    SlotCost,
+}
+
+public sealed record VehicleCostScalingDefinition(
+    decimal Multiplier,
+    IReadOnlyList<VehicleScalingFactor> Factors);
+
+// Slot costs are either flat ("2") or scale with the modification's Rating
+// ("Rating", "Rating x 2", "Rating x 3"). Drone Immobile is the one negative
+// value in the book: it hands back 2 Mod Points (rigger-5 p. 126, PDF 127).
+public sealed record SlotCostDefinition(int? Fixed = null, int? PerRating = null);
+
+// Some Ratings are bounded by the host vehicle rather than by a printed
+// maximum: vehicle Armor caps at Body, and a Special Armor Modification caps at
+// the vehicle's Armor (rigger-5 pp. 159-160, PDF 160-161).
+public enum VehicleRatingCap
+{
+    None,
+    Body,
+    Armor,
+}
+
+// Relative entries are the option rows a base modification is built up from --
+// a weapon mount's visibility/flexibility/control choices, a drone mount's
+// concealment (rigger-5 p. 162/124, PDF 163/125). Their Availability, Cost and
+// SlotCost are modifiers added to the base modification they are selected on,
+// never standalone purchases, and at most one per OptionGroupId may be chosen.
 public sealed record VehicleModificationDefinition(
     string Id,
     string DisplayName,
     GearClassification Classification,
+    VehicleModificationCategory Category,
     SourceCitation Source,
     AvailabilityDefinition? Availability = null,
     CostDefinition? Cost = null,
-    int MountSlotCost = 0,
-    bool RequiresExistingMount = false);
+    VehicleCostScalingDefinition? CostScaling = null,
+    SlotCostDefinition? SlotCost = null,
+    RatingRangeDefinition? RatingRange = null,
+    VehicleRatingCap RatingCap = VehicleRatingCap.None,
+    string? OptionGroupId = null,
+    IReadOnlyList<string>? AppliesToModificationIds = null,
+    bool Relative = false);
 
 public sealed record CyberdeckDefinition(
     string Id,

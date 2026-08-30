@@ -177,23 +177,37 @@ const catalog: CatalogContract = {
   cyberlimbEnhancements: [],
   vehicleModifications: [
     {
-      id: 'standard-weapon-mount',
-      displayName: 'Standard Weapon Mount',
-      classification: 'Parameterized',
+      id: 'weapon-mount-standard',
+      displayName: 'Weapon Mount (Standard)',
+      classification: 'Selectable',
+      category: 'weapons',
       source,
       availability: { fixed: 8, legality: 'Forbidden' },
-      cost: { fixed: 2500 },
-      mountSlotCost: 1,
+      cost: { fixed: 1500 },
+      slotCost: { fixed: 2 },
     },
     {
-      id: 'manual-operation',
-      displayName: 'Manual Operation',
-      classification: 'Parameterized',
+      id: 'weapon-mount-manual-control',
+      displayName: 'Weapon Mount Option: Manual Control',
+      classification: 'Selectable',
+      category: 'weapons',
       source,
-      availability: { fixed: 9, legality: 'Forbidden' },
+      availability: { fixed: 1, legality: 'Forbidden' },
       cost: { fixed: 500 },
-      mountSlotCost: 0,
-      requiresExistingMount: true,
+      slotCost: { fixed: 1 },
+      optionGroupId: 'weapon-mount-control',
+      appliesToModificationIds: ['weapon-mount-standard'],
+      relative: true,
+    },
+    {
+      id: 'multifuel-engine',
+      displayName: 'Multifuel Engine',
+      classification: 'Selectable',
+      category: 'powerTrain',
+      source,
+      availability: { fixed: 10, legality: 'Legal' },
+      costScaling: { multiplier: 1000, factors: ['body'] },
+      slotCost: { fixed: 4 },
     },
   ],
   lifestyleTiers: [],
@@ -425,7 +439,7 @@ describe('ResourcesStep attachments', () => {
     expect(within(dialog.querySelector('.creation-attachment-modal__options')!).queryByText('Image Link')).not.toBeInTheDocument()
   })
 
-  it('shows the plus button once a vehicle is purchased and opens the mount modal', () => {
+  it('shows the plus button once a vehicle is purchased and opens the modification modal', () => {
     let document = baseDocument
     const onChange = (next: CharacterCreationDocument) => { document = next }
     const { rerender } = renderResourcesStep(document, onChange)
@@ -437,12 +451,17 @@ describe('ResourcesStep attachments', () => {
     fireEvent.click(addButton)
 
     const dialog = screen.getByRole('dialog', { name: /modifications — ares roadmaster/i })
-    expect(within(dialog).getByText('Standard Weapon Mount')).toBeInTheDocument()
-    // Manual Operation requires an existing weapon mount first.
-    expect(within(dialog).queryByText('Manual Operation')).not.toBeInTheDocument()
+    expect(within(dialog).getByText('Weapon Mount (Standard)')).toBeInTheDocument()
+    // Relative option rows are option selectors on their base modification,
+    // never standalone picks.
+    expect(within(dialog).queryByRole('listitem', { name: 'Weapon Mount Option: Manual Control' }))
+      .not.toBeInTheDocument()
+    const controlSelect = within(dialog).getByRole('combobox', { name: /weapon-mount-control/i })
+    expect(within(controlSelect).getByRole('option', { name: 'Weapon Mount Option: Manual Control' }))
+      .toBeInTheDocument()
   })
 
-  it('a vehicle mount fills mount-slot capacity and unlocks manual operation', () => {
+  it('tracks Modification Slots per category and prices Body-scaled mods off the vehicle', () => {
     let document = baseDocument
     const onChange = (next: CharacterCreationDocument) => { document = next }
     const { rerender } = renderResourcesStep(document, onChange)
@@ -453,18 +472,50 @@ describe('ResourcesStep attachments', () => {
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
 
     let dialog = screen.getByRole('dialog')
-    const mountOption = within(dialog).getByText('Standard Weapon Mount').closest('li')!
+    // This fixture's Roadmaster is Body 6, so it has 6 slots in each category.
+    const weaponsSlot = within(dialog).getByText('Weapons', { selector: 'strong' }).closest('div')!
+    expect(within(weaponsSlot).getByText('0 / 6 used')).toBeInTheDocument()
+
+    const mountOption = within(dialog).getByText('Weapon Mount (Standard)').closest('li')!
     fireEvent.click(within(mountOption).getByRole('button', { name: 'Add' }))
     rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
 
     expect(document.attachments).toHaveLength(1)
 
-    // Ares Roadmaster has Body 6 (mount pool 2); one mount used leaves one
-    // slot, so a second Standard Weapon Mount is still offered and Manual
-    // Operation is now unlocked.
+    // Two Weapons slots are gone, but the Power Train pool is untouched, so
+    // the 4-slot Multifuel Engine is still offered -- at Body x 1,000 nuyen.
     dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByText('Standard Weapon Mount')).toBeInTheDocument()
-    expect(within(dialog).getByText('Manual Operation')).toBeInTheDocument()
+    expect(within(within(dialog).getByText('Weapons', { selector: 'strong' }).closest('div')!)
+      .getByText('2 / 6 used')).toBeInTheDocument()
+    const engineOption = within(dialog).getByText('Multifuel Engine').closest('li')!
+    expect(within(engineOption).getByText(/6,000¥/)).toBeInTheDocument()
+    expect(within(engineOption).getByRole('button', { name: 'Add' })).not.toBeDisabled()
+  })
+
+  it('folds a weapon mount option into the mount it is selected on', () => {
+    let document = baseDocument
+    const onChange = (next: CharacterCreationDocument) => { document = next }
+    const { rerender } = renderResourcesStep(document, onChange)
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /ares roadmaster/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+    fireEvent.click(screen.getByRole('button', { name: /manage attachments for ares roadmaster unit 1/i }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    const dialog = screen.getByRole('dialog')
+    const mountOption = within(dialog).getByText('Weapon Mount (Standard)').closest('li')!
+    fireEvent.change(within(mountOption).getByRole('combobox', { name: /weapon-mount-control/i }), {
+      target: { value: 'weapon-mount-manual-control' },
+    })
+
+    // 1,500 + 500 nuyen, 2 + 1 slots, Availability 8 + 1.
+    expect(within(mountOption).getByText(/2,000¥ · 3 Weapons slots · Avail 9/)).toBeInTheDocument()
+
+    fireEvent.click(within(mountOption).getByRole('button', { name: 'Add' }))
+    rerender(<ResourcesStep catalog={catalog} document={document} creationMethodId="standard-priority" onChange={onChange} />)
+
+    expect(document.attachments).toHaveLength(1)
+    expect(document.attachments![0].options).toEqual(['weapon-mount-manual-control'])
   })
 
   it('removing the host cascades and removes its attachments', () => {

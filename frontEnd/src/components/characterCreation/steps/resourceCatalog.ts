@@ -10,6 +10,9 @@ import type {
   GearDefinition,
   RatingRangeDefinition,
   VehicleDefinition,
+  VehicleModificationCategory,
+  VehicleModificationDefinition,
+  VehicleScalingFactor,
   WeaponAccessoryDefinition,
   WeaponMount,
 } from '../../../api/characterCreation.ts'
@@ -165,7 +168,11 @@ export function effectiveWeaponMount(catalog: CatalogContract, attachment: Attac
   return attachment.mount != null && candidates.includes(attachment.mount) ? attachment.mount : undefined
 }
 
-export function attachmentUnitCost(catalog: CatalogContract, attachment: AttachmentSelection): number {
+export function attachmentUnitCost(
+  catalog: CatalogContract,
+  attachment: AttachmentSelection,
+  hostItemId?: string,
+): number {
   const weaponAccessory = catalog.weaponAccessories.find((item) => item.id === attachment.accessoryId)
   if (weaponAccessory) {
     return resolveNumber(weaponAccessory.cost?.fixed, weaponAccessory.cost?.perRating, null, attachment.rating)
@@ -188,7 +195,8 @@ export function attachmentUnitCost(catalog: CatalogContract, attachment: Attachm
   }
   const vehicleModification = catalog.vehicleModifications.find((item) => item.id === attachment.accessoryId)
   if (vehicleModification) {
-    return resolveNumber(vehicleModification.cost?.fixed, vehicleModification.cost?.perRating, null, attachment.rating)
+    const vehicle = catalog.vehicles.find((item) => item.id === hostItemId)
+    return vehicleModificationCost(catalog, vehicle, vehicleModification, attachment)
   }
   return 0
 }
@@ -223,10 +231,128 @@ export function augmentationHostCapacity(
   return 0
 }
 
-// A vehicle's weapon mount pool: unaugmented Body / 3, rounded down
-// (sr5-core p. 461, PDF 463).
-export function vehicleMountCapacity(item: Pick<VehicleDefinition, 'body'>): number {
-  return item.body != null ? Math.floor(item.body / 3) : 0
+// A vehicle has Modification Slots equal to its Body in each of Rigger 5.0's
+// six categories, plus whatever extra slots the vehicle is printed with
+// (rigger-5 p. 151/155, PDF 152/156). Drone modifications draw on the parallel
+// Mod Point pool, also Body (rigger-5 p. 122, PDF 123).
+export function vehicleModificationSlots(
+  vehicle: Pick<VehicleDefinition, 'body' | 'modificationSlotBonuses'> | undefined,
+  category: VehicleModificationCategory,
+): number {
+  if (!vehicle) return 0
+  const bonus = category === 'drone' ? 0 : (vehicle.modificationSlotBonuses?.[category] ?? 0)
+  return Math.max(0, (vehicle.body ?? 0) + bonus)
+}
+
+// Slot cost is flat ("2") or scales with the modification's Rating ("Rating",
+// "Rating x 2"). Drone Immobile is the one entry that hands slots back.
+export function vehicleModificationSlotCost(
+  modification: Pick<VehicleModificationDefinition, 'slotCost'>,
+  rating: number | null | undefined,
+): number {
+  if (modification.slotCost?.perRating != null) return modification.slotCost.perRating * (rating ?? 0)
+  return modification.slotCost?.fixed ?? 0
+}
+
+// Rigger 5.0 prices most modifications off the host vehicle rather than as a
+// flat figure. A Body 0 drone counts as 0.5 here so its mods are not free
+// (rigger-5 p. 123, PDF 124).
+function vehicleScalingFactorValue(
+  factor: VehicleScalingFactor,
+  vehicle: VehicleDefinition | undefined,
+  rating: number | null | undefined,
+  slotCost: number,
+): number {
+  switch (factor) {
+    case 'body': return !vehicle?.body ? 0.5 : vehicle.body
+    case 'handling': return leadingRating(vehicle?.handling)
+    case 'speed': return leadingRating(vehicle?.speed)
+    case 'acceleration': return vehicle?.acceleration ?? 0
+    case 'armor': return vehicle?.armor ?? 0
+    case 'seats': return vehicle?.seats ?? 1
+    case 'rating': return rating ?? 0
+    case 'vehicleCost': return vehicle?.cost?.fixed ?? 0
+    case 'slotCost': return slotCost
+    default: return 0
+  }
+}
+
+// Handling and Speed are printed as "on-road/off-road" pairs ("4/3"); the
+// enhancement tables price off the leading on-road figure.
+function leadingRating(printed: string | null | undefined): number {
+  if (!printed) return 0
+  const value = Number.parseFloat(printed.split('/')[0].trim())
+  return Number.isFinite(value) ? value : 0
+}
+
+// The full nuyen price of one installed modification: its own scaled or flat
+// cost plus every relative option selected on it.
+export function vehicleModificationCost(
+  catalog: CatalogContract,
+  vehicle: VehicleDefinition | undefined,
+  modification: VehicleModificationDefinition,
+  attachment: Pick<AttachmentSelection, 'rating' | 'options'>,
+): number {
+  const options = resolveVehicleModificationOptions(catalog, modification, attachment.options)
+  const slotCost = [modification, ...options]
+    .reduce((total, item) => total + vehicleModificationSlotCost(item, attachment.rating), 0)
+  return [modification, ...options].reduce((total, item) => {
+    if (!item.costScaling) return total + (item.cost?.fixed ?? 0)
+    return total + item.costScaling.factors.reduce(
+      (value, factor) => value * vehicleScalingFactorValue(factor, vehicle, attachment.rating, slotCost),
+      item.costScaling.multiplier)
+  }, 0)
+}
+
+// The combined numeric Availability of a modification and its options; a
+// heavy mount at 12F becomes 18F once a turret is fitted.
+export function vehicleModificationAvailability(
+  catalog: CatalogContract,
+  modification: VehicleModificationDefinition,
+  attachment: Pick<AttachmentSelection, 'rating' | 'options'>,
+): number {
+  const options = resolveVehicleModificationOptions(catalog, modification, attachment.options)
+  return [modification, ...options].reduce(
+    (total, item) => total + resolveNumber(item.availability?.fixed, item.availability?.perRating, null, attachment.rating),
+    0)
+}
+
+// Relative rows only count when they are printed for this modification, and
+// the book offers one choice per axis, so a repeated group is dropped.
+export function resolveVehicleModificationOptions(
+  catalog: CatalogContract,
+  modification: Pick<VehicleModificationDefinition, 'id'>,
+  optionIds: string[] | null | undefined,
+): VehicleModificationDefinition[] {
+  if (!optionIds?.length) return []
+  const groupsUsed = new Set<string>()
+  const resolved: VehicleModificationDefinition[] = []
+  for (const optionId of optionIds) {
+    const option = catalog.vehicleModifications.find((item) => item.id === optionId)
+    if (!option?.relative) continue
+    if (!option.appliesToModificationIds?.includes(modification.id)) continue
+    if (option.optionGroupId == null || groupsUsed.has(option.optionGroupId)) continue
+    groupsUsed.add(option.optionGroupId)
+    resolved.push(option)
+  }
+  return resolved
+}
+
+// The relative option rows a modification can be built up with, grouped by the
+// axis they belong to (visibility, flexibility, control).
+export function vehicleModificationOptionGroups(
+  catalog: CatalogContract,
+  modification: Pick<VehicleModificationDefinition, 'id'>,
+): { groupId: string, options: VehicleModificationDefinition[] }[] {
+  const groups = new Map<string, VehicleModificationDefinition[]>()
+  for (const option of catalog.vehicleModifications) {
+    if (!option.relative || !option.optionGroupId) continue
+    if (!option.appliesToModificationIds?.includes(modification.id)) continue
+    const existing = groups.get(option.optionGroupId)
+    if (existing) existing.push(option)
+    else groups.set(option.optionGroupId, [option])
+  }
+  return [...groups].map(([groupId, options]) => ({ groupId, options }))
 }
 
 // The unified shopping list ResourcesStep (and the header's nuyen readout)

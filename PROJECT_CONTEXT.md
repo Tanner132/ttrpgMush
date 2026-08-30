@@ -501,7 +501,7 @@ reconciliation against the core PDF has not yet been run.
 
 CHAR-809A (Gear Capacity, Mounts, And Attachments) is complete: firearm
 mounts, armor Capacity, device Capacity, augmentation/cyberlimb Capacity, and
-vehicle weapon mounts are all implemented. Draft resource
+vehicle Modification Slots are all implemented. Draft resource
 selections (`ResourceSelection`) carry a client-generated, stable per-line
 `instanceId` so two purchased copies of the same host track their attachments
 independently; a new typed `AttachmentSelection` (`hostInstanceId`,
@@ -528,10 +528,16 @@ goggles, with vision/audio/sensor enhancements consuming it), augmentation/
 cyberlimb Capacity (cybereyes/cyberears/cyberlimbs carry a Capacity pool;
 bracketed-Capacity-cost bodyware/cyberguns install in a cyberlimb instead of
 costing Essence; cyberlimb Agility/Armor/Strength enhancements are capped at
-one per type per limb), and vehicle weapon mounts (`floor(Body / 3)` mount
-slots; standard mounts cost 1 slot, heavy mounts cost 2 and are
-creation-unavailable; Manual Operation requires an existing mount on the same
-host instance). Cyberdeck program slots remain a separately tracked gap
+one per type per limb), and vehicle Modification Slots (Rigger 5.0, p. 151 /
+PDF 152: Body slots in each of six independent categories -- Power Train,
+Protection, Weapons, Body, Electromagnetic, Cosmetic -- plus the drone Mod
+Point pool, also Body, carried as a seventh category. Modification cost mostly
+scales off the host vehicle (`Body x 5,000`, `Handl x 2,000`, `Rating x Body x
+1,000`, `Vehicle cost x 25%`) rather than being a flat figure, encoded as a
+`costScaling` multiplier and factor list. A weapon mount is a size plus one
+`relative` option per visibility/flexibility/control axis, carried on the same
+`AttachmentSelection` via `Options` and added into that mount's slots,
+Availability and price). Cyberdeck program slots remain a separately tracked gap
 outside CHAR-809A's written scope. `AttachmentSelection.Mount` is a plain
 string, not a C# enum,
 because the draft document round-trips through the API's default JSON options

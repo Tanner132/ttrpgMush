@@ -99,11 +99,16 @@ public sealed record ResourceSelection(
 // against WeaponMount at evaluation time rather than a C# enum, because the
 // draft document round-trips through the API's default JSON options, which
 // have no enum-to-string converter (catalog responses use their own).
+// Options carries the relative modification rows a vehicle modification is
+// built up from -- a weapon mount's visibility/flexibility/control picks
+// (rigger-5 p. 162, PDF 163). They are part of the same purchase as the
+// modification they qualify, not separate attachments.
 public sealed record AttachmentSelection(
     string HostInstanceId,
     string AccessoryId,
     string? Mount = null,
-    int? Rating = null);
+    int? Rating = null,
+    IReadOnlyList<string>? Options = null);
 
 // Free-form Karma-priced contact. Name/Role are bounded plain text (validated
 // at evaluation time, not looked up in the catalog), matching the

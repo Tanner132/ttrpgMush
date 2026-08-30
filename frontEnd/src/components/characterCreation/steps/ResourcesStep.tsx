@@ -10,7 +10,6 @@ import {
   effectiveWeaponMount,
   gearHostCapacity,
   resolveAccessory,
-  vehicleMountCapacity,
   type ResourceLine,
 } from './resourceCatalog.ts'
 import { getCatalogIndex } from '../catalogIndex.ts'
@@ -78,8 +77,12 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
     if (!item) continue
     spent += unitCost(item, selection.rating ?? null) * (selection.quantity ?? 1)
   }
+  const hostItemIdByInstance = new Map(
+    itemSelections
+      .filter((selection) => selection.instanceId != null)
+      .map((selection) => [selection.instanceId!, selection.itemId]))
   for (const attachment of attachments) {
-    spent += attachmentUnitCost(catalog, attachment)
+    spent += attachmentUnitCost(catalog, attachment, hostItemIdByInstance.get(attachment.hostInstanceId))
   }
   if (sinLine) {
     for (const identity of identities) spent += unitCost(sinLine, identity.rating)
@@ -396,7 +399,7 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
                           return (
                             <div className="readout__attach-row" key={attachment.accessoryId}>
                               <span>{accessory?.displayName ?? attachment.accessoryId}</span>
-                              <span>{attachmentUnitCost(catalog, attachment).toLocaleString()}¥{mount ? ` · ${MOUNT_LABELS[mount]}` : ''}</span>
+                              <span>{attachmentUnitCost(catalog, attachment, focused.id).toLocaleString()}¥{mount ? ` · ${MOUNT_LABELS[mount]}` : ''}</span>
                             </div>
                           )
                         })}
@@ -451,9 +454,7 @@ export function ResourcesStep({ catalog, document, onChange, diagnostics = [] }:
           weaponCategoryId={openHostLine.weaponCategoryId}
           capacityPool={openHostLine.hostKind === 'gear'
             ? gearHostCapacity(openHostLine, openHost.rating ?? null)
-            : openHostLine.hostKind === 'vehicle'
-              ? vehicleMountCapacity(openHostLine)
-              : (openHostLine.capacity ?? null)}
+            : (openHostLine.capacity ?? null)}
           attachments={attachments.filter((entry) => entry.hostInstanceId === openHost.instanceId)}
           onAdd={addAttachment}
           onRemove={(accessoryId) => removeAttachment(openHost.instanceId!, accessoryId)}

@@ -32,7 +32,7 @@ public sealed class CharacterCreationEndpointTests : IClassFixture<ApiTestFactor
         Assert.Equal(72, body.RootElement.GetProperty("weaponAccessories").GetArrayLength());
         Assert.Equal(11, body.RootElement.GetProperty("armorModifications").GetArrayLength());
         Assert.Equal(3, body.RootElement.GetProperty("cyberlimbEnhancements").GetArrayLength());
-        Assert.Equal(139, body.RootElement.GetProperty("vehicleModifications").GetArrayLength());
+        Assert.Equal(159, body.RootElement.GetProperty("vehicleModifications").GetArrayLength());
         Assert.Equal(6, body.RootElement.GetProperty("lifestyleTiers").GetArrayLength());
         Assert.Equal(5, body.RootElement.GetProperty("lifestyleOptions").GetArrayLength());
 

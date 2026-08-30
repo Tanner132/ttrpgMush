@@ -445,31 +445,31 @@ public sealed class GearAttachmentEvaluatorTests
     }
 
     [Fact]
-    public void Vehicle_weapon_mounts_fit_within_body_derived_capacity()
+    public void Vehicle_weapon_mounts_fit_within_the_weapon_category_slot_pool()
     {
         var catalog = CatalogTestData.Catalog;
         var resourcesEvaluator = new ResourcesEssenceEvaluator();
         var attachmentEvaluator = new GearAttachmentEvaluator();
 
-        // Ares Roadmaster has Body 18, giving a mount pool of 6 (18 / 3);
-        // six standard mounts (1 slot each) exactly fill it.
+        // Ares Roadmaster has Body 18, so it has 18 Weapons Modification Slots;
+        // nine standard mounts at 2 slots each exactly fill that category.
         var document = new CharacterCreationDraftDocument(
             ResourcesA,
             Resources: [new ResourceSelection("ares-roadmaster", InstanceId: "truck-1")],
-            Attachments: Enumerable.Range(0, 6)
-                .Select(_ => new AttachmentSelection("truck-1", "standard-weapon-mount"))
+            Attachments: Enumerable.Range(0, 9)
+                .Select(_ => new AttachmentSelection("truck-1", "weapon-mount-standard"))
                 .ToArray());
 
         var resourcesEvaluation = resourcesEvaluator.Evaluate(catalog, ResourcesA, document);
         var attachmentEvaluation = attachmentEvaluator.Evaluate(catalog, document, resourcesEvaluation);
 
         Assert.Empty(attachmentEvaluation.Diagnostics);
-        Assert.Equal(6, attachmentEvaluation.Attachments!.Attachments.Count);
-        Assert.Equal(6 * 2500, attachmentEvaluation.Attachments.TotalNuyenSpent);
+        Assert.Equal(9, attachmentEvaluation.Attachments!.Attachments.Count);
+        Assert.Equal(9 * 1500, attachmentEvaluation.Attachments.TotalNuyenSpent);
     }
 
     [Fact]
-    public void A_seventh_standard_mount_exceeds_the_vehicles_mount_capacity()
+    public void A_tenth_standard_mount_exceeds_the_weapon_category_slot_pool()
     {
         var catalog = CatalogTestData.Catalog;
         var evaluator = new GearAttachmentEvaluator();
@@ -477,8 +477,8 @@ public sealed class GearAttachmentEvaluatorTests
         var document = new CharacterCreationDraftDocument(
             ResourcesA,
             Resources: [new ResourceSelection("ares-roadmaster", InstanceId: "truck-1")],
-            Attachments: Enumerable.Range(0, 7)
-                .Select(_ => new AttachmentSelection("truck-1", "standard-weapon-mount"))
+            Attachments: Enumerable.Range(0, 10)
+                .Select(_ => new AttachmentSelection("truck-1", "weapon-mount-standard"))
                 .ToArray());
 
         var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
@@ -487,64 +487,264 @@ public sealed class GearAttachmentEvaluatorTests
     }
 
     [Fact]
-    public void A_heavy_weapon_mount_consumes_two_slots()
+    public void Modification_slots_are_tracked_per_category()
     {
         var catalog = CatalogTestData.Catalog;
         var evaluator = new GearAttachmentEvaluator();
 
-        // Chrysler-Nissan Jackrabbit has Body 8, giving a mount pool of 2;
-        // one heavy mount (2 slots) exactly fills it.
+        // Chrysler-Nissan Jackrabbit has Body 8: 8 slots in each category. Four
+        // heavy mounts fill Weapons exactly and leave Power Train untouched, so
+        // an 8-slot Hovercraft propulsion still fits.
         var document = new CharacterCreationDraftDocument(
             ResourcesA,
             Resources: [new ResourceSelection("chrysler-nissan-jackrabbit", InstanceId: "car-1")],
-            Attachments: [new AttachmentSelection("car-1", "heavy-weapon-mount")]);
+            Attachments:
+            [
+                new AttachmentSelection("car-1", "weapon-mount-heavy"),
+                new AttachmentSelection("car-1", "weapon-mount-heavy"),
+                new AttachmentSelection("car-1", "secondary-propulsion-hovercraft"),
+            ]);
 
         var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
 
         Assert.DoesNotContain(evaluation.Diagnostics, item => item.Code == "attachment.capacity.exceeded");
-
-        var secondMountDocument = new CharacterCreationDraftDocument(
-            ResourcesA,
-            Resources: [new ResourceSelection("chrysler-nissan-jackrabbit", InstanceId: "car-1")],
-            Attachments:
-            [
-                new AttachmentSelection("car-1", "heavy-weapon-mount"),
-                new AttachmentSelection("car-1", "standard-weapon-mount"),
-            ]);
-
-        var secondEvaluation = evaluator.Evaluate(catalog, secondMountDocument, NoResourcesContext);
-
-        Assert.Contains(secondEvaluation.Diagnostics, item => item.Code == "attachment.capacity.exceeded");
     }
 
     [Fact]
-    public void Manual_operation_requires_an_existing_weapon_mount()
+    public void Body_scaled_modifications_price_off_the_host_vehicle()
     {
         var catalog = CatalogTestData.Catalog;
         var evaluator = new GearAttachmentEvaluator();
 
-        var withoutMount = new CharacterCreationDraftDocument(
+        // Ares Roadmaster, Body 18: Multifuel Engine is Body x 1,000 nuyen
+        // (rigger-5 p. 158, PDF 159), not a flat 1,000.
+        var document = new CharacterCreationDraftDocument(
             ResourcesA,
             Resources: [new ResourceSelection("ares-roadmaster", InstanceId: "truck-1")],
-            Attachments: [new AttachmentSelection("truck-1", "manual-operation")]);
+            Attachments: [new AttachmentSelection("truck-1", "multifuel-engine")]);
 
-        var evaluation = evaluator.Evaluate(catalog, withoutMount, NoResourcesContext);
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
 
-        Assert.Contains(evaluation.Diagnostics, item => item.Code == "attachment.host.prerequisite-missing");
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(18_000, evaluation.Attachments!.TotalNuyenSpent);
+    }
 
-        var withMount = new CharacterCreationDraftDocument(
+    [Fact]
+    public void Attribute_scaled_modifications_price_off_the_printed_attribute()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Ford Americar: Handling 4/3, Speed 3, Acceleration 2. Handling
+        // Enhancement 1 is Handl x 2,000 and Speed Enhancement 1 is Speed x
+        // 2,000, both off the leading on-road figure (rigger-5 p. 158/159).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("ford-americar", InstanceId: "car-1")],
+            Attachments:
+            [
+                new AttachmentSelection("car-1", "handling-enhancement-1"),
+                new AttachmentSelection("car-1", "speed-enhancement-1"),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal((4 * 2000) + (3 * 2000), evaluation.Attachments!.TotalNuyenSpent);
+    }
+
+    [Fact]
+    public void Off_road_suspension_costs_a_quarter_of_the_vehicles_price()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Ford Americar is 16,000 nuyen; the suspension is vehicle cost x 25%.
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("ford-americar", InstanceId: "car-1")],
+            Attachments: [new AttachmentSelection("car-1", "off-road-suspension")]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(4000, evaluation.Attachments!.TotalNuyenSpent);
+    }
+
+    [Fact]
+    public void Vehicle_armor_scales_slots_and_cost_with_rating_and_caps_at_body()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Ford Americar has Body 11. Standard armor costs Rating x 500 and eats
+        // Rating x 2 Protection slots, so Rating 5 is 2,500 nuyen and 10 slots.
+        var withinBody = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("ford-americar", InstanceId: "car-1")],
+            Attachments: [new AttachmentSelection("car-1", "armor-standard", Rating: 5)]);
+
+        var evaluation = evaluator.Evaluate(catalog, withinBody, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(2500, evaluation.Attachments!.TotalNuyenSpent);
+
+        // Rating 12 is above the vehicle's Body of 11.
+        var aboveBody = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("ford-americar", InstanceId: "car-1")],
+            Attachments: [new AttachmentSelection("car-1", "armor-standard", Rating: 12)]);
+
+        var aboveBodyEvaluation = evaluator.Evaluate(catalog, aboveBody, NoResourcesContext);
+
+        Assert.Contains(aboveBodyEvaluation.Diagnostics, item => item.Code == "attachment.rating.out-of-range");
+    }
+
+    [Fact]
+    public void Weapon_mount_options_add_slots_availability_and_cost_to_the_mount()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Standard mount (2 slots, 8F, 1,500) plus flexible (+1, +2, +2,000)
+        // and manual control (+1, +1, +500) = 4 slots, Availability 11,
+        // 4,000 nuyen (rigger-5 p. 162, PDF 163).
+        var document = new CharacterCreationDraftDocument(
             ResourcesA,
             Resources: [new ResourceSelection("ares-roadmaster", InstanceId: "truck-1")],
             Attachments:
             [
-                new AttachmentSelection("truck-1", "standard-weapon-mount"),
-                new AttachmentSelection("truck-1", "manual-operation"),
+                new AttachmentSelection("truck-1", "weapon-mount-standard", Options:
+                    ["weapon-mount-flexible", "weapon-mount-manual-control"]),
             ]);
 
-        var withMountEvaluation = evaluator.Evaluate(catalog, withMount, NoResourcesContext);
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
 
-        Assert.Empty(withMountEvaluation.Diagnostics);
-        Assert.Equal(2, withMountEvaluation.Attachments!.Attachments.Count);
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(4000, evaluation.Attachments!.TotalNuyenSpent);
+        Assert.Equal(
+            ["weapon-mount-flexible", "weapon-mount-manual-control"],
+            evaluation.Attachments.Attachments.Single().Options!);
+    }
+
+    [Fact]
+    public void Weapon_mount_options_can_push_availability_past_the_creation_cap()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // Heavy mount is 12F on its own; adding a turret (+6) makes it 18F.
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("ares-roadmaster", InstanceId: "truck-1")],
+            Attachments:
+            [
+                new AttachmentSelection("truck-1", "weapon-mount-heavy", Options: ["weapon-mount-turret"]),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Contains(evaluation.Diagnostics, item => item.Code == "attachment.availability.exceeded");
+    }
+
+    [Fact]
+    public void Weapon_mount_options_are_rejected_off_their_own_modification()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        var standalone = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("ares-roadmaster", InstanceId: "truck-1")],
+            Attachments: [new AttachmentSelection("truck-1", "weapon-mount-turret")]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, standalone, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.vehicle.option-not-standalone");
+
+        var wrongHost = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("ares-roadmaster", InstanceId: "truck-1")],
+            Attachments: [new AttachmentSelection("truck-1", "rigger-cocoon", Options: ["weapon-mount-turret"])]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, wrongHost, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.vehicle.option-mismatch");
+
+        var duplicatedGroup = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("ares-roadmaster", InstanceId: "truck-1")],
+            Attachments:
+            [
+                new AttachmentSelection("truck-1", "weapon-mount-light", Options:
+                    ["weapon-mount-flexible", "weapon-mount-turret"]),
+            ]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, duplicatedGroup, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.vehicle.option-group-duplicated");
+    }
+
+    [Fact]
+    public void Drone_modifications_draw_on_a_body_sized_mod_point_pool()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // MCT-Nissan Roto-Drone has Body 4, so 4 Mod Points. A standard drone
+        // weapon mount is 3 MP and gecko grips are 1 MP: exactly 4. Gecko grips
+        // cost (Body x 3) x 50 = 600 nuyen (rigger-5 p. 126, PDF 127).
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-weapon-mount-standard"),
+                new AttachmentSelection("drone-1", "drone-gecko-grips"),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.Empty(evaluation.Diagnostics);
+        Assert.Equal(600, evaluation.Attachments!.TotalNuyenSpent);
+
+        var overloaded = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("mct-nissan-roto-drone", InstanceId: "drone-1")],
+            Attachments:
+            [
+                new AttachmentSelection("drone-1", "drone-weapon-mount-standard"),
+                new AttachmentSelection("drone-1", "drone-gecko-grips"),
+                new AttachmentSelection("drone-1", "drone-ammo-bay-second-bin"),
+            ]);
+
+        Assert.Contains(evaluator.Evaluate(catalog, overloaded, NoResourcesContext).Diagnostics,
+            item => item.Code == "attachment.capacity.exceeded");
+    }
+
+    [Fact]
+    public void Printed_extra_modification_slots_widen_their_own_category()
+    {
+        var catalog = CatalogTestData.Catalog;
+        var evaluator = new GearAttachmentEvaluator();
+
+        // The GMC Bulldog is printed with four extra Body Modification Slots
+        // (rigger-5 p. 155, PDF 156), so Body 16 becomes a 20-slot Body pool:
+        // five Smuggling Compartments at 3 slots each still fit at 15, and a
+        // 4-slot Valkyrie Module tops it out at 19.
+        var document = new CharacterCreationDraftDocument(
+            ResourcesA,
+            Resources: [new ResourceSelection("gmc-bulldog-step-van", InstanceId: "van-1")],
+            Attachments:
+            [
+                new AttachmentSelection("van-1", "smuggling-compartment"),
+                new AttachmentSelection("van-1", "smuggling-compartment"),
+                new AttachmentSelection("van-1", "smuggling-compartment"),
+                new AttachmentSelection("van-1", "smuggling-compartment"),
+                new AttachmentSelection("van-1", "smuggling-compartment"),
+                new AttachmentSelection("van-1", "valkyrie-module"),
+            ]);
+
+        var evaluation = evaluator.Evaluate(catalog, document, NoResourcesContext);
+
+        Assert.DoesNotContain(evaluation.Diagnostics, item => item.Code == "attachment.capacity.exceeded");
     }
 
     [Fact]

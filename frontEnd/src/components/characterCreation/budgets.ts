@@ -73,8 +73,12 @@ export function computeNuyenSpent(catalog: CatalogContract, document: CharacterC
       * gearMultiplier * (selection.quantity ?? 1)
   }
 
+  const hostItemIdByInstance = new Map(
+    (document.resources ?? [])
+      .filter((selection) => selection.instanceId != null)
+      .map((selection) => [selection.instanceId!, selection.itemId]))
   for (const attachment of document.attachments ?? []) {
-    spent += attachmentUnitCost(catalog, attachment)
+    spent += attachmentUnitCost(catalog, attachment, hostItemIdByInstance.get(attachment.hostInstanceId))
   }
 
   const sinLine = index.resourceLineById.get('fake-sin')

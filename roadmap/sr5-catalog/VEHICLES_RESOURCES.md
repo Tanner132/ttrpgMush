@@ -43,17 +43,97 @@ are used. No Run Faster catalog entry is admitted.
 
 ## Vehicle Modifications
 
-Each modification requires an owned compatible parent vehicle. Installed
-components are child records of that vehicle and cannot also be counted as loose
-inventory. Availability and cost adjustments on Manual Operation apply to its
-parent mount.
+Vehicle modification follows *Rigger 5.0*, which supersedes the core rulebook's
+four-row table. The core rows (`rigger-interface` aside, which *Rigger 5.0*
+reprints unchanged as a Cosmetic modification) are no longer catalogued:
+`standard-weapon-mount`, `heavy-weapon-mount` and `manual-operation` are
+replaced by `weapon-mount-light`/`-standard`/`-heavy` plus their option rows.
+Source: `rigger-5` pp. 151-171 (PDF 152-172), drones pp. 122-127 (PDF 123-128).
 
-| ID | Display name | Classification | Availability / legality | Cost | Capacity, parameter, effect, and creation eligibility | Source |
-| --- | --- | --- | --- | ---: | --- | --- |
-| `rigger-interface` | Rigger Interface | `selectable` | 4 / none | 1,000 nuyen | One owned vehicle; permits a control rig to jump in by direct fiber-optic cable or wireless VR. Capacity is not stated. | `sr5-core` p. 461 (PDF 463) |
-| `standard-weapon-mount` | Standard Weapon Mount | `parameterized` | 8F | 2,500 nuyen | One mount slot; required owned vehicle/drone and one assault-rifle-or-smaller weapon; holds 250 rounds; remote operation; 90-degree horizontal/vertical arc. Selectable at creation, but no license exists because it is Forbidden. | `sr5-core` pp. 461-462 (PDF 463-464) |
-| `heavy-weapon-mount` | Heavy Weapon Mount | `creation-unavailable` | 14F | 5,000 nuyen | Two mount slots; required owned vehicle/drone and any weapon; holds 500 belted rounds or up to vehicle Body rockets/missiles; remote operation; 90-degree horizontal/vertical arc. Availability 14 exceeds the creation ceiling. | `sr5-core` pp. 461-462 (PDF 463-464) |
-| `manual-operation` | Manual Operation | `parameterized` | Parent mount +1 / inherits parent legality | +500 nuyen | Child of one installed weapon mount on a vehicle; adds manual operation. Drones are ineligible. It consumes no additional mount slot. | `sr5-core` pp. 461-462 (PDF 463-464) |
+### Modification Slots
+
+Every vehicle has Modification Slots equal to its **Body** in **each** of six
+independent categories — Power Train, Protection, Weapons, Body,
+Electromagnetic, Cosmetic. A modification only draws on its own category's pool
+and a category's pool can never be exceeded. Source: `rigger-5` p. 151 (PDF
+152). A handful of core vehicles are printed with extra slots in one category
+(`hyundai-shin-hyung` and `gmc-bulldog-step-van` +4 Body,
+`mct-nissan-roto-drone` +3 Weapons), carried on the vehicle as
+`modificationSlotBonuses`. Source: `rigger-5` p. 155 (PDF 156).
+
+Drone modifications use the parallel Mod Point system — one pool, also equal to
+Body — modelled here as a seventh category, `drone`. Drone Immobile is the only
+entry with a negative slot cost: it hands back 2 Mod Points. Source: `rigger-5`
+p. 122 (PDF 123).
+
+### Cost scaling
+
+Most modifications are priced off the host vehicle rather than as a flat figure,
+so an entry carries either a flat `cost` or a `costScaling`
+(`multiplier` x the product of `factors`):
+
+| Printed form | Encoding | Examples |
+| --- | --- | --- |
+| `Body x N` | `multiplier: N, factors: [body]` | Rocket Booster (Body x 5,000), Multifuel Engine, SunCell, Touch Sensors, Life Support |
+| `Handl x N` / `Speed x N` / `Accel x N` | `factors: [handling]` / `[speed]` / `[acceleration]` | Handling, Speed and Acceleration Enhancements. Handling and Speed use the leading on-road figure of a `4/3` pair |
+| `Rating x N` | `factors: [rating]` | Vehicle Armor, Passenger Protection System, Personal Armor, Nanomaintenance |
+| `Rating x Body x N` | `factors: [rating, body]` | Realistic Features |
+| `(Body x Body) x N` | `factors: [body, body]` | Drone Realistic Features, Drone Amphibious |
+| `Vehicle cost x 25%` | `multiplier: 0.25, factors: [vehicleCost]` | Off-Road Suspension |
+| `N x seat` | `factors: [seats]` | Metahuman Adjustment |
+| `N x mount MP` | `factors: [slotCost]` | Drone blow-away panels and pop-out mounts |
+
+A drone whose Body is 0 counts as 0.5 in this arithmetic, so a microdrone's
+modifications are not free. Source: `rigger-5` p. 123 (PDF 124).
+
+### Availability and Rating
+
+Availability is either fixed or `(R x N)` — encoded as `availability.perRating`
+— for ECM, Nanomaintenance, Realistic Features, Personal Armor and Yerzed Out.
+Slot cost is likewise flat or `Rating`-scaled (`Rating`, `Rating x 2` for
+standard Armor, `Rating x 3` for concealed Armor).
+
+Two Ratings are bounded by the host rather than by a printed maximum, recorded
+as `ratingCap`: vehicle Armor caps at the vehicle's Body, and a Special Armor
+Modification caps at the vehicle's Armor. Source: `rigger-5` pp. 159-160
+(PDF 160-161). The general creation Rating cap of 6 deliberately does not apply
+to vehicle modifications — vehicle Armor legitimately runs to the vehicle's Body
+at a flat Availability of 6R.
+
+### Weapon mounts and other option rows
+
+A weapon mount is a size (Light/Standard/Heavy) plus one pick from each of three
+axes: visibility (External/Internal/Concealed), flexibility (Fixed/Flexible/
+Turret) and control (Remote/Manual/Armored Manual). The no-cost defaults
+(External, Fixed, Remote) are already priced into the size rows, so only the
+surcharge rows are catalogued, as `relative` entries carrying an
+`optionGroupId` and `appliesToModificationIds`. Their Availability, cost and
+slot cost are **modifiers** added to the base mount, and at most one may be
+chosen per group. A Heavy mount (12F) with a Turret (+6) is therefore 18F and
+out of reach at creation. The same shape carries drone blow-away panels and
+pop-out mounts. Source: `rigger-5` p. 162 (PDF 163), drones p. 124 (PDF 125).
+
+Options travel on the same purchase as the modification they qualify:
+`AttachmentSelection.Options` holds their ids, and the canonical attachment
+records them back.
+
+### Known omissions
+
+- **Workshop** (Body category, 6 slots) is not catalogued: *Rigger 5.0* prints
+  the row with no Availability and no cost (`rigger-5` p. 167, PDF 168).
+- **Special Equipment** (Body category) is `variable` on every column — a
+  gamemaster-defined row rather than a purchasable entry.
+- **Drone attribute modifications** (buying up a drone's Handling, Speed,
+  Acceleration, Armor or Sensor for Mod Points) are per-point purchases against
+  the drone's own stat line rather than catalog rows, and are not modelled.
+  Source: `rigger-5` pp. 123-124 (PDF 124-125).
+- The **standard upgrades** core vehicles ship with (`rigger-5` p. 155, PDF 156)
+  are recorded only where they grant extra slots; the pre-installed
+  modifications themselves do not yet consume their categories' slots.
+- `special-armor-radiation-shielding` and `special-armor-universal-mirror-material`
+  are named by *Rigger 5.0* but have no personal-armor modification in this
+  catalog to double the cost of, so both follow the same Rating x 500 shape as
+  the other four special armor modifications.
 
 ## Vehicle Profiles
 

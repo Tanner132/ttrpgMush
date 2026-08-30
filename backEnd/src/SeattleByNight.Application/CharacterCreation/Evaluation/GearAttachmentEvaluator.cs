@@ -58,6 +58,7 @@ public sealed class GearAttachmentEvaluator
 
         var mountsUsedByHost = new Dictionary<string, HashSet<WeaponMount>>(StringComparer.Ordinal);
         var capacityUsedByHost = new Dictionary<string, int>(StringComparer.Ordinal);
+        var vehicleSlotsUsedByHost = new Dictionary<(string HostInstanceId, VehicleModificationCategory Category), int>();
         var enhancementTypesUsedByHost = new Dictionary<string, HashSet<CyberlimbEnhancementType>>(StringComparer.Ordinal);
         var canonical = new List<CanonicalAttachment>();
         var spent = 0m;
@@ -102,7 +103,7 @@ public sealed class GearAttachmentEvaluator
             }
             else if (catalog.Vehicles.TryGetValue(host.ItemId, out var vehicle))
             {
-                EvaluateVehicleModification(catalog, vehicle, selection, path, capacityUsedByHost, canonical, diagnostics, ref spent);
+                EvaluateVehicleModification(catalog, vehicle, selection, path, vehicleSlotsUsedByHost, canonical, diagnostics, ref spent);
             }
             else
             {
@@ -610,18 +611,21 @@ public sealed class GearAttachmentEvaluator
         }
     }
 
-    // Vehicle mount capacity is unaugmented Body / 3, rounded down; a standard
-    // mount uses one slot and a heavy mount counts as two (sr5-core p. 461,
-    // PDF 463). Manual operation is a child of an already-installed weapon
-    // mount and consumes no additional slot; prerequisite order follows the
-    // draft's attachment list rather than a full dependency graph, matching
-    // how a player builds up a vehicle's loadout one attachment at a time.
+    // Rigger 5.0 replaces the core rulebook's single mount allowance with
+    // Modification Slots: every vehicle has slots equal to its Body in each of
+    // six independent categories, and a category's pool can never be exceeded
+    // (rigger-5 p. 151, PDF 152). Drone modifications draw on the parallel Mod
+    // Point pool, also equal to Body (rigger-5 p. 122, PDF 123). A modification
+    // is priced, gated and slotted together with the relative option rows
+    // selected on it -- a weapon mount is a size plus its visibility,
+    // flexibility and control picks, all of which add slots, Availability and
+    // nuyen to the one purchase (rigger-5 p. 162, PDF 163).
     private void EvaluateVehicleModification(
         RulesetCatalog catalog,
         VehicleDefinition vehicle,
         AttachmentSelection selection,
         string path,
-        Dictionary<string, int> mountSlotsUsedByHost,
+        Dictionary<(string HostInstanceId, VehicleModificationCategory Category), int> slotsUsedByHost,
         List<CanonicalAttachment> canonical,
         List<CharacterCreationDiagnostic> diagnostics,
         ref decimal spent)
@@ -632,37 +636,272 @@ public sealed class GearAttachmentEvaluator
             return;
         }
 
-        if (modification.RequiresExistingMount && !canonical.Any(item =>
-            item.HostInstanceId == selection.HostInstanceId
-            && catalog.VehicleModifications.TryGetValue(item.AccessoryId, out var installed)
-            && installed.MountSlotCost > 0))
+        if (modification.Relative)
         {
-            diagnostics.Add(Error("attachment.host.prerequisite-missing", path, [selection.AccessoryId], modification.Source,
-                "Install a weapon mount on this vehicle before adding manual operation."));
+            diagnostics.Add(Error("attachment.vehicle.option-not-standalone", path, [selection.AccessoryId],
+                modification.Source,
+                "Select this option on the modification it qualifies rather than installing it on its own."));
             return;
         }
 
-        var mountPool = vehicle.Body is null ? 0 : vehicle.Body.Value / 3;
-        ApplyCapacity(selection.HostInstanceId, modification.MountSlotCost, mountPool, path, modification.Source,
-            mountSlotsUsedByHost, diagnostics);
+        var options = ResolveModificationOptions(catalog, modification, selection, path, diagnostics);
+        var rating = EvaluateVehicleRating(modification, vehicle, selection.Rating, path, diagnostics);
 
-        var availability = Resolve(modification.Availability?.Fixed, modification.Availability?.PerRating, null);
-        if (availability is not null && availability > MaxCreationAvailability)
+        var slotCost = ResolveSlotCost(modification, rating);
+        foreach (var option in options)
+        {
+            slotCost += ResolveSlotCost(option, rating);
+        }
+
+        var slotPool = ModificationSlots(vehicle, modification.Category);
+        ApplyVehicleSlots(selection.HostInstanceId, modification.Category, slotCost, slotPool, path,
+            modification.Source, slotsUsedByHost, diagnostics);
+
+        var availability = ResolveAvailability(modification.Availability, rating);
+        foreach (var option in options)
+        {
+            availability += ResolveAvailability(option.Availability, rating);
+        }
+
+        if (availability > MaxCreationAvailability)
         {
             diagnostics.Add(Error("attachment.availability.exceeded", path, [selection.AccessoryId], modification.Source,
                 new Dictionary<string, string>
                 {
-                    ["actual"] = availability.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["actual"] = availability.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     ["maximum"] = MaxCreationAvailability.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 },
-                "Choose a modification whose numeric Availability is 12 or lower at creation."));
+                "Choose a modification whose combined numeric Availability is 12 or lower at creation."));
         }
 
-        var cost = Resolve(modification.Cost?.Fixed, modification.Cost?.PerRating, null);
+        var cost = ResolveVehicleCost(modification, vehicle, rating, slotCost);
+        foreach (var option in options)
+        {
+            cost += ResolveVehicleCost(option, vehicle, rating, slotCost);
+        }
+
         spent += cost;
 
         canonical.Add(new CanonicalAttachment(
-            selection.HostInstanceId, selection.AccessoryId, null, null, RoundNuyen(cost), CanonicalProvenance.Nuyen));
+            selection.HostInstanceId, selection.AccessoryId, null, rating, RoundNuyen(cost),
+            CanonicalProvenance.Nuyen, 0m,
+            options.Count == 0 ? null : options.Select(option => option.Id).ToArray()));
+    }
+
+    // Options must be relative rows printed for this modification, and the book
+    // offers exactly one choice per axis, so a repeated option group is an
+    // error rather than a stacking bonus.
+    private static IReadOnlyList<VehicleModificationDefinition> ResolveModificationOptions(
+        RulesetCatalog catalog,
+        VehicleModificationDefinition modification,
+        AttachmentSelection selection,
+        string path,
+        List<CharacterCreationDiagnostic> diagnostics)
+    {
+        if (selection.Options is not { Count: > 0 })
+        {
+            return [];
+        }
+
+        var resolved = new List<VehicleModificationDefinition>();
+        var groupsUsed = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var optionId in selection.Options)
+        {
+            if (!catalog.VehicleModifications.TryGetValue(optionId, out var option))
+            {
+                diagnostics.Add(Unknown(optionId, catalog));
+                continue;
+            }
+
+            if (!option.Relative
+                || option.AppliesToModificationIds?.Contains(modification.Id, StringComparer.Ordinal) != true)
+            {
+                diagnostics.Add(Error("attachment.vehicle.option-mismatch", path, [optionId], option.Source,
+                    "Choose an option printed for this modification."));
+                continue;
+            }
+
+            if (!groupsUsed.Add(option.OptionGroupId!))
+            {
+                diagnostics.Add(Error("attachment.vehicle.option-group-duplicated", path, [optionId], option.Source,
+                    new Dictionary<string, string> { ["group"] = option.OptionGroupId! },
+                    "Choose at most one option from each of the modification's option groups."));
+                continue;
+            }
+
+            resolved.Add(option);
+        }
+
+        return resolved;
+    }
+
+    // Ratings on vehicle modifications are bounded by the printed range and,
+    // for vehicle armor and special armor modifications, by the host vehicle's
+    // own Body or Armor (rigger-5 pp. 159-160, PDF 160-161). The general
+    // creation Rating cap of 6 deliberately does not apply here: vehicle Armor
+    // legitimately runs to the vehicle's Body at a flat Availability of 6R.
+    private static int? EvaluateVehicleRating(
+        VehicleModificationDefinition modification,
+        VehicleDefinition vehicle,
+        int? rating,
+        string path,
+        List<CharacterCreationDiagnostic> diagnostics)
+    {
+        if (modification.RatingRange is null)
+        {
+            return null;
+        }
+
+        if (rating is null)
+        {
+            diagnostics.Add(Error("attachment.rating.required", $"{path}.rating", [modification.Id],
+                modification.Source, new Dictionary<string, string>(),
+                "Choose a Rating within the modification's printed range."));
+            return null;
+        }
+
+        var maximum = modification.RatingRange.Maximum;
+        var vehicleCap = modification.RatingCap switch
+        {
+            VehicleRatingCap.Body => vehicle.Body ?? 0,
+            VehicleRatingCap.Armor => vehicle.Armor ?? 0,
+            _ => (int?)null,
+        };
+        if (vehicleCap is not null)
+        {
+            maximum = Math.Min(maximum, vehicleCap.Value);
+        }
+
+        if (rating < modification.RatingRange.Minimum || rating > maximum)
+        {
+            diagnostics.Add(Error("attachment.rating.out-of-range", $"{path}.rating", [modification.Id],
+                modification.Source,
+                new Dictionary<string, string>
+                {
+                    ["minimum"] = modification.RatingRange.Minimum.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["maximum"] = maximum.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                },
+                "Choose a Rating within the range this vehicle allows."));
+        }
+
+        return rating;
+    }
+
+    private static int ResolveSlotCost(VehicleModificationDefinition modification, int? rating) =>
+        modification.SlotCost?.PerRating is { } perRating
+            ? perRating * (rating ?? 0)
+            : modification.SlotCost?.Fixed ?? 0;
+
+    private static int ResolveAvailability(AvailabilityDefinition? availability, int? rating)
+    {
+        if (availability is null)
+        {
+            return 0;
+        }
+
+        return availability.PerRating is { } perRating && rating is not null
+            ? perRating * rating.Value
+            : availability.Fixed ?? 0;
+    }
+
+    private static int ModificationSlots(VehicleDefinition vehicle, VehicleModificationCategory category)
+    {
+        var bonuses = vehicle.ModificationSlotBonuses;
+        var bonus = category switch
+        {
+            VehicleModificationCategory.PowerTrain => bonuses?.PowerTrain ?? 0,
+            VehicleModificationCategory.Protection => bonuses?.Protection ?? 0,
+            VehicleModificationCategory.Weapons => bonuses?.Weapons ?? 0,
+            VehicleModificationCategory.Body => bonuses?.Body ?? 0,
+            VehicleModificationCategory.Electromagnetic => bonuses?.Electromagnetic ?? 0,
+            VehicleModificationCategory.Cosmetic => bonuses?.Cosmetic ?? 0,
+            _ => 0,
+        };
+
+        return Math.Max(0, (vehicle.Body ?? 0) + bonus);
+    }
+
+    // Rigger 5.0 prices most modifications off the host vehicle. Body 0 drones
+    // use 0.5 in that arithmetic so a microdrone's mods are not free
+    // (rigger-5 p. 123, PDF 124).
+    private static decimal ResolveVehicleCost(
+        VehicleModificationDefinition modification,
+        VehicleDefinition vehicle,
+        int? rating,
+        int slotCost)
+    {
+        if (modification.CostScaling is null)
+        {
+            return modification.Cost?.Fixed ?? 0m;
+        }
+
+        var value = modification.CostScaling.Multiplier;
+        foreach (var factor in modification.CostScaling.Factors)
+        {
+            value *= factor switch
+            {
+                VehicleScalingFactor.Body => vehicle.Body is null or 0 ? 0.5m : vehicle.Body.Value,
+                VehicleScalingFactor.Handling => LeadingRating(vehicle.Handling),
+                VehicleScalingFactor.Speed => LeadingRating(vehicle.Speed),
+                VehicleScalingFactor.Acceleration => vehicle.Acceleration ?? 0,
+                VehicleScalingFactor.Armor => vehicle.Armor ?? 0,
+                VehicleScalingFactor.Seats => vehicle.Seats ?? 1,
+                VehicleScalingFactor.Rating => rating ?? 0,
+                VehicleScalingFactor.VehicleCost => vehicle.Cost?.Fixed ?? 0m,
+                VehicleScalingFactor.SlotCost => slotCost,
+                _ => 0m,
+            };
+        }
+
+        return value;
+    }
+
+    // Handling and Speed are printed as "on-road/off-road" pairs ("4/3"); the
+    // enhancement tables price off the leading on-road figure.
+    private static decimal LeadingRating(string? printed)
+    {
+        if (string.IsNullOrWhiteSpace(printed))
+        {
+            return 0m;
+        }
+
+        var leading = printed.Split('/', StringSplitOptions.TrimEntries)[0];
+        return decimal.TryParse(leading, System.Globalization.NumberStyles.Number,
+            System.Globalization.CultureInfo.InvariantCulture, out var value)
+            ? value
+            : 0m;
+    }
+
+    private void ApplyVehicleSlots(
+        string hostInstanceId,
+        VehicleModificationCategory category,
+        int slotCost,
+        int slotPool,
+        string path,
+        SourceCitation source,
+        Dictionary<(string HostInstanceId, VehicleModificationCategory Category), int> slotsUsedByHost,
+        List<CharacterCreationDiagnostic> diagnostics)
+    {
+        var key = (hostInstanceId, category);
+        var totalUsed = slotsUsedByHost.GetValueOrDefault(key) + slotCost;
+        if (totalUsed > slotPool)
+        {
+            diagnostics.Add(Error("attachment.capacity.exceeded", path, [], source,
+                new Dictionary<string, string>
+                {
+                    ["host"] = hostInstanceId,
+                    ["category"] = category.ToString(),
+                    ["actual"] = totalUsed.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["maximum"] = slotPool.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                },
+                "Reduce this vehicle's modifications so the category's Modification Slots are not exceeded."));
+            return;
+        }
+
+        // Not clamped at zero: Drone Immobile has a negative slot cost because
+        // it hands back 2 Mod Points, and clamping would swallow that grant
+        // whenever it is installed before the mods it pays for.
+        slotsUsedByHost[key] = totalUsed;
     }
 
     private static int? EvaluateRating(

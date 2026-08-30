@@ -6,6 +6,7 @@ import type {
   CatalogContract,
   CyberlimbEnhancementDefinition,
   GearDefinition,
+  VehicleModificationCategory,
   WeaponMount,
 } from '../../../api/characterCreation.ts'
 import { resolveNumber } from '../../../api/characterCreation.ts'
@@ -17,8 +18,36 @@ import {
   MOUNT_LABELS,
   attachmentCapacityCost,
   effectiveWeaponMount,
+  resolveVehicleModificationOptions,
+  vehicleModificationAvailability,
+  vehicleModificationCost,
+  vehicleModificationOptionGroups,
+  vehicleModificationSlotCost,
+  vehicleModificationSlots,
   weaponAccessoryMountCandidates,
 } from './resourceCatalog.ts'
+
+const VEHICLE_CATEGORY_ORDER: VehicleModificationCategory[] =
+  ['powerTrain', 'protection', 'weapons', 'body', 'electromagnetic', 'cosmetic', 'drone']
+
+const VEHICLE_CATEGORY_LABELS: Record<VehicleModificationCategory, string> = {
+  powerTrain: 'Power Train',
+  protection: 'Protection',
+  weapons: 'Weapons',
+  body: 'Body',
+  electromagnetic: 'Electromagnetic',
+  cosmetic: 'Cosmetic',
+  drone: 'Mod Points',
+}
+
+// The no-cost default on each option axis, already priced into the base row
+// (rigger-5 p. 162, PDF 163).
+const VEHICLE_OPTION_GROUP_DEFAULTS: Record<string, string> = {
+  'weapon-mount-visibility': 'External',
+  'weapon-mount-flexibility': 'Fixed',
+  'weapon-mount-control': 'Remote',
+  'drone-mount-concealment': 'Exposed',
+}
 
 interface GearAttachmentModalProps {
   catalog: CatalogContract
@@ -39,6 +68,9 @@ export function GearAttachmentModal({
 }: GearAttachmentModalProps) {
   const [pendingRatings, setPendingRatings] = useState<Record<string, number>>({})
   const [pendingMounts, setPendingMounts] = useState<Record<string, WeaponMount>>({})
+  // Per-modification, per-option-group picks for vehicle modifications, held
+  // until the modification is added.
+  const [pendingOptions, setPendingOptions] = useState<Record<string, Record<string, string>>>({})
 
   if (hostKind === 'weapon') {
     const availableMounts = MOUNTS_BY_WEAPON_CATEGORY[weaponCategoryId ?? ''] ?? []
@@ -128,45 +160,116 @@ export function GearAttachmentModal({
   }
 
   if (hostKind === 'vehicle') {
-    const usedSlots = attachments.reduce((total, item) => {
-      const modification = catalog.vehicleModifications.find((entry) => entry.id === item.accessoryId)
-      return modification ? total + modification.mountSlotCost : total
-    }, 0)
-    const mountPool = capacityPool ?? 0
-    const remainingSlots = mountPool - usedSlots
-    const hasWeaponMount = attachments.some((item) => {
-      const modification = catalog.vehicleModifications.find((entry) => entry.id === item.accessoryId)
-      return modification && modification.mountSlotCost > 0
-    })
+    const vehicle = catalog.vehicles.find((item) => item.id === hostItemId)
+
+    // Rigger 5.0 gives a vehicle Body Modification Slots in each of six
+    // independent categories, so used slots are tallied per category rather
+    // than against one shared mount pool (rigger-5 p. 151, PDF 152). Drone
+    // modifications use the parallel Mod Point pool, also Body.
+    const usedByCategory = new Map<VehicleModificationCategory, number>()
+    for (const item of attachments) {
+      const installed = catalog.vehicleModifications.find((entry) => entry.id === item.accessoryId)
+      if (!installed) continue
+      const installedOptions = resolveVehicleModificationOptions(catalog, installed, item.options)
+      const cost = [installed, ...installedOptions]
+        .reduce((total, entry) => total + vehicleModificationSlotCost(entry, item.rating ?? null), 0)
+      usedByCategory.set(installed.category, (usedByCategory.get(installed.category) ?? 0) + cost)
+    }
 
     // Unlike other host kinds, a vehicle may carry more than one of the same
-    // modification (e.g. several Standard Weapon Mounts), so options are not
-    // excluded once attached — only once mount-slot capacity runs out.
-    const options = catalog.vehicleModifications.filter((modification) => {
-      if (modification.requiresExistingMount && !hasWeaponMount) return false
-      return modification.mountSlotCost <= remainingSlots
+    // modification (e.g. several standard weapon mounts), so options are not
+    // excluded once attached — only once the category's slots run out.
+    // Relative rows are never standalone picks; they appear as option
+    // selectors on the modification they qualify.
+    const modifications = catalog.vehicleModifications.filter((modification) => {
+      if (modification.relative) return false
+      const pool = vehicleModificationSlots(vehicle, modification.category)
+      const used = usedByCategory.get(modification.category) ?? 0
+      const minimumRating = modification.ratingRange?.minimum ?? null
+      return vehicleModificationSlotCost(modification, minimumRating) <= pool - used
     })
 
     return (
       <Modal title={`Modifications — ${hostDisplayName}`} onClose={onClose}>
         <div className="creation-attachment-modal">
           <div className="creation-attachment-modal__capacity">
-            <div className="creation-attachment-modal__slot">
-              <strong>Mount Slots</strong>
-              <span>{usedSlots} / {mountPool} used</span>
-            </div>
+            {VEHICLE_CATEGORY_ORDER
+              .filter((category) => vehicleModificationSlots(vehicle, category) > 0
+                || (usedByCategory.get(category) ?? 0) > 0)
+              .map((category) => (
+                <div key={category} className="creation-attachment-modal__slot">
+                  <strong>{VEHICLE_CATEGORY_LABELS[category]}</strong>
+                  <span>{usedByCategory.get(category) ?? 0} / {vehicleModificationSlots(vehicle, category)} used</span>
+                </div>
+              ))}
           </div>
           <ul className="creation-attachment-modal__options">
-            {options.length === 0 && <li className="creation-attachment-modal__empty">No mount slots remain for more modifications.</li>}
-            {options.map((modification) => {
-              const cost = resolveNumber(modification.cost?.fixed, modification.cost?.perRating, null, null)
+            {modifications.length === 0 && <li className="creation-attachment-modal__empty">No Modification Slots remain for more modifications.</li>}
+            {modifications.map((modification) => {
+              const ratingCap = modification.ratingCap === 'body'
+                ? vehicle?.body ?? 0
+                : modification.ratingCap === 'armor' ? vehicle?.armor ?? 0 : null
+              const maximumRating = ratingCap == null
+                ? modification.ratingRange?.maximum
+                : Math.min(modification.ratingRange?.maximum ?? 0, ratingCap)
+              const rating = modification.ratingRange
+                ? pendingRatings[modification.id] ?? modification.ratingRange.minimum
+                : undefined
+              const chosenOptions = pendingOptions[modification.id] ?? {}
+              const optionIds = Object.values(chosenOptions).filter((id): id is string => id != null && id !== '')
+              const attachment = { rating: rating ?? null, options: optionIds }
+              const cost = vehicleModificationCost(catalog, vehicle, modification, attachment)
+              const optionRows = resolveVehicleModificationOptions(catalog, modification, optionIds)
+              const slotCost = [modification, ...optionRows]
+                .reduce((total, entry) => total + vehicleModificationSlotCost(entry, rating ?? null), 0)
+              const availability = vehicleModificationAvailability(catalog, modification, attachment)
+              const pool = vehicleModificationSlots(vehicle, modification.category)
+              const remainingSlots = pool - (usedByCategory.get(modification.category) ?? 0)
+              const ratingUnavailable = modification.ratingRange != null && (maximumRating ?? 0) < modification.ratingRange.minimum
               return (
                 <li key={modification.id} className="creation-attachment-modal__option">
                   <span>
                     <strong>{modification.displayName}</strong>
-                    <small>{cost.toLocaleString()}¥ · {modification.mountSlotCost} slot{modification.mountSlotCost === 1 ? '' : 's'}</small>
+                    <small>
+                      {cost.toLocaleString()}¥ · {slotCost} {VEHICLE_CATEGORY_LABELS[modification.category]} slot{slotCost === 1 ? '' : 's'} · Avail {availability}
+                    </small>
                   </span>
-                  <Button intent="primary" onClick={() => onAdd({ hostInstanceId, accessoryId: modification.id })}>Add</Button>
+                  {modification.ratingRange && !ratingUnavailable && (
+                    <Stepper
+                      label={`${modification.displayName} rating`}
+                      min={modification.ratingRange.minimum}
+                      max={maximumRating ?? modification.ratingRange.maximum}
+                      value={rating}
+                      onChange={(next) => setPendingRatings((prev) => ({ ...prev, [modification.id]: next }))}
+                    />
+                  )}
+                  {vehicleModificationOptionGroups(catalog, modification).map(({ groupId, options }) => (
+                    <select
+                      key={groupId}
+                      className="creation-select"
+                      aria-label={`${modification.displayName} ${groupId}`}
+                      value={chosenOptions[groupId] ?? ''}
+                      onChange={(event) => setPendingOptions((prev) => ({
+                        ...prev,
+                        [modification.id]: { ...prev[modification.id], [groupId]: event.target.value },
+                      }))}
+                    >
+                      <option value="">{VEHICLE_OPTION_GROUP_DEFAULTS[groupId] ?? 'None'}</option>
+                      {options.map((option) => (
+                        <option key={option.id} value={option.id}>{option.displayName}</option>
+                      ))}
+                    </select>
+                  ))}
+                  <Button
+                    intent="primary"
+                    disabled={ratingUnavailable || slotCost > remainingSlots}
+                    onClick={() => onAdd({
+                      hostInstanceId,
+                      accessoryId: modification.id,
+                      rating: rating ?? undefined,
+                      options: optionIds.length === 0 ? undefined : optionIds,
+                    })}
+                  >Add</Button>
                 </li>
               )
             })}

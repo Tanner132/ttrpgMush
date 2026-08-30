@@ -209,7 +209,8 @@ public sealed record CanonicalAttachment(
     int? Rating,
     int NuyenCost,
     CanonicalProvenance Provenance,
-    decimal EssenceLoss = 0m);
+    decimal EssenceLoss = 0m,
+    IReadOnlyList<string>? Options = null);
 
 public sealed record CanonicalGearAttachments(
     IReadOnlyList<CanonicalAttachment> Attachments,

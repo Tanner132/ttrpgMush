@@ -590,14 +590,67 @@ public static partial class RulesetCatalogLoader
             }
         }
 
+        var vehicleModificationIds = document.VehicleModifications.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var modification in document.VehicleModifications)
         {
             ValidateCommonEntry(modification.Id, modification.DisplayName, modification.Source, sourceIds, "vehicle modification");
-            ValidateResourceEntry(modification.Availability, modification.Cost, null, null, null,
-                null, null, $"vehicle modification '{modification.Id}'");
-            if (modification.MountSlotCost < 0)
+            var label = $"vehicle modification '{modification.Id}'";
+            if (modification.Cost is not null && modification.CostScaling is not null)
             {
-                throw new RulesetCatalogException($"Vehicle modification '{modification.Id}' has a negative mount slot cost.");
+                throw new RulesetCatalogException($"{label} cannot declare both a flat cost and a cost scaling.");
+            }
+
+            ValidateResourceEntry(modification.Availability, modification.Cost, null, null, modification.RatingRange,
+                null, null, label);
+
+            if (modification.CostScaling is not null)
+            {
+                if (modification.CostScaling.Multiplier <= 0)
+                    throw new RulesetCatalogException($"{label} has a non-positive cost multiplier.");
+                if (modification.CostScaling.Factors is not { Count: > 0 })
+                    throw new RulesetCatalogException($"{label} must declare at least one cost scaling factor.");
+                if (modification.CostScaling.Factors.Contains(VehicleScalingFactor.Rating) && modification.RatingRange is null)
+                    throw new RulesetCatalogException($"{label} scales with Rating but declares no Rating range.");
+            }
+
+            if (modification.SlotCost is null
+                || (modification.SlotCost.Fixed is null && modification.SlotCost.PerRating is null)
+                || modification.SlotCost.PerRating is < 0)
+            {
+                throw new RulesetCatalogException($"{label} has an invalid slot cost.");
+            }
+
+            if (modification.SlotCost.PerRating is not null && modification.RatingRange is null)
+            {
+                throw new RulesetCatalogException($"{label} has a Rating-scaled slot cost but declares no Rating range.");
+            }
+
+            // Drone Immobile is the only entry allowed to return slots.
+            if (modification.SlotCost.Fixed is < 0 && modification.Category != VehicleModificationCategory.Drone)
+            {
+                throw new RulesetCatalogException($"{label} has a negative slot cost outside the drone Mod Point pool.");
+            }
+
+            if (modification.RatingCap != VehicleRatingCap.None && modification.RatingRange is null)
+            {
+                throw new RulesetCatalogException($"{label} declares a vehicle Rating cap but no Rating range.");
+            }
+
+            if (modification.Relative)
+            {
+                if (string.IsNullOrWhiteSpace(modification.OptionGroupId))
+                    throw new RulesetCatalogException($"{label} is relative but declares no option group.");
+                if (modification.AppliesToModificationIds is not { Count: > 0 })
+                    throw new RulesetCatalogException($"{label} is relative but applies to no base modification.");
+                foreach (var baseId in modification.AppliesToModificationIds)
+                {
+                    if (!vehicleModificationIds.Contains(baseId))
+                        throw new RulesetCatalogException($"{label} applies to unknown vehicle modification '{baseId}'.");
+                }
+            }
+            else if (modification.OptionGroupId is not null || modification.AppliesToModificationIds is not null)
+            {
+                throw new RulesetCatalogException($"{label} declares option metadata but is not relative.");
             }
         }
 
