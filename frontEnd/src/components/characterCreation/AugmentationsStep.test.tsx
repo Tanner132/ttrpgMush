@@ -100,7 +100,7 @@ const catalog: CatalogContract = {
   ],
   vehicleModifications: [],
   lifestyleTiers: [],
-  lifestyleOptions: [],
+  lifestyleOptions: [], martialArtStyles: [], martialArtTechniques: [],
 }
 
 const baseDocument: CharacterCreationDocument = {

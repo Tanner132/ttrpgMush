@@ -20,7 +20,7 @@ const catalog = {
   mentorSpirits: [], spiritTypes: [], spriteTypes: [], foci: [], gear: [], weapons: [], armor: [],
   augmentationGrades: [], augmentations: [], vehicles: [], cyberdecks: [], weaponAccessories: [],
   armorModifications: [], cyberlimbEnhancements: [], vehicleModifications: [], lifestyleTiers: [],
-  lifestyleOptions: [], languageSuggestions: [], knowledgeSkillSuggestions: [],
+  lifestyleOptions: [], martialArtStyles: [], martialArtTechniques: [], languageSuggestions: [], knowledgeSkillSuggestions: [],
   priorityCells: [{
     categoryId: 'magic-resonance',
     levelId: 'a',

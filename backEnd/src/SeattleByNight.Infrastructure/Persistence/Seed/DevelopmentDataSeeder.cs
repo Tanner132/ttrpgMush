@@ -283,6 +283,7 @@ public static class DevelopmentDataSeeder
             new IdentityEvaluator(),
             new ProfileEvaluator(),
             new LifestyleEvaluator(),
+            new MartialArtsEvaluator(),
             new DerivedStatisticsEvaluator());
 
         // This allocation is a known-valid, already-balanced priority/point

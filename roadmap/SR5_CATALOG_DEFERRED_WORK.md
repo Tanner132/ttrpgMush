@@ -18,25 +18,29 @@ later.
 
 ## Open Items
 
-### Run & Gun: Martial Arts (styles + techniques)
+_None currently._
 
-- **Source:** `run-gun` pp. 128-141 (PDF 130-143).
-- **Why deferred:** Not a plain catalog port. Martial Arts is a full
-  progression subsystem: a character buys a style for 7 Karma (each style
-  has a fixed list of ~6 available techniques), then buys individual
-  techniques for 5 Karma each (up to 5 techniques in one style at character
-  creation, for 27 Karma total), with a cross-style stacking cap ("no more
-  than a +2 bonus... from purchasing the same technique from two different
-  martial art styles"). It needs a style/technique picker UI and new
-  evaluator logic comparable in shape to a Life Modules-style feature, not
-  just new catalog rows. Most of the ~150 named techniques also mechanically
-  reference the "Killshots and More" combat-maneuver/called-shot rules
-  (Block, Counterstrike, Called Shot variants, Riposte, etc.), which this
-  project does not model as enforced combat mechanics at all — see the
-  Excluded section below.
-- **Decision:** Deferred by the project owner, 2026-08-28, pending a future
-  dedicated ticket. Revisit as its own CHAR-8xx (or later) ticket if the
-  project owner decides it's worth the UI/evaluator investment.
+## Resolved (Admitted By A Later Ticket)
+
+### Run & Gun: Martial Arts (styles + techniques) — admitted by CHAR-822, 2026-08-31
+
+- **Source:** `run-gun` pp. 128-142 (PDF 130-144).
+- **Why it was deferred (2026-08-28):** Not a plain catalog port. Martial
+  Arts is a progression subsystem: a character buys a style for 7 Karma
+  (each style has a fixed list of 6 available techniques), then buys
+  individual techniques for 5 Karma each (up to 5 techniques at character
+  creation, 27 Karma total), so it needed a style/technique picker UI and
+  new evaluator logic, not just new catalog rows. The techniques also
+  mechanically reference the "Killshots and More" combat rules this project
+  does not model.
+- **Resolution:** CHAR-822 ("add in the rules and entries for martial
+  arts... add a new optional martial arts step") built exactly that: 42
+  styles and 70 techniques as new `martialArtStyles`/`martialArtTechniques`
+  catalog sections, a `MartialArtsEvaluator` plus Karma costing, and an
+  optional `martial-arts` creator step. Technique combat effects remain
+  display text only — the underlying Killshots and More exclusion below is
+  unchanged. See
+  [`sr5-catalog/RUN_GUN_MARTIAL_ARTS.md`](sr5-catalog/RUN_GUN_MARTIAL_ARTS.md).
 
 ## Excluded (Reviewed, Not Candidates For Later)
 

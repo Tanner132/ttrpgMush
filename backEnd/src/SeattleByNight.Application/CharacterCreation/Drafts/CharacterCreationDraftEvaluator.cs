@@ -18,6 +18,7 @@ public sealed class CharacterCreationDraftEvaluator
     private readonly IdentityEvaluator identityEvaluator;
     private readonly ProfileEvaluator profileEvaluator;
     private readonly LifestyleEvaluator lifestyleEvaluator;
+    private readonly MartialArtsEvaluator martialArtsEvaluator;
     private readonly DerivedStatisticsEvaluator derivedStatisticsEvaluator;
 
     public CharacterCreationDraftEvaluator(
@@ -33,6 +34,7 @@ public sealed class CharacterCreationDraftEvaluator
         IdentityEvaluator identityEvaluator,
         ProfileEvaluator profileEvaluator,
         LifestyleEvaluator lifestyleEvaluator,
+        MartialArtsEvaluator martialArtsEvaluator,
         DerivedStatisticsEvaluator derivedStatisticsEvaluator)
     {
         this.catalogProvider = catalogProvider;
@@ -47,6 +49,7 @@ public sealed class CharacterCreationDraftEvaluator
         this.identityEvaluator = identityEvaluator;
         this.profileEvaluator = profileEvaluator;
         this.lifestyleEvaluator = lifestyleEvaluator;
+        this.martialArtsEvaluator = martialArtsEvaluator;
         this.derivedStatisticsEvaluator = derivedStatisticsEvaluator;
     }
 
@@ -167,10 +170,16 @@ public sealed class CharacterCreationDraftEvaluator
             lifestyleEvaluation = lifestyleEvaluator.Evaluate(catalog, draft.Document, resourcesEvaluation, gearAttachmentEvaluation, identityEvaluation);
             diagnostics.AddRange(lifestyleEvaluation.Diagnostics);
         }
+        var martialArtsEvaluation = new MartialArtsEvaluation([], null);
+        if (evaluation.IsReady && draft.Document.MartialArts is not null)
+        {
+            martialArtsEvaluation = martialArtsEvaluator.Evaluate(catalog, draft.Document);
+            diagnostics.AddRange(martialArtsEvaluation.Diagnostics);
+        }
         var karmaBudgetEvaluation = new KarmaBudgetEvaluation([], 0, 0);
         if (evaluation.IsReady)
         {
-            karmaBudgetEvaluation = karmaBudgetEvaluator.Evaluate(catalog, draft.Document, contactEvaluation, skillsEvaluation, metatypeEvaluation);
+            karmaBudgetEvaluation = karmaBudgetEvaluator.Evaluate(catalog, draft.Document, contactEvaluation, skillsEvaluation, metatypeEvaluation, martialArtsEvaluation);
             diagnostics.AddRange(karmaBudgetEvaluation.Diagnostics);
         }
 
@@ -183,7 +192,7 @@ public sealed class CharacterCreationDraftEvaluator
         var canonicalSheet = evaluation.IsReady
             ? BuildCanonicalSheet(evaluation.Preview, metatypeEvaluation, skillsEvaluation, magicEvaluation, resourcesEvaluation,
                 gearAttachmentEvaluation, contactEvaluation, identityEvaluation, profileEvaluation, lifestyleEvaluation,
-                derivedStatisticsEvaluation)
+                derivedStatisticsEvaluation, martialArtsEvaluation)
             : null;
 
         return new CharacterCreationDraftDetails(
@@ -205,7 +214,8 @@ public sealed class CharacterCreationDraftEvaluator
         IdentityEvaluation identityEvaluation,
         ProfileEvaluation profileEvaluation,
         LifestyleEvaluation lifestyleEvaluation,
-        DerivedStatisticsEvaluation derivedStatisticsEvaluation) =>
+        DerivedStatisticsEvaluation derivedStatisticsEvaluation,
+        MartialArtsEvaluation martialArtsEvaluation) =>
         new(
             preview,
             metatypeEvaluation.Metatype,
@@ -224,7 +234,8 @@ public sealed class CharacterCreationDraftEvaluator
             identityEvaluation.Identities,
             lifestyleEvaluation.Lifestyles,
             derivedStatisticsEvaluation.Statistics,
-            profileEvaluation.Profile);
+            profileEvaluation.Profile,
+            martialArtsEvaluation.MartialArts);
 
     private static IEnumerable<CharacterCreationDiagnostic> DownstreamRevalidationDiagnostics(
         CharacterCreationDraftSnapshot draft,
@@ -317,5 +328,16 @@ public sealed class CharacterCreationDraftEvaluator
                 source,
                 new Dictionary<string, string>(),
                 "Resolve the priority assignment before finalizing lifestyle selections.");
+
+        if (draft.Document.MartialArts is not null)
+            yield return new CharacterCreationDiagnostic(
+                "creation.upstream-change-requires-revalidation",
+                CharacterCreationDiagnosticSeverity.Error,
+                "martial-arts",
+                "martialArts",
+                [],
+                source,
+                new Dictionary<string, string>(),
+                "Resolve the priority assignment before finalizing martial arts selections.");
     }
 }

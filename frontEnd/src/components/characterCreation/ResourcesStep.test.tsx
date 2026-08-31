@@ -211,7 +211,7 @@ const catalog: CatalogContract = {
     },
   ],
   lifestyleTiers: [],
-  lifestyleOptions: [],
+  lifestyleOptions: [], martialArtStyles: [], martialArtTechniques: [],
 }
 
 const baseDocument: CharacterCreationDocument = {

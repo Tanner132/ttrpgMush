@@ -184,6 +184,19 @@ Included (CHAR-821, project owner, 2026-08-29):
   complete portable inventory. See
   [`sr5-catalog/GUN_HEAVEN_3_WEAPONS.md`](sr5-catalog/GUN_HEAVEN_3_WEAPONS.md).
 
+Included (CHAR-822, project owner, 2026-08-31):
+
+- Run & Gun's Martial Arts subsystem (`run-gun` pp. 128-142, PDF 130-144):
+  all 42 styles and 70 techniques as new
+  `martialArtStyles`/`martialArtTechniques` catalog sections, one-style-plus-
+  techniques Karma costing (7 Karma including the first technique, 5 per
+  additional, max 5) enforced by a new `MartialArtsEvaluator`, and an
+  optional `martial-arts` character-creation step. This un-defers the item
+  recorded in [`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md)
+  on 2026-08-28. Technique combat effects stay display text only (the
+  Killshots and More exclusion below is unchanged). See
+  [`sr5-catalog/RUN_GUN_MARTIAL_ARTS.md`](sr5-catalog/RUN_GUN_MARTIAL_ARTS.md).
+
 Excluded:
 
 - Core Street-Level and Prime Runner variants (`sr5-core` p. 64 (PDF 66)).
@@ -192,7 +205,7 @@ Excluded:
   listed above as included: metasapients (Centaur, Naga, Pixie, Sasquatch),
   shapeshifters, and the Changelings/SURGE system, including its Metagenic
   Qualities catalog and every Infected quality and critter power.
-- Run & Gun's Martial Arts subsystem, Sixth World Combat Tactics, Killshots
+- Run & Gun's Sixth World Combat Tactics, Killshots
   and More combat-resolution rules, Staying Alive's environmental hazard
   rules, equipment repair rules, demolitions test/breach procedures, Gear
   Qualities (GM-only flags), Improvised Melee Weapons, Underbarrel Weight and
@@ -209,9 +222,9 @@ Excluded:
   book's New Qualities (CHAR-819) and New Adept Powers (CHAR-820) sections
   have been reviewed for scope; the rest above is unreviewed, not
   reviewed-and-rejected. See
-  [`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md) for Martial
-  Arts (deferred, revisit later) and the rest (reviewed and rejected as out
-  of scope).
+  [`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md) for the
+  deferred-work index (Martial Arts, formerly deferred there, was admitted
+  by CHAR-822) and each ledger for reviewed-and-rejected reasoning.
 - Gun H(e)aven 3's two new weapon traits (VINTAGE, CAP & BALL — narrative and
   in-play reload descriptors, `gun-heaven-3` p. 3, PDF 3), its Flamethrower
   usage rules (in-play combat procedure, same page), the per-weapon "Standard

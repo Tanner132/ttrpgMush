@@ -25,7 +25,7 @@ const catalog: CatalogContract = {
   creationPaths: [], aspectedValues: [], traditions: [], spells: [], rituals: [], adeptPowers: [], mentorSpirits: [],
   complexForms: [], spiritTypes: [], spriteTypes: [], foci: [], gear: [], weapons: [], armor: [], augmentationGrades: [],
   augmentations: [], vehicles: [], cyberdecks: [], weaponAccessories: [], armorModifications: [], cyberlimbEnhancements: [],
-  vehicleModifications: [], lifestyleTiers: [], lifestyleOptions: [],
+  vehicleModifications: [], lifestyleTiers: [], lifestyleOptions: [], martialArtStyles: [], martialArtTechniques: [],
 }
 
 const initialDocument: CharacterCreationDocument = {

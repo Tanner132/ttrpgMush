@@ -37,7 +37,8 @@ public sealed record CanonicalCharacterSheet(
     CanonicalIdentities? Identities = null,
     CanonicalLifestyles? Lifestyles = null,
     CanonicalDerivedStatistics? DerivedStatistics = null,
-    CanonicalCharacterProfile? Profile = null);
+    CanonicalCharacterProfile? Profile = null,
+    CanonicalMartialArts? MartialArts = null);
 
 // Free-form, non-mechanical player profile text (gender, age, physical
 // description, concept). Has no Karma/priority cost and no RAW citation, so
@@ -286,3 +287,18 @@ public sealed record CanonicalLifestyles(
     IReadOnlyList<CanonicalLifestyle> Lifestyles,
     int TotalNuyenSpent,
     CanonicalStartingCash? StartingCash = null);
+
+// The style's 7 Karma covers the first technique, so its KarmaCost is 0 and
+// the style row carries the 7 (run-gun p. 128, PDF 130). TotalKarmaCost is
+// what KarmaBudgetEvaluator folds into the shared creation pool.
+public sealed record CanonicalMartialArtTechnique(
+    string Id,
+    int KarmaCost,
+    CanonicalProvenance Provenance);
+
+public sealed record CanonicalMartialArts(
+    string StyleId,
+    int StyleKarmaCost,
+    IReadOnlyList<CanonicalMartialArtTechnique> Techniques,
+    int TotalKarmaCost,
+    CanonicalProvenance Provenance);

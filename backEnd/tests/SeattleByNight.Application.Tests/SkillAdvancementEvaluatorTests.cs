@@ -347,6 +347,7 @@ public sealed class SkillAdvancementEvaluatorTests
             new IdentityEvaluator(),
             new ProfileEvaluator(),
             new LifestyleEvaluator(),
+            new MartialArtsEvaluator(),
             new DerivedStatisticsEvaluator());
 
         var snapshot = new CharacterCreationDraftSnapshot(

@@ -30,6 +30,7 @@
 @import './characterCreation/step-primitives.css';
 @import './characterCreation/knowledge-step.css';
 @import './characterCreation/contacts-step.css';
+@import './characterCreation/martial-arts-step.css';
 @import './characterCreation/lifestyle-step.css';
 @import './characterCreation/review-step.css';
 @import './characterCreation/identity-step.css';

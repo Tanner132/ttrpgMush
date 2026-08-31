@@ -268,6 +268,7 @@ public sealed class ComposedCharacterSheetQueryHandlerTests : IAsyncLifetime
         new IdentityEvaluator(),
         new ProfileEvaluator(),
         new LifestyleEvaluator(),
+        new MartialArtsEvaluator(),
         new DerivedStatisticsEvaluator());
 
     private static CanonicalCharacterSheet RollStartingCash(RulesetCatalog catalog, CanonicalCharacterSheet canonicalSheet)

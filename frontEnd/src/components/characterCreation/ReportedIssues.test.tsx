@@ -30,7 +30,7 @@ const catalog: CatalogContract = {
   skillGroups: [{ id: 'sorcery', displayName: 'Sorcery', skillIds: ['spellcasting'], source }], creationPaths: [], aspectedValues: [], traditions: [], spells: [], rituals: [], adeptPowers: [], mentorSpirits: [],
   complexForms: [], spiritTypes: [], spriteTypes: [], foci: [], gear: [], weapons: [], armor: [], augmentationGrades: [],
   augmentations: [], vehicles: [], cyberdecks: [], weaponAccessories: [], armorModifications: [], cyberlimbEnhancements: [],
-  vehicleModifications: [], lifestyleTiers: [], lifestyleOptions: [],
+  vehicleModifications: [], lifestyleTiers: [], lifestyleOptions: [], martialArtStyles: [], martialArtTechniques: [],
 }
 
 const initialDocument: CharacterCreationDocument = {

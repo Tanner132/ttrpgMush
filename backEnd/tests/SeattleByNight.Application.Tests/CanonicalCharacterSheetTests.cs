@@ -30,6 +30,7 @@ public sealed class CanonicalCharacterSheetTests
             new IdentityEvaluator(),
             new ProfileEvaluator(),
             new LifestyleEvaluator(),
+            new MartialArtsEvaluator(),
             new DerivedStatisticsEvaluator());
 
         var snapshot = new CharacterCreationDraftSnapshot(
@@ -127,6 +128,7 @@ public sealed class CanonicalCharacterSheetTests
             new IdentityEvaluator(),
             new ProfileEvaluator(),
             new LifestyleEvaluator(),
+            new MartialArtsEvaluator(),
             new DerivedStatisticsEvaluator());
         var snapshot = new CharacterCreationDraftSnapshot(
             Guid.NewGuid(),
@@ -169,6 +171,7 @@ public sealed class CanonicalCharacterSheetTests
             new IdentityEvaluator(),
             new ProfileEvaluator(),
             new LifestyleEvaluator(),
+            new MartialArtsEvaluator(),
             new DerivedStatisticsEvaluator());
         var document = ValidDocument() with
         {
@@ -206,6 +209,7 @@ public sealed class CanonicalCharacterSheetTests
             new IdentityEvaluator(),
             new ProfileEvaluator(),
             new LifestyleEvaluator(),
+            new MartialArtsEvaluator(),
             new DerivedStatisticsEvaluator());
         var document = ValidDocument() with
         {
@@ -289,6 +293,7 @@ public sealed class CanonicalCharacterSheetTests
             new IdentityEvaluator(),
             new ProfileEvaluator(),
             new LifestyleEvaluator(),
+            new MartialArtsEvaluator(),
             new DerivedStatisticsEvaluator());
         var document = ValidDocument() with
         {

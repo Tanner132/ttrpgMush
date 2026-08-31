@@ -86,7 +86,7 @@ export function LifestyleStep({ catalog, document, onChange, diagnostics = [] }:
     <div className="console console--form">
       <div className="console__main">
         <div className="console__header">
-          <span className="console__header-number">STEP 13</span>
+          <span className="console__header-number">STEP 14</span>
           <span className="console__header-title">LIFESTYLE</span>
         </div>
         <section className="creation-step lifestyle-dossier" aria-labelledby="lifestyle-step-heading">

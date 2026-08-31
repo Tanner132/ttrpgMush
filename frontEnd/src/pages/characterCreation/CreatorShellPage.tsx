@@ -18,7 +18,7 @@ import { toErrorMessage } from '../../api/client.ts'
 
 import { getCatalog, type CatalogContract, type Diagnostic } from '../../api/characterCreation.ts'
 
-import { AttributeStep, AugmentationsStep, ContactsStep, IdentityStep, KnowledgeStep, LifestyleStep, MagicResonanceStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, ResourcesStep, ReviewStep, SkillsStep } from '../../components/characterCreation/steps/index.ts'
+import { AttributeStep, AugmentationsStep, ContactsStep, IdentityStep, KnowledgeStep, LifestyleStep, MagicResonanceStep, MartialArtsStep, MetatypeStep, PriorityAssignmentStep, QualitiesStep, ResourcesStep, ReviewStep, SkillsStep } from '../../components/characterCreation/steps/index.ts'
 
 import { getCatalogIndex } from '../../components/characterCreation/catalogIndex.ts'
 
@@ -113,6 +113,16 @@ function buildDossierCards(catalog: CatalogContract | null, draft: NonNullable<R
         case 'contacts':
           items = (document.contacts ?? []).map((item) => ({ name: item.name || 'Unnamed contact', badge: `${item.connection}/${item.loyalty}` }))
           break
+        case 'martial-arts': {
+          const selection = document.martialArts
+          const style = selection ? index?.martialArtStyles.get(selection.styleId) : undefined
+          const techniqueItems = (selection?.techniqueIds ?? []).flatMap((techniqueId) => {
+            const technique = index?.martialArtTechniques.get(techniqueId)
+            return technique ? [{ name: technique.displayName, badge: '' }] : []
+          })
+          items = style ? [{ name: style.displayName, badge: 'STYLE' }, ...techniqueItems] : []
+          break
+        }
         case 'resources': {
           items = (document.resources ?? []).flatMap((item) => {
             if (index?.augmentations.has(item.itemId)) return []
@@ -396,6 +406,7 @@ export default function CreatorShellPage() {
             {catalog && currentStepId === 'knowledge' && <KnowledgeStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} diagnostics={stepDiagnostics} />}
             {catalog && currentStepId === 'resources' && <ResourcesStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} diagnostics={stepDiagnostics} />}
             {catalog && currentStepId === 'contacts' && <ContactsStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} diagnostics={stepDiagnostics} />}
+            {catalog && currentStepId === 'martial-arts' && <MartialArtsStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} diagnostics={stepDiagnostics} />}
             {catalog && currentStepId === 'lifestyle' && <LifestyleStep catalog={catalog} creationMethodId={draft.creationMethodId} document={draft.document} onChange={setLocalDocument} diagnostics={stepDiagnostics} />}
             {currentStepId === 'identity' && <IdentityStep name={draft.name} onNameChange={setLocalName} document={draft.document} onChange={setLocalDocument} diagnostics={stepDiagnostics} />}
             {currentStepId === 'review' && <ReviewStep diagnostics={visibleDiagnostics} derivedStatistics={draft.derivedStatistics} isReadyToFinalize={draft.isReadyToFinalize} />}

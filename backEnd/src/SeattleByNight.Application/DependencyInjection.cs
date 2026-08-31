@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddSingleton<IdentityEvaluator>();
         services.AddSingleton<ProfileEvaluator>();
         services.AddSingleton<LifestyleEvaluator>();
+        services.AddSingleton<MartialArtsEvaluator>();
         services.AddSingleton<DerivedStatisticsEvaluator>();
         services.AddSingleton<CharacterCreationDraftEvaluator>();
         services.AddSingleton<CharacterCreationBaselineReader>();

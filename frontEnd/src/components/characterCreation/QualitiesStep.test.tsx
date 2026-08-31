@@ -18,7 +18,7 @@ const catalog = {
   adeptPowers: [], complexForms: [], spriteTypes: [], foci: [], gear: [], weapons: [], armor: [],
   augmentationGrades: [], augmentations: [], vehicles: [], cyberdecks: [], weaponAccessories: [],
   armorModifications: [], cyberlimbEnhancements: [], vehicleModifications: [], lifestyleTiers: [],
-  lifestyleOptions: [], languageSuggestions: [], knowledgeSkillSuggestions: [],
+  lifestyleOptions: [], martialArtStyles: [], martialArtTechniques: [], languageSuggestions: [], knowledgeSkillSuggestions: [],
   qualities: [
     quality('exceptional-attribute', 'Exceptional Attribute', 'positive', 14, true, false),
     quality('allergy', 'Allergy', 'negative', 5, true, true),

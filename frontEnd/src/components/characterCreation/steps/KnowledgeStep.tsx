@@ -79,7 +79,7 @@ export function KnowledgeStep({ catalog, document, onChange, diagnostics = [] }:
     <div className="console console--form">
       <div className="console__main">
         <div className="console__header">
-          <span className="console__header-number">STEP 8</span>
+          <span className="console__header-number">STEP 10</span>
           <span className="console__header-title">KNOWLEDGE &amp; LANGUAGES</span>
         </div>
         <section className="creation-step knowledge-dossier" aria-labelledby="knowledge-step-heading">

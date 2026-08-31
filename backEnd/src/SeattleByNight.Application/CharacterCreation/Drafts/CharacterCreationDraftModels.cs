@@ -149,6 +149,14 @@ public sealed record LifestyleSelection(
     string? PaymentFormId = null,
     int? AdditionalPersons = null);
 
+// At most one martial art style at creation (run-gun p. 128, PDF 130). The
+// style's 7 Karma includes the first technique, so TechniqueIds must hold
+// between one and five entries drawn from the style's list or the universal
+// techniques; each beyond the first costs 5 Karma.
+public sealed record MartialArtsSelection(
+    string StyleId,
+    IReadOnlyList<string>? TechniqueIds = null);
+
 public sealed record CharacterCreationDraftDocument(
     PriorityAssignment? PriorityAssignment,
     MetatypeSelection? Metatype = null,
@@ -168,7 +176,8 @@ public sealed record CharacterCreationDraftDocument(
     IReadOnlyList<ContactSelection>? Contacts = null,
     IReadOnlyList<IdentitySelection>? Identities = null,
     IReadOnlyList<LicenseSelection>? Licenses = null,
-    IReadOnlyList<LifestyleSelection>? Lifestyles = null);
+    IReadOnlyList<LifestyleSelection>? Lifestyles = null,
+    MartialArtsSelection? MartialArts = null);
 
 public sealed record CharacterCreationChangePreview(
     CharacterCreationDraftDetails Candidate,

@@ -355,8 +355,10 @@ new qualities (10 positive, 3 negative) as catalog version `sr5-core`
 `1.5.0`. See [`sr5-catalog/RUN_GUN_QUALITIES.md`](sr5-catalog/RUN_GUN_QUALITIES.md).
 It is the first slice of a broader, project-owner-approved Run & Gun
 expansion; Run & Gun's Martial Arts subsystem and several GM-procedural
-chapters were reviewed and are not part of this or any scheduled slice yet
-— see [`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md).
+chapters were reviewed and set aside at the time — see
+[`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md). (Martial
+Arts was later admitted by CHAR-822 — see its paragraph below; the
+GM-procedural chapters remain excluded.)
 
 CHAR-816 published the second slice: Run & Gun's Arsenal chapter weapons
 (73 base products across 21 categories, 4 newly introduced — laser weapons,
@@ -424,6 +426,24 @@ mapping is 1:1** — no offset at all, unlike the two-page offset of
 Flamethrower usage rules, the per-weapon "Standard Upgrades/Accessories"
 lists, and the SR4A conversion table are excluded with reasoning in
 [`sr5-catalog/GUN_HEAVEN_3_WEAPONS.md`](sr5-catalog/GUN_HEAVEN_3_WEAPONS.md).
+
+CHAR-822 published Run & Gun's Martial Arts subsystem, at the project
+owner's direction ("add in the rules and entries for martial arts... add a
+new optional martial arts step to the character creator"), un-deferring the
+2026-08-28 item in
+[`SR5_CATALOG_DEFERRED_WORK.md`](SR5_CATALOG_DEFERRED_WORK.md). It added
+two new catalog sections — 42 `martialArtStyles` (each listing exactly its
+six printed techniques) and 70 `martialArtTechniques` (2 universal: Neijia,
+Strike the Darkness) from `run-gun` pp. 128-142 (PDF 130-144) — plus a new
+`martialArts` draft-document field, a `MartialArtsEvaluator` (style/
+technique legality, one style, at least one and at most five techniques),
+Karma costing in `KarmaBudgetEvaluator` (7 Karma including the first
+technique, 5 per additional, 27 max), canonical sheet output, and an
+optional `martial-arts` creation step at index 12 in the frontend. Technique
+combat mechanics remain display text only, consistent with the standing
+Killshots and More exclusion; variant-splitting and name-normalization
+decisions are recorded in
+[`sr5-catalog/RUN_GUN_MARTIAL_ARTS.md`](sr5-catalog/RUN_GUN_MARTIAL_ARTS.md).
 
 A runtime catalog now exists (`sr5-core` `1.4.0`) and is pinned by a semantic
 SHA-256 digest that changes whenever any catalog fact changes; this ledger

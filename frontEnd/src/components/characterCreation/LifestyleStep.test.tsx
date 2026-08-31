@@ -46,6 +46,8 @@ const catalog: CatalogContract = {
     { id: 'street-lifestyle', displayName: 'Street Lifestyle', classification: 'Selectable', source, baseCostPerMonth: 0, startingCashDice: { count: 1, sides: 6, multiplier: 20 } },
     { id: 'low-lifestyle', displayName: 'Low Lifestyle', classification: 'Parameterized', source, baseCostPerMonth: 2000, startingCashDice: { count: 3, sides: 6, multiplier: 60 } },
   ],
+  martialArtStyles: [],
+  martialArtTechniques: [],
   lifestyleOptions: [
     { id: 'extra-secure', displayName: 'Extra Secure', classification: 'Selectable', source, adjustmentPercent: 20 },
     { id: 'special-work-area', displayName: 'Special Work Area', classification: 'Selectable', source, fixedMonthlyAmount: 1000 },

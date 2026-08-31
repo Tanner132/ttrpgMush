@@ -18,9 +18,10 @@ export const CREATION_STEPS: readonly CreationStep[] = [
   { id: 'skills', index: 9, label: 'Active Skills & Groups', available: true },
   { id: 'knowledge', index: 10, label: 'Knowledge & Languages', available: true },
   { id: 'contacts', index: 11, label: 'Contacts', available: true },
-  { id: 'resources', index: 12, label: 'Resources & Vehicles', available: true },
-  { id: 'lifestyle', index: 13, label: 'Lifestyle & Starting Cash', available: true },
-  { id: 'review', index: 14, label: 'Review & Finalize', available: true },
+  { id: 'martial-arts', index: 12, label: 'Martial Arts', available: true },
+  { id: 'resources', index: 13, label: 'Resources & Vehicles', available: true },
+  { id: 'lifestyle', index: 14, label: 'Lifestyle & Starting Cash', available: true },
+  { id: 'review', index: 15, label: 'Review & Finalize', available: true },
 ]
 
 export const FIRST_STEP_INDEX = CREATION_STEPS[0].index
@@ -41,6 +42,7 @@ const DIAGNOSTIC_STEP_IDS: Record<string, string> = {
   knowledge: 'knowledge',
   resources: 'augmentations',
   contacts: 'contacts',
+  'martial-arts': 'martial-arts',
   identities: 'resources',
   lifestyle: 'lifestyle',
 }

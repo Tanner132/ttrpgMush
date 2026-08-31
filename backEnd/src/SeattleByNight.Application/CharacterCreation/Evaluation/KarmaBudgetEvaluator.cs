@@ -26,7 +26,8 @@ public sealed class KarmaBudgetEvaluator
         CharacterCreationDraftDocument document,
         ContactEvaluation? contactEvaluation = null,
         QualitiesSkillsKnowledgeEvaluation? skillsEvaluation = null,
-        MetatypeAndAttributeEvaluation? metatypeEvaluation = null)
+        MetatypeAndAttributeEvaluation? metatypeEvaluation = null,
+        MartialArtsEvaluation? martialArtsEvaluation = null)
     {
         var diagnostics = new List<CharacterCreationDiagnostic>();
         var positive = 0;
@@ -54,6 +55,7 @@ public sealed class KarmaBudgetEvaluator
         var knowledgeLanguageKarma = skillsEvaluation?.KnowledgeLanguageKarmaSpent ?? 0;
         var skillKarma = skillsEvaluation?.SkillKarmaSpent ?? 0;
         var attributeKarma = metatypeEvaluation?.AttributeKarmaSpent ?? 0;
+        var martialArtsKarma = martialArtsEvaluation?.MartialArts?.TotalKarmaCost ?? 0;
 
         var source = catalog.Sources["sr5-core"];
         var citation = new SourceCitation(source.Id, 71, 73);
@@ -69,7 +71,7 @@ public sealed class KarmaBudgetEvaluator
 
         var pool = CreationKarmaPool + negative;
         var spent = positive + formulaKarma + powerPointKarma + complexFormKarma + nuyenConversionKarma + contactKarma
-            + knowledgeLanguageKarma + skillKarma + attributeKarma;
+            + knowledgeLanguageKarma + skillKarma + attributeKarma + martialArtsKarma;
         if (spent > pool)
             diagnostics.Add(CharacterCreationDiagnosticFactory.Error(
                 Step, "karma.creation-pool.exceeded", "qualities", [], citation,
@@ -78,7 +80,7 @@ public sealed class KarmaBudgetEvaluator
                     ["actual"] = spent.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     ["maximum"] = pool.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 },
-                "Reduce positive qualities, purchased formulae, Power Points, complex forms, Karma-to-nuyen conversion, contacts beyond the free Charisma-based pool, or Attribute/Skill/Knowledge/Language points beyond their free pools to fit the creation Karma pool."));
+                "Reduce positive qualities, purchased formulae, Power Points, complex forms, Karma-to-nuyen conversion, contacts beyond the free Charisma-based pool, martial arts, or Attribute/Skill/Knowledge/Language points beyond their free pools to fit the creation Karma pool."));
 
         return new KarmaBudgetEvaluation(diagnostics, pool, spent);
     }

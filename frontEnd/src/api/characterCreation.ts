@@ -151,6 +151,16 @@ export interface CharacterCreationDocument {
     identities?: IdentitySelection[] | null
     licenses?: LicenseSelection[] | null
     lifestyles?: LifestyleSelection[] | null
+    martialArts?: MartialArtsSelection | null
+}
+
+// One style at creation (run-gun p. 142, PDF 144). The style's 7 Karma
+// includes the first technique; each additional technique is 5 Karma, up
+// to 5 techniques total. Techniques must come from the style's own list
+// or be universal.
+export interface MartialArtsSelection {
+    styleId: string
+    techniqueIds?: string[] | null
 }
 
 export interface CharacterIdentity {
@@ -442,6 +452,20 @@ export function lifestyleCostMultiplier(metatypeId: string | null | undefined, m
     if (metatypeId === 'dwarf') return 1.2
     if (metatypeId === 'troll') return 2.0
     return 1
+}
+
+export interface MartialArtStyleDefinition {
+    id: string
+    displayName: string
+    techniqueIds: string[]
+    source: SourceCitation
+}
+
+export interface MartialArtTechniqueDefinition {
+    id: string
+    displayName: string
+    source: SourceCitation
+    universal: boolean
 }
 
 export interface MentorSpiritDefinition {
@@ -890,6 +914,8 @@ export interface CatalogContract {
     vehicleModifications: VehicleModificationDefinition[]
     lifestyleTiers: LifestyleTierDefinition[]
     lifestyleOptions: LifestyleOptionDefinition[]
+    martialArtStyles: MartialArtStyleDefinition[]
+    martialArtTechniques: MartialArtTechniqueDefinition[]
 }
 
 // ─── API ─────────────────────────────────────────────────────────────────────

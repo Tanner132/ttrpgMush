@@ -101,7 +101,7 @@ function buildCatalog(): CatalogContract {
         cyberlimbEnhancements: [],
         vehicleModifications: [],
         lifestyleTiers: [],
-        lifestyleOptions: [],
+        lifestyleOptions: [], martialArtStyles: [], martialArtTechniques: [],
     }
 }
 

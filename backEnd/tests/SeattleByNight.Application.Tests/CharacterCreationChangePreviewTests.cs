@@ -26,6 +26,7 @@ public sealed class CharacterCreationChangePreviewTests
         new IdentityEvaluator(),
         new ProfileEvaluator(),
         new LifestyleEvaluator(),
+        new MartialArtsEvaluator(),
         new DerivedStatisticsEvaluator());
 
     [Fact]

@@ -1361,6 +1361,16 @@
             "items": {
               "$ref": "#/components/schemas/LifestyleSelection"
             }
+          },
+          "martialArts": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MartialArtsSelection"
+              }
+            ]
           }
         }
       },
@@ -1868,6 +1878,26 @@
               "string"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "MartialArtsSelection": {
+        "required": [
+          "styleId"
+        ],
+        "type": "object",
+        "properties": {
+          "styleId": {
+            "type": "string"
+          },
+          "techniqueIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

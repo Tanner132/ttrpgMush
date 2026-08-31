@@ -1402,6 +1402,7 @@ export interface components {
             identities?: null | components["schemas"]["IdentitySelection"][];
             licenses?: null | components["schemas"]["LicenseSelection"][];
             lifestyles?: null | components["schemas"]["LifestyleSelection"][];
+            martialArts?: null | components["schemas"]["MartialArtsSelection"];
         };
         CharacterIdentity: {
             gender?: null | string;
@@ -1508,6 +1509,10 @@ export interface components {
             mentorSpirit?: null | components["schemas"]["MentorSpiritSelection"];
             /** Format: int32 */
             purchasedPowerPoints?: null | number | string;
+        };
+        MartialArtsSelection: {
+            styleId: string;
+            techniqueIds?: null | string[];
         };
         MentorSpiritSelection: {
             mentorSpiritId: string;

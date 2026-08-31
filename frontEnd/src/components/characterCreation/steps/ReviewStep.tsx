@@ -15,7 +15,7 @@ export function ReviewStep({ diagnostics, derivedStatistics, isReadyToFinalize }
     <div className="console console--form">
       <div className="console__main">
         <div className="console__header">
-          <span className="console__header-number">STEP 14</span>
+          <span className="console__header-number">STEP 15</span>
           <span className="console__header-title">REVIEW &amp; FINALIZE</span>
         </div>
         <section className="creation-step review-dossier" aria-labelledby="review-step-heading">

@@ -609,6 +609,27 @@ public sealed record LifestyleOptionDefinition(
     decimal? AdjustmentPercent = null,
     decimal? FixedMonthlyAmount = null);
 
+// A martial art style is bought whole for 7 Karma, which includes the first
+// technique chosen from its list; each further technique costs 5 Karma
+// (run-gun p. 128, PDF 130). Printed technique variants ("Opposing Force
+// (Parry)", "Randori (Vitals)") are modelled as distinct technique entries, so
+// every style lists exactly six selectable technique IDs.
+public sealed record MartialArtStyleDefinition(
+    string Id,
+    string DisplayName,
+    IReadOnlyList<string> TechniqueIds,
+    SourceCitation Source);
+
+// Universal marks the two sidebar techniques (Neijia, Strike the Darkness)
+// that any character with a martial art style may learn even though no style
+// lists them among its six available techniques (run-gun pp. 140-141,
+// PDF 142-143).
+public sealed record MartialArtTechniqueDefinition(
+    string Id,
+    string DisplayName,
+    SourceCitation Source,
+    bool Universal = false);
+
 public sealed record MagicResonanceSkillGrant(
     string Domain,
     int Count,
@@ -687,6 +708,8 @@ public sealed class RulesetCatalog
     public required IReadOnlyDictionary<string, VehicleModificationDefinition> VehicleModifications { get; init; }
     public required IReadOnlyDictionary<string, LifestyleTierDefinition> LifestyleTiers { get; init; }
     public required IReadOnlyDictionary<string, LifestyleOptionDefinition> LifestyleOptions { get; init; }
+    public required IReadOnlyDictionary<string, MartialArtStyleDefinition> MartialArtStyles { get; init; }
+    public required IReadOnlyDictionary<string, MartialArtTechniqueDefinition> MartialArtTechniques { get; init; }
 
     public PriorityCellDefinition? GetPriorityCell(string categoryId, string levelId) =>
         priorityCellLookup.TryGetValue((categoryId, levelId), out var cell) ? cell : null;

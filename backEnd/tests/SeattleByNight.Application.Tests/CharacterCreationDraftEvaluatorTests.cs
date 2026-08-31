@@ -25,6 +25,7 @@ public sealed class CharacterCreationDraftEvaluatorTests
         new IdentityEvaluator(),
         new ProfileEvaluator(),
         new LifestyleEvaluator(),
+        new MartialArtsEvaluator(),
         new DerivedStatisticsEvaluator());
 
     private static CharacterCreationDraftSnapshot Snapshot(CharacterCreationDraftDocument document)

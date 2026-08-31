@@ -300,6 +300,7 @@ public sealed class CharacterCareerStateStoreTests : IAsyncLifetime
         new IdentityEvaluator(),
         new ProfileEvaluator(),
         new LifestyleEvaluator(),
+        new MartialArtsEvaluator(),
         new DerivedStatisticsEvaluator());
 
     // Mirrors FinalizeCharacterCreationDraftCommandHandler.RollStartingCash:

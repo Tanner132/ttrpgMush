@@ -180,6 +180,7 @@ public sealed class CharacterCreationDraftStoreTests : IAsyncLifetime
             new IdentityEvaluator(),
             new ProfileEvaluator(),
             new LifestyleEvaluator(),
+            new MartialArtsEvaluator(),
             new DerivedStatisticsEvaluator());
         var handler = new FinalizeCharacterCreationDraftCommandHandler(
             store,

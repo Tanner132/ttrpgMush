@@ -77,7 +77,9 @@ public sealed record CatalogResponse(
     IReadOnlyList<CyberlimbEnhancementDefinition> CyberlimbEnhancements,
     IReadOnlyList<VehicleModificationDefinition> VehicleModifications,
     IReadOnlyList<LifestyleTierDefinition> LifestyleTiers,
-    IReadOnlyList<LifestyleOptionDefinition> LifestyleOptions);
+    IReadOnlyList<LifestyleOptionDefinition> LifestyleOptions,
+    IReadOnlyList<MartialArtStyleDefinition> MartialArtStyles,
+    IReadOnlyList<MartialArtTechniqueDefinition> MartialArtTechniques);
 
 public sealed record CharacterCreationDraftResponse(
     Guid CharacterId,
@@ -337,7 +339,9 @@ public static class CharacterCreationEndpoints
          catalog.CyberlimbEnhancements.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
          catalog.VehicleModifications.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
          catalog.LifestyleTiers.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-         catalog.LifestyleOptions.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
+         catalog.LifestyleOptions.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.MartialArtStyles.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+         catalog.MartialArtTechniques.Values.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
 
     private static CharacterCreationDraftResponse ToResponse(CharacterCreationDraftDetails details)
     {

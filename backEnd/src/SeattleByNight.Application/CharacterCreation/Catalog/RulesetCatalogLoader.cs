@@ -97,6 +97,8 @@ public static partial class RulesetCatalogLoader
             VehicleModifications = ToDictionary(document.VehicleModifications!, item => item.Id),
             LifestyleTiers = ToDictionary(document.LifestyleTiers!, item => item.Id),
             LifestyleOptions = ToDictionary(document.LifestyleOptions!, item => item.Id),
+            MartialArtStyles = ToDictionary(document.MartialArtStyles!, item => item.Id),
+            MartialArtTechniques = ToDictionary(document.MartialArtTechniques!, item => item.Id),
         };
     }
 
@@ -201,6 +203,8 @@ public static partial class RulesetCatalogLoader
         RequireCollection(document.VehicleModifications, "vehicleModifications");
         RequireCollection(document.LifestyleTiers, "lifestyleTiers");
         RequireCollection(document.LifestyleOptions, "lifestyleOptions");
+        RequireCollection(document.MartialArtStyles, "martialArtStyles");
+        RequireCollection(document.MartialArtTechniques, "martialArtTechniques");
 
         ValidateUnique(document.Sources, item => item.Id, "source");
         ValidateUnique(document.CreationMethods, item => item.Id, "creation method");
@@ -240,6 +244,8 @@ public static partial class RulesetCatalogLoader
         ValidateUnique(document.VehicleModifications, item => item.Id, "vehicle modification");
         ValidateUnique(document.LifestyleTiers, item => item.Id, "lifestyle tier");
         ValidateUnique(document.LifestyleOptions, item => item.Id, "lifestyle option");
+        ValidateUnique(document.MartialArtStyles, item => item.Id, "martial art style");
+        ValidateUnique(document.MartialArtTechniques, item => item.Id, "martial art technique");
 
         var sourceIds = document.Sources.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (sourceIds.Count == 0)
@@ -681,6 +687,33 @@ public static partial class RulesetCatalogLoader
                 throw new RulesetCatalogException($"Lifestyle option '{option.Id}' cannot declare both adjustment forms.");
         }
 
+        foreach (var technique in document.MartialArtTechniques)
+        {
+            ValidateCommonEntry(technique.Id, technique.DisplayName, technique.Source, sourceIds, "martial art technique");
+        }
+
+        var martialArtTechniques = document.MartialArtTechniques
+            .ToDictionary(item => item.Id, StringComparer.Ordinal);
+        foreach (var style in document.MartialArtStyles)
+        {
+            ValidateCommonEntry(style.Id, style.DisplayName, style.Source, sourceIds, "martial art style");
+
+            // Every printed style lists exactly six Available Techniques
+            // (run-gun p. 128, PDF 130); the two Universal sidebar techniques
+            // are learnable through any style and never appear in a list.
+            if (style.TechniqueIds is null || style.TechniqueIds.Count != 6)
+                throw new RulesetCatalogException($"Martial art style '{style.Id}' must list exactly six techniques.");
+            if (style.TechniqueIds.Distinct(StringComparer.Ordinal).Count() != style.TechniqueIds.Count)
+                throw new RulesetCatalogException($"Martial art style '{style.Id}' lists a technique more than once.");
+            foreach (var techniqueId in style.TechniqueIds)
+            {
+                if (!martialArtTechniques.TryGetValue(techniqueId, out var technique))
+                    throw new RulesetCatalogException($"Martial art style '{style.Id}' has a dangling technique reference '{techniqueId}'.");
+                if (technique.Universal)
+                    throw new RulesetCatalogException($"Martial art style '{style.Id}' lists universal technique '{techniqueId}'.");
+            }
+        }
+
         foreach (var deck in document.Cyberdecks)
         {
             ValidateCommonEntry(deck.Id, deck.DisplayName, deck.Source, sourceIds, "cyberdeck");
@@ -993,5 +1026,7 @@ public static partial class RulesetCatalogLoader
         CyberlimbEnhancementDefinition[]? CyberlimbEnhancements,
         VehicleModificationDefinition[]? VehicleModifications,
         LifestyleTierDefinition[]? LifestyleTiers,
-        LifestyleOptionDefinition[]? LifestyleOptions);
+        LifestyleOptionDefinition[]? LifestyleOptions,
+        MartialArtStyleDefinition[]? MartialArtStyles,
+        MartialArtTechniqueDefinition[]? MartialArtTechniques);
 }

@@ -45,7 +45,7 @@ const catalog: CatalogContract = {
   cyberlimbEnhancements: [],
   vehicleModifications: [],
   lifestyleTiers: [],
-  lifestyleOptions: [],
+  lifestyleOptions: [], martialArtStyles: [], martialArtTechniques: [],
 }
 
 const baseDocument: CharacterCreationDocument = {

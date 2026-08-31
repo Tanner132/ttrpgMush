@@ -1,0 +1,244 @@
+.martial-dossier {
+  width: 100%;
+  max-width: none;
+  overflow: auto;
+  padding: clamp(var(--sb-space-4), 3vw, var(--sb-space-6));
+}
+
+.martial-dossier__heading,
+.martial-dossier__section-heading,
+.martial-dossier__section-heading > div {
+  display: flex;
+  align-items: center;
+}
+
+.martial-dossier__heading {
+  justify-content: space-between;
+  gap: var(--sb-space-5);
+}
+
+.martial-dossier__heading .creation-step__intro {
+  max-width: 780px;
+  margin-bottom: 0;
+}
+
+.martial-dossier__karma {
+  display: grid;
+  min-width: 150px;
+  justify-items: center;
+  gap: 0.15rem;
+  padding: var(--sb-space-3) var(--sb-space-4);
+  border: 1px solid var(--sb-border-strong);
+  background: var(--sb-bg-inset);
+}
+
+.martial-dossier__karma span,
+.martial-dossier__karma small,
+.martial-budget span,
+.martial-budget small,
+.martial-empty > span {
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+}
+
+.martial-dossier__karma strong {
+  color: var(--sb-accent);
+  font-family: var(--sb-font-heading);
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.martial-budget {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  margin: var(--sb-space-5) 0;
+  border: 1px solid var(--sb-border);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sb-accent) 7%, transparent), transparent 60%);
+}
+
+.martial-budget > div {
+  display: grid;
+  gap: 0.15rem;
+  padding: var(--sb-space-3) var(--sb-space-4);
+}
+
+.martial-budget > div + div {
+  border-left: 1px solid var(--sb-border);
+}
+
+.martial-budget strong {
+  color: var(--sb-text);
+  font-family: var(--sb-font-heading);
+  font-size: 1.2rem;
+}
+
+.martial-dossier__section-heading {
+  justify-content: space-between;
+  gap: var(--sb-space-4);
+  min-height: 84px;
+  padding: var(--sb-space-3) 0;
+  border-top: 1px solid var(--sb-border-strong);
+}
+
+.martial-dossier__section-heading > div {
+  gap: var(--sb-space-3);
+}
+
+.martial-dossier__section-heading > div > span {
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+}
+
+.martial-dossier__section-heading h4 {
+  color: var(--sb-text);
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.martial-dossier__section-heading p {
+  margin: 0.2rem 0 0;
+  color: var(--sb-text-muted);
+  font-size: 0.76rem;
+}
+
+.martial-remove {
+  min-height: 38px;
+  padding: 0 var(--sb-space-3);
+  border: 1px solid var(--sb-danger);
+  color: var(--sb-danger);
+  background: color-mix(in srgb, var(--sb-danger) 7%, transparent);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.martial-style-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sb-space-3);
+  margin-bottom: var(--sb-space-4);
+}
+
+.martial-style-card {
+  display: grid;
+  gap: var(--sb-space-1);
+  align-content: start;
+  min-width: 0;
+  padding: var(--sb-space-3);
+  border: 1px solid var(--sb-border);
+  background: linear-gradient(135deg, var(--sb-bg-inset), color-mix(in srgb, var(--sb-accent) 3%, var(--sb-bg-inset)));
+  text-align: left;
+}
+
+.martial-style-card strong {
+  color: var(--sb-text);
+  font-family: var(--sb-font-heading);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+}
+
+.martial-style-card p {
+  margin: 0;
+  color: var(--sb-text-muted);
+  font-size: 0.72rem;
+}
+
+.martial-style-card small {
+  color: var(--sb-text-faint);
+  font-family: var(--sb-font-data);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+}
+
+.martial-style-card.is-selected {
+  border-color: var(--sb-accent);
+  background: color-mix(in srgb, var(--sb-accent) 10%, var(--sb-bg-inset));
+}
+
+.martial-style-card.is-selected strong {
+  color: var(--sb-accent);
+}
+
+.martial-technique-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sb-space-2);
+  margin-bottom: var(--sb-space-4);
+}
+
+.martial-technique {
+  display: flex;
+  gap: var(--sb-space-2);
+  align-items: flex-start;
+  min-width: 0;
+  padding: var(--sb-space-2) var(--sb-space-3);
+  border: 1px solid var(--sb-border);
+  background: var(--sb-bg-inset);
+}
+
+.martial-technique input {
+  margin-top: 0.2rem;
+}
+
+.martial-technique > span {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.martial-technique strong {
+  color: var(--sb-text);
+  font-family: var(--sb-font-heading);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+
+.martial-technique strong em {
+  margin-left: var(--sb-space-2);
+  color: var(--sb-accent);
+  font-family: var(--sb-font-data);
+  font-size: 0.55rem;
+  font-style: normal;
+  letter-spacing: 0.12em;
+}
+
+.martial-technique small {
+  color: var(--sb-text-muted);
+  font-size: 0.68rem;
+}
+
+.martial-technique.is-selected {
+  border-color: var(--sb-accent);
+  background: color-mix(in srgb, var(--sb-accent) 8%, var(--sb-bg-inset));
+}
+
+.martial-technique:has(input:disabled) {
+  opacity: 0.55;
+}
+
+.martial-empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--sb-space-2);
+  padding: clamp(var(--sb-space-5), 6vh, 4rem) var(--sb-space-4);
+  border: 1px dashed var(--sb-border);
+  background: var(--sb-bg-inset);
+  text-align: center;
+}
+
+.martial-empty strong {
+  color: var(--sb-text);
+  font-family: var(--sb-font-heading);
+  font-size: 1.25rem;
+}
+
+.martial-empty p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--sb-text-muted);
+  font-size: 0.8rem;
+}

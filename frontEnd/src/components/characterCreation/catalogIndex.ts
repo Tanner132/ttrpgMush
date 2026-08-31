@@ -30,6 +30,8 @@ function buildCatalogIndex(catalog: CatalogContract) {
     augmentations: byId(catalog.augmentations ?? []),
     lifestyleTiers: byId(catalog.lifestyleTiers ?? []),
     lifestyleOptions: byId(catalog.lifestyleOptions ?? []),
+    martialArtStyles: byId(catalog.martialArtStyles ?? []),
+    martialArtTechniques: byId(catalog.martialArtTechniques ?? []),
     resourceLines,
     resourceLineById: byId(resourceLines),
   }

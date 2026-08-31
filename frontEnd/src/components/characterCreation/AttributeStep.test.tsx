@@ -16,7 +16,7 @@ const catalog = {
   knowledgeCategories: [], aspectedValues: [], traditions: [], spells: [], rituals: [], adeptPowers: [],
   mentorSpirits: [], complexForms: [], spiritTypes: [], spriteTypes: [], foci: [], gear: [], weapons: [],
   armor: [], augmentationGrades: [], vehicles: [], cyberdecks: [], weaponAccessories: [],
-  armorModifications: [], vehicleModifications: [], lifestyleTiers: [], lifestyleOptions: [],
+  armorModifications: [], vehicleModifications: [], lifestyleTiers: [], lifestyleOptions: [], martialArtStyles: [], martialArtTechniques: [],
   languageSuggestions: [], knowledgeSkillSuggestions: [],
   priorityCells: [{ categoryId: 'attributes', levelId: 'b', physicalMentalAttributePoints: 20 }],
   creationPaths: [{ id: 'adept', displayName: 'Adept', kind: 'Adept', attributeId: 'magic', requiresTradition: false, source }],
