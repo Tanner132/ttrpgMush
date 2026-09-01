@@ -2,6 +2,7 @@ using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
+using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Resolution;
 using SeattleByNight.Application.GameEngine.StateChanges;
@@ -86,12 +87,17 @@ public sealed class CombatEngineGoldenTests
             var combatEngine = new CombatEngine(
                 Tracker, resolver, Roller, new FixedSeedSource(), Applier, Audit,
                 Chat, Broadcaster, RoomContent, options, Clock);
+            var missions = new FakeMissionReader();
+            var missionEngine = new MissionEngine(
+                missions, TestGameContent.Provider, Applier, Audit, Chat, Broadcaster,
+                new FakeTravelNotifier(), options);
             Executor = new GameActionExecutor(
                 sessions, sheets, new FakeRuntimeStateStore(), new FakeActiveEffectReader(),
                 new FixedSeedSource(), resolver, Roller, Broker, Applier, Audit,
                 Chat, Broadcaster, RoomContent,
-                new AffordanceService(RoomContent, Tracker), new FakeGameCommandQueue(),
-                combatEngine, options, Clock);
+                new AffordanceService(RoomContent, Tracker, missions, TestGameContent.Provider),
+                new FakeGameCommandQueue(),
+                combatEngine, missionEngine, new FakeGameScopeResolver(), options, Clock);
         }
 
         public Task<GameActionOutcome> AttackGangerAsync() =>

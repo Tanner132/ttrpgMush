@@ -3,8 +3,9 @@ using SeattleByNight.Application.PlaySessions;
 
 namespace SeattleByNight.Application.GameEngine.Actions;
 
-// Thin submission shim: resolves the queue scope (the current room) from the
-// caller's active session, then hands the action to the scope's queue. All
+// Thin submission shim: resolves the queue scope from the caller's active
+// session — the current room, or that room's encounter instance when it
+// belongs to one (§15) — then hands the action to the scope's queue. All
 // real validation and resolution happens inside the executor on the
 // consumer. A missing RequestId gets a server-side id (no idempotency
 // guarantee for that caller — retries need a client-generated id).
@@ -20,15 +21,18 @@ public sealed class SubmitGameActionCommandHandler : IRequestHandler<SubmitGameA
 {
     private readonly IPlaySessionStore playSessionStore;
     private readonly IGameCommandQueue queue;
+    private readonly IGameScopeResolver scopeResolver;
     private readonly TimeProvider timeProvider;
 
     public SubmitGameActionCommandHandler(
         IPlaySessionStore playSessionStore,
         IGameCommandQueue queue,
+        IGameScopeResolver scopeResolver,
         TimeProvider timeProvider)
     {
         this.playSessionStore = playSessionStore;
         this.queue = queue;
+        this.scopeResolver = scopeResolver;
         this.timeProvider = timeProvider;
     }
 
@@ -49,6 +53,7 @@ public sealed class SubmitGameActionCommandHandler : IRequestHandler<SubmitGameA
             request.PushTheLimit,
             TargetId: request.TargetId);
 
-        return await queue.EnqueueAsync(session.CurrentRoomId, actionRequest, cancellationToken);
+        var scopeId = await scopeResolver.ResolveScopeAsync(session.CurrentRoomId, cancellationToken);
+        return await queue.EnqueueAsync(scopeId, actionRequest, cancellationToken);
     }
 }

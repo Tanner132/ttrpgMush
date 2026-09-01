@@ -15,6 +15,7 @@ export const COMMANDS: CommandMetadata[] = [
   { name: 'surge', usage: '/surge', description: 'Adrenaline surge (dev): Agility +2 for 60 seconds.' },
   { name: 'edge', usage: '/edge <yes|no>', description: 'Answer a pending Edge decision.' },
   { name: 'defend', usage: '/defend <standard|full>', description: 'Answer a pending defense decision. Full Defense adds Willpower but costs 10 initiative.' },
+  { name: 'missions', usage: '/missions', description: 'Show your missions and objectives.' },
   { name: 'help', usage: '/help', description: 'List available commands.' },
   { name: 'who', usage: '/who', description: 'List characters online right now.' },
   { name: 'look', usage: '/look', description: 'Describe the current room.' },

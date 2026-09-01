@@ -58,6 +58,11 @@ public sealed record AdvanceAttributeResult(
 public static class CharacterCareerActionKinds
 {
     public const string AttributeAdvancement = "attribute-advancement";
+
+    // §39: mission rewards flow through the same ledger/receipt machinery as
+    // advancements; the receipt request id derives from the MissionInstanceId
+    // (see MissionRewardRules.DeriveRewardRequestId) so grants are once-only.
+    public const string MissionReward = "mission-reward";
 }
 
 public sealed class AdvanceAttributeCommandHandler : IRequestHandler<AdvanceAttributeCommand, AdvanceAttributeResult>

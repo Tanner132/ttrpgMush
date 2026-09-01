@@ -4,6 +4,7 @@ import { useGameplayCommands, type UseGameplayCommandsOptions } from './useGamep
 import { MessageType } from '../api/roomSession.ts'
 import type { RoomSession } from '../api/roomSession.ts'
 import type { GameActionSummary, PerformGameActionOptions, PerformGameActionResponse } from '../api/gameActions.ts'
+import type { MissionInstanceSummary } from '../api/missions.ts'
 
 const session: RoomSession = {
   playSessionId: 's1',
@@ -44,6 +45,23 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
     .fn<(actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>>()
     .mockResolvedValue({ status: 'Final', resolution: null, decision: null, message: null })
   const respondToDecision = vi.fn<(decisionId: string, optionId: string) => Promise<void>>().mockResolvedValue()
+  const listMissions = vi
+    .fn<() => Promise<MissionInstanceSummary[]>>()
+    .mockResolvedValue([
+      {
+        id: 'm1',
+        missionId: 'gang-warehouse-retrieval',
+        displayName: 'Gang Warehouse Retrieval',
+        description: 'Recover the package.',
+        status: 'InProgress',
+        objectives: [
+          { key: 'enter-warehouse', displayName: 'Enter the warehouse', status: 'Completed' },
+          { key: 'retrieve-package', displayName: 'Retrieve the courier package', status: 'Active' },
+        ],
+        acceptedAtUtc: new Date().toISOString(),
+        completedAtUtc: null,
+      },
+    ])
   const onOpenCharacterSheet = vi.fn()
 
   const options: UseGameplayCommandsOptions = {
@@ -56,6 +74,7 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
     moveThroughExit,
     queryOnlineCharacters,
     listGameActions,
+    listMissions,
     performGameAction,
     respondToDecision,
     appendLocal,
@@ -65,7 +84,7 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
 
   const { result } = renderHook(() => useGameplayCommands(options))
 
-  return { result, appendLocal, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, listGameActions, performGameAction, respondToDecision, onOpenCharacterSheet }
+  return { result, appendLocal, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, listGameActions, listMissions, performGameAction, respondToDecision, onOpenCharacterSheet }
 }
 
 const awaitingDecisionResponse: PerformGameActionResponse = {

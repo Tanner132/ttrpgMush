@@ -11,6 +11,10 @@ public enum GameActionKind
     // Structured-time verbs (§35): dispatched to the CombatEngine, which owns
     // action economy, initiative, and turn advancement.
     Combat,
+    // Milestone 5 mission verbs: dispatched to the MissionEngine, which owns
+    // encounter entry/exit, item possession, and objective/mission
+    // transitions (§29/§35/§38).
+    Mission,
 }
 
 // What a submitted action must name as its target (§32). Untargeted actions
@@ -21,6 +25,11 @@ public enum GameActionTargetKind
     None,
     Npc,
     Interactable,
+    // Milestone 5 targets, resolved by the MissionEngine rather than the
+    // executor's room-content lookup: a mission instance owned by the acting
+    // character, and a world item instance in the current room.
+    MissionInstance,
+    Item,
 }
 
 // §14: the universal action abstraction. Every player verb — rolling a test,
@@ -58,6 +67,11 @@ public static class DevelopmentGameActions
     public const string RestActionId = "rest";
     public const string NpcCombatTurnActionId = "npc-combat-turn";
     public const string CombatTurnTimeoutActionId = "combat-turn-timeout";
+
+    // Milestone 5 mission verbs (§29/§35/§38).
+    public const string EnterEncounterActionId = "mission-enter";
+    public const string TakeItemActionId = "take-item";
+    public const string LeaveEncounterActionId = "mission-exit";
 
     public static readonly IReadOnlyDictionary<string, GameActionDefinition> All = Build();
 
@@ -162,6 +176,29 @@ public static class DevelopmentGameActions
             "The player's turn timer expired; they default to Full Defense.",
             GameActionKind.Combat,
             PlayerInvokable: false);
+
+        // Mission verbs (§29/§35/§38): travel into a mission's private
+        // encounter, take a placed item, and leave the encounter. The
+        // MissionEngine resolves targets and owns the state transitions.
+        actions[EnterEncounterActionId] = new GameActionDefinition(
+            EnterEncounterActionId,
+            "Travel to",
+            "Head to the mission site and enter the encounter.",
+            GameActionKind.Mission,
+            TargetKind: GameActionTargetKind.MissionInstance);
+
+        actions[TakeItemActionId] = new GameActionDefinition(
+            TakeItemActionId,
+            "Take",
+            "Pick up an item and carry it with you.",
+            GameActionKind.Mission,
+            TargetKind: GameActionTargetKind.Item);
+
+        actions[LeaveEncounterActionId] = new GameActionDefinition(
+            LeaveEncounterActionId,
+            "Leave",
+            "Leave the mission site and return to where you came from.",
+            GameActionKind.Mission);
 
         // Reaction (§24): fired by the engine when a sneak attempt fails.
         // Never player-invokable; runs at Depth > 0 on the same room queue.

@@ -1,0 +1,37 @@
+{
+  "missions": [
+    {
+      "id": "gang-warehouse-retrieval",
+      "displayName": "Gang Warehouse Retrieval",
+      "description": "A corporate client wants a sealed courier package recovered from a gang-held warehouse. Get in, take the package, get out. How loud you are is your business.",
+      "encounterId": "gang-warehouse",
+      "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
+      "repeatability": {
+        "kind": "cooldown",
+        "cooldownHours": 24
+      },
+      "rewards": {
+        "karma": 2,
+        "nuyen": 2000
+      },
+      "objectives": [
+        {
+          "key": "enter-warehouse",
+          "displayName": "Enter the warehouse",
+          "kind": "enterEncounter"
+        },
+        {
+          "key": "retrieve-package",
+          "displayName": "Retrieve the courier package",
+          "kind": "pickUpItem",
+          "itemKey": "package"
+        },
+        {
+          "key": "leave-warehouse",
+          "displayName": "Leave the warehouse",
+          "kind": "exitEncounter"
+        }
+      ]
+    }
+  ]
+}

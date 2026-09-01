@@ -34,6 +34,10 @@ public sealed class SeattleByNightDbContext : IdentityDbContext<ApplicationUser,
     public DbSet<NpcInstance> NpcInstances => Set<NpcInstance>();
     public DbSet<RoomInteractable> RoomInteractables => Set<RoomInteractable>();
     public DbSet<CharacterDiscovery> CharacterDiscoveries => Set<CharacterDiscovery>();
+    public DbSet<MissionInstance> MissionInstances => Set<MissionInstance>();
+    public DbSet<EncounterInstance> EncounterInstances => Set<EncounterInstance>();
+    public DbSet<EncounterParticipant> EncounterParticipants => Set<EncounterParticipant>();
+    public DbSet<WorldItemInstance> WorldItemInstances => Set<WorldItemInstance>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

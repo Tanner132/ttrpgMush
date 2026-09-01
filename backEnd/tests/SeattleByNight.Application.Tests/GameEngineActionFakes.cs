@@ -6,6 +6,8 @@ using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Effects;
+using SeattleByNight.Application.GameEngine.Missions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Rooms;
@@ -267,6 +269,82 @@ internal sealed class FakeRoomContentReader : IRoomContentReader
 
 // Captures reactions the executor fires instead of running them — the tests
 // assert what was enqueued, not a second resolution.
+// The real embedded game content, loaded once for the whole suite — tests
+// that need a mission definition use the shipped gang-warehouse content.
+internal static class TestGameContent
+{
+    public static readonly EmbeddedGameContentProvider Provider = new();
+}
+
+// Milestone 5 fakes: mission state is empty by default (no missions, no
+// encounters, no items), which keeps every pre-existing pipeline test in the
+// shared world.
+internal sealed class FakeMissionReader : IMissionReader
+{
+    public List<MissionInstanceSnapshot> Instances { get; } = [];
+    public List<EncounterInstanceSnapshot> Encounters { get; } = [];
+    public List<WorldItemSnapshot> Items { get; } = [];
+    public Dictionary<Guid, Guid> ParticipantsByCharacter { get; } = [];
+
+    public Task<MissionInstanceSnapshot?> GetInstanceAsync(Guid missionInstanceId, CancellationToken cancellationToken) =>
+        Task.FromResult(Instances.FirstOrDefault(instance => instance.Id == missionInstanceId));
+
+    public Task<IReadOnlyList<MissionInstanceSnapshot>> GetOpenInstancesForCharacterAsync(
+        Guid characterId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<MissionInstanceSnapshot>>(
+            Instances.Where(instance => instance.CharacterId == characterId && !instance.IsTerminal).ToList());
+
+    public Task<IReadOnlyList<MissionInstanceSnapshot>> ListInstancesForCharacterAsync(
+        Guid characterId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<MissionInstanceSnapshot>>(
+            Instances.Where(instance => instance.CharacterId == characterId).ToList());
+
+    public Task<EncounterInstanceSnapshot?> GetActiveEncounterForCharacterAsync(
+        Guid characterId, CancellationToken cancellationToken) =>
+        Task.FromResult(ParticipantsByCharacter.TryGetValue(characterId, out var encounterId)
+            ? Encounters.FirstOrDefault(encounter =>
+                encounter.Id == encounterId && encounter.Status == EncounterInstanceStatus.Active)
+            : null);
+
+    public Task<EncounterInstanceSnapshot?> GetActiveEncounterByRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
+        // The fake has no room table; tests register encounters by entry room.
+        Task.FromResult(Encounters.FirstOrDefault(encounter =>
+            encounter.EntryRoomId == roomId && encounter.Status == EncounterInstanceStatus.Active));
+
+    public Task<EncounterInstanceSnapshot?> GetActiveEncounterForMissionAsync(
+        Guid missionInstanceId, CancellationToken cancellationToken) =>
+        Task.FromResult(Encounters.FirstOrDefault(encounter =>
+            encounter.MissionInstanceId == missionInstanceId
+            && encounter.Status == EncounterInstanceStatus.Active));
+
+    public Task<WorldItemSnapshot?> GetItemAsync(Guid itemId, CancellationToken cancellationToken) =>
+        Task.FromResult(Items.FirstOrDefault(item => item.Id == itemId));
+
+    public Task<IReadOnlyList<WorldItemSnapshot>> GetItemsInRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<WorldItemSnapshot>>(
+            Items.Where(item => item.RoomId == roomId).ToList());
+}
+
+internal sealed class FakeTravelNotifier : ITravelNotifier
+{
+    public ConcurrentQueue<(Guid PlaySessionId, Guid OldRoomId, Guid NewRoomId)> Moves { get; } = new();
+
+    public Task NotifyMovedAsync(
+        Guid playSessionId, Guid oldRoomId, Guid newRoomId, CancellationToken cancellationToken = default)
+    {
+        Moves.Enqueue((playSessionId, oldRoomId, newRoomId));
+        return Task.CompletedTask;
+    }
+}
+
+// Identity scope resolution: every room is its own scope, as in the shared
+// world. Instance-scope resolution is exercised by the infrastructure tests.
+internal sealed class FakeGameScopeResolver : IGameScopeResolver
+{
+    public Task<Guid> ResolveScopeAsync(Guid roomId, CancellationToken cancellationToken = default) =>
+        Task.FromResult(roomId);
+}
+
 internal sealed class FakeGameCommandQueue : IGameCommandQueue
 {
     public ConcurrentQueue<(Guid ScopeId, GameActionRequest Request)> Enqueued { get; } = new();

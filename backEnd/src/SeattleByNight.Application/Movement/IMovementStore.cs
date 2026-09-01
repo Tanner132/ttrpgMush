@@ -1,12 +1,16 @@
 namespace SeattleByNight.Application.Movement;
 
+// DestinationIsAccessible: a Public room, or an Instanced room in the SAME
+// encounter instance as the exit's source (§31) — private instances are
+// unreachable from the shared world by exit, and cross-instance exits cannot
+// exist by construction.
 public sealed record MovementExit(
     Guid Id,
     Guid SourceRoomId,
     Guid DestinationRoomId,
     bool IsHidden,
     bool IsLocked,
-    bool DestinationIsPublic);
+    bool DestinationIsAccessible);
 
 public sealed record MovementStoreResult(
     MoveCharacterError Error,

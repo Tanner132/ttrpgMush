@@ -13,6 +13,7 @@ export type ParsedCommand =
   | { kind: 'do'; selector: string; pushTheLimit: boolean }
   | { kind: 'run' }
   | { kind: 'surge' }
+  | { kind: 'missions' }
   | { kind: 'edge-response'; optionId: string }
   | { kind: 'defend-response'; optionId: string }
   | { kind: 'unknown'; command: string }
@@ -36,7 +37,7 @@ export function parseCommand(raw: string): ParsedCommand {
     return { kind: 'unknown', command: '' }
   }
 
-  if (command === 'help' || command === 'who' || command === 'look' || command === 'character') {
+  if (command === 'help' || command === 'who' || command === 'look' || command === 'character' || command === 'missions') {
     if (argument.length > 0) {
       return {
         kind: 'usage-error',

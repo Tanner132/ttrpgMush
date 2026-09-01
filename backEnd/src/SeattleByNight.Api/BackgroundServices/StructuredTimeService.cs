@@ -119,16 +119,26 @@ public sealed class StructuredTimeService : BackgroundService
         var request = new GameActionRequest(Guid.NewGuid(), playerUserId, actionId, Depth: 1);
         _ = RunAsync(roomId, request);
 
-        async Task RunAsync(Guid scopeId, GameActionRequest engineRequest)
+        async Task RunAsync(Guid combatRoomId, GameActionRequest engineRequest)
         {
             try
             {
+                // §15: queue scope is the encounter INSTANCE for instanced
+                // rooms — engine turns must land on the same consumer as the
+                // player's own submissions or they would interleave.
+                Guid scopeId;
+                await using (var scope = _scopeFactory.CreateAsyncScope())
+                {
+                    var resolver = scope.ServiceProvider.GetRequiredService<IGameScopeResolver>();
+                    scopeId = await resolver.ResolveScopeAsync(combatRoomId, CancellationToken.None);
+                }
+
                 await _queue.EnqueueAsync(scopeId, engineRequest, CancellationToken.None);
             }
             catch (Exception ex)
             {
                 _logger.LogError(
-                    ex, "Engine turn {ActionId} failed for room {RoomId}.", engineRequest.ActionId, scopeId);
+                    ex, "Engine turn {ActionId} failed for room {RoomId}.", engineRequest.ActionId, combatRoomId);
             }
         }
     }

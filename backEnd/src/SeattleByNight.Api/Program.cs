@@ -17,6 +17,7 @@ using SeattleByNight.Api.Middleware;
 using SeattleByNight.Application;
 using SeattleByNight.Application.Characters;
 using SeattleByNight.Application.Dice;
+using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Infrastructure;
@@ -80,6 +81,15 @@ builder.Services.AddOptions<WorldOptions>()
     .ValidateOnStart();
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<WorldOptions>>().Value);
 
+builder.Services.AddOptions<EncounterOptions>()
+    .Bind(builder.Configuration.GetSection(EncounterOptions.SectionName))
+    .Validate(o => o.AbandonGraceWindow > TimeSpan.Zero,
+        "Encounter:AbandonGraceWindow must be positive.")
+    .Validate(o => o.ExpirationScanInterval > TimeSpan.Zero,
+        "Encounter:ExpirationScanInterval must be positive.")
+    .ValidateOnStart();
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<EncounterOptions>>().Value);
+
 builder.Services.AddOptions<DiceOptions>()
     .Bind(builder.Configuration.GetSection(DiceOptions.SectionName))
     .Validate(o => o.MaxDice > 0, "Dice:MaxDice must be positive.")
@@ -95,12 +105,14 @@ builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddSingleton<IRoomConnectionRegistry, RoomConnectionRegistry>();
 builder.Services.AddSingleton<IRoomChatConnectionManager, RoomChatConnectionManager>();
 builder.Services.AddSingleton<IGameMessageBroadcaster, GameMessageBroadcaster>();
+builder.Services.AddSingleton<ITravelNotifier, TravelNotifier>();
 
 builder.Services.AddSignalR().AddJsonProtocol(options =>
     options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddHostedService<PlaySessionExpirationService>();
 builder.Services.AddHostedService<StructuredTimeService>();
+builder.Services.AddHostedService<EncounterExpirationService>();
 
 builder.Services.AddApplicationAuthorization();
 
@@ -223,6 +235,7 @@ app.MapCharacterEndpoints();
 app.MapCharacterCreationEndpoints();
 app.MapPlaySessionEndpoints();
 app.MapGameActionEndpoints();
+app.MapMissionEndpoints();
 app.MapAdminEndpoints();
 app.MapWorldEditorEndpoints();
 app.MapRoomContentAdminEndpoints();

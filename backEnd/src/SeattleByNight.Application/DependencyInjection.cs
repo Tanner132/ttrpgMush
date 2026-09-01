@@ -9,6 +9,8 @@ using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Dice;
+using SeattleByNight.Application.GameEngine.Missions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Resolution;
 
 namespace SeattleByNight.Application;
@@ -48,6 +50,11 @@ public static class DependencyInjection
         // itself is scoped like the executor that drives it.
         services.AddSingleton<ICombatTracker, InMemoryCombatTracker>();
         services.AddScoped<CombatEngine>();
+        // Milestone 5: game content loads/validates once at startup (a
+        // content error fails boot, like the catalog); the mission engine is
+        // scoped like the executor that drives it.
+        services.AddSingleton<IGameContentProvider>(new EmbeddedGameContentProvider());
+        services.AddScoped<MissionEngine>();
         services.AddScoped<GameActionExecutor>();
 
         return services;

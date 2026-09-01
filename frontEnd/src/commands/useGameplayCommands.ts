@@ -4,9 +4,10 @@ import type { CharacterSummary, RoomSession } from '../api/roomSession.ts'
 import { toErrorMessage } from '../api/client.ts'
 import type { LocalEntryKind } from '../hooks/useTranscript.ts'
 import type { GameActionSummary, PendingDecisionInfo, PerformGameActionOptions, PerformGameActionResponse } from '../api/gameActions.ts'
+import type { MissionInstanceSummary } from '../api/missions.ts'
 import { parseCommand } from './parser.ts'
 import { resolveExit } from './resolveExit.ts'
-import { renderAffordances, renderGameActions, renderHelp, renderLook, renderPendingDecision, renderWho } from './output.ts'
+import { renderAffordances, renderGameActions, renderHelp, renderLook, renderMissions, renderPendingDecision, renderWho } from './output.ts'
 
 export interface UseGameplayCommandsOptions {
   session: RoomSession | null
@@ -18,6 +19,7 @@ export interface UseGameplayCommandsOptions {
   moveThroughExit: (exitId: string) => Promise<boolean>
   queryOnlineCharacters: () => Promise<CharacterSummary[]>
   listGameActions: () => Promise<GameActionSummary[]>
+  listMissions: () => Promise<MissionInstanceSummary[]>
   performGameAction: (actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>
   respondToDecision: (decisionId: string, optionId: string) => Promise<void>
   appendLocal: (kind: LocalEntryKind, text: string) => void
@@ -42,6 +44,7 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
     moveThroughExit,
     queryOnlineCharacters,
     listGameActions,
+    listMissions,
     performGameAction,
     respondToDecision,
     appendLocal,
@@ -296,6 +299,20 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
             return false
           }
         }
+        case 'missions': {
+          if (!joined) {
+            appendLocal('error', 'You are not connected.')
+            return false
+          }
+          try {
+            const missions = await listMissions()
+            appendLocal('info', renderMissions(missions))
+            return true
+          } catch (error) {
+            appendLocal('error', toErrorMessage(error))
+            return false
+          }
+        }
         case 'edge-response': {
           if (!joined) {
             appendLocal('error', 'You are not connected.')
@@ -322,7 +339,7 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
 
       return false
     },
-    [session, occupants, onlineCharacters, joined, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, listGameActions, performGameAction, answerDecision, handleActionResponse, appendLocal, onOpenCharacterSheet],
+    [session, occupants, onlineCharacters, joined, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, listGameActions, listMissions, performGameAction, answerDecision, handleActionResponse, appendLocal, onOpenCharacterSheet],
   )
 
   return { submit, receiveDecision }

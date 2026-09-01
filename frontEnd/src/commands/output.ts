@@ -1,5 +1,6 @@
 import type { CharacterSummary, RoomSession } from '../api/roomSession.ts'
 import type { GameActionSummary, PendingDecisionInfo } from '../api/gameActions.ts'
+import type { MissionInstanceSummary } from '../api/missions.ts'
 import { COMMANDS } from './commands.ts'
 
 export function renderHelp(): string {
@@ -64,6 +65,29 @@ export function renderAffordances(actions: GameActionSummary[]): string {
     'Available actions (use /do <name>, add "edge" to Push the Limit on a test):',
     ...actions.map((action) => `${action.displayName}  ${action.description}`),
   ].join('\n')
+}
+
+export function renderMissions(missions: MissionInstanceSummary[]): string {
+  if (missions.length === 0) {
+    return 'No missions yet.'
+  }
+
+  const objectiveMark = (status: string): string => {
+    if (status === 'Completed') return '[x]'
+    if (status === 'Active') return '[>]'
+    if (status === 'Failed') return '[!]'
+    return '[ ]'
+  }
+
+  const lines: string[] = ['Missions:']
+  for (const mission of missions) {
+    lines.push(`${mission.displayName} — ${mission.status}`)
+    for (const objective of mission.objectives) {
+      lines.push(`  ${objectiveMark(objective.status)} ${objective.displayName}`)
+    }
+  }
+
+  return lines.join('\n')
 }
 
 export function renderPendingDecision(decision: PendingDecisionInfo): string {

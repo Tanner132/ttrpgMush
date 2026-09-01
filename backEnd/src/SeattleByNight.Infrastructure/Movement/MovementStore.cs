@@ -52,6 +52,10 @@ public sealed class MovementStore : IMovementStore
         }
 
         // Resolve and validate the exit using the locked authoritative room.
+        // A destination is accessible when it is Public, or when it belongs
+        // to the same encounter instance as the exit's source room (§31) —
+        // instance-internal movement works, and no shared-world exit can
+        // reach into a private instance.
         var exit = await _dbContext.RoomExits
             .Where(e => e.Id == exitId)
             .Select(e => new MovementExit(
@@ -60,7 +64,11 @@ public sealed class MovementStore : IMovementStore
                 e.DestinationRoomId,
                 e.IsHidden,
                 e.IsLocked,
-                _dbContext.Rooms.Any(r => r.Id == e.DestinationRoomId && r.AccessType == RoomAccessType.Public)))
+                _dbContext.Rooms.Any(r => r.Id == e.DestinationRoomId
+                    && (r.AccessType == RoomAccessType.Public
+                        || (r.EncounterInstanceId != null
+                            && _dbContext.Rooms.Any(source => source.Id == e.SourceRoomId
+                                && source.EncounterInstanceId == r.EncounterInstanceId))))))
             .FirstOrDefaultAsync(cancellationToken);
 
         if (exit is null)
@@ -87,7 +95,7 @@ public sealed class MovementStore : IMovementStore
             return MovementStoreResult.Failure(MoveCharacterError.ExitNotFromCurrentRoom);
         }
 
-        if (!exit.DestinationIsPublic)
+        if (!exit.DestinationIsAccessible)
         {
             await transaction.RollbackAsync(cancellationToken);
             return MovementStoreResult.Failure(MoveCharacterError.DestinationUnavailable);

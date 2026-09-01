@@ -7,6 +7,7 @@ using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Effects;
+using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Modifiers;
 using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.GameEngine.Npcs;
@@ -62,6 +63,8 @@ public sealed class GameActionExecutor
     private readonly AffordanceService affordanceService;
     private readonly IGameCommandQueue queue;
     private readonly CombatEngine combatEngine;
+    private readonly MissionEngine missionEngine;
+    private readonly IGameScopeResolver scopeResolver;
     private readonly PlaySessionOptions playSessionOptions;
     private readonly TimeProvider timeProvider;
 
@@ -82,6 +85,8 @@ public sealed class GameActionExecutor
         AffordanceService affordanceService,
         IGameCommandQueue queue,
         CombatEngine combatEngine,
+        MissionEngine missionEngine,
+        IGameScopeResolver scopeResolver,
         PlaySessionOptions playSessionOptions,
         TimeProvider timeProvider)
     {
@@ -101,6 +106,8 @@ public sealed class GameActionExecutor
         this.affordanceService = affordanceService;
         this.queue = queue;
         this.combatEngine = combatEngine;
+        this.missionEngine = missionEngine;
+        this.scopeResolver = scopeResolver;
         this.playSessionOptions = playSessionOptions;
         this.timeProvider = timeProvider;
     }
@@ -182,6 +189,8 @@ public sealed class GameActionExecutor
                     request, session, actor, sheetResult.Adapter, runtime,
                     target.Npc, target.NpcTemplate, target.Opponent, publishInitialOutcome),
                 cancellationToken),
+            GameActionKind.Mission => await missionEngine.ExecuteAsync(
+                new MissionActionContext(request, session), cancellationToken),
             _ => await ExecuteUtilityAsync(
                 request, definition, session, actor, effects, target, cancellationToken),
         };
@@ -400,14 +409,17 @@ public sealed class GameActionExecutor
                 {
                     // Reactive trigger (§24): a failed sneak alerts the NPC via
                     // a queued reaction at Depth + 1. Fire-and-forget — see the
-                    // call site for why this must never be awaited.
+                    // call site for why this must never be awaited. Scope is
+                    // resolved the same way submissions resolve it (§15): the
+                    // encounter instance when the room belongs to one.
+                    var reactionScope = await scopeResolver.ResolveScopeAsync(npc.RoomId, cancellationToken);
                     var reaction = new GameActionRequest(
                         Guid.NewGuid(),
                         request.UserId,
                         DevelopmentGameActions.NpcAlertActionId,
                         Depth: request.Depth + 1,
                         TargetId: npc.Id);
-                    fireReaction = () => _ = queue.EnqueueAsync(npc.RoomId, reaction, CancellationToken.None);
+                    fireReaction = () => _ = queue.EnqueueAsync(reactionScope, reaction, CancellationToken.None);
                 }
 
                 return ($"{npc.Name} spots you — you've been made.", fireReaction);

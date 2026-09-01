@@ -2,6 +2,7 @@ using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Effects;
+using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.GameEngine.Resolution;
@@ -41,6 +42,8 @@ public sealed class GameActionExecutorTests
         public FakeRoomContentReader RoomContent { get; } = new();
         public FakeGameCommandQueue Queue { get; } = new();
         public InMemoryCombatTracker Combat { get; } = new();
+        public FakeMissionReader Missions { get; } = new();
+        public FakeTravelNotifier Travel { get; } = new();
 
         public Harness()
         {
@@ -57,11 +60,14 @@ public sealed class GameActionExecutorTests
             var combatEngine = new CombatEngine(
                 Combat, resolver, Roller, Seeds, Applier, Audit, Chat, Broadcaster,
                 RoomContent, options, TimeProvider.System);
+            var missionEngine = new MissionEngine(
+                Missions, TestGameContent.Provider, Applier, Audit, Chat, Broadcaster, Travel, options);
             return new GameActionExecutor(
                 Sessions, Sheets, Runtime, Effects, Seeds,
                 resolver, Roller, Broker, Applier, Audit, Chat, Broadcaster,
-                RoomContent, new AffordanceService(RoomContent, Combat), Queue,
-                combatEngine, options, TimeProvider.System);
+                RoomContent,
+                new AffordanceService(RoomContent, Combat, Missions, TestGameContent.Provider), Queue,
+                combatEngine, missionEngine, new FakeGameScopeResolver(), options, TimeProvider.System);
         }
 
         public Task<GameActionOutcome> RunAsync(

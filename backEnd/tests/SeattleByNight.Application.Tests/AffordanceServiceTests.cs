@@ -16,7 +16,8 @@ public sealed class AffordanceServiceTests
     private readonly FakeRoomContentReader roomContent = new();
 
     private Task<IReadOnlyList<GameAffordance>> ListAsync() =>
-        new AffordanceService(roomContent, new InMemoryCombatTracker())
+        new AffordanceService(
+                roomContent, new InMemoryCombatTracker(), new FakeMissionReader(), TestGameContent.Provider)
             .GetAffordancesAsync(characterId, roomId, CancellationToken.None);
 
     private NpcSnapshot AddGanger(int physicalDamage = 0)

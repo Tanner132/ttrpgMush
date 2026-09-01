@@ -8,7 +8,9 @@ using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.GameEngine.Auditing;
 using SeattleByNight.Application.GameEngine.Dice;
+using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Effects;
+using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.GameEngine.Runtime;
 using SeattleByNight.Application.GameEngine.StateChanges;
@@ -65,6 +67,10 @@ public static class DependencyInjection
         services.AddScoped<IStateChangeApplier, StateChangeApplier>();
         services.AddScoped<IRoomContentReader, RoomContentStore>();
         services.AddScoped<IRoomContentEditor, RoomContentStore>();
+        services.AddScoped<IMissionReader, MissionStore>();
+        services.AddScoped<IMissionAssignmentStore, MissionStore>();
+        services.AddScoped<IEncounterLifecycleStore, EncounterLifecycleStore>();
+        services.AddScoped<IGameScopeResolver, GameScopeResolver>();
 
         services
             .AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>

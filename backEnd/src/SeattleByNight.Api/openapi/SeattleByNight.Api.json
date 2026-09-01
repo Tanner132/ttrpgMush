@@ -670,6 +670,62 @@
         }
       }
     },
+    "/api/game/missions": {
+      "get": {
+        "tags": [
+          "MissionEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/missions": {
+      "get": {
+        "tags": [
+          "MissionEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/missions/{missionId}/assign": {
+      "post": {
+        "tags": [
+          "MissionEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "missionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignMissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/users": {
       "get": {
         "tags": [
@@ -1281,6 +1337,18 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "AssignMissionRequest": {
+        "required": [
+          "characterId"
+        ],
+        "type": "object",
+        "properties": {
+          "characterId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -2756,6 +2824,9 @@
     },
     {
       "name": "GameActionEndpoints"
+    },
+    {
+      "name": "MissionEndpoints"
     },
     {
       "name": "AdminEndpoints"

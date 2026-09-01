@@ -25,6 +25,14 @@
     <EmbeddedResource Include="CharacterCreation/Catalog/Resources/sr5-core-1.0.0/*.json">
       <LogicalName>SeattleByNight.Application.CharacterCreation.Catalog.Resources.sr5-core-1.0.0.%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
+    <!--
+      Milestone 5 game content (§50): encounter and mission definitions,
+      split one file per content type and merged at load. Same explicit
+      LogicalName trick as the catalog resources above.
+    -->
+    <EmbeddedResource Include="GameEngine/Missions/Resources/game-content-1.0.0/*.json">
+      <LogicalName>SeattleByNight.Application.GameEngine.Missions.Resources.game-content-1.0.0.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

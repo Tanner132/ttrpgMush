@@ -46,6 +46,33 @@ public sealed record SetNpcDamageChange(
 // character becomes playable again. Real SR5 healing is a later milestone.
 public sealed record ClearCharacterDamageChange(Guid CharacterId) : StateChange;
 
+// Milestone 5 (§29/§30): enter a mission's private encounter. First entry
+// instantiates the encounter definition — rooms, exits, NPCs, items,
+// interactables, participant row — and moves the character (durable location
+// + room visit) to the entry room; re-entry within the instance lifetime just
+// moves the character back in. PlaySessionId names the visit to swing.
+public sealed record EnterEncounterChange(Guid MissionInstanceId, Guid PlaySessionId) : StateChange;
+
+// Leaves the encounter: moves the character (durable location + room visit)
+// back to the instance's return room. Mission/encounter status transitions
+// are separate changes — leaving early is allowed and changes nothing else.
+public sealed record LeaveEncounterChange(Guid EncounterInstanceId, Guid PlaySessionId) : StateChange;
+
+// §38: the acting character takes a placed item — RoomId clears, owner set.
+public sealed record PickUpItemChange(Guid ItemId) : StateChange;
+
+// §35: marks one objective Completed and activates the next Inactive one
+// (dev decision mission.sequential-objectives). Emitted alongside the change
+// that triggered it, so the objective completes in the same commit (§38).
+public sealed record CompleteObjectiveChange(Guid MissionInstanceId, string ObjectiveKey) : StateChange;
+
+// §39: the mission's terminal success transition plus its reward grant,
+// atomically. The applier appends the career-ledger rows (karma + nuyen
+// Award transactions and a mission-reward receipt keyed deterministically by
+// MissionInstanceId) in the same transaction as the Completed status — the
+// grant happens exactly once even if the completing action replays.
+public sealed record CompleteMissionChange(Guid MissionInstanceId, int Karma, int Nuyen) : StateChange;
+
 public enum EffectAttachDisposition
 {
     Attached,

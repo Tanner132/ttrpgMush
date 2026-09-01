@@ -1,4 +1,6 @@
 using SeattleByNight.Application.GameEngine.Combat;
+using SeattleByNight.Application.GameEngine.Missions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.GameEngine.Tests;
@@ -26,11 +28,19 @@ public sealed class AffordanceService
 {
     private readonly IRoomContentReader roomContent;
     private readonly ICombatTracker combatTracker;
+    private readonly IMissionReader missionReader;
+    private readonly IGameContentProvider gameContent;
 
-    public AffordanceService(IRoomContentReader roomContent, ICombatTracker combatTracker)
+    public AffordanceService(
+        IRoomContentReader roomContent,
+        ICombatTracker combatTracker,
+        IMissionReader missionReader,
+        IGameContentProvider gameContent)
     {
         this.roomContent = roomContent;
         this.combatTracker = combatTracker;
+        this.missionReader = missionReader;
+        this.gameContent = gameContent;
     }
 
     public async Task<IReadOnlyList<GameAffordance>> GetAffordancesAsync(
@@ -104,15 +114,19 @@ public sealed class AffordanceService
         foreach (var definition in DevelopmentGameActions.All.Values)
         {
             // Untargeted combat verbs (reload, cover, …) only make sense
-            // inside structured time; the freeform list omits them.
+            // inside structured time, and mission verbs are offered by the
+            // mission-state rules below; the generic list omits both.
             if (definition.PlayerInvokable
                 && definition.TargetKind == GameActionTargetKind.None
-                && definition.Kind != GameActionKind.Combat)
+                && definition.Kind != GameActionKind.Combat
+                && definition.Kind != GameActionKind.Mission)
             {
                 affordances.Add(new GameAffordance(
                     definition.ActionId, null, definition.DisplayName, definition.Description, definition.Kind));
             }
         }
+
+        await AddMissionAffordancesAsync(affordances, characterId, roomId, cancellationToken);
 
         var npcs = await roomContent.GetNpcsInRoomAsync(roomId, cancellationToken);
         foreach (var npc in npcs)
@@ -162,6 +176,77 @@ public sealed class AffordanceService
         }
 
         return affordances;
+    }
+
+    // Milestone 5 (§32): mission affordances are pure state functions —
+    // travel is offered in a mission's linked room while its instance is
+    // open; inside the private encounter, placed items offer Take and the
+    // entry room offers Leave.
+    private async Task AddMissionAffordancesAsync(
+        List<GameAffordance> affordances,
+        Guid characterId,
+        Guid roomId,
+        CancellationToken cancellationToken)
+    {
+        var currentEncounter = await missionReader.GetActiveEncounterByRoomAsync(roomId, cancellationToken);
+
+        if (currentEncounter is null)
+        {
+            // Shared world: offer travel into each open mission linked here,
+            // unless the character is already inside a different instance
+            // (they cannot be — they'd be standing in it — but a held live
+            // instance for another mission still blocks a second one; the
+            // engine enforces it, the list mirrors it).
+            var held = await missionReader.GetActiveEncounterForCharacterAsync(characterId, cancellationToken);
+            var openMissions = await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken);
+            foreach (var instance in openMissions)
+            {
+                if (gameContent.Current.FindMission(instance.MissionId) is not { } definition
+                    || definition.EntryLinkRoomId != roomId
+                    || (held is not null && held.MissionInstanceId != instance.Id))
+                {
+                    continue;
+                }
+
+                var enter = DevelopmentGameActions.All[DevelopmentGameActions.EnterEncounterActionId];
+                var encounterName = gameContent.Current.FindEncounter(definition.EncounterId)?.DisplayName
+                    ?? definition.EncounterId;
+                affordances.Add(new GameAffordance(
+                    enter.ActionId,
+                    instance.Id,
+                    $"{enter.DisplayName} {encounterName}",
+                    $"{definition.DisplayName}: {enter.Description}",
+                    enter.Kind));
+            }
+
+            return;
+        }
+
+        // Inside the instance: only its own participant can be here at all.
+        var items = await missionReader.GetItemsInRoomAsync(roomId, cancellationToken);
+        var take = DevelopmentGameActions.All[DevelopmentGameActions.TakeItemActionId];
+        foreach (var item in items)
+        {
+            affordances.Add(new GameAffordance(
+                take.ActionId,
+                item.Id,
+                $"{take.DisplayName} {item.DisplayName}",
+                take.Description,
+                take.Kind));
+        }
+
+        if (currentEncounter.EntryRoomId == roomId)
+        {
+            var leave = DevelopmentGameActions.All[DevelopmentGameActions.LeaveEncounterActionId];
+            var encounterName = gameContent.Current.FindEncounter(currentEncounter.EncounterId)?.DisplayName
+                ?? currentEncounter.EncounterId;
+            affordances.Add(new GameAffordance(
+                leave.ActionId,
+                null,
+                $"{leave.DisplayName} {encounterName}",
+                leave.Description,
+                leave.Kind));
+        }
     }
 
     private static void AddNpcAffordance(List<GameAffordance> affordances, string actionId, NpcSnapshot npc)
