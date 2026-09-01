@@ -37,9 +37,9 @@ public enum TestKind
 // everything situational is a Modifier instead (explainability invariant §21).
 public sealed record PoolComponent(string Source, int Value);
 
-// For Milestone 1 opposed tests the opponent is a hard-coded development pool
-// (proper NPC opposition is Milestone 3 / IActor §25). The opponent pool rolls
-// with no limit and no modifiers.
+// The opponent's dice in an opposed test, supplied at execution time by the
+// resolved target actor (IActor.GetOpposingPool, §25). The opponent pool
+// rolls with no limit and no modifiers.
 public sealed record OpposingPool(string Source, int Value);
 
 public sealed record TestSpec(

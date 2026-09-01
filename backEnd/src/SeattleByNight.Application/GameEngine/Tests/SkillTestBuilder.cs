@@ -108,8 +108,7 @@ public static class SkillTestBuilder
             definition.Tags,
             limit,
             limitSource,
-            definition.Threshold,
-            definition.Opposition);
+            definition.Threshold);
 
         return new BuiltTest(spec, modifiers);
     }

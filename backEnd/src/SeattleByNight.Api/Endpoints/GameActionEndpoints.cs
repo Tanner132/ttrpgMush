@@ -3,15 +3,16 @@ using Microsoft.AspNetCore.Identity;
 using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Resolution;
+using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Infrastructure.Identity;
 
 namespace SeattleByNight.Api.Endpoints;
 
 public sealed record GameActionSummary(
-    string ActionId, string DisplayName, string Description, GameActionKind Kind);
+    string ActionId, Guid? TargetId, string DisplayName, string Description, GameActionKind Kind);
 
 public sealed record PerformGameActionRequest(
-    Guid? RequestId, int? SituationalModifier, bool? PushTheLimit);
+    Guid? RequestId, int? SituationalModifier, bool? PushTheLimit, Guid? TargetId);
 
 public sealed record PerformGameActionResponse(
     GameActionStatus Status,
@@ -35,11 +36,38 @@ public static class GameActionEndpoints
         return endpoints;
     }
 
-    private static IResult ListAsync()
+    // §32: the action list is computed server-side PER VIEWER — the same
+    // affordance computation that validates submissions renders this list, so
+    // the client never sees (or offers) hidden or unavailable actions.
+    private static async Task<IResult> ListAsync(
+        UserManager<ApplicationUser> userManager,
+        IPlaySessionStore playSessionStore,
+        AffordanceService affordanceService,
+        TimeProvider timeProvider,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
     {
-        var actions = DevelopmentGameActions.All.Values
-            .Select(definition => new GameActionSummary(
-                definition.ActionId, definition.DisplayName, definition.Description, definition.Kind))
+        var user = await userManager.GetUserAsync(httpContext.User);
+        if (user is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var session = await playSessionStore.GetActiveByUserIdAsync(
+            user.Id, timeProvider.GetUtcNow(), cancellationToken);
+        if (session is null)
+        {
+            return Results.Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "No active play session. Select a character to begin.");
+        }
+
+        var affordances = await affordanceService.GetAffordancesAsync(
+            session.CharacterId, session.CurrentRoomId, cancellationToken);
+
+        var actions = affordances
+            .Select(affordance => new GameActionSummary(
+                affordance.ActionId, affordance.TargetId, affordance.DisplayName,
+                affordance.Description, affordance.Kind))
             .ToList();
 
         return Results.Ok(actions);
@@ -64,7 +92,8 @@ public static class GameActionEndpoints
             actionId,
             request?.RequestId,
             request?.SituationalModifier,
-            request?.PushTheLimit ?? false));
+            request?.PushTheLimit ?? false,
+            request?.TargetId));
 
         return outcome.Error switch
         {
@@ -72,12 +101,16 @@ public static class GameActionEndpoints
                 outcome.Status, outcome.Resolution, outcome.Decision, outcome.Message)),
             GameActionError.ActionNotFound => Results.Problem(statusCode: StatusCodes.Status404NotFound,
                 title: "Action not found."),
+            GameActionError.TargetNotFound => Results.Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "The target of that action is not here."),
             GameActionError.NoActiveSession => Results.Problem(statusCode: StatusCodes.Status409Conflict,
                 title: "No active play session. Select a character to begin."),
             GameActionError.CharacterSheetUnavailable => Results.Problem(statusCode: StatusCodes.Status409Conflict,
                 title: "The character sheet could not be loaded for this session."),
             GameActionError.NotEnoughEdge => Results.Problem(statusCode: StatusCodes.Status409Conflict,
                 title: "Not enough Edge to push the limit."),
+            GameActionError.ActionNotAvailable => Results.Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "That action is not available right now."),
             _ => Results.Problem(statusCode: StatusCodes.Status500InternalServerError,
                 title: "The action could not be resolved.")
         };

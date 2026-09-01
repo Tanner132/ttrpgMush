@@ -9,6 +9,7 @@ using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.GameEngine.Auditing;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Effects;
+using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.GameEngine.Runtime;
 using SeattleByNight.Application.GameEngine.StateChanges;
 using SeattleByNight.Application.Movement;
@@ -62,6 +63,8 @@ public static class DependencyInjection
         services.AddSingleton<ISeedSource, CryptographicSeedSource>();
         services.AddScoped<IActiveEffectReader, ActiveEffectStore>();
         services.AddScoped<IStateChangeApplier, StateChangeApplier>();
+        services.AddScoped<IRoomContentReader, RoomContentStore>();
+        services.AddScoped<IRoomContentEditor, RoomContentStore>();
 
         services
             .AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>

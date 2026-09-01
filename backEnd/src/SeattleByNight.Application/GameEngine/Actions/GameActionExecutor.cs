@@ -1,18 +1,23 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using SeattleByNight.Application.GameEngine.Actors;
 using SeattleByNight.Application.GameEngine.Auditing;
 using SeattleByNight.Application.GameEngine.Characters;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Effects;
 using SeattleByNight.Application.GameEngine.Modifiers;
 using SeattleByNight.Application.GameEngine.Notifications;
+using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Resolution;
+using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.GameEngine.Runtime;
 using SeattleByNight.Application.GameEngine.StateChanges;
 using SeattleByNight.Application.GameEngine.Tests;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomChat;
+using SeattleByNight.Application.RoomSessions;
 using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Application.GameEngine.Actions;
@@ -22,6 +27,11 @@ namespace SeattleByNight.Application.GameEngine.Actions;
 // consumer, one action at a time per room scope; the queue blocks while a
 // resolution awaits a decision (MVP pause rule), so a Pending result is
 // always finalized before the next action of that scope begins.
+//
+// Milestone 3: actions may target room content (NPCs, interactables). Targets
+// resolve to actors (§25); player submissions are validated against the same
+// per-viewer affordance computation the client renders (§32); consequences
+// may enqueue reactions at Depth + 1 (§24).
 public sealed class GameActionExecutor
 {
     private const string OptionYes = "yes";
@@ -48,6 +58,10 @@ public sealed class GameActionExecutor
     private readonly IGameTestAuditStore auditStore;
     private readonly IRoomChatStore chatStore;
     private readonly IGameMessageBroadcaster broadcaster;
+    private readonly IRoomContentReader roomContent;
+    private readonly AffordanceService affordanceService;
+    private readonly IGameCommandQueue queue;
+    private readonly CombatEngine combatEngine;
     private readonly PlaySessionOptions playSessionOptions;
     private readonly TimeProvider timeProvider;
 
@@ -64,6 +78,10 @@ public sealed class GameActionExecutor
         IGameTestAuditStore auditStore,
         IRoomChatStore chatStore,
         IGameMessageBroadcaster broadcaster,
+        IRoomContentReader roomContent,
+        AffordanceService affordanceService,
+        IGameCommandQueue queue,
+        CombatEngine combatEngine,
         PlaySessionOptions playSessionOptions,
         TimeProvider timeProvider)
     {
@@ -79,6 +97,10 @@ public sealed class GameActionExecutor
         this.auditStore = auditStore;
         this.chatStore = chatStore;
         this.broadcaster = broadcaster;
+        this.roomContent = roomContent;
+        this.affordanceService = affordanceService;
+        this.queue = queue;
+        this.combatEngine = combatEngine;
         this.playSessionOptions = playSessionOptions;
         this.timeProvider = timeProvider;
     }
@@ -94,6 +116,13 @@ public sealed class GameActionExecutor
     {
         var definition = DevelopmentGameActions.Find(request.ActionId);
         if (definition is null)
+        {
+            return GameActionOutcome.Failure(GameActionError.ActionNotFound);
+        }
+
+        // Engine-only reactions are invisible to players: a Depth-0 submission
+        // of one reports the same NotFound an unknown action id would.
+        if (!definition.PlayerInvokable && request.Depth == 0)
         {
             return GameActionOutcome.Failure(GameActionError.ActionNotFound);
         }
@@ -117,20 +146,118 @@ public sealed class GameActionExecutor
         var effects = await effectReader.GetActiveAsync(
             session.CharacterId, timeProvider.GetUtcNow(), cancellationToken);
 
-        return definition.Kind == GameActionKind.Test
-            ? await ExecuteTestAsync(
-                request, definition, session, sheetResult.Adapter, runtime, effects,
-                publishInitialOutcome, cancellationToken)
-            : await ExecuteUtilityAsync(request, definition, session, effects, cancellationToken);
+        var actor = new PlayerActor(
+            session.CharacterId, session.CharacterName, sheetResult.Adapter, runtime, effects, decisionBroker);
+
+        var (target, targetError) = await ResolveTargetAsync(definition, request, session, cancellationToken);
+        if (targetError != GameActionError.None)
+        {
+            return GameActionOutcome.Failure(targetError);
+        }
+
+        // §32: a player submission must match the same affordance list the
+        // client was shown — this is where hidden content, incapacitated NPCs,
+        // and wrong-room targets get refused. Reactions (Depth > 0) come from
+        // the engine and skip it (they are never in the player's list).
+        if (request.Depth == 0)
+        {
+            var affordances = await affordanceService.GetAffordancesAsync(
+                session.CharacterId, session.CurrentRoomId, cancellationToken);
+            var offered = affordances.Any(affordance =>
+                string.Equals(affordance.ActionId, request.ActionId, StringComparison.Ordinal)
+                && affordance.TargetId == request.TargetId);
+            if (!offered)
+            {
+                return GameActionOutcome.Failure(GameActionError.ActionNotAvailable);
+            }
+        }
+
+        return definition.Kind switch
+        {
+            GameActionKind.Test => await ExecuteTestAsync(
+                request, definition, session, actor, sheetResult.Adapter, runtime, target,
+                publishInitialOutcome, cancellationToken),
+            GameActionKind.Combat => await combatEngine.ExecuteAsync(
+                new CombatActionContext(
+                    request, session, actor, sheetResult.Adapter, runtime,
+                    target.Npc, target.NpcTemplate, target.Opponent, publishInitialOutcome),
+                cancellationToken),
+            _ => await ExecuteUtilityAsync(
+                request, definition, session, actor, effects, target, cancellationToken),
+        };
+    }
+
+    // What a targeted action resolved to. Opponent is the target-as-actor
+    // (§25) for opposed tests; the engine only ever talks to it through IActor.
+    private sealed record ResolvedTarget(
+        NpcSnapshot? Npc = null,
+        NpcTemplate? NpcTemplate = null,
+        IActor? Opponent = null,
+        InteractableSnapshot? Interactable = null)
+    {
+        public static readonly ResolvedTarget None = new();
+    }
+
+    private async Task<(ResolvedTarget Target, GameActionError Error)> ResolveTargetAsync(
+        GameActionDefinition definition,
+        GameActionRequest request,
+        ActivePlaySession session,
+        CancellationToken cancellationToken)
+    {
+        switch (definition.TargetKind)
+        {
+            case GameActionTargetKind.Npc:
+            {
+                if (request.TargetId is not Guid npcId)
+                {
+                    return (ResolvedTarget.None, GameActionError.TargetNotFound);
+                }
+
+                var npc = await roomContent.GetNpcAsync(npcId, cancellationToken);
+                if (npc is null || npc.RoomId != session.CurrentRoomId)
+                {
+                    return (ResolvedTarget.None, GameActionError.TargetNotFound);
+                }
+
+                if (NpcTemplates.Find(npc.TemplateId) is not NpcTemplate template)
+                {
+                    // A placed NPC whose template no longer exists is data
+                    // corruption, not a bad request.
+                    return (ResolvedTarget.None, GameActionError.ActionFailed);
+                }
+
+                return (new ResolvedTarget(npc, template, new NpcActor(npc, template)), GameActionError.None);
+            }
+
+            case GameActionTargetKind.Interactable:
+            {
+                if (request.TargetId is not Guid interactableId)
+                {
+                    return (ResolvedTarget.None, GameActionError.TargetNotFound);
+                }
+
+                var interactable = await roomContent.GetInteractableAsync(interactableId, cancellationToken);
+                if (interactable is null || interactable.RoomId != session.CurrentRoomId)
+                {
+                    return (ResolvedTarget.None, GameActionError.TargetNotFound);
+                }
+
+                return (new ResolvedTarget(Interactable: interactable), GameActionError.None);
+            }
+
+            default:
+                return (ResolvedTarget.None, GameActionError.None);
+        }
     }
 
     private async Task<GameActionOutcome> ExecuteTestAsync(
         GameActionRequest request,
         GameActionDefinition definition,
         ActivePlaySession session,
+        IActor actor,
         CharacterRulesAdapter adapter,
         CharacterRuntimeSnapshot runtime,
-        IReadOnlyList<ActiveEffectSnapshot> effects,
+        ResolvedTarget target,
         Action<GameActionOutcome>? publishInitialOutcome,
         CancellationToken cancellationToken)
     {
@@ -139,8 +266,15 @@ public sealed class GameActionExecutor
             return GameActionOutcome.Failure(GameActionError.NotEnoughEdge);
         }
 
-        var built = SkillTestBuilder.Build(
-            definition.Test!, adapter, runtime, request.SituationalModifier ?? 0, effects);
+        var built = actor.BuildTest(definition.Test!, request.SituationalModifier ?? 0);
+        var spec = built.Spec;
+
+        // Opposed tests get their opposition from the resolved target actor —
+        // the definition names the pool, the opponent supplies the dice (§25).
+        if (definition.Test!.OpposedPoolId is string opposedPoolId && target.Opponent is not null)
+        {
+            spec = spec with { Opposition = target.Opponent.GetOpposingPool(opposedPoolId) };
+        }
 
         var modifiers = built.Modifiers;
         var rollOptions = RollOptions.Default;
@@ -161,7 +295,7 @@ public sealed class GameActionExecutor
         }
 
         var seed = seedSource.NextSeed();
-        var resolution = resolver.Resolve(built.Spec, modifiers, seed, rollOptions);
+        var resolution = resolver.Resolve(spec, modifiers, seed, rollOptions);
         if (request.PushTheLimit)
         {
             resolution = resolution with { Edge = EdgeAction.PushTheLimit };
@@ -172,6 +306,7 @@ public sealed class GameActionExecutor
         if (EdgeRules.CanOfferSecondChance(resolution, runtime.CurrentEdge))
         {
             resolution = resolution with { Status = ResolutionStatus.Pending };
+            var pendingResolution = resolution;
 
             var nonHits = resolution.Dice.Count(die => die < 5);
             var pending = new PendingDecision(
@@ -184,17 +319,14 @@ public sealed class GameActionExecutor
                 DefaultOptionId: OptionNo,
                 SecondChanceTimeout);
 
-            publishInitialOutcome?.Invoke(GameActionOutcome.AwaitingDecision(
-                resolution,
-                new PendingDecisionInfo(
-                    pending.DecisionId,
-                    pending.Kind,
-                    pending.Prompt,
-                    pending.Options,
-                    pending.DefaultOptionId,
-                    (int)pending.Timeout.TotalSeconds)));
+            // §25: the actor decides how decisions resolve. A player pauses
+            // the pipeline (onPaused publishes AwaitingDecision, then the
+            // broker waits); an NPC would answer the default synchronously.
+            var answer = await actor.ResolveDecisionAsync(
+                pending,
+                info => publishInitialOutcome?.Invoke(GameActionOutcome.AwaitingDecision(pendingResolution, info)),
+                cancellationToken);
 
-            var answer = await decisionBroker.AwaitAsync(pending, cancellationToken);
             decisions.Add(new DecisionAudit(
                 pending.Kind, pending.Prompt, pending.DefaultOptionId,
                 answer.OptionId, answer.WasDefault, answer.TimedOut));
@@ -218,6 +350,9 @@ public sealed class GameActionExecutor
                 resolution.Edge == EdgeAction.PushTheLimit ? "Push the Limit" : "Second Chance"));
         }
 
+        var (message, fireReaction) = await BuildTestConsequencesAsync(
+            request, session, resolution, target, changes, cancellationToken);
+
         var applied = changes.Count > 0
             ? await stateChangeApplier.ApplyAsync(session.CharacterId, changes, cancellationToken)
             : Array.Empty<AppliedStateChange>();
@@ -229,20 +364,133 @@ public sealed class GameActionExecutor
             ResolutionFormatter.Format(session.CharacterName, resolution),
             cancellationToken);
 
-        return GameActionOutcome.Final(resolution);
+        // Reactions enqueue AFTER the action's own state committed, and are
+        // never awaited: this method runs on the room scope's single queue
+        // consumer, and awaiting an enqueue into the same scope would
+        // deadlock on ourselves. The room's consumer picks it up next.
+        fireReaction?.Invoke();
+
+        return GameActionOutcome.Final(resolution, message);
+    }
+
+    // Milestone 3 consequences: what a resolved test does to the world beyond
+    // the roll itself. Appends state changes and returns the actor-facing
+    // message plus an optional reaction to fire after commit.
+    private async Task<(string? Message, Action? FireReaction)> BuildTestConsequencesAsync(
+        GameActionRequest request,
+        ActivePlaySession session,
+        ResolutionResult resolution,
+        ResolvedTarget target,
+        List<StateChange> changes,
+        CancellationToken cancellationToken)
+    {
+        switch (request.ActionId)
+        {
+            case DevelopmentGameTests.SneakPastId:
+            {
+                var npc = target.Npc!;
+                if (resolution.Success)
+                {
+                    return ($"You slip past {npc.Name} unnoticed.", null);
+                }
+
+                Action? fireReaction = null;
+                if (npc.Awareness != NpcAwareness.Alerted
+                    && !NpcDerivedValues.IsIncapacitated(npc, target.NpcTemplate!))
+                {
+                    // Reactive trigger (§24): a failed sneak alerts the NPC via
+                    // a queued reaction at Depth + 1. Fire-and-forget — see the
+                    // call site for why this must never be awaited.
+                    var reaction = new GameActionRequest(
+                        Guid.NewGuid(),
+                        request.UserId,
+                        DevelopmentGameActions.NpcAlertActionId,
+                        Depth: request.Depth + 1,
+                        TargetId: npc.Id);
+                    fireReaction = () => _ = queue.EnqueueAsync(npc.RoomId, reaction, CancellationToken.None);
+                }
+
+                return ($"{npc.Name} spots you — you've been made.", fireReaction);
+            }
+
+            case DevelopmentGameTests.ObserveNpcId:
+            {
+                var npc = target.Npc!;
+                if (!resolution.Success)
+                {
+                    return ($"You can't get a solid read on {npc.Name}.", null);
+                }
+
+                var read = NpcDerivedValues.IsIncapacitated(npc, target.NpcTemplate!)
+                    ? "is down"
+                    : npc.Awareness switch
+                    {
+                        NpcAwareness.Suspicious => "seems wary — something has them on guard",
+                        NpcAwareness.Alerted => "is on full alert",
+                        _ => "hasn't noticed you",
+                    };
+                return ($"{npc.Name} {read}.", null);
+            }
+
+            case DevelopmentGameTests.ObserveAreaId:
+            {
+                if (!resolution.Success)
+                {
+                    return (null, null);
+                }
+
+                var interactables = await roomContent.GetInteractablesInRoomAsync(
+                    session.CurrentRoomId, cancellationToken);
+                var hidden = interactables.Where(interactable => interactable.IsHidden).ToList();
+                if (hidden.Count == 0)
+                {
+                    return (null, null);
+                }
+
+                var discovered = await roomContent.GetDiscoveredSubjectIdsAsync(
+                    session.CharacterId, DiscoverySubjectType.Interactable, cancellationToken);
+
+                // Hits gate discovery: anything whose threshold the (limited)
+                // hits reach is revealed at once (dev decision
+                // discovery.observe-area-threshold).
+                var revealed = hidden
+                    .Where(interactable => !discovered.Contains(interactable.Id)
+                        && interactable.DiscoveryThreshold <= resolution.LimitedHits)
+                    .ToList();
+                if (revealed.Count == 0)
+                {
+                    return (null, null);
+                }
+
+                foreach (var interactable in revealed)
+                {
+                    changes.Add(new RecordDiscoveryChange(
+                        DiscoverySubjectType.Interactable, interactable.Id, interactable.Name));
+                }
+
+                return ($"You notice: {string.Join(", ", revealed.Select(i => i.Name))}.", null);
+            }
+
+            default:
+                return (null, null);
+        }
     }
 
     private async Task<GameActionOutcome> ExecuteUtilityAsync(
         GameActionRequest request,
         GameActionDefinition definition,
         ActivePlaySession session,
+        IActor actor,
         IReadOnlyList<ActiveEffectSnapshot> effects,
+        ResolvedTarget target,
         CancellationToken cancellationToken)
     {
-        var (changes, emote, message) = BuildUtilityChanges(request.ActionId, session.CharacterId, effects);
+        var plan = BuildUtilityPlan(request.ActionId, session.CharacterId, effects, target);
+        var emote = plan.Emote;
+        var message = plan.Message;
 
-        var applied = changes.Count > 0
-            ? await stateChangeApplier.ApplyAsync(session.CharacterId, changes, cancellationToken)
+        var applied = plan.Changes.Count > 0
+            ? await stateChangeApplier.ApplyAsync(session.CharacterId, plan.Changes, cancellationToken)
             : Array.Empty<AppliedStateChange>();
 
         // An attach the stacking rules refused turns the action into a no-op
@@ -263,13 +511,37 @@ public sealed class GameActionExecutor
             await BroadcastMessageAsync(request.UserId, emote, ChatMessageType.Emote, cancellationToken);
         }
 
+        if (plan.NpcEmote is not null && target.Npc is not null)
+        {
+            await BroadcastNpcEmoteAsync(target.Npc, plan.NpcEmote, cancellationToken);
+        }
+
+        // §38: a Hostile NPC that just snapped alert opens combat itself. This
+        // runs on the room's queue consumer already, so the direct call is
+        // safe — only enqueue-and-await would deadlock.
+        if (string.Equals(request.ActionId, DevelopmentGameActions.NpcAlertActionId, StringComparison.Ordinal)
+            && target.Npc is { } alertedNpc
+            && target.NpcTemplate is { Hostile: true } alertedTemplate
+            && !NpcDerivedValues.IsIncapacitated(alertedNpc, alertedTemplate))
+        {
+            await combatEngine.StartNpcInitiatedCombatAsync(
+                request, session, actor, alertedNpc, cancellationToken);
+        }
+
         return GameActionOutcome.Final(null, message ?? $"{definition.DisplayName} resolved.");
     }
 
-    private (IReadOnlyList<StateChange> Changes, string? Emote, string? Message) BuildUtilityChanges(
+    private sealed record UtilityPlan(
+        IReadOnlyList<StateChange> Changes,
+        string? Emote,
+        string? Message,
+        string? NpcEmote = null);
+
+    private UtilityPlan BuildUtilityPlan(
         string actionId,
         Guid characterId,
-        IReadOnlyList<ActiveEffectSnapshot> effects)
+        IReadOnlyList<ActiveEffectSnapshot> effects,
+        ResolvedTarget target)
     {
         switch (actionId)
         {
@@ -281,13 +553,13 @@ public sealed class GameActionExecutor
 
                 if (running)
                 {
-                    return (
+                    return new UtilityPlan(
                         new StateChange[] { new RemoveEffectChange(EffectSourceType.Action, DevelopmentGameActions.RunActionId) },
                         "stops running.",
                         "You stop running.");
                 }
 
-                return (
+                return new UtilityPlan(
                     new StateChange[]
                     {
                         new AttachEffectChange(new NewActiveEffect(
@@ -306,7 +578,7 @@ public sealed class GameActionExecutor
             }
 
             case DevelopmentGameActions.SurgeActionId:
-                return (
+                return new UtilityPlan(
                     new StateChange[]
                     {
                         new AttachEffectChange(new NewActiveEffect(
@@ -322,6 +594,49 @@ public sealed class GameActionExecutor
                     },
                     "tenses as adrenaline hits.",
                     "Adrenaline Surge active: Agility +2 for 60 seconds.");
+
+            case DevelopmentGameActions.ApproachNpcActionId:
+            {
+                var npc = target.Npc!;
+                var changes = npc.Awareness == NpcAwareness.Unaware
+                    ? new StateChange[] { new SetNpcAwarenessChange(npc.Id, NpcAwareness.Suspicious) }
+                    : Array.Empty<StateChange>();
+
+                return new UtilityPlan(
+                    changes,
+                    $"approaches {npc.Name}.",
+                    $"You approach {npc.Name} openly.",
+                    NpcEmote: "looks you over warily.");
+            }
+
+            case DevelopmentGameActions.InspectInteractableActionId:
+            {
+                var interactable = target.Interactable!;
+                return new UtilityPlan(
+                    Array.Empty<StateChange>(),
+                    $"inspects the {interactable.Name}.",
+                    interactable.Description);
+            }
+
+            case DevelopmentGameActions.RestActionId:
+                // Development healing (§44 note): no SR5 recovery tests yet —
+                // rest simply zeroes both condition monitors.
+                return new UtilityPlan(
+                    new StateChange[] { new ClearCharacterDamageChange(characterId) },
+                    "takes a breather and patches up.",
+                    "You rest. All damage cleared.");
+
+            case DevelopmentGameActions.NpcAlertActionId:
+            {
+                // Reaction (§24), enqueued by a failed sneak. No player emote —
+                // the player did not act; the NPC did.
+                var npc = target.Npc!;
+                return new UtilityPlan(
+                    new StateChange[] { new SetNpcAwarenessChange(npc.Id, NpcAwareness.Alerted) },
+                    Emote: null,
+                    $"{npc.Name} is alerted.",
+                    NpcEmote: "snaps alert, scanning the area!");
+            }
 
             default:
                 throw new NotSupportedException($"Utility action '{actionId}' has no handler.");
@@ -369,6 +684,16 @@ public sealed class GameActionExecutor
             await broadcaster.BroadcastAsync(outcome.Message, cancellationToken);
         }
     }
+
+    // NPC lines are broadcast-only: ChatMessage rows require a character FK,
+    // so NPC speech never persists to chat history (dev simplification — the
+    // awareness change itself persists on the NPC row).
+    private Task BroadcastNpcEmoteAsync(NpcSnapshot npc, string content, CancellationToken cancellationToken) =>
+        broadcaster.BroadcastAsync(
+            new RoomMessage(
+                Guid.NewGuid(), npc.RoomId, npc.Id, npc.Name, content,
+                ChatMessageType.Emote, timeProvider.GetUtcNow()),
+            cancellationToken);
 
     // Recorded in the audit envelope: what was asked, what was chosen, and
     // whether the default answered (explicitly or by timeout).

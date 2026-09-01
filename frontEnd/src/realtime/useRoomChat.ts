@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { HubConnectionState, type HubConnection } from '@microsoft/signalr'
 import { createRoomChatConnection, type RoomChatConnectionState } from './roomChat.ts'
 import type { RoomPresence, RoomCharacterEvent } from './presence.ts'
-import type { CharacterSummary, MessageType, RoomMessage, RoomSession } from '../api/roomSession.ts'
+import type { CharacterSummary, CombatView, MessageType, RoomMessage, RoomSession } from '../api/roomSession.ts'
+import type { PendingDecisionInfo } from '../api/gameActions.ts'
 
 const ACTIVITY_THROTTLE_MS = 5 * 60 * 1000
 const START_RETRY_MS = 1_000
@@ -16,6 +17,10 @@ export interface UseRoomChatHandlers {
   onCharacterArrived: (event: RoomCharacterEvent) => void
   onCharacterDeparted: (event: RoomCharacterEvent) => void
   onPresence: (presence: RoomPresence) => void
+  onCombatUpdated: (combat: CombatView) => void
+  // Decisions arrive per-user, not per-room — mid-attack pauses aimed at the
+  // defender (defense response, Second Chance) reach only that player.
+  onDecisionRequested: (decision: PendingDecisionInfo) => void
 }
 
 export interface UseRoomChatResult {
@@ -68,6 +73,8 @@ export function useRoomChat(handlers: UseRoomChatHandlers): UseRoomChatResult {
     connection.on('CharacterArrived', (event: RoomCharacterEvent) => handlersRef.current.onCharacterArrived(event))
     connection.on('CharacterDeparted', (event: RoomCharacterEvent) => handlersRef.current.onCharacterDeparted(event))
     connection.on('RoomPresenceChanged', (presence: RoomPresence) => handlersRef.current.onPresence(presence))
+    connection.on('CombatUpdated', (combat: CombatView) => handlersRef.current.onCombatUpdated(combat))
+    connection.on('DecisionRequested', (decision: PendingDecisionInfo) => handlersRef.current.onDecisionRequested(decision))
 
     connection.onreconnecting(() => {
       if (!active) return

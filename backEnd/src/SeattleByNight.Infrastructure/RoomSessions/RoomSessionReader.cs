@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.RoomSessions;
 using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence;
@@ -8,10 +9,12 @@ namespace SeattleByNight.Infrastructure.RoomSessions;
 public sealed class RoomSessionReader : IRoomSessionReader
 {
     private readonly SeattleByNightDbContext _dbContext;
+    private readonly ICombatTracker _combatTracker;
 
-    public RoomSessionReader(SeattleByNightDbContext dbContext)
+    public RoomSessionReader(SeattleByNightDbContext dbContext, ICombatTracker combatTracker)
     {
         _dbContext = dbContext;
+        _combatTracker = combatTracker;
     }
 
     public async Task<RoomSession?> GetByPlaySessionIdAsync(
@@ -83,6 +86,27 @@ public sealed class RoomSessionReader : IRoomSessionReader
             .Select(c => new CharacterSummary(c.Id, c.Name))
             .ToListAsync(cancellationToken);
 
+        var npcs = await _dbContext.NpcInstances
+            .AsNoTracking()
+            .Where(n => n.RoomId == character.CurrentRoomId)
+            .OrderBy(n => n.Name)
+            .Select(n => new RoomNpcSummary(n.Id, n.Name))
+            .ToListAsync(cancellationToken);
+
+        // Viewer-relative rendering (§33): a hidden interactable appears only
+        // when this character has a discovery row for it.
+        var interactableSubjectType = nameof(DiscoverySubjectType.Interactable);
+        var interactables = await _dbContext.RoomInteractables
+            .AsNoTracking()
+            .Where(i => i.RoomId == character.CurrentRoomId)
+            .Where(i => !i.IsHidden || _dbContext.CharacterDiscoveries.Any(d =>
+                d.CharacterId == character.Id
+                && d.SubjectType == interactableSubjectType
+                && d.SubjectId == i.Id))
+            .OrderBy(i => i.Name)
+            .Select(i => new RoomInteractableSummary(i.Id, i.Name, i.Description))
+            .ToListAsync(cancellationToken);
+
         var (messages, olderCursor) = await LoadMessagesAsync(
             session.Id,
             session.StartAtUtc,
@@ -97,8 +121,11 @@ public sealed class RoomSessionReader : IRoomSessionReader
             room,
             exits,
             occupants,
+            npcs,
+            interactables,
             messages,
-            olderCursor);
+            olderCursor,
+            _combatTracker.Get(character.CurrentRoomId) is { } combat ? CombatView.From(combat) : null);
     }
 
     private async Task<(IReadOnlyList<RoomMessage> Messages, string? OlderCursor)> LoadMessagesAsync(

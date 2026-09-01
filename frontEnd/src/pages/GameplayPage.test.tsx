@@ -3,7 +3,8 @@ import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import GameplayPage from './GameplayPage.tsx'
-import type { RoomMessage, RoomSession } from '../api/roomSession.ts'
+import type { CombatView, RoomMessage, RoomSession } from '../api/roomSession.ts'
+import type { PendingDecisionInfo } from '../api/gameActions.ts'
 import { getRoomSession, MessageType } from '../api/roomSession.ts'
 import type { RoomPresence, RoomCharacterEvent } from '../realtime/presence.ts'
 import type { RoomChatConnectionState } from '../realtime/roomChat.ts'
@@ -114,6 +115,8 @@ interface RealtimeHandlers {
   onCharacterArrived: (event: RoomCharacterEvent) => void
   onCharacterDeparted: (event: RoomCharacterEvent) => void
   onPresence: (presence: RoomPresence) => void
+  onCombatUpdated: (combat: CombatView) => void
+  onDecisionRequested: (decision: PendingDecisionInfo) => void
 }
 
 const realtime = vi.hoisted(() => ({
@@ -165,8 +168,11 @@ const emptySession: RoomSession = {
     { id: 'exit-2', direction: 'east', destinationRoomId: 'room-3', destinationRoomName: 'Alley', isLocked: false },
   ],
   occupants: [],
+  npcs: [],
+  interactables: [],
   messages: [],
   olderMessagesCursor: null,
+  combat: null,
 }
 
 const coffeeShopSession: RoomSession = {
@@ -482,6 +488,57 @@ describe('occupants and online presence', () => {
     act(() => realtime.handlers?.onPresence({ roomId: 'room-1', revision: 1, onlineCharacters: [{ id: 'char-2', name: 'Street Sam' }] }))
 
     expect(screen.getByText('Street Sam').closest('li')).toHaveTextContent('online')
+  })
+})
+
+describe('combat', () => {
+  const participant = (overrides: Partial<CombatView['participants'][number]> = {}) => ({
+    actorId: 'char-1',
+    isNpc: false,
+    displayName: 'Dev Runner',
+    initiativeScore: 14,
+    remainingInitiative: 14,
+    simpleRemaining: 2,
+    weaponName: 'Ares Predator V',
+    ammoRemaining: 15,
+    inCover: false,
+    fullDefense: false,
+    fled: false,
+    incapacitated: false,
+    ...overrides,
+  })
+
+  const activeCombat: CombatView = {
+    roomId: 'room-1',
+    active: true,
+    round: 2,
+    currentActorId: 'npc-1',
+    turnEndsAtUtc: null,
+    participants: [
+      participant(),
+      participant({ actorId: 'npc-1', isNpc: true, displayName: 'Razor', weaponName: 'Knife', ammoRemaining: null }),
+    ],
+  }
+
+  it('renders the combat HUD from a snapshot and clears it when combat ends', async () => {
+    await renderPlaying()
+
+    act(() => realtime.handlers?.onCombatUpdated(activeCombat))
+
+    expect(screen.getByText(/Combat · Round 2/)).toBeInTheDocument()
+    expect(screen.getByText('Razor')).toBeInTheDocument()
+    expect(screen.getByText('Ares Predator V')).toBeInTheDocument()
+    expect(screen.getByText('ammo 15')).toBeInTheDocument()
+
+    act(() => realtime.handlers?.onCombatUpdated({ ...activeCombat, active: false, currentActorId: null }))
+
+    expect(screen.queryByText(/Combat · Round/)).not.toBeInTheDocument()
+  })
+
+  it('renders the combat HUD for a session that joins mid-fight', async () => {
+    await renderPlaying({ ...emptySession, combat: activeCombat })
+
+    expect(screen.getByText(/Combat · Round 2/)).toBeInTheDocument()
   })
 })
 

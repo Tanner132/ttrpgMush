@@ -6,6 +6,7 @@ using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Application.CharacterCreation.Sheets;
 using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Resolution;
@@ -42,6 +43,11 @@ public static class DependencyInjection
         services.AddScoped<IComposedSheetLoader, ComposedSheetLoader>();
         services.AddSingleton<IDecisionBroker, DecisionBroker>();
         services.AddSingleton<IGameCommandQueue, GameCommandQueue>();
+        services.AddScoped<AffordanceService>();
+        // Encounter state is ephemeral and process-wide (§44); the engine
+        // itself is scoped like the executor that drives it.
+        services.AddSingleton<ICombatTracker, InMemoryCombatTracker>();
+        services.AddScoped<CombatEngine>();
         services.AddScoped<GameActionExecutor>();
 
         return services;

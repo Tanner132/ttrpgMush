@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Resolution;
 using SeattleByNight.Application.GameEngine.Tests;
 using SeattleByNight.Application.PlaySessions;
@@ -65,12 +66,21 @@ public sealed class GameCommandQueueTests
             };
 
             var roller = new ScriptedDiceRoller();
+            var roomContent = new FakeRoomContentReader();
+            var combatTracker = new InMemoryCombatTracker();
+            var resolver = new TestResolver(roller);
+            var options = new PlaySessionOptions();
+            var combatEngine = new CombatEngine(
+                combatTracker, resolver, roller, new FixedSeedSource(), Applier, Audit,
+                new FakeRoomChatStore(), new FakeGameMessageBroadcaster(),
+                roomContent, options, TimeProvider.System);
             Queue = new GameCommandQueue(
                 new SingleExecutorScopeFactory(() => new GameActionExecutor(
                     Sessions, sheets, new FakeRuntimeStateStore(), Effects, new FixedSeedSource(),
-                    new TestResolver(roller), roller, new FakeDecisionBroker(), Applier, Audit,
+                    resolver, roller, new FakeDecisionBroker(), Applier, Audit,
                     new FakeRoomChatStore(), new FakeGameMessageBroadcaster(),
-                    new PlaySessionOptions(), TimeProvider.System)),
+                    roomContent, new AffordanceService(roomContent, combatTracker), new FakeGameCommandQueue(),
+                    combatEngine, options, TimeProvider.System)),
                 TimeProvider.System);
         }
 

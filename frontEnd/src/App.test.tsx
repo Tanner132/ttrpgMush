@@ -66,8 +66,11 @@ const downtownSession: RoomSession = {
   room: { id: 'room-1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
   exits: [],
   occupants: [],
+  npcs: [],
+  interactables: [],
   messages: [],
   olderMessagesCursor: null,
+  combat: null,
 }
 
 beforeEach(() => {

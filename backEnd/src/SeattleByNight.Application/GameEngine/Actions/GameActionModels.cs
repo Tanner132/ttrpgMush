@@ -14,7 +14,8 @@ public sealed record GameActionRequest(
     string ActionId,
     int? SituationalModifier = null,
     bool PushTheLimit = false,
-    int Depth = 0);
+    int Depth = 0,
+    Guid? TargetId = null);
 
 public enum GameActionError
 {
@@ -24,6 +25,11 @@ public enum GameActionError
     CharacterSheetUnavailable,
     NotEnoughEdge,
     ActionFailed,
+    // The named target does not exist or is not in the actor's room.
+    TargetNotFound,
+    // The action exists but is not currently offered to this viewer against
+    // this target (hidden content, incapacitated NPC, wrong room, …).
+    ActionNotAvailable,
 }
 
 public enum GameActionStatus

@@ -60,8 +60,11 @@ describe('useTranscript', () => {
       room: { id: 'room-1', name: 'Downtown Street', description: '', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
       exits: [],
       occupants: [],
+      npcs: [],
+      interactables: [],
       messages: [msg1],
       olderMessagesCursor: null,
+      combat: null,
     }
     vi.mocked(getRoomSession).mockResolvedValue(older)
 
@@ -87,8 +90,11 @@ describe('useTranscript', () => {
       room: { id: 'room-1', name: 'Downtown Street', description: '', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
       exits: [],
       occupants: [],
+      npcs: [],
+      interactables: [],
       messages: [msg1],
       olderMessagesCursor: 'cursor-2',
+      combat: null,
     })
     const { result } = renderHook(() => useTranscript())
     act(() => result.current.applySession([msg3], 'cursor-1'))

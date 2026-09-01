@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
+using SeattleByNight.Application.GameEngine.Actions;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.RoomSessions;
 
@@ -18,4 +20,12 @@ public sealed class GameMessageBroadcaster : IGameMessageBroadcaster
 
     public Task BroadcastAsync(RoomMessage message, CancellationToken cancellationToken = default) =>
         hubContext.Clients.Group(RoomGroupNames.For(message.RoomId)).MessageReceived(message);
+
+    public Task BroadcastCombatAsync(CombatView view, CancellationToken cancellationToken = default) =>
+        hubContext.Clients.Group(RoomGroupNames.For(view.RoomId)).CombatUpdated(view);
+
+    // The default IUserIdProvider keys connections by the NameIdentifier
+    // claim, which is the same user id play sessions carry.
+    public Task NotifyDecisionAsync(Guid userId, PendingDecisionInfo decision, CancellationToken cancellationToken = default) =>
+        hubContext.Clients.User(userId.ToString()).DecisionRequested(decision);
 }

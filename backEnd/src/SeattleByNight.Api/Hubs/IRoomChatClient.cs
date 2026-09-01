@@ -1,3 +1,5 @@
+using SeattleByNight.Application.GameEngine.Actions;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.RoomSessions;
 
 namespace SeattleByNight.Api.Hubs;
@@ -5,6 +7,10 @@ namespace SeattleByNight.Api.Hubs;
 public interface IRoomChatClient
 {
     Task MessageReceived(RoomMessage message);
+
+    Task CombatUpdated(CombatView combat);
+
+    Task DecisionRequested(PendingDecisionInfo decision);
 
     Task SessionExpired();
 

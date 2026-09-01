@@ -24,6 +24,7 @@
 @import './components/message-log.css';
 @import './components/composer.css';
 @import './components/occupant.css';
+@import './components/combat-hud.css';
 @import './components/auth.css';
 @import './components/slot-dashboard.css';
 @import './components/administration.css';

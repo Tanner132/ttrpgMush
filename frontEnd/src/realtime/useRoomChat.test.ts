@@ -53,6 +53,8 @@ const noopHandlers: UseRoomChatHandlers = {
   onCharacterArrived: () => {},
   onCharacterDeparted: () => {},
   onPresence: () => {},
+  onCombatUpdated: () => {},
+  onDecisionRequested: () => {},
 }
 
 let fake: ReturnType<typeof createFakeConnection>
@@ -303,6 +305,30 @@ describe('useRoomChat', () => {
     act(() => presenceHandler(presence))
 
     expect(onPresence).toHaveBeenCalledWith(presence)
+  })
+
+  it('forwards CombatUpdated to the handler', async () => {
+    const onCombatUpdated = vi.fn()
+    const { result } = renderHook(() => useRoomChat({ ...noopHandlers, onCombatUpdated }))
+    await waitFor(() => expect(result.current.joined).toBe(true))
+
+    const combat = { roomId: 'room-1', active: true, round: 1, participants: [] }
+    const combatHandler = fake.handlers['CombatUpdated']
+    act(() => combatHandler(combat))
+
+    expect(onCombatUpdated).toHaveBeenCalledWith(combat)
+  })
+
+  it('forwards DecisionRequested to the handler', async () => {
+    const onDecisionRequested = vi.fn()
+    const { result } = renderHook(() => useRoomChat({ ...noopHandlers, onDecisionRequested }))
+    await waitFor(() => expect(result.current.joined).toBe(true))
+
+    const decision = { decisionId: 'd1', kind: 'DefenseResponse', defaultOptionId: 'standard' }
+    const decisionHandler = fake.handlers['DecisionRequested']
+    act(() => decisionHandler(decision))
+
+    expect(onDecisionRequested).toHaveBeenCalledWith(decision)
   })
 
   it('delivers the renewed expiry after activity', async () => {

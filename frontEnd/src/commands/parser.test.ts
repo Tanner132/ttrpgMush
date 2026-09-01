@@ -128,6 +128,23 @@ describe('parseCommand', () => {
     })
   })
 
+  it('parses /do with no argument as a listing request', () => {
+    expect(parseCommand('/do')).toEqual({ kind: 'do', selector: '', pushTheLimit: false })
+  })
+
+  it('parses /do with a selector and a trailing edge keyword', () => {
+    expect(parseCommand('/do sneak past razor')).toEqual({
+      kind: 'do',
+      selector: 'sneak past razor',
+      pushTheLimit: false,
+    })
+    expect(parseCommand('/do sneak past razor edge')).toEqual({
+      kind: 'do',
+      selector: 'sneak past razor',
+      pushTheLimit: true,
+    })
+  })
+
   it('parses /run and /surge as no-argument actions', () => {
     expect(parseCommand('/run')).toEqual({ kind: 'run' })
     expect(parseCommand('/surge')).toEqual({ kind: 'surge' })
@@ -149,6 +166,24 @@ describe('parseCommand', () => {
   it('parses /edge yes|no case-insensitively into a decision response', () => {
     expect(parseCommand('/edge yes')).toEqual({ kind: 'edge-response', optionId: 'yes' })
     expect(parseCommand('/edge NO')).toEqual({ kind: 'edge-response', optionId: 'no' })
+  })
+
+  it('parses /defend standard|full case-insensitively into a decision response', () => {
+    expect(parseCommand('/defend standard')).toEqual({ kind: 'defend-response', optionId: 'standard' })
+    expect(parseCommand('/defend FULL')).toEqual({ kind: 'defend-response', optionId: 'full' })
+  })
+
+  it('rejects /defend without a valid option', () => {
+    expect(parseCommand('/defend')).toEqual({
+      kind: 'usage-error',
+      command: 'defend',
+      message: 'Usage: /defend <standard|full>',
+    })
+    expect(parseCommand('/defend dodge')).toEqual({
+      kind: 'usage-error',
+      command: 'defend',
+      message: 'Usage: /defend <standard|full>',
+    })
   })
 
   it('rejects /edge without a valid option', () => {

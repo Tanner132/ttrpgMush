@@ -7,7 +7,9 @@ import { useTranscript } from '../hooks/useTranscript.ts'
 import { useRoomChat } from '../realtime/useRoomChat.ts'
 import { useGameplayCommands } from '../commands/useGameplayCommands.ts'
 import { listGameActions, performGameAction, respondToDecision } from '../api/gameActions.ts'
-import type { RoomSession } from '../api/roomSession.ts'
+import type { PendingDecisionInfo } from '../api/gameActions.ts'
+import type { CombatView, RoomSession } from '../api/roomSession.ts'
+import { CombatStatus } from '../components/CombatStatus.tsx'
 import { Composer } from '../components/Composer.tsx'
 import { CharacterSheetModal } from '../components/careerSheet/CharacterSheetModal.tsx'
 import { ConnectionStatus } from '../components/ConnectionStatus.tsx'
@@ -36,6 +38,12 @@ export default function GameplayPage() {
   const [reconnected, setReconnected] = useState(false)
   const reconnectedTimerRef = useRef<number | null>(null)
 
+  // Latest combat snapshot wins; an inactive view (or a room without a fight)
+  // clears the HUD. Decisions route through the commands hook, which is
+  // created after useRoomChat needs the handler — hence the ref indirection.
+  const [combat, setCombat] = useState<CombatView | null>(null)
+  const receiveDecisionRef = useRef<(decision: PendingDecisionInfo) => void>(() => {})
+
   const handleSessionEnded = useCallback(() => {
     clearPresence()
     navigate('/characters', { replace: true })
@@ -45,6 +53,7 @@ export default function GameplayPage() {
     (next: RoomSession) => {
       syncRoom(next.room.id, next.occupants)
       applySession(next.messages, next.olderMessagesCursor)
+      setCombat(next.combat)
     },
     [syncRoom, applySession],
   )
@@ -64,6 +73,8 @@ export default function GameplayPage() {
     onCharacterArrived,
     onCharacterDeparted,
     onPresence,
+    onCombatUpdated: (view) => setCombat(view.active ? view : null),
+    onDecisionRequested: (decision) => receiveDecisionRef.current(decision),
     onReconnected: () => {
       setReconnected(true)
       if (reconnectedTimerRef.current !== null) window.clearTimeout(reconnectedTimerRef.current)
@@ -106,7 +117,7 @@ export default function GameplayPage() {
   const handleOpenCharacterSheet = useCallback(() => setSheetOpen(true), [])
   const handleCloseCharacterSheet = useCallback(() => setSheetOpen(false), [])
 
-  const { submit } = useGameplayCommands({
+  const { submit, receiveDecision } = useGameplayCommands({
     session,
     occupants,
     onlineCharacters,
@@ -121,6 +132,7 @@ export default function GameplayPage() {
     appendLocal,
     onOpenCharacterSheet: handleOpenCharacterSheet,
   })
+  receiveDecisionRef.current = receiveDecision
 
   const handleRemainSignedIn = useCallback(async () => {
     if (await recordActivity(true)) dismissIdleWarning()
@@ -199,6 +211,7 @@ export default function GameplayPage() {
             moveError={moveError}
             onMove={handleMove}
           />
+          <CombatStatus combat={combat} />
           <OccupantList occupants={occupants} onlineCharacters={onlineCharacters} />
         </aside>
       </div>

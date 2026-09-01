@@ -31,6 +31,15 @@ export function renderLook(
     lines.push(`Here: ${occupantText}`)
   }
 
+  if (session.npcs.length > 0) {
+    lines.push(`Also here: ${session.npcs.map((npc) => npc.name).join(', ')}.`)
+  }
+
+  // Only what this viewer has discovered — hidden content never reaches the client.
+  if (session.interactables.length > 0) {
+    lines.push(`Things of interest: ${session.interactables.map((interactable) => interactable.name).join(', ')}.`)
+  }
+
   return lines.join('\n')
 }
 
@@ -46,10 +55,26 @@ export function renderGameActions(actions: GameActionSummary[]): string {
   ].join('\n')
 }
 
+export function renderAffordances(actions: GameActionSummary[]): string {
+  if (actions.length === 0) {
+    return 'Nothing to do here.'
+  }
+
+  return [
+    'Available actions (use /do <name>, add "edge" to Push the Limit on a test):',
+    ...actions.map((action) => `${action.displayName}  ${action.description}`),
+  ].join('\n')
+}
+
 export function renderPendingDecision(decision: PendingDecisionInfo): string {
+  // Decision kinds cross the wire as PascalCase enum names.
+  const reply =
+    decision.kind === 'DefenseResponse'
+      ? 'Reply /defend standard or /defend full'
+      : 'Reply /edge yes or /edge no'
   return [
     decision.prompt,
-    `Reply /edge yes or /edge no — defaults to "${decision.defaultOptionId}" in ${decision.timeoutSeconds}s.`,
+    `${reply} — defaults to "${decision.defaultOptionId}" in ${decision.timeoutSeconds}s.`,
   ].join('\n')
 }
 

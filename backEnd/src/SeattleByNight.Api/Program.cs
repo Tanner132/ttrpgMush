@@ -100,6 +100,7 @@ builder.Services.AddSignalR().AddJsonProtocol(options =>
     options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddHostedService<PlaySessionExpirationService>();
+builder.Services.AddHostedService<StructuredTimeService>();
 
 builder.Services.AddApplicationAuthorization();
 
@@ -224,6 +225,7 @@ app.MapPlaySessionEndpoints();
 app.MapGameActionEndpoints();
 app.MapAdminEndpoints();
 app.MapWorldEditorEndpoints();
+app.MapRoomContentAdminEndpoints();
 
 app.MapHub<RoomChatHub>("/hubs/room-chat").RequireAuthorization();
 

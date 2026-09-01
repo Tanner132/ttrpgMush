@@ -555,6 +555,39 @@ namespace SeattleByNight.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterDiscovery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<DateTimeOffset>("DiscoveredAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("discovered_at_utc");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<string>("SubjectType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("subject_type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId", "SubjectType", "SubjectId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_character_discoveries_character_subject");
+
+                    b.ToTable("character_discoveries", (string)null);
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterInventoryItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -885,6 +918,58 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.ToTable("game_test_audit_records", (string)null);
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.NpcInstance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Awareness")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("awareness");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("PhysicalDamage")
+                        .HasColumnType("integer")
+                        .HasColumnName("physical_damage");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("room_id");
+
+                    b.Property<int>("StunDamage")
+                        .HasColumnType("integer")
+                        .HasColumnName("stun_damage");
+
+                    b.Property<string>("TemplateId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("template_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId")
+                        .HasDatabaseName("ix_npc_instances_room");
+
+                    b.ToTable("npc_instances", (string)null);
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.PlaySession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -948,6 +1033,9 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("description");
+
+                    b.Property<int>("EnvironmentModifier")
+                        .HasColumnType("integer");
 
                     b.Property<int>("MapLayer")
                         .HasColumnType("integer")
@@ -1031,6 +1119,48 @@ namespace SeattleByNight.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("ck_room_exits_direction", "direction IN ('north','northeast','east','southeast','south','southwest','west','northwest','up','down')");
                         });
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.RoomInteractable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("DiscoveryThreshold")
+                        .HasColumnType("integer")
+                        .HasColumnName("discovery_threshold");
+
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_hidden");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("room_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId")
+                        .HasDatabaseName("ix_room_interactables_room");
+
+                    b.ToTable("room_interactables", (string)null);
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.RoomVisit", b =>
@@ -1279,6 +1409,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterDiscovery", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterInventoryItem", b =>
                 {
                     b.HasOne("SeattleByNight.Domain.Entities.Character", null)
@@ -1349,6 +1488,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.NpcInstance", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.PlaySession", b =>
                 {
                     b.HasOne("SeattleByNight.Domain.Entities.Character", null)
@@ -1376,6 +1524,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("SourceRoomId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.RoomInteractable", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

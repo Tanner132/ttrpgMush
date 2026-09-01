@@ -16,8 +16,11 @@ const session: RoomSession = {
     { id: 'e3', direction: 'west', destinationRoomId: 'r4', destinationRoomName: 'Vault', isLocked: true },
   ],
   occupants: [],
+  npcs: [],
+  interactables: [],
   messages: [],
   olderMessagesCursor: null,
+  combat: null,
 }
 
 function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
@@ -33,9 +36,9 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
   const listGameActions = vi
     .fn<() => Promise<GameActionSummary[]>>()
     .mockResolvedValue([
-      { actionId: 'observe-area', displayName: 'Observe Area', description: 'Intuition + Perception (2)', kind: 'Test' },
-      { actionId: 'sneaking-test', displayName: 'Sneaking Test', description: 'Agility + Sneaking, opposed', kind: 'Test' },
-      { actionId: 'run', displayName: 'Run', description: 'Toggle running.', kind: 'Utility' },
+      { actionId: 'observe-area', targetId: null, displayName: 'Observe Area', description: 'Intuition + Perception (2)', kind: 'Test' },
+      { actionId: 'sneaking-test', targetId: null, displayName: 'Sneaking Test', description: 'Agility + Sneaking, opposed', kind: 'Test' },
+      { actionId: 'run', targetId: null, displayName: 'Run', description: 'Toggle running.', kind: 'Utility' },
     ])
   const performGameAction = vi
     .fn<(actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>>()
@@ -386,7 +389,7 @@ describe('useGameplayCommands', () => {
     })
 
     expect(ok).toBe(true)
-    expect(performGameAction).toHaveBeenCalledWith('observe-area', { pushTheLimit: false })
+    expect(performGameAction).toHaveBeenCalledWith('observe-area', { pushTheLimit: false, targetId: null })
     expect(appendLocal).not.toHaveBeenCalled()
   })
 
@@ -397,7 +400,7 @@ describe('useGameplayCommands', () => {
       await result.current.submit('/test sneaking edge')
     })
 
-    expect(performGameAction).toHaveBeenCalledWith('sneaking-test', { pushTheLimit: true })
+    expect(performGameAction).toHaveBeenCalledWith('sneaking-test', { pushTheLimit: true, targetId: null })
   })
 
   it('rejects an ambiguous /test selector with candidate guidance', async () => {
@@ -451,6 +454,23 @@ describe('useGameplayCommands', () => {
     expect(appendLocal).toHaveBeenCalledWith('error', 'You are not connected.')
   })
 
+  it('renders NPCs and interactables in /look', async () => {
+    const populated: RoomSession = {
+      ...session,
+      npcs: [{ id: 'npc-1', name: 'Razor' }],
+      interactables: [{ id: 'i-1', name: 'Old Crate', description: 'A crate.' }],
+    }
+    const { result, appendLocal } = createHarness({ session: populated })
+
+    await act(async () => {
+      await result.current.submit('/look')
+    })
+
+    const text = appendLocal.mock.calls[0][1] as string
+    expect(text).toContain('Also here: Razor.')
+    expect(text).toContain('Things of interest: Old Crate.')
+  })
+
   it('performs /run and renders the returned message locally', async () => {
     const performGameAction = vi
       .fn<(actionId: string, options?: PerformGameActionOptions) => Promise<PerformGameActionResponse>>()
@@ -483,6 +503,105 @@ describe('useGameplayCommands', () => {
     })
 
     expect(performGameAction).toHaveBeenCalledWith('surge')
+  })
+
+  describe('/do', () => {
+    const affordances: GameActionSummary[] = [
+      { actionId: 'observe-area', targetId: null, displayName: 'Observe Area', description: 'Intuition + Perception (2)', kind: 'Test' },
+      { actionId: 'run', targetId: null, displayName: 'Run', description: 'Toggle running.', kind: 'Utility' },
+      { actionId: 'sneak-past', targetId: 'npc-1', displayName: 'Sneak Past Razor', description: 'Agility + Sneaking vs. Razor.', kind: 'Test' },
+      { actionId: 'approach-npc', targetId: 'npc-1', displayName: 'Approach Razor', description: 'Walk up openly.', kind: 'Utility' },
+    ]
+
+    function createDoHarness() {
+      const listGameActions = vi.fn<() => Promise<GameActionSummary[]>>().mockResolvedValue(affordances)
+      return createHarness({ listGameActions })
+    }
+
+    it('lists every affordance for /do with no argument, utilities included', async () => {
+      const { result, appendLocal, performGameAction } = createDoHarness()
+
+      let ok = false
+      await act(async () => {
+        ok = await result.current.submit('/do')
+      })
+
+      expect(ok).toBe(true)
+      expect(performGameAction).not.toHaveBeenCalled()
+      const text = appendLocal.mock.calls[0][1] as string
+      expect(text).toContain('Sneak Past Razor')
+      expect(text).toContain('Approach Razor')
+      expect(text).toContain('Toggle running.')
+    })
+
+    it('performs a targeted action matched by display name and passes its targetId', async () => {
+      const { result, performGameAction, appendLocal } = createDoHarness()
+
+      let ok = false
+      await act(async () => {
+        ok = await result.current.submit('/do sneak past razor')
+      })
+
+      expect(ok).toBe(true)
+      expect(performGameAction).toHaveBeenCalledWith('sneak-past', { pushTheLimit: false, targetId: 'npc-1' })
+      expect(appendLocal).not.toHaveBeenCalled()
+    })
+
+    it('passes pushTheLimit for /do <name> edge', async () => {
+      const { result, performGameAction } = createDoHarness()
+
+      await act(async () => {
+        await result.current.submit('/do sneak past razor edge')
+      })
+
+      expect(performGameAction).toHaveBeenCalledWith('sneak-past', { pushTheLimit: true, targetId: 'npc-1' })
+    })
+
+    it('reaches utility actions through /do', async () => {
+      const { result, performGameAction } = createDoHarness()
+
+      await act(async () => {
+        await result.current.submit('/do run')
+      })
+
+      expect(performGameAction).toHaveBeenCalledWith('run', { pushTheLimit: false, targetId: null })
+    })
+
+    it('rejects an ambiguous /do selector with candidate guidance', async () => {
+      const { result, appendLocal, performGameAction } = createDoHarness()
+
+      await act(async () => {
+        await result.current.submit('/do razor')
+      })
+
+      expect(performGameAction).not.toHaveBeenCalled()
+      expect(appendLocal).toHaveBeenCalledWith(
+        'error',
+        'Which action did you mean? Matches: Sneak Past Razor, Approach Razor.',
+      )
+    })
+
+    it('rejects an unmatched /do selector', async () => {
+      const { result, appendLocal, performGameAction } = createDoHarness()
+
+      await act(async () => {
+        await result.current.submit('/do juggling')
+      })
+
+      expect(performGameAction).not.toHaveBeenCalled()
+      expect(appendLocal).toHaveBeenCalledWith('error', 'No matching action. Use /do to list them.')
+    })
+
+    it('fails /do locally while not joined', async () => {
+      const { result, appendLocal, listGameActions } = createHarness({ joined: false })
+
+      await act(async () => {
+        await result.current.submit('/do')
+      })
+
+      expect(listGameActions).not.toHaveBeenCalled()
+      expect(appendLocal).toHaveBeenCalledWith('error', 'You are not connected.')
+    })
   })
 
   it('renders a pending Edge decision prompt and answers it with /edge yes', async () => {
@@ -564,6 +683,50 @@ describe('useGameplayCommands', () => {
     })
     expect(appendLocal).toHaveBeenCalledWith('error', 'There is no pending Edge decision to answer.')
     expect(respondToDecision).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders a pushed defense decision and answers it with /defend full', async () => {
+    const { result, appendLocal, respondToDecision } = createHarness()
+
+    act(() => {
+      result.current.receiveDecision({
+        decisionId: 'd2',
+        kind: 'DefenseResponse',
+        prompt: 'Razor shoots at you! How do you defend?',
+        options: [
+          { optionId: 'standard', label: 'Standard defense' },
+          { optionId: 'full', label: 'Full defense' },
+        ],
+        defaultOptionId: 'standard',
+        timeoutSeconds: 20,
+      })
+    })
+
+    const prompt = appendLocal.mock.calls[0][1] as string
+    expect(prompt).toContain('Razor shoots at you!')
+    expect(prompt).toContain('/defend standard')
+    expect(prompt).toContain('20s')
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/defend full')
+    })
+
+    expect(ok).toBe(true)
+    expect(respondToDecision).toHaveBeenCalledWith('d2', 'full')
+  })
+
+  it('rejects /defend when no decision is pending', async () => {
+    const { result, appendLocal, respondToDecision } = createHarness()
+
+    let ok = true
+    await act(async () => {
+      ok = await result.current.submit('/defend standard')
+    })
+
+    expect(ok).toBe(false)
+    expect(respondToDecision).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith('error', 'There is no pending defense decision to answer.')
   })
 
   it('fails /run and /edge locally while not joined', async () => {

@@ -1,10 +1,14 @@
 using System.Collections.Concurrent;
+using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Auditing;
 using SeattleByNight.Application.GameEngine.Characters;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Effects;
 using SeattleByNight.Application.GameEngine.Notifications;
+using SeattleByNight.Application.GameEngine.Npcs;
+using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.GameEngine.Runtime;
 using SeattleByNight.Application.GameEngine.StateChanges;
 using SeattleByNight.Application.PlaySessions;
@@ -207,10 +211,70 @@ internal sealed class FakeRoomChatStore : IRoomChatStore
 internal sealed class FakeGameMessageBroadcaster : IGameMessageBroadcaster
 {
     public ConcurrentQueue<RoomMessage> Broadcasts { get; } = new();
+    public ConcurrentQueue<CombatView> CombatViews { get; } = new();
+    public ConcurrentQueue<(Guid UserId, PendingDecisionInfo Decision)> Decisions { get; } = new();
 
     public Task BroadcastAsync(RoomMessage message, CancellationToken cancellationToken = default)
     {
         Broadcasts.Enqueue(message);
         return Task.CompletedTask;
+    }
+
+    public Task BroadcastCombatAsync(CombatView view, CancellationToken cancellationToken = default)
+    {
+        CombatViews.Enqueue(view);
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyDecisionAsync(
+        Guid userId, PendingDecisionInfo decision, CancellationToken cancellationToken = default)
+    {
+        Decisions.Enqueue((userId, decision));
+        return Task.CompletedTask;
+    }
+}
+
+// In-memory room content; also what the real AffordanceService reads in tests.
+internal sealed class FakeRoomContentReader : IRoomContentReader
+{
+    public List<NpcSnapshot> Npcs { get; } = new();
+    public List<InteractableSnapshot> Interactables { get; } = new();
+    public HashSet<Guid> DiscoveredInteractables { get; } = new();
+    public Dictionary<Guid, int> EnvironmentModifiers { get; } = new();
+
+    public Task<NpcSnapshot?> GetNpcAsync(Guid npcId, CancellationToken cancellationToken) =>
+        Task.FromResult(Npcs.FirstOrDefault(npc => npc.Id == npcId));
+
+    public Task<IReadOnlyList<NpcSnapshot>> GetNpcsInRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<NpcSnapshot>>(Npcs.Where(npc => npc.RoomId == roomId).ToArray());
+
+    public Task<InteractableSnapshot?> GetInteractableAsync(Guid interactableId, CancellationToken cancellationToken) =>
+        Task.FromResult(Interactables.FirstOrDefault(interactable => interactable.Id == interactableId));
+
+    public Task<IReadOnlyList<InteractableSnapshot>> GetInteractablesInRoomAsync(
+        Guid roomId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<InteractableSnapshot>>(
+            Interactables.Where(interactable => interactable.RoomId == roomId).ToArray());
+
+    public Task<IReadOnlySet<Guid>> GetDiscoveredSubjectIdsAsync(
+        Guid characterId, DiscoverySubjectType subjectType, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlySet<Guid>>(
+            subjectType == DiscoverySubjectType.Interactable ? DiscoveredInteractables : new HashSet<Guid>());
+
+    public Task<int> GetRoomEnvironmentModifierAsync(Guid roomId, CancellationToken cancellationToken) =>
+        Task.FromResult(EnvironmentModifiers.TryGetValue(roomId, out var modifier) ? modifier : 0);
+}
+
+// Captures reactions the executor fires instead of running them — the tests
+// assert what was enqueued, not a second resolution.
+internal sealed class FakeGameCommandQueue : IGameCommandQueue
+{
+    public ConcurrentQueue<(Guid ScopeId, GameActionRequest Request)> Enqueued { get; } = new();
+
+    public Task<GameActionOutcome> EnqueueAsync(
+        Guid scopeId, GameActionRequest request, CancellationToken cancellationToken = default)
+    {
+        Enqueued.Enqueue((scopeId, request));
+        return Task.FromResult(GameActionOutcome.Final(null, null));
     }
 }

@@ -13,7 +13,8 @@ public sealed record SubmitGameActionCommand(
     string ActionId,
     Guid? RequestId = null,
     int? SituationalModifier = null,
-    bool PushTheLimit = false) : IRequest<GameActionOutcome>;
+    bool PushTheLimit = false,
+    Guid? TargetId = null) : IRequest<GameActionOutcome>;
 
 public sealed class SubmitGameActionCommandHandler : IRequestHandler<SubmitGameActionCommand, GameActionOutcome>
 {
@@ -45,7 +46,8 @@ public sealed class SubmitGameActionCommandHandler : IRequestHandler<SubmitGameA
             request.UserId,
             request.ActionId,
             request.SituationalModifier,
-            request.PushTheLimit);
+            request.PushTheLimit,
+            TargetId: request.TargetId);
 
         return await queue.EnqueueAsync(session.CurrentRoomId, actionRequest, cancellationToken);
     }

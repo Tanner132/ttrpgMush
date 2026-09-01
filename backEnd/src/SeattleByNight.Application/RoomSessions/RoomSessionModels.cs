@@ -1,3 +1,4 @@
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Application.RoomSessions;
@@ -29,6 +30,12 @@ public sealed record RoomMessage(
     ChatMessageType Type,
     DateTimeOffset CreatedAtUtc);
 
+public sealed record RoomNpcSummary(Guid Id, string Name);
+
+public sealed record RoomInteractableSummary(Guid Id, string Name, string Description);
+
+// The room as THIS viewer sees it (§33): Interactables lists only content
+// that is not hidden or that this character has discovered.
 public sealed record RoomSession(
     Guid PlaySessionId,
     DateTimeOffset ExpiresAtUtc,
@@ -36,5 +43,10 @@ public sealed record RoomSession(
     RoomSummary Room,
     IReadOnlyList<RoomExitSummary> Exits,
     IReadOnlyList<CharacterSummary> Occupants,
+    IReadOnlyList<RoomNpcSummary> Npcs,
+    IReadOnlyList<RoomInteractableSummary> Interactables,
     IReadOnlyList<RoomMessage> Messages,
-    string? OlderMessagesCursor);
+    string? OlderMessagesCursor,
+    // Non-null only while this room has an active encounter (§38); a client
+    // joining mid-combat renders from this instead of waiting for a push.
+    CombatView? Combat);

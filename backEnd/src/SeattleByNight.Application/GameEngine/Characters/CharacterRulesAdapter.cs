@@ -78,6 +78,33 @@ public sealed class CharacterRulesAdapter
 
     public int GetMaxEdge() => GetAttribute("edge");
 
+    public int GetInitiativeBase() =>
+        sheet.DerivedStatistics?.InitiativeBase
+        ?? DerivedStatisticsFormulas.InitiativeBase(GetAttribute("reaction"), GetAttribute("intuition"));
+
+    public int GetInitiativeDice() =>
+        sheet.DerivedStatistics?.InitiativeDice ?? DerivedStatisticsFormulas.InitiativeDiceBase;
+
+    // Every owned resource that the catalog knows as a weapon. Quantity and
+    // accessories are ignored — combat needs the stat lines, not inventory
+    // bookkeeping.
+    public IReadOnlyList<WeaponDefinition> GetOwnedWeapons() =>
+        OwnedResourceIds()
+            .Select(id => catalog.Weapons.TryGetValue(id, out var weapon) ? weapon : null)
+            .OfType<WeaponDefinition>()
+            .ToArray();
+
+    // The single best armor rating owned; worn-armor management does not
+    // exist yet, so the character is assumed to wear their best suit.
+    public int GetBestArmorRating() =>
+        OwnedResourceIds()
+            .Select(id => catalog.Armor.TryGetValue(id, out var armor) ? armor.ArmorRating ?? 0 : 0)
+            .DefaultIfEmpty(0)
+            .Max();
+
+    private IEnumerable<string> OwnedResourceIds() =>
+        (sheet.Resources?.Resources ?? Array.Empty<CanonicalResource>()).Select(resource => resource.Id);
+
     public string GetLinkedAttributeId(string skillId) =>
         catalog.Skills.TryGetValue(skillId, out var definition)
             ? definition.LinkedAttribute

@@ -3,10 +3,10 @@ import { MessageType } from '../api/roomSession.ts'
 import type { CharacterSummary, RoomSession } from '../api/roomSession.ts'
 import { toErrorMessage } from '../api/client.ts'
 import type { LocalEntryKind } from '../hooks/useTranscript.ts'
-import type { GameActionSummary, PerformGameActionOptions, PerformGameActionResponse } from '../api/gameActions.ts'
+import type { GameActionSummary, PendingDecisionInfo, PerformGameActionOptions, PerformGameActionResponse } from '../api/gameActions.ts'
 import { parseCommand } from './parser.ts'
 import { resolveExit } from './resolveExit.ts'
-import { renderGameActions, renderHelp, renderLook, renderPendingDecision, renderWho } from './output.ts'
+import { renderAffordances, renderGameActions, renderHelp, renderLook, renderPendingDecision, renderWho } from './output.ts'
 
 export interface UseGameplayCommandsOptions {
   session: RoomSession | null
@@ -26,6 +26,9 @@ export interface UseGameplayCommandsOptions {
 
 export interface UseGameplayCommandsResult {
   submit: (raw: string) => Promise<boolean>
+  // Registers a decision pushed over SignalR (mid-attack defense or Second
+  // Chance prompts) so /edge and /defend know what to answer, and prints it.
+  receiveDecision: (decision: PendingDecisionInfo) => void
 }
 
 export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGameplayCommandsResult {
@@ -48,6 +51,34 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
   // The most recent unanswered decision, so /edge yes|no knows what to answer.
   // Server-side timeout resolves stale ids; answering one just reports the miss.
   const pendingDecisionRef = useRef<string | null>(null)
+
+  const receiveDecision = useCallback(
+    (decision: PendingDecisionInfo) => {
+      pendingDecisionRef.current = decision.decisionId
+      appendLocal('info', renderPendingDecision(decision))
+    },
+    [appendLocal],
+  )
+
+  const answerDecision = useCallback(
+    async (optionId: string, missingMessage: string): Promise<boolean> => {
+      const decisionId = pendingDecisionRef.current
+      if (!decisionId) {
+        appendLocal('error', missingMessage)
+        return false
+      }
+      try {
+        await respondToDecision(decisionId, optionId)
+        pendingDecisionRef.current = null
+        return true
+      } catch (error) {
+        pendingDecisionRef.current = null
+        appendLocal('error', toErrorMessage(error))
+        return false
+      }
+    },
+    [respondToDecision, appendLocal],
+  )
 
   const handleActionResponse = useCallback(
     (response: PerformGameActionResponse) => {
@@ -194,6 +225,54 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
 
             const response = await performGameAction(candidates[0].actionId, {
               pushTheLimit: parsed.pushTheLimit,
+              targetId: candidates[0].targetId,
+            })
+            handleActionResponse(response)
+            return true
+          } catch (error) {
+            appendLocal('error', toErrorMessage(error))
+            return false
+          }
+        }
+        case 'do': {
+          if (!joined) {
+            appendLocal('error', 'You are not connected.')
+            return false
+          }
+          try {
+            const actions = await listGameActions()
+
+            if (parsed.selector.length === 0) {
+              appendLocal('info', renderAffordances(actions))
+              return true
+            }
+
+            // Unlike /test, /do reaches every affordance — utilities and
+            // targeted actions included ("/do sneak past razor").
+            const query = parsed.selector.toLowerCase()
+            const exact = actions.filter((action) => action.displayName.toLowerCase() === query)
+            const candidates =
+              exact.length > 0
+                ? exact
+                : actions.filter(
+                    (action) =>
+                      action.actionId.toLowerCase().includes(query) ||
+                      action.displayName.toLowerCase().includes(query),
+                  )
+
+            if (candidates.length === 0) {
+              appendLocal('error', 'No matching action. Use /do to list them.')
+              return false
+            }
+            if (candidates.length > 1) {
+              const names = candidates.map((action) => action.displayName).join(', ')
+              appendLocal('error', `Which action did you mean? Matches: ${names}.`)
+              return false
+            }
+
+            const response = await performGameAction(candidates[0].actionId, {
+              pushTheLimit: parsed.pushTheLimit,
+              targetId: candidates[0].targetId,
             })
             handleActionResponse(response)
             return true
@@ -222,20 +301,14 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
             appendLocal('error', 'You are not connected.')
             return false
           }
-          const decisionId = pendingDecisionRef.current
-          if (!decisionId) {
-            appendLocal('error', 'There is no pending Edge decision to answer.')
+          return answerDecision(parsed.optionId, 'There is no pending Edge decision to answer.')
+        }
+        case 'defend-response': {
+          if (!joined) {
+            appendLocal('error', 'You are not connected.')
             return false
           }
-          try {
-            await respondToDecision(decisionId, parsed.optionId)
-            pendingDecisionRef.current = null
-            return true
-          } catch (error) {
-            pendingDecisionRef.current = null
-            appendLocal('error', toErrorMessage(error))
-            return false
-          }
+          return answerDecision(parsed.optionId, 'There is no pending defense decision to answer.')
         }
         case 'unknown': {
           appendLocal('error', `Unknown command: /${parsed.command}`)
@@ -249,8 +322,8 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
 
       return false
     },
-    [session, occupants, onlineCharacters, joined, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, listGameActions, performGameAction, respondToDecision, handleActionResponse, appendLocal, onOpenCharacterSheet],
+    [session, occupants, onlineCharacters, joined, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, listGameActions, performGameAction, answerDecision, handleActionResponse, appendLocal, onOpenCharacterSheet],
   )
 
-  return { submit }
+  return { submit, receiveDecision }
 }

@@ -3,6 +3,10 @@ namespace SeattleByNight.Application.GameEngine.Decisions;
 public enum DecisionKind
 {
     EdgeSecondChance,
+    // Milestone 4: how to defend against an incoming attack (standard vs
+    // full defense). The default doubles as the NPC policy — NPC actors
+    // resolve to the default synchronously.
+    DefenseResponse,
 }
 
 public sealed record DecisionOption(string OptionId, string Label);

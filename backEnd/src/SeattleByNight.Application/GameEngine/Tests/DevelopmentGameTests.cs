@@ -9,9 +9,9 @@ public enum LimitKind
 }
 
 // A skill-based test template: what to roll, against what, with which tags.
-// Milestone 1 ships two hard-coded development tests offered in every room;
-// real content-defined tests (NPC opposition, room interactables) arrive in
-// Milestone 3.
+// Opposed tests name the pool the opponent rolls (OpposedPoolId); the actual
+// opposing dice come from the resolved target actor at execution time (§25) —
+// definitions never embed opponent numbers.
 public sealed record SkillTestDefinition(
     string TestId,
     string DisplayName,
@@ -21,12 +21,13 @@ public sealed record SkillTestDefinition(
     LimitKind Limit,
     IReadOnlySet<TestTag> Tags,
     int? Threshold = null,
-    OpposingPool? Opposition = null);
+    string? OpposedPoolId = null);
 
 public static class DevelopmentGameTests
 {
     public const string ObserveAreaId = "observe-area";
-    public const string SneakingTestId = "sneaking-test";
+    public const string ObserveNpcId = "observe-npc";
+    public const string SneakPastId = "sneak-past";
 
     public static readonly IReadOnlyDictionary<string, SkillTestDefinition> All =
         new Dictionary<string, SkillTestDefinition>(StringComparer.Ordinal)
@@ -40,17 +41,24 @@ public static class DevelopmentGameTests
                 LimitKind.Mental,
                 new HashSet<TestTag> { TestTag.Mental, TestTag.Perception },
                 Threshold: 2),
-            [SneakingTestId] = new(
-                SneakingTestId,
-                "Sneaking Test",
-                "Agility + Sneaking [Physical] vs a development opposing pool.",
+            [ObserveNpcId] = new(
+                ObserveNpcId,
+                "Observe",
+                "Intuition + Perception [Mental] (1) — size someone up and read their mood.",
+                "perception",
+                TestKind.Threshold,
+                LimitKind.Mental,
+                new HashSet<TestTag> { TestTag.Mental, TestTag.Perception },
+                Threshold: 1),
+            [SneakPastId] = new(
+                SneakPastId,
+                "Sneak Past",
+                "Agility + Sneaking [Physical] vs the target's Perception — slip by without being noticed.",
                 "sneaking",
                 TestKind.Opposed,
                 LimitKind.Physical,
                 new HashSet<TestTag> { TestTag.Physical, TestTag.Stealth },
-                // Hard-coded development opposition (Intuition 4 + Perception 4);
-                // Milestone 3 replaces this with a real NPC's perception pool.
-                Opposition: new OpposingPool("Development opposing pool", 8)),
+                OpposedPoolId: "perception"),
         };
 
     public static SkillTestDefinition? Find(string testId) =>

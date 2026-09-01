@@ -2,9 +2,12 @@ import { apiGet, apiPost } from './client.ts'
 
 export interface GameActionSummary {
   actionId: string
+  // Set when the action is aimed at something in the room (an NPC or an
+  // interactable); the same actionId can appear once per eligible target.
+  targetId: string | null
   displayName: string
   description: string
-  kind: 'Test' | 'Utility'
+  kind: 'Test' | 'Utility' | 'Combat'
 }
 
 export interface DecisionOption {
@@ -33,6 +36,7 @@ export interface PerformGameActionResponse {
 export interface PerformGameActionOptions {
   situationalModifier?: number
   pushTheLimit?: boolean
+  targetId?: string | null
 }
 
 export async function listGameActions(signal?: AbortSignal): Promise<GameActionSummary[]> {
@@ -49,6 +53,7 @@ export async function performGameAction(
     requestId: crypto.randomUUID(),
     situationalModifier: options.situationalModifier ?? null,
     pushTheLimit: options.pushTheLimit ?? false,
+    targetId: options.targetId ?? null,
   })
 }
 

@@ -10,9 +10,11 @@ export type ParsedCommand =
   | { kind: 'character' }
   | { kind: 'go'; selector: string }
   | { kind: 'test'; selector: string; pushTheLimit: boolean }
+  | { kind: 'do'; selector: string; pushTheLimit: boolean }
   | { kind: 'run' }
   | { kind: 'surge' }
   | { kind: 'edge-response'; optionId: string }
+  | { kind: 'defend-response'; optionId: string }
   | { kind: 'unknown'; command: string }
   | { kind: 'usage-error'; command: string; message: string }
 
@@ -73,13 +75,13 @@ export function parseCommand(raw: string): ParsedCommand {
     return { kind: 'go', selector: argument }
   }
 
-  if (command === 'test') {
+  if (command === 'test' || command === 'do') {
     // A trailing "edge" keyword spends Edge to Push the Limit on the test.
     const match = argument.match(/^(.*?)\s+edge$/i)
     if (match) {
-      return { kind: 'test', selector: match[1].trim(), pushTheLimit: true }
+      return { kind: command, selector: match[1].trim(), pushTheLimit: true }
     }
-    return { kind: 'test', selector: argument, pushTheLimit: false }
+    return { kind: command, selector: argument, pushTheLimit: false }
   }
 
   if (command === 'run' || command === 'surge') {
@@ -99,6 +101,14 @@ export function parseCommand(raw: string): ParsedCommand {
       return { kind: 'usage-error', command, message: `Usage: ${usageFor(command)}` }
     }
     return { kind: 'edge-response', optionId: option }
+  }
+
+  if (command === 'defend') {
+    const option = argument.toLowerCase()
+    if (option !== 'standard' && option !== 'full') {
+      return { kind: 'usage-error', command, message: `Usage: ${usageFor(command)}` }
+    }
+    return { kind: 'defend-response', optionId: option }
   }
 
   return { kind: 'unknown', command: name }

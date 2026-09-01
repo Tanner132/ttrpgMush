@@ -14,7 +14,7 @@ public sealed class SkillTestBuilderTests
         DevelopmentGameTests.Find(DevelopmentGameTests.ObserveAreaId)!;
 
     private static readonly SkillTestDefinition Sneaking =
-        DevelopmentGameTests.Find(DevelopmentGameTests.SneakingTestId)!;
+        DevelopmentGameTests.Find(DevelopmentGameTests.SneakPastId)!;
 
     private static CharacterRuntimeSnapshot Healthy() => new(Guid.NewGuid(), 0, 0, 3);
 
@@ -100,8 +100,9 @@ public sealed class SkillTestBuilderTests
 
         Assert.Equal(TestKind.Opposed, built.Spec.Kind);
         Assert.Equal("Physical", built.Spec.LimitSource);
-        Assert.NotNull(built.Spec.Opposition);
-        Assert.Equal(8, built.Spec.Opposition!.Value);
+        // The definition names an opposing pool id, not a value — the executor
+        // fills Opposition from the resolved target's actor at execution time.
+        Assert.Null(built.Spec.Opposition);
         Assert.Equal(
             new[] { ("Agility", 5), ("Sneaking", 4) },
             built.Spec.BaseComponents.Select(component => (component.Source, component.Value)));
@@ -124,7 +125,9 @@ public sealed class SkillTestBuilderTests
 
         var sneaking = SkillTestBuilder.Build(Sneaking, TrainedCharacter(), Healthy(), activeEffects: running);
         var observing = SkillTestBuilder.Build(ObserveArea, TrainedCharacter(), Healthy(), activeEffects: running);
-        var sneakingResult = resolver.Resolve(sneaking.Spec, sneaking.Modifiers, seed: 20260830);
+        // Supply the opposition the executor would inject from the target NPC.
+        var sneakingSpec = sneaking.Spec with { Opposition = new OpposingPool("Razor — Perception", 6) };
+        var sneakingResult = resolver.Resolve(sneakingSpec, sneaking.Modifiers, seed: 20260830);
         var observingResult = resolver.Resolve(observing.Spec, observing.Modifiers, seed: 20260830);
 
         var penalty = Assert.Single(sneakingResult.Modifiers, modifier => modifier.Source == "Running");

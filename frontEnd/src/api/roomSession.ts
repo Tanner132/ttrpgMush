@@ -45,6 +45,47 @@ export interface RoomMessage {
   createdAtUtc: string
 }
 
+export interface RoomNpcSummary {
+  id: string
+  name: string
+}
+
+export interface RoomInteractableSummary {
+  id: string
+  name: string
+  description: string
+}
+
+export interface CombatParticipantView {
+  actorId: string
+  isNpc: boolean
+  displayName: string
+  initiativeScore: number
+  remainingInitiative: number
+  simpleRemaining: number
+  weaponName: string
+  // Null for melee weapons — only ranged weapons track ammo.
+  ammoRemaining: number | null
+  inCover: boolean
+  fullDefense: boolean
+  fled: boolean
+  incapacitated: boolean
+}
+
+// Snapshot of the room's fight, pushed over SignalR after every combat
+// mutation. Clients render the latest snapshot and never accumulate their
+// own state; active: false is the end-of-combat signal.
+export interface CombatView {
+  roomId: string
+  active: boolean
+  round: number
+  currentActorId: string | null
+  turnEndsAtUtc: string | null
+  participants: CombatParticipantView[]
+}
+
+// The room as THIS viewer sees it: interactables lists only content that is
+// not hidden or that this character has discovered.
 export interface RoomSession {
   playSessionId: string
   expiresAtUtc: string
@@ -52,8 +93,13 @@ export interface RoomSession {
   room: RoomSummary
   exits: RoomExitSummary[]
   occupants: CharacterSummary[]
+  npcs: RoomNpcSummary[]
+  interactables: RoomInteractableSummary[]
   messages: RoomMessage[]
   olderMessagesCursor: string | null
+  // Non-null only while this room has an active encounter, so a client
+  // joining mid-combat renders it without waiting for a push.
+  combat: CombatView | null
 }
 
 export async function getRoomSession(cursor?: string, signal?: AbortSignal): Promise<RoomSession> {
