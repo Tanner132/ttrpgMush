@@ -1,4 +1,7 @@
 using MediatR;
+using SeattleByNight.Application.GameEngine.Actions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
+using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Application.RoomSessions;
 
@@ -37,15 +40,24 @@ public sealed class MoveCharacterCommandHandler : IRequestHandler<MoveCharacterC
 {
     private readonly IMovementStore _movementStore;
     private readonly IRoomSessionReader _roomSessionReader;
+    private readonly IRoomContentReader _roomContent;
+    private readonly IGameCommandQueue _queue;
+    private readonly IGameScopeResolver _scopeResolver;
     private readonly PlaySessionOptions _options;
 
     public MoveCharacterCommandHandler(
         IMovementStore movementStore,
         IRoomSessionReader roomSessionReader,
+        IRoomContentReader roomContent,
+        IGameCommandQueue queue,
+        IGameScopeResolver scopeResolver,
         PlaySessionOptions options)
     {
         _movementStore = movementStore;
         _roomSessionReader = roomSessionReader;
+        _roomContent = roomContent;
+        _queue = queue;
+        _scopeResolver = scopeResolver;
         _options = options;
     }
 
@@ -68,6 +80,20 @@ public sealed class MoveCharacterCommandHandler : IRequestHandler<MoveCharacterC
         {
             return MoveCharacterResult.Failure(MoveCharacterError.StaleRoom);
         }
+
+        // Milestone 7 (§24): walking into a room is the headline content
+        // event. Movement is a MediatR command rather than a GameAction, so
+        // the event is raised onto the destination room's action queue as a
+        // reaction — which is what puts an authored ambush through the same
+        // pipeline, and the same audit log, as everything else.
+        var roomKey = await _roomContent.GetRoomContentKeyAsync(storeResult.NewRoomId, cancellationToken);
+        var scopeId = await _scopeResolver.ResolveScopeAsync(storeResult.NewRoomId, cancellationToken);
+        _ = _queue.EnqueueAsync(
+            scopeId,
+            TriggerRequests.BuildRoot(
+                request.UserId, TriggerEventKind.PlayerEnteredRoom, roomKey,
+                roomId: storeResult.NewRoomId),
+            CancellationToken.None);
 
         return MoveCharacterResult.Success(storeResult.OldRoomId, storeResult.NewRoomId, session);
     }

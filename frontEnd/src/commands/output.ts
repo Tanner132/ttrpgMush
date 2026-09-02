@@ -4,8 +4,11 @@ import type { MissionInstanceSummary } from '../api/missions.ts'
 import { COMMANDS } from './commands.ts'
 
 export function renderHelp(): string {
-  const lines = COMMANDS.map((command) => `${command.usage}  ${command.description}`)
-  return ['Available commands:', ...lines].join('\n')
+  // The transcript renders in a monospace face, so padding the usage column
+  // yields aligned, scannable rows.
+  const width = Math.max(...COMMANDS.map((command) => command.usage.length)) + 2
+  const lines = COMMANDS.map((command) => `${command.usage.padEnd(width)}${command.description}`)
+  return ['AVAILABLE COMMANDS', ...lines].join('\n')
 }
 
 export function renderLook(

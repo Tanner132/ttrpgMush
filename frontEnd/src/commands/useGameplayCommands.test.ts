@@ -118,6 +118,59 @@ describe('useGameplayCommands', () => {
     expect(appendLocal).not.toHaveBeenCalled()
   })
 
+  it('picks the numbered dialogue option when choices are on offer', async () => {
+    const choices: GameActionSummary[] = [
+      { actionId: 'scene-choice', targetId: 'c-ask', displayName: 'Ask about the work', description: '(Mr. Johnson) Ask about the work', kind: 'Scene' },
+      { actionId: 'scene-choice', targetId: 'c-leave', displayName: 'Walk away', description: '(Mr. Johnson) Walk away', kind: 'Scene' },
+    ]
+    const listGameActions = vi.fn<() => Promise<GameActionSummary[]>>().mockResolvedValue(choices)
+    const { result, performGameAction, sendMessage } = createHarness({ listGameActions })
+
+    await act(async () => {
+      await result.current.submit('2')
+    })
+
+    expect(performGameAction).toHaveBeenCalledWith('scene-choice', { targetId: 'c-leave' })
+    expect(sendMessage).not.toHaveBeenCalled()
+  })
+
+  it('falls back to chat for a bare number when no options are on offer', async () => {
+    const { result, sendMessage, performGameAction } = createHarness()
+
+    await act(async () => {
+      await result.current.submit('2')
+    })
+
+    expect(sendMessage).toHaveBeenCalledWith('2', MessageType.Say)
+    expect(performGameAction).not.toHaveBeenCalled()
+  })
+
+  it('reports a slash-number pick with nothing to choose instead of chatting', async () => {
+    const { result, sendMessage, appendLocal } = createHarness()
+
+    await act(async () => {
+      await result.current.submit('/2')
+    })
+
+    expect(sendMessage).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith('error', 'There are no numbered options to choose right now.')
+  })
+
+  it('rejects an out-of-range option number', async () => {
+    const choices: GameActionSummary[] = [
+      { actionId: 'scene-choice', targetId: 'c-ask', displayName: 'Ask about the work', description: '(Mr. Johnson) Ask about the work', kind: 'Scene' },
+    ]
+    const listGameActions = vi.fn<() => Promise<GameActionSummary[]>>().mockResolvedValue(choices)
+    const { result, appendLocal, performGameAction } = createHarness({ listGameActions })
+
+    await act(async () => {
+      await result.current.submit('/5')
+    })
+
+    expect(performGameAction).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith('error', 'Pick a number between 1 and 1.')
+  })
+
   it('sends /say text through the same send operation', async () => {
     const { result, sendMessage } = createHarness()
 
@@ -174,7 +227,7 @@ describe('useGameplayCommands', () => {
     })
 
     expect(ok).toBe(true)
-    expect(appendLocal).toHaveBeenCalledWith('info', expect.stringContaining('Available commands:'))
+    expect(appendLocal).toHaveBeenCalledWith('info', expect.stringContaining('AVAILABLE COMMANDS'))
   })
 
   it('renders /look with only the current room occupants', async () => {

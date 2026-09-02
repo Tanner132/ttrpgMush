@@ -2,6 +2,7 @@ using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
+using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Resolution;
@@ -79,25 +80,41 @@ public sealed class CombatEngineGoldenTests
             };
 
             RoomContent.Npcs.Add(new NpcSnapshot(
-                GangerId, NpcTemplates.StreetGangerId, "Razor", RoomId,
+                GangerId, NpcTemplateIds.StreetGanger, "Razor", RoomId,
                 PhysicalDamage: 0, StunDamage: 0, NpcAwareness.Unaware));
 
             var resolver = new TestResolver(Roller);
             var options = new PlaySessionOptions();
+            var missions = new FakeMissionReader();
+            var scopeResolver = new FakeGameScopeResolver();
+            var queue = new FakeGameCommandQueue();
             var combatEngine = new CombatEngine(
                 Tracker, resolver, Roller, new FixedSeedSource(), Applier, Audit,
-                Chat, Broadcaster, RoomContent, options, Clock);
-            var missions = new FakeMissionReader();
+                Chat, Broadcaster, RoomContent, TestGameContent.Provider, missions, queue, scopeResolver,
+                options, Clock);
             var missionEngine = new MissionEngine(
                 missions, TestGameContent.Provider, Applier, Audit, Chat, Broadcaster,
-                new FakeTravelNotifier(), options);
+                new FakeTravelNotifier(), RoomContent, queue, scopeResolver, options);
+            var sceneSessions = new FakeSceneSessionReader();
+            var sceneConditions = new SceneConditionEvaluator(missions, TestGameContent.Provider);
+            var sceneEffects = new SceneEffectResolver(
+                TestGameContent.Provider, missions, RoomContent, sceneSessions);
+            var sceneEngine = new SceneEngine(
+                sceneSessions, TestGameContent.Provider, sceneConditions, sceneEffects, RoomContent,
+                resolver, Roller, new FixedSeedSource(), Applier, Audit, Chat, Broadcaster,
+                queue, scopeResolver, options, Clock);
+            var triggerEngine = new TriggerEngine(
+                TestGameContent.Provider, missions, new FakeTriggerFireReader(), sceneSessions, RoomContent,
+                sceneConditions, sceneEffects, sceneEngine, resolver, new FixedSeedSource(), Applier, Audit,
+                Broadcaster, queue, scopeResolver, Clock);
             Executor = new GameActionExecutor(
                 sessions, sheets, new FakeRuntimeStateStore(), new FakeActiveEffectReader(),
                 new FixedSeedSource(), resolver, Roller, Broker, Applier, Audit,
-                Chat, Broadcaster, RoomContent,
-                new AffordanceService(RoomContent, Tracker, missions, TestGameContent.Provider),
-                new FakeGameCommandQueue(),
-                combatEngine, missionEngine, new FakeGameScopeResolver(), options, Clock);
+                Chat, Broadcaster, RoomContent, TestGameContent.Provider,
+                new AffordanceService(
+                    RoomContent, Tracker, missions, TestGameContent.Provider, sceneSessions, sceneConditions),
+                queue,
+                combatEngine, missionEngine, sceneEngine, triggerEngine, scopeResolver, options, Clock);
         }
 
         public Task<GameActionOutcome> AttackGangerAsync() =>

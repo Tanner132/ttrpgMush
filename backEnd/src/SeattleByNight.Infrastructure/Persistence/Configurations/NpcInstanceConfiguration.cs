@@ -18,6 +18,12 @@ public sealed class NpcInstanceConfiguration : IEntityTypeConfiguration<NpcInsta
         builder.Property(npc => npc.PhysicalDamage).HasColumnName("physical_damage").IsRequired();
         builder.Property(npc => npc.StunDamage).HasColumnName("stun_damage").IsRequired();
         builder.Property(npc => npc.Awareness).HasColumnName("awareness").HasMaxLength(50).IsRequired();
+        // Milestone 7 section 4: the placement's overrides. Nullable because
+        // absent means "whatever the template says", which is not the same as
+        // an empty override.
+        builder.Property(npc => npc.Description).HasColumnName("description").HasMaxLength(2000);
+        builder.Property(npc => npc.SceneId).HasColumnName("scene_id").HasMaxLength(100);
+        builder.Property(npc => npc.OverridesJson).HasColumnName("overrides").HasColumnType("jsonb");
         builder.Property(npc => npc.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
         builder.Property(npc => npc.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
 

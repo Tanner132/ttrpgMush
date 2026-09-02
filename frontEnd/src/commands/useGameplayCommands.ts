@@ -97,11 +97,54 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
     [appendLocal],
   )
 
+  // Numbered option picks: resolve the number against the CURRENT scene
+  // choices (same order the server numbered them in the message). A bare
+  // number falls back to chat when nothing is on offer; the slash form
+  // reports it instead. The server-side affordance gate revalidates the
+  // selection, so a stale number is refused, never misapplied.
+  const selectNumberedOption = useCallback(
+    async (number: number, fallbackToChat: boolean, rawText: string): Promise<boolean> => {
+      try {
+        const actions = await listGameActions()
+        const choices = actions.filter((action) => action.actionId === 'scene-choice')
+
+        if (choices.length === 0) {
+          if (fallbackToChat) {
+            return sendMessage(rawText, MessageType.Say)
+          }
+          appendLocal('error', 'There are no numbered options to choose right now.')
+          return false
+        }
+
+        if (number < 1 || number > choices.length) {
+          appendLocal('error', `Pick a number between 1 and ${choices.length}.`)
+          return false
+        }
+
+        const choice = choices[number - 1]
+        const response = await performGameAction(choice.actionId, { targetId: choice.targetId })
+        handleActionResponse(response)
+        return true
+      } catch (error) {
+        appendLocal('error', toErrorMessage(error))
+        return false
+      }
+    },
+    [listGameActions, sendMessage, performGameAction, handleActionResponse, appendLocal],
+  )
+
   const submit = useCallback(
     async (raw: string): Promise<boolean> => {
       const parsed = parseCommand(raw)
 
       switch (parsed.kind) {
+        case 'option-select': {
+          if (!joined) {
+            appendLocal('error', 'You are not connected.')
+            return false
+          }
+          return selectNumberedOption(parsed.number, parsed.fallbackToChat, parsed.rawText)
+        }
         case 'speech': {
           if (!joined) {
             appendLocal('error', 'You are not connected.')
@@ -339,7 +382,7 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
 
       return false
     },
-    [session, occupants, onlineCharacters, joined, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, listGameActions, listMissions, performGameAction, answerDecision, handleActionResponse, appendLocal, onOpenCharacterSheet],
+    [session, occupants, onlineCharacters, joined, sendMessage, rollDice, moveThroughExit, queryOnlineCharacters, listGameActions, listMissions, performGameAction, answerDecision, handleActionResponse, selectNumberedOption, appendLocal, onOpenCharacterSheet],
   )
 
   return { submit, receiveDecision }

@@ -6,6 +6,9 @@ export const MessageType = {
   Say: 'Say',
   Emote: 'Emote',
   Roll: 'Roll',
+  // Milestone 7: room-visible text with no speaker — authored trigger
+  // narration, and the prompt a trigger-opened scene puts on screen.
+  Narration: 'Narration',
 } as const
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType]

@@ -18,6 +18,7 @@ using SeattleByNight.Application;
 using SeattleByNight.Application.Characters;
 using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.GameEngine.Missions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.PlaySessions;
 using SeattleByNight.Infrastructure;
@@ -239,6 +240,7 @@ app.MapMissionEndpoints();
 app.MapAdminEndpoints();
 app.MapWorldEditorEndpoints();
 app.MapRoomContentAdminEndpoints();
+app.MapGameContentEndpoints();
 
 app.MapHub<RoomChatHub>("/hubs/room-chat").RequireAuthorization();
 
@@ -266,6 +268,7 @@ if (!isBuildTimeOpenApiGeneration
         {
             await db.Database.MigrateAsync();
             await DevelopmentDataSeeder.SeedAsync(db);
+            await SeedAndLoadGameContentAsync(scope.ServiceProvider, app.Logger);
         }
         catch (Exception ex)
         {
@@ -279,6 +282,11 @@ if (!isBuildTimeOpenApiGeneration
         // insert the role definitions and the starting room, so there is nothing
         // further to seed here.
         await db.Database.MigrateAsync();
+
+        // Milestone 7 (§50): the database is the content store, so a fresh
+        // deployment imports the repo-authored bundle as its first published
+        // content set before the provider composes anything.
+        await SeedAndLoadGameContentAsync(scope.ServiceProvider, app.Logger);
 
         var bootstrapAdministratorEmail = app.Configuration["Bootstrap:AdministratorEmail"];
 
@@ -295,6 +303,30 @@ if (!isBuildTimeOpenApiGeneration
 }
 
 app.Run();
+
+// Imports the embedded content bundle (idempotent) and warms the content
+// provider's cached document, so invalid content fails startup the way the
+// embedded provider used to rather than surfacing at the first mission.
+static async Task SeedAndLoadGameContentAsync(IServiceProvider services, ILogger logger)
+{
+    var db = services.GetRequiredService<SeattleByNightDbContext>();
+    var imported = await GameContentSeeder.SeedAsync(db, services.GetRequiredService<TimeProvider>());
+
+    if (imported > 0)
+    {
+        logger.LogInformation(
+            "Imported {Count} game content definitions from the embedded bundle.", imported);
+    }
+
+    var content = services.GetRequiredService<IGameContentProvider>();
+    await content.ReloadAsync();
+    logger.LogInformation(
+        "Serving game content revision {Version}: {Encounters} encounters, {Missions} missions, {Scenes} scenes.",
+        content.Current.Version,
+        content.Current.Encounters.Count,
+        content.Current.Missions.Count,
+        content.Current.Scenes.Count);
+}
 
 public partial class Program
 {

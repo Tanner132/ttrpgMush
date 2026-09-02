@@ -41,6 +41,20 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
         return rows.Select(ToSnapshot).ToArray();
     }
 
+    public async Task<IReadOnlyList<NpcSnapshot>> GetNpcsInEncounterAsync(
+        Guid encounterInstanceId, CancellationToken cancellationToken)
+    {
+        var rows = await dbContext.NpcInstances
+            .AsNoTracking()
+            .Where(npc => dbContext.Rooms
+                .Any(room => room.Id == npc.RoomId && room.EncounterInstanceId == encounterInstanceId))
+            .OrderBy(npc => npc.Name)
+            .ThenBy(npc => npc.Id)
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(ToSnapshot).ToArray();
+    }
+
     public async Task<InteractableSnapshot?> GetInteractableAsync(Guid interactableId, CancellationToken cancellationToken)
     {
         var row = await dbContext.RoomInteractables
@@ -87,6 +101,17 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
         return modifiers.Count > 0 ? modifiers[0] : 0;
     }
 
+    public async Task<string?> GetRoomContentKeyAsync(Guid roomId, CancellationToken cancellationToken)
+    {
+        var keys = await dbContext.Rooms
+            .AsNoTracking()
+            .Where(room => room.Id == roomId)
+            .Select(room => room.ContentKey)
+            .ToListAsync(cancellationToken);
+
+        return keys.Count > 0 ? keys[0] : null;
+    }
+
     public async Task<NpcSnapshot?> CreateNpcAsync(NewNpcInstance npc, CancellationToken cancellationToken)
     {
         var roomExists = await dbContext.Rooms.AnyAsync(room => room.Id == npc.RoomId, cancellationToken);
@@ -101,9 +126,12 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
             TemplateId = npc.TemplateId,
             Name = npc.Name,
             RoomId = npc.RoomId,
+            Description = npc.Description,
+            SceneId = npc.SceneId,
+            OverridesJson = NpcOverrideSerialization.Serialize(npc.Overrides),
             PhysicalDamage = 0,
             StunDamage = 0,
-            Awareness = NpcAwareness.Unaware.ToString(),
+            Awareness = npc.Awareness.ToString(),
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
         };
@@ -163,7 +191,10 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
             row.StunDamage,
             Enum.TryParse<NpcAwareness>(row.Awareness, ignoreCase: true, out var awareness)
                 ? awareness
-                : NpcAwareness.Unaware);
+                : NpcAwareness.Unaware,
+            row.Description,
+            row.SceneId,
+            NpcOverrideSerialization.Deserialize(row.OverridesJson));
 
     private static InteractableSnapshot ToSnapshot(RoomInteractable row) =>
         new(row.Id, row.RoomId, row.Name, row.Description, row.IsHidden, row.DiscoveryThreshold);

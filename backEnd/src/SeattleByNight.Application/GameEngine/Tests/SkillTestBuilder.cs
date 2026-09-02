@@ -19,48 +19,68 @@ public static class SkillTestBuilder
         int situationalModifier = 0,
         IReadOnlyList<ActiveEffectSnapshot>? activeEffects = null)
     {
-        var attributeId = character.GetLinkedAttributeId(definition.SkillId);
-        var attributeValue = character.GetAttribute(attributeId);
-        var skillRating = character.GetSkill(definition.SkillId);
-
-        var components = new List<PoolComponent>
-        {
-            new(character.GetAttributeDisplayName(attributeId), attributeValue),
-        };
-
+        var components = new List<PoolComponent>();
         var modifiers = new List<Modifier>();
 
-        if (skillRating is int rating)
-        {
-            components.Add(new PoolComponent(character.GetSkillDisplayName(definition.SkillId), rating));
+        // Milestone 7: an authored test names every component of its pool;
+        // the code catalog's SkillId shorthand expands to the SR5 default of
+        // linked attribute + skill. Either way the breakdown that comes out
+        // is the same shape, so nothing downstream branches on which it was.
+        var poolComponents = definition.HasAuthoredPool
+            ? definition.Pool!
+            : [
+                new TestPoolComponent(TestPoolComponentKind.Attribute, character.GetLinkedAttributeId(definition.SkillId)),
+                new TestPoolComponent(TestPoolComponentKind.Skill, definition.SkillId),
+            ];
 
-            // Dev simplification: a specialization applies whenever the
-            // character has one for the tested skill. Context-sensitive
-            // applicability (does "Urban" apply to THIS sneak?) arrives with
-            // real actions; until then the modifier path itself is what
-            // Milestone 1 proves.
-            if (character.GetSpecialization(definition.SkillId) is string specialization)
+        // The attribute a limit-less authored test still needs for effect
+        // modifiers: the first attribute in the pool (or the shorthand's
+        // linked attribute), which is the one an Active Effect would boost.
+        var attributeId = poolComponents
+            .FirstOrDefault(component => component.Kind == TestPoolComponentKind.Attribute)?.Id
+            ?? string.Empty;
+
+        foreach (var component in poolComponents)
+        {
+            if (component.Kind == TestPoolComponentKind.Attribute)
             {
+                components.Add(new PoolComponent(
+                    character.GetAttributeDisplayName(component.Id), character.GetAttribute(component.Id)));
+                continue;
+            }
+
+            if (character.GetSkill(component.Id) is int rating)
+            {
+                components.Add(new PoolComponent(character.GetSkillDisplayName(component.Id), rating));
+
+                // Dev simplification: a specialization applies whenever the
+                // character has one for the tested skill. Context-sensitive
+                // applicability (does "Urban" apply to THIS sneak?) arrives with
+                // real actions; until then the modifier path itself is what
+                // Milestone 1 proves.
+                if (character.GetSpecialization(component.Id) is string specialization)
+                {
+                    modifiers.Add(new Modifier(
+                        $"Specialization ({specialization})",
+                        ModifierTarget.DicePool,
+                        ModifierOperation.Add,
+                        2,
+                        new[] { definition.Tags.First() }));
+                }
+            }
+            else
+            {
+                // SR5 defaulting (p. 130): no skill means attribute − 1. Shown as
+                // an untrained 0 component plus an explicit −1 modifier so the
+                // breakdown explains itself. (Whether a skill forbids defaulting
+                // is not yet modeled.)
+                components.Add(new PoolComponent($"{character.GetSkillDisplayName(component.Id)} (untrained)", 0));
                 modifiers.Add(new Modifier(
-                    $"Specialization ({specialization})",
+                    "Defaulting",
                     ModifierTarget.DicePool,
                     ModifierOperation.Add,
-                    2,
-                    new[] { definition.Tags.First() }));
+                    -1));
             }
-        }
-        else
-        {
-            // SR5 defaulting (p. 130): no skill means attribute − 1. Shown as
-            // an untrained 0 component plus an explicit −1 modifier so the
-            // breakdown explains itself. (Whether a skill forbids defaulting
-            // is not yet modeled.)
-            components.Add(new PoolComponent($"{character.GetSkillDisplayName(definition.SkillId)} (untrained)", 0));
-            modifiers.Add(new Modifier(
-                "Defaulting",
-                ModifierTarget.DicePool,
-                ModifierOperation.Add,
-                -1));
         }
 
         var woundModifier = RuntimeDerivedValues.WoundModifier(runtime);

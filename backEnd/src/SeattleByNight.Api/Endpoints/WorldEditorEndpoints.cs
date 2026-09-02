@@ -46,6 +46,8 @@ public static class WorldEditorEndpoints
         group.MapGet("/rooms/{roomId:guid}", GetRoomDetailsAsync);
         group.MapPost("/rooms", CreateRoomAsync).RequireAntiforgery();
         group.MapPut("/rooms/{roomId:guid}", UpdateRoomAsync).RequireAntiforgery();
+        group.MapGet("/rooms/{roomId:guid}/deletable", GetRoomDeletionCheckAsync);
+        group.MapDelete("/rooms/{roomId:guid}", DeleteRoomAsync).RequireAntiforgery();
         group.MapPost("/exits", CreateExitAsync).RequireAntiforgery();
         group.MapPut("/exits/{exitId:guid}", UpdateExitAsync).RequireAntiforgery();
 
@@ -114,6 +116,36 @@ public static class WorldEditorEndpoints
             request.AccessType);
         var result = await mediator.Send(new UpdateRoomCommand(actor.Id, roomId, request.Version, mutation));
 
+        return MutationResult(result, Results.Ok);
+    }
+
+    // Milestone 7 section 5: what still points at this room, and whether it
+    // can go. Read before the button is pressed so the builder can show the
+    // blockers — and offer a relocation target when the only one is occupants.
+    private static async Task<IResult> GetRoomDeletionCheckAsync(Guid roomId, IMediator mediator)
+    {
+        var check = await mediator.Send(new GetRoomDeletionCheckQuery(roomId));
+        return check is null ? Results.NotFound() : Results.Ok(check);
+    }
+
+    private static async Task<IResult> DeleteRoomAsync(
+        Guid roomId,
+        Guid? relocateTo,
+        UserManager<ApplicationUser> userManager,
+        IMediator mediator,
+        HttpContext httpContext)
+    {
+        var actor = await userManager.GetUserAsync(httpContext.User);
+
+        if (actor is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await mediator.Send(new DeleteRoomCommand(actor.Id, roomId, relocateTo));
+
+        // A refused delete comes back as the check that refused it, not as an
+        // error: the builder shows the reasons and what to do about them.
         return MutationResult(result, Results.Ok);
     }
 

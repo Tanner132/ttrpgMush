@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using SeattleByNight.Application.Auditing;
+using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.WorldEditing;
 using SeattleByNight.Domain;
 using SeattleByNight.Domain.Entities;
@@ -14,12 +16,18 @@ public sealed class WorldEditorStore : IWorldEditorStore
     private const long TopologyCreationLockKey = 0x53424E5F544F504F;
     private readonly SeattleByNightDbContext _db;
     private readonly IAuditWriter _auditWriter;
+    private readonly IGameContentProvider _gameContent;
     private readonly TimeProvider _timeProvider;
 
-    public WorldEditorStore(SeattleByNightDbContext db, IAuditWriter auditWriter, TimeProvider timeProvider)
+    public WorldEditorStore(
+        SeattleByNightDbContext db,
+        IAuditWriter auditWriter,
+        IGameContentProvider gameContent,
+        TimeProvider timeProvider)
     {
         _db = db;
         _auditWriter = auditWriter;
+        _gameContent = gameContent;
         _timeProvider = timeProvider;
     }
 
@@ -240,6 +248,181 @@ public sealed class WorldEditorStore : IWorldEditorStore
         }
 
         return (rooms.Single(room => room.Id == sourceRoomId), rooms.Single(room => room.Id == destinationRoomId));
+    }
+
+    // Milestone 7 section 5: a public world room can only go when nothing is
+    // still pointing at it. Occupants are the one blocker with a way out — the
+    // builder offers somewhere to put them rather than refusing outright.
+    public async Task<RoomDeletionCheck?> CheckRoomDeletionAsync(
+        Guid roomId, CancellationToken cancellationToken = default)
+    {
+        var room = await _db.Rooms.AsNoTracking()
+            .FirstOrDefaultAsync(candidate => candidate.Id == roomId, cancellationToken);
+        if (room is null)
+        {
+            return null;
+        }
+
+        var incoming = await _db.RoomExits.CountAsync(
+            exit => exit.DestinationRoomId == roomId, cancellationToken);
+        var outgoing = await _db.RoomExits.CountAsync(
+            exit => exit.SourceRoomId == roomId, cancellationToken);
+        var occupants = await _db.Characters.CountAsync(
+            character => character.CurrentRoomId == roomId, cancellationToken);
+
+        // Both of these are Restrict foreign keys, so they are the difference
+        // between a delete that works and a 500. They are reported rather than
+        // refused: room talk and movement breadcrumbs belong to the room, and
+        // once the room is gone there is nothing left for them to describe.
+        var chatMessages = await _db.ChatMessages.CountAsync(
+            message => message.RoomId == roomId, cancellationToken);
+        var roomVisits = await _db.RoomVisits.CountAsync(
+            visit => visit.RoomId == roomId, cancellationToken);
+
+        var activeStatus = EncounterInstanceStatus.Active.ToString();
+        var returnLinks = await _db.EncounterInstances.CountAsync(
+            encounter => encounter.ReturnRoomId == roomId && encounter.Status == activeStatus,
+            cancellationToken);
+
+        // Content, not rows: a mission whose entry link names this room would
+        // stop being assignable the moment it disappeared.
+        var entryLinks = _gameContent.Current.Missions
+            .Where(mission => mission.EntryLinkRoomId == roomId)
+            .Select(mission => mission.Id)
+            .ToArray();
+
+        var isEncounterRoom = room.EncounterInstanceId is not null
+            || room.AccessType == RoomAccessType.Instanced;
+        var isStartingRoom = roomId == WorldOptions.DefaultStartingRoomId;
+
+        var reason = isEncounterRoom
+            ? "This room belongs to an encounter instance. Encounter rooms are owned by their encounter "
+                + "definition — retiring or deleting the encounter is what removes them."
+            : isStartingRoom
+                ? "This is where new characters start. Point the world at another starting room first."
+                : incoming + outgoing > 0
+                    ? $"{incoming + outgoing} exits still connect this room. Remove them first."
+                    : entryLinks.Length > 0
+                        ? $"Mission entry links point here: {string.Join(", ", entryLinks)}."
+                        : returnLinks > 0
+                            ? $"{returnLinks} runs in flight would return a character here."
+                            : null;
+
+        return new RoomDeletionCheck(
+            CanDelete: reason is null,
+            IncomingExits: incoming,
+            OutgoingExits: outgoing,
+            MissionEntryLinks: entryLinks,
+            ActiveReturnLinks: returnLinks,
+            CharactersPresent: occupants,
+            ChatMessages: chatMessages,
+            RoomVisits: roomVisits,
+            IsEncounterRoom: isEncounterRoom,
+            IsStartingRoom: isStartingRoom,
+            Reason: reason);
+    }
+
+    public async Task<WorldMutationResult<RoomDeletionCheck>> DeleteRoomAsync(
+        Guid actorUserId,
+        Guid roomId,
+        Guid? relocateCharactersToRoomId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+
+        var check = await CheckRoomDeletionAsync(roomId, cancellationToken);
+        if (check is null)
+        {
+            return WorldMutationResult<RoomDeletionCheck>.Failure(WorldMutationError.NotFound);
+        }
+
+        if (!check.CanDelete)
+        {
+            return WorldMutationResult<RoomDeletionCheck>.Success(check);
+        }
+
+        if (check.NeedsRelocation)
+        {
+            if (relocateCharactersToRoomId is not { } destination || destination == roomId)
+            {
+                return WorldMutationResult<RoomDeletionCheck>.Success(check with
+                {
+                    CanDelete = false,
+                    Reason = $"{check.CharactersPresent} characters are standing here. "
+                        + "Choose somewhere to move them.",
+                });
+            }
+
+            var destinationExists = await _db.Rooms.AnyAsync(
+                candidate => candidate.Id == destination && candidate.EncounterInstanceId == null,
+                cancellationToken);
+            if (!destinationExists)
+            {
+                return WorldMutationResult<RoomDeletionCheck>.Success(check with
+                {
+                    CanDelete = false,
+                    Reason = "The relocation target is not a public world room.",
+                });
+            }
+
+            var stranded = await _db.Characters
+                .Where(character => character.CurrentRoomId == roomId)
+                .ToListAsync(cancellationToken);
+            foreach (var character in stranded)
+            {
+                character.CurrentRoomId = destination;
+            }
+
+            // A relocated character needs an open visit where they now stand,
+            // or the room session reader shows them a room with no chat in it.
+            // Their visit HERE is about to be deleted with the room, so this
+            // opens the new one rather than closing the old one.
+            var now = _timeProvider.GetUtcNow();
+            var strandedIds = stranded.Select(character => character.Id).ToList();
+            var openSessions = await _db.PlaySessions
+                .Where(session => session.EndedAtUtc == null && strandedIds.Contains(session.CharacterId))
+                .Select(session => session.Id)
+                .ToListAsync(cancellationToken);
+
+            foreach (var playSessionId in openSessions)
+            {
+                _db.RoomVisits.Add(new RoomVisit
+                {
+                    Id = Guid.NewGuid(),
+                    PlaySessionId = playSessionId,
+                    RoomId = destination,
+                    EnteredAtUtc = now,
+                });
+            }
+        }
+
+        var room = await _db.Rooms.FirstAsync(candidate => candidate.Id == roomId, cancellationToken);
+
+        // Chat and visit rows are Restrict foreign keys onto the room, so they
+        // go in the same transaction — without this the delete passes every
+        // check and then throws at SaveChanges, which is a 500 rather than an
+        // answer. The audit record is what keeps the deletion itself legible.
+        await _db.ChatMessages
+            .Where(message => message.RoomId == roomId)
+            .ExecuteDeleteAsync(cancellationToken);
+        await _db.RoomVisits
+            .Where(visit => visit.RoomId == roomId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        _auditWriter.Append(actorUserId, AuditActions.RoomDeleted, AuditTargetTypes.Room, roomId,
+            new Dictionary<string, string>
+            {
+                ["name"] = room.Name,
+                ["relocatedCharacters"] = check.CharactersPresent.ToString(),
+                ["deletedChatMessages"] = check.ChatMessages.ToString(),
+                ["deletedRoomVisits"] = check.RoomVisits.ToString(),
+            });
+
+        _db.Rooms.Remove(room);
+        await _db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return WorldMutationResult<RoomDeletionCheck>.Success(check with { CanDelete = true, Reason = null });
     }
 
     private static WorldRoom ToWorldRoom(Room room) => new(

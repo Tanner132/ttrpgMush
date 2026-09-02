@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from './client.ts'
+import { apiDelete, apiGet, apiPost, apiPut } from './client.ts'
 
 export type EntityVersion = string
 
@@ -98,4 +98,34 @@ export function createWorldExit(request: ExitMutation): Promise<WorldExit> {
 
 export function updateWorldExit(exitId: string, request: ExitMutation & { version: EntityVersion }): Promise<WorldExit> {
   return apiPut<WorldExit>(`/api/admin/world/exits/${exitId}`, request)
+}
+
+/**
+ * Milestone 7: everything still pointing at a public world room, and whether
+ * it can go. Occupants are the one blocker with a way out — the builder offers
+ * somewhere to move them rather than refusing outright.
+ */
+export interface RoomDeletionCheck {
+  canDelete: boolean
+  incomingExits: number
+  outgoingExits: number
+  missionEntryLinks: string[]
+  activeReturnLinks: number
+  charactersPresent: number
+  // Room-scoped history that is deleted with the room. Reported so the admin
+  // sees what goes, not to block the delete.
+  chatMessages: number
+  roomVisits: number
+  isEncounterRoom: boolean
+  isStartingRoom: boolean
+  reason: string | null
+}
+
+export function getRoomDeletionCheck(roomId: string, signal?: AbortSignal): Promise<RoomDeletionCheck> {
+  return apiGet<RoomDeletionCheck>(`/api/admin/world/rooms/${roomId}/deletable`, signal)
+}
+
+export function deleteWorldRoom(roomId: string, relocateTo?: string): Promise<RoomDeletionCheck> {
+  const query = relocateTo === undefined ? '' : `?relocateTo=${relocateTo}`
+  return apiDelete<RoomDeletionCheck>(`/api/admin/world/rooms/${roomId}${query}`)
 }

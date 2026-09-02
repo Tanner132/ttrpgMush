@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.Auditing;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.WorldEditing;
 using SeattleByNight.Domain;
 using SeattleByNight.Domain.Entities;
@@ -166,7 +167,7 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
         var name = $"Rollback {Guid.NewGuid():N}";
         await using (var db = CreateDbContext())
         {
-            var store = new WorldEditorStore(db, new ThrowingAuditWriter(), TimeProvider.System);
+            var store = new WorldEditorStore(db, new ThrowingAuditWriter(), GameContent, TimeProvider.System);
             await Assert.ThrowsAsync<InvalidOperationException>(() => store.CreateRoomAsync(
                 DevelopmentDataSeeder.DevUserId,
                 new CreateRoomMutation(name, "Must roll back", "Public", 1, 1, 90)));
@@ -176,11 +177,13 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
         Assert.False(await verify.Rooms.AnyAsync(room => room.Name == name));
     }
 
+    private static readonly EmbeddedGameContentProvider GameContent = new();
+
     private SeattleByNightDbContext CreateDbContext() => new(
         new DbContextOptionsBuilder<SeattleByNightDbContext>().UseNpgsql(_connectionString).Options);
 
     private static WorldEditorStore CreateStore(SeattleByNightDbContext db) =>
-        new(db, new AuditWriter(db, TimeProvider.System), TimeProvider.System);
+        new(db, new AuditWriter(db, TimeProvider.System), GameContent, TimeProvider.System);
 
     private sealed class ThrowingAuditWriter : IAuditWriter
     {

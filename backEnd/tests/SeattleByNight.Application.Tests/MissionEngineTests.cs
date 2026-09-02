@@ -1,6 +1,7 @@
-using SeattleByNight.Application.GameEngine.Actions;
+﻿using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
+using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Resolution;
 using SeattleByNight.Application.GameEngine.StateChanges;
@@ -50,18 +51,35 @@ public sealed class MissionEngineTests
             var combat = new InMemoryCombatTracker();
             var chat = new FakeRoomChatStore();
             var broadcaster = new FakeGameMessageBroadcaster();
+            var scopeResolver = new FakeGameScopeResolver();
+            var queue = new FakeGameCommandQueue();
             var combatEngine = new CombatEngine(
                 combat, resolver, roller, new FixedSeedSource(), Applier, Audit,
-                chat, broadcaster, RoomContent, options, TimeProvider.System);
+                chat, broadcaster, RoomContent, TestGameContent.Provider, Missions, queue, scopeResolver,
+                options, TimeProvider.System);
             var missionEngine = new MissionEngine(
-                Missions, TestGameContent.Provider, Applier, Audit, chat, broadcaster, Travel, options);
+                Missions, TestGameContent.Provider, Applier, Audit, chat, broadcaster, Travel, RoomContent, queue, scopeResolver, options);
+            var sceneSessions = new FakeSceneSessionReader();
+            var sceneConditions = new SceneConditionEvaluator(Missions, TestGameContent.Provider);
+            var sceneEffects = new SceneEffectResolver(
+                TestGameContent.Provider, Missions, RoomContent, sceneSessions);
+            var sceneEngine = new SceneEngine(
+                sceneSessions, TestGameContent.Provider, sceneConditions, sceneEffects, RoomContent,
+                resolver, roller, new FixedSeedSource(), Applier, Audit, chat, broadcaster,
+                queue, scopeResolver, options, TimeProvider.System);
+            var triggerEngine = new TriggerEngine(
+                TestGameContent.Provider, Missions, new FakeTriggerFireReader(), sceneSessions, RoomContent,
+                sceneConditions, sceneEffects, sceneEngine, resolver, new FixedSeedSource(), Applier, Audit,
+                broadcaster, queue, scopeResolver, TimeProvider.System);
             var executor = new GameActionExecutor(
                 Sessions, Sheets, new FakeRuntimeStateStore(), new FakeActiveEffectReader(),
                 new FixedSeedSource(), resolver, roller, new FakeDecisionBroker(), Applier, Audit,
-                chat, broadcaster, RoomContent,
-                new AffordanceService(RoomContent, combat, Missions, TestGameContent.Provider),
-                new FakeGameCommandQueue(),
-                combatEngine, missionEngine, new FakeGameScopeResolver(), options, TimeProvider.System);
+                chat, broadcaster, RoomContent, TestGameContent.Provider,
+                new AffordanceService(
+                    RoomContent, combat, Missions, TestGameContent.Provider,
+                    sceneSessions, sceneConditions),
+                queue,
+                combatEngine, missionEngine, sceneEngine, triggerEngine, scopeResolver, options, TimeProvider.System);
 
             return executor.ExecuteAsync(new GameActionRequest(
                 Guid.NewGuid(), UserId, actionId, TargetId: targetId));
@@ -69,7 +87,7 @@ public sealed class MissionEngineTests
 
         public MissionInstanceSnapshot AddMissionInstance(params MissionObjectiveStatus[] statuses)
         {
-            var keys = new[] { "enter-warehouse", "retrieve-package", "leave-warehouse" };
+            var keys = new[] { "enter-warehouse", "retrieve-package", "leave-warehouse", "deliver-package" };
             var instance = new MissionInstanceSnapshot(
                 Guid.NewGuid(),
                 MissionId,
@@ -91,7 +109,7 @@ public sealed class MissionEngineTests
     {
         var harness = new Harness(AlleyId);
         var instance = harness.AddMissionInstance(
-            MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
+            MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
 
         var outcome = await harness.RunAsync(
             DevelopmentGameActions.EnterEncounterActionId, targetId: instance.Id);
@@ -111,7 +129,7 @@ public sealed class MissionEngineTests
     {
         var harness = new Harness(Guid.NewGuid());
         var instance = harness.AddMissionInstance(
-            MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
+            MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
 
         var outcome = await harness.RunAsync(
             DevelopmentGameActions.EnterEncounterActionId, targetId: instance.Id);
@@ -126,7 +144,7 @@ public sealed class MissionEngineTests
         var roomId = Guid.NewGuid();
         var harness = new Harness(roomId);
         var instance = harness.AddMissionInstance(
-            MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive);
+            MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
         var encounter = new EncounterInstanceSnapshot(
             Guid.NewGuid(), "gang-warehouse", instance.Id, EncounterInstanceStatus.Active,
             EntryRoomId: roomId, ReturnRoomId: AlleyId);
@@ -147,12 +165,13 @@ public sealed class MissionEngineTests
     }
 
     [Fact]
-    public async Task Leaving_with_all_objectives_done_completes_the_mission_with_rewards()
+    public async Task Leaving_with_the_package_completes_the_exit_objective_but_not_the_mission()
     {
         var roomId = Guid.NewGuid();
         var harness = new Harness(roomId);
         var instance = harness.AddMissionInstance(
-            MissionObjectiveStatus.Completed, MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active);
+            MissionObjectiveStatus.Completed, MissionObjectiveStatus.Completed,
+            MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive);
         var encounter = new EncounterInstanceSnapshot(
             Guid.NewGuid(), "gang-warehouse", instance.Id, EncounterInstanceStatus.Active,
             EntryRoomId: roomId, ReturnRoomId: AlleyId);
@@ -162,15 +181,15 @@ public sealed class MissionEngineTests
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
+        Assert.Equal(2, changes.Count);
         Assert.Equal("leave-warehouse", Assert.IsType<CompleteObjectiveChange>(changes[0]).ObjectiveKey);
-        var completion = Assert.IsType<CompleteMissionChange>(changes[1]);
-        Assert.Equal(2, completion.Karma);
-        Assert.Equal(2000, completion.Nuyen);
-        Assert.Equal(encounter.Id, Assert.IsType<LeaveEncounterChange>(changes[2]).EncounterInstanceId);
+        Assert.Equal(encounter.Id, Assert.IsType<LeaveEncounterChange>(changes[1]).EncounterInstanceId);
+        // Milestone 6: completion and rewards moved to the Johnson turn-in.
+        Assert.DoesNotContain(changes, change => change is CompleteMissionChange);
 
         var move = Assert.Single(harness.Travel.Moves);
         Assert.Equal((harness.PlaySessionId, roomId, AlleyId), move);
-        Assert.Contains("Mission complete", outcome.Message);
+        Assert.Contains("Johnson", outcome.Message);
     }
 
     [Fact]
@@ -179,7 +198,7 @@ public sealed class MissionEngineTests
         var roomId = Guid.NewGuid();
         var harness = new Harness(roomId);
         var instance = harness.AddMissionInstance(
-            MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive);
+            MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
         harness.Missions.Encounters.Add(new EncounterInstanceSnapshot(
             Guid.NewGuid(), "gang-warehouse", instance.Id, EncounterInstanceStatus.Active,
             EntryRoomId: roomId, ReturnRoomId: AlleyId));

@@ -552,7 +552,7 @@ describe('commands', () => {
     await user.type(composer, '/help')
     await user.click(screen.getByRole('button', { name: /send/i }))
 
-    expect((await screen.findAllByText(/Available commands:/)).length).toBeGreaterThan(0)
+    expect((await screen.findAllByText(/AVAILABLE COMMANDS/)).length).toBeGreaterThan(0)
     expect(composer).toHaveValue('')
     expect(realtime.sendMessage).not.toHaveBeenCalled()
   })

@@ -28,6 +28,13 @@ public interface IRoomContentReader
 
     Task<IReadOnlyList<NpcSnapshot>> GetNpcsInRoomAsync(Guid roomId, CancellationToken cancellationToken);
 
+    // Milestone 7: every NPC standing anywhere in one encounter instance. An
+    // alarm carries through a building, so an authored alertNpc reaches the
+    // whole site rather than only the room the player is in — see
+    // SceneEffectResolver for why alerting is the one effect scoped this way.
+    Task<IReadOnlyList<NpcSnapshot>> GetNpcsInEncounterAsync(
+        Guid encounterInstanceId, CancellationToken cancellationToken);
+
     Task<InteractableSnapshot?> GetInteractableAsync(Guid interactableId, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<InteractableSnapshot>> GetInteractablesInRoomAsync(Guid roomId, CancellationToken cancellationToken);
@@ -37,6 +44,11 @@ public interface IRoomContentReader
     // §42 (simplified): the room's single collapsed environment dice modifier
     // for ranged attacks. A missing room reads as 0 (neutral).
     Task<int> GetRoomEnvironmentModifierAsync(Guid roomId, CancellationToken cancellationToken);
+
+    // Milestone 7: the encounter definition's room key this room was
+    // materialized from, or null for a shared-world room. Room triggers watch
+    // keys, so raising a room event needs the key the room came from.
+    Task<string?> GetRoomContentKeyAsync(Guid roomId, CancellationToken cancellationToken);
 }
 
 // Write side used by the admin placement endpoints. Creation returns null when

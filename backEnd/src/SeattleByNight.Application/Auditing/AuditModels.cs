@@ -8,6 +8,13 @@ public static class AuditActions
     public const string RoomUpdated = "RoomUpdated";
     public const string RoomExitCreated = "RoomExitCreated";
     public const string RoomExitUpdated = "RoomExitUpdated";
+    public const string RoomDeleted = "RoomDeleted";
+    // Milestone 7: the builder writes content, so the builder is audited
+    // like every other admin mutation.
+    public const string GameContentDraftSaved = "GameContentDraftSaved";
+    public const string GameContentPublished = "GameContentPublished";
+    public const string GameContentRetired = "GameContentRetired";
+    public const string GameContentDeleted = "GameContentDeleted";
 }
 
 public static class AuditTargetTypes
@@ -15,6 +22,7 @@ public static class AuditTargetTypes
     public const string User = "User";
     public const string Room = "Room";
     public const string RoomExit = "RoomExit";
+    public const string GameContent = "GameContent";
 }
 
 public interface IAuditWriter

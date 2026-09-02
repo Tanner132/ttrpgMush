@@ -4,6 +4,12 @@ public interface IPlaySessionStore
 {
     Task<ActivePlaySession?> GetActiveByUserIdAsync(Guid userId, DateTimeOffset now, CancellationToken cancellationToken = default);
 
+    // The session a CHARACTER is playing on, for the paths that know who the
+    // action is about but not who is logged in as them — admin assignment
+    // raising a content event onto that character's room, for instance.
+    Task<ActivePlaySession?> GetActiveByCharacterIdAsync(
+        Guid characterId, DateTimeOffset now, CancellationToken cancellationToken = default);
+
     Task<StartPlaySessionResult> StartOrResumeAsync(
         Guid userId,
         Guid characterId,

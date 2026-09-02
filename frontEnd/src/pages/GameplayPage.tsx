@@ -193,6 +193,11 @@ export default function GameplayPage() {
             paginationError={paginationError}
             hasOlder={olderCursor !== null}
             onLoadOlder={loadOlder}
+            onPickOption={(number) => {
+              // The slash form: no chat fallback, so a stale click reports
+              // politely instead of speaking a number.
+              void submit(`/${number}`)
+            }}
           />
           <Composer
             interactive={composerInteractive}

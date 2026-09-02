@@ -30,6 +30,31 @@
           "key": "leave-warehouse",
           "displayName": "Leave the warehouse",
           "kind": "exitEncounter"
+        },
+        {
+          "key": "deliver-package",
+          "displayName": "Deliver the package to Mr. Johnson",
+          "kind": "deliverItem",
+          "itemKey": "package"
+        }
+      ],
+      "triggers": [
+        {
+          "key": "advance-cleared",
+          "event": "missionAccepted",
+          "repeatable": false,
+          "conditions": [
+            {
+              "kind": "missionOpen",
+              "missionId": "gang-warehouse-retrieval"
+            }
+          ],
+          "reactions": [
+            {
+              "kind": "narrate",
+              "text": "A commlink chirps: the client's advance has cleared, and the job clock is running."
+            }
+          ]
         }
       ]
     }

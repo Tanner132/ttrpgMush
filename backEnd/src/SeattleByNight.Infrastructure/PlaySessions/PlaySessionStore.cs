@@ -30,6 +30,20 @@ public sealed class PlaySessionStore : IPlaySessionStore
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<ActivePlaySession?> GetActiveByCharacterIdAsync(
+        Guid characterId, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.PlaySessions
+            .AsNoTracking()
+            .Where(s => s.CharacterId == characterId && s.EndedAtUtc == null && s.ExpiresAtUtc > now)
+            .Join(
+                _dbContext.Characters.AsNoTracking().Where(c => c.LifecycleState == CharacterLifecycleState.Finalized),
+                s => s.CharacterId,
+                c => c.Id,
+                (s, c) => new ActivePlaySession(s.Id, s.UserId, s.CharacterId, c.Name, c.CurrentRoomId, s.StartAtUtc, s.ExpiresAtUtc))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<StartPlaySessionResult> StartOrResumeAsync(
         Guid userId,
         Guid characterId,

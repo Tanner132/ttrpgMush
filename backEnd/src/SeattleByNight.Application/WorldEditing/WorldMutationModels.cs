@@ -66,6 +66,17 @@ public interface IWorldEditorStore
         RoomExitMutation mutation,
         CancellationToken cancellationToken = default);
 
+    // Milestone 7 section 5: the referential guard in front of deleting a
+    // public world room, and the delete itself.
+    Task<RoomDeletionCheck?> CheckRoomDeletionAsync(
+        Guid roomId, CancellationToken cancellationToken = default);
+
+    Task<WorldMutationResult<RoomDeletionCheck>> DeleteRoomAsync(
+        Guid actorUserId,
+        Guid roomId,
+        Guid? relocateCharactersToRoomId,
+        CancellationToken cancellationToken = default);
+
     Task<WorldMutationResult<WorldExit>> UpdateExitAsync(
         Guid actorUserId,
         Guid exitId,

@@ -1,0 +1,481 @@
+/*
+ * World Forge — the Milestone 7 content builder.
+ *
+ * Ports the "WORLD-FORGE" mockup onto the shared design tokens: a module tab
+ * rail across the top of the workspace, angular panels, and monospaced data
+ * rows. Nothing here redefines a color; the mockup's local token block maps
+ * one-for-one onto `--sb-*`.
+ */
+
+.forge {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-4);
+}
+
+/* ------------------------------------------------------------ module rail */
+
+.forge__modules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  border-bottom: 1px solid var(--sb-border);
+}
+
+.forge__tab {
+  font-family: var(--sb-font-heading);
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sb-text-faint);
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  padding: var(--sb-space-2) var(--sb-space-4) 0.4rem;
+  cursor: pointer;
+  transition: color var(--sb-duration-fast) var(--sb-ease),
+    border-color var(--sb-duration-fast) var(--sb-ease),
+    background var(--sb-duration-fast) var(--sb-ease);
+}
+
+.forge__tab:hover:not(:disabled) {
+  color: var(--sb-text-muted);
+}
+
+.forge__tab:disabled {
+  cursor: not-allowed;
+  color: var(--sb-text-dim);
+}
+
+.forge__tab[aria-selected='true'] {
+  color: var(--sb-accent);
+  background: var(--sb-surface);
+  border-color: var(--sb-border);
+  box-shadow: inset 0 2px 0 var(--sb-accent);
+}
+
+.forge__tab:focus-visible {
+  outline: none;
+  box-shadow: var(--sb-focus);
+}
+
+/* ------------------------------------------------------------ screen head */
+
+.forge__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--sb-space-3);
+}
+
+.forge__head > div {
+  min-width: 0;
+  flex: 1 1 22rem;
+}
+
+.forge__eyebrow {
+  margin: 0;
+  font-family: var(--sb-font-data);
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+  color: var(--sb-text-faint);
+}
+
+.forge__title {
+  margin: 2px 0 0;
+  font-family: var(--sb-font-heading);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.forge__sub {
+  margin: var(--sb-space-1) 0 0;
+  color: var(--sb-text-muted);
+  max-width: 68ch;
+}
+
+/* The live revision readout — the mockup's topbar meta, kept beside the
+   screen title so the app's own topbar stays player-facing chrome. */
+.forge__revision {
+  font-family: var(--sb-font-data);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  color: var(--sb-text-faint);
+  text-align: right;
+  flex: 0 1 auto;
+}
+
+.forge__revision b {
+  color: var(--sb-accent);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------- layouts */
+
+.forge-cols {
+  display: grid;
+  gap: var(--sb-space-4);
+  align-items: start;
+}
+
+.forge-cols--dash {
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+}
+
+.forge-cols--list-editor {
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+}
+
+@media (max-width: 1100px) {
+  .forge-cols--dash,
+  .forge-cols--list-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.forge-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-4);
+  min-width: 0;
+}
+
+.forge-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sb-space-2);
+}
+
+/* ------------------------------------------------------------------ stats */
+
+.forge-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--sb-space-3);
+  margin: 0;
+}
+
+.forge-stat {
+  display: flex;
+  /* Markup order is dt then dd (required inside a dl group); the card reads
+     value first. */
+  flex-direction: column-reverse;
+  padding: var(--sb-space-3) var(--sb-space-4);
+  background: var(--sb-surface-raised);
+  border: 1px solid var(--sb-border);
+}
+
+.forge-stat dd,
+.forge-stat dt {
+  margin: 0;
+}
+
+.forge-stat__value {
+  font-family: var(--sb-font-heading);
+  font-weight: 700;
+  font-size: 1.6rem;
+  line-height: 1.1;
+  color: var(--sb-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.forge-stat__value--warn {
+  color: var(--sb-warning);
+}
+
+.forge-stat__value--dim {
+  color: var(--sb-text-faint);
+}
+
+.forge-stat__label {
+  font-family: var(--sb-font-data);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sb-text-faint);
+}
+
+/* ------------------------------------------------------------- data rows */
+
+.forge-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.forge-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sb-space-3);
+  padding: 9px var(--sb-space-4);
+  border-bottom: 1px solid var(--sb-border);
+  font-family: var(--sb-font-data);
+  font-size: 0.78rem;
+  text-align: left;
+  width: 100%;
+  background: transparent;
+  color: inherit;
+}
+
+.forge-row:last-child {
+  border-bottom: none;
+}
+
+.forge-row--head {
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sb-text-dim);
+  background: var(--sb-surface-raised);
+}
+
+/* The row's name is the selection control; the action buttons beside it stay
+   separately reachable, so the whole row is deliberately not one button. */
+.forge-row__select {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: var(--sb-space-1) 0;
+  cursor: pointer;
+  transition: color var(--sb-duration-fast) var(--sb-ease);
+}
+
+.forge-row__select:hover .forge-row__name {
+  color: var(--sb-accent);
+}
+
+.forge-row__select:focus-visible {
+  outline: none;
+  box-shadow: var(--sb-focus);
+}
+
+.forge-row--selected {
+  background: var(--sb-accent-wash);
+  box-shadow: inset 2px 0 0 var(--sb-accent);
+}
+
+.forge-row__name {
+  font-weight: 600;
+  color: var(--sb-text);
+}
+
+.forge-row__meta {
+  color: var(--sb-text-faint);
+  font-size: 0.68rem;
+}
+
+.forge-row__grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.forge-empty {
+  padding: var(--sb-space-4);
+  font-family: var(--sb-font-data);
+  font-size: 0.74rem;
+  color: var(--sb-text-faint);
+}
+
+/* ------------------------------------------------------------------ chips */
+
+.forge-chip {
+  display: inline-block;
+  font-family: var(--sb-font-data);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  padding: 2px var(--sb-space-2);
+  white-space: nowrap;
+  color: var(--sb-text-muted);
+  border: 1px solid var(--sb-border-strong);
+  background: var(--sb-track);
+}
+
+.forge-chip--published {
+  color: var(--sb-accent);
+  border-color: color-mix(in srgb, var(--sb-accent) 50%, transparent);
+  background: color-mix(in srgb, var(--sb-accent) 8%, transparent);
+}
+
+.forge-chip--draft {
+  color: var(--sb-warning);
+  border-color: color-mix(in srgb, var(--sb-warning) 50%, transparent);
+  background: color-mix(in srgb, var(--sb-warning) 8%, transparent);
+}
+
+.forge-chip--retired {
+  color: var(--sb-text-faint);
+}
+
+.forge-chip--error {
+  color: var(--sb-danger);
+  border-color: color-mix(in srgb, var(--sb-danger) 55%, transparent);
+  background: color-mix(in srgb, var(--sb-danger) 8%, transparent);
+}
+
+.forge-chip--kind {
+  color: var(--sb-info);
+  border-color: color-mix(in srgb, var(--sb-info) 45%, transparent);
+  background: color-mix(in srgb, var(--sb-info) 7%, transparent);
+  min-width: 5.2rem;
+  text-align: center;
+}
+
+/* ------------------------------------------------------- validation log */
+
+.forge-vlog {
+  font-family: var(--sb-font-data);
+  font-size: 0.72rem;
+  line-height: 1.8;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.forge-vlog__line {
+  display: flex;
+  gap: var(--sb-space-3);
+  align-items: baseline;
+}
+
+.forge-vlog__ok {
+  color: var(--sb-accent);
+}
+
+.forge-vlog__err {
+  color: var(--sb-danger);
+}
+
+.forge-vlog__path {
+  color: var(--sb-text-faint);
+  word-break: break-word;
+}
+
+/* ------------------------------------------------------------------ notes */
+
+.forge-note {
+  padding: var(--sb-space-3);
+  font-family: var(--sb-font-data);
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.forge-note--danger {
+  color: var(--sb-danger);
+  border: 1px solid color-mix(in srgb, var(--sb-danger) 45%, transparent);
+  background: color-mix(in srgb, var(--sb-danger) 6%, transparent);
+}
+
+.forge-note--ok {
+  color: var(--sb-accent);
+  border: 1px solid color-mix(in srgb, var(--sb-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--sb-accent) 6%, transparent);
+}
+
+/* -------------------------------------------------------------- dice pool */
+
+.forge-pool {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sb-space-2);
+  font-family: var(--sb-font-data);
+  font-size: 0.76rem;
+}
+
+.forge-pool__term {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sb-space-2);
+  padding: var(--sb-space-1) var(--sb-space-2) var(--sb-space-1) var(--sb-space-3);
+  border: 1px solid color-mix(in srgb, var(--sb-accent) 40%, var(--sb-border));
+  background: color-mix(in srgb, var(--sb-accent) 5%, transparent);
+  color: var(--sb-text);
+}
+
+.forge-pool__term small {
+  color: var(--sb-text-faint);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.forge-pool__op {
+  color: var(--sb-text-dim);
+}
+
+.forge-pool__empty {
+  color: var(--sb-text-faint);
+}
+
+/* ------------------------------------------------------------------ forms */
+
+.forge-grid {
+  display: grid;
+  gap: var(--sb-space-3);
+}
+
+.forge-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 760px) {
+  .forge-grid--2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.forge-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sb-space-2);
+}
+
+.forge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sb-space-1);
+  font-family: var(--sb-font-data);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  color: var(--sb-text-muted);
+}
+
+/* ------------------------------------------------- nested composition rows */
+
+/* One effect, condition, choice or reaction inside a larger form. Nested
+   editors get deep, so each level reads as its own inset block. */
+.forge-fx {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-3);
+  padding: var(--sb-space-3);
+  border: 1px solid var(--sb-border);
+  background: var(--sb-surface-raised);
+}
+
+.forge-fx .forge-fx {
+  background: var(--sb-surface-sunken);
+}
+
+/* --------------------------------------------------------- not-yet-ported */
+
+/* Screens the mockup specifies but this pass has not built. Shown so the
+   module rail matches the design and the remaining work is visible, rather
+   than pretending the builder is finished. */
+.forge-pending {
+  font-family: var(--sb-font-data);
+  font-size: 0.76rem;
+  line-height: 1.7;
+  color: var(--sb-text-faint);
+}
+
+.forge-pending b {
+  color: var(--sb-text-muted);
+  font-weight: 600;
+}

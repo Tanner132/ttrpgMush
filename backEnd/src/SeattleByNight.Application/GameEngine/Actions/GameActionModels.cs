@@ -1,4 +1,5 @@
 using SeattleByNight.Application.GameEngine.Decisions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Resolution;
 
 namespace SeattleByNight.Application.GameEngine.Actions;
@@ -15,7 +16,63 @@ public sealed record GameActionRequest(
     int? SituationalModifier = null,
     bool PushTheLimit = false,
     int Depth = 0,
-    Guid? TargetId = null);
+    Guid? TargetId = null,
+    // Milestone 7: the content event a fire-triggers reaction is carrying.
+    // Engine-only — player submissions never set it, and the HTTP surface
+    // does not map it.
+    TriggerEventPayload? TriggerEvent = null);
+
+// Which of the engine's internal events (§24) fired, and against what. The
+// subject fields identify the thing the event happened to, in the same
+// vocabulary the authored trigger filters use, so matching a trigger is a
+// field comparison rather than a special case per event kind.
+public sealed record TriggerEventPayload(
+    TriggerEventKind Event,
+    string? RoomKey = null,
+    string? ItemKey = null,
+    string? NpcName = null,
+    string? InteractableName = null,
+    // Where the event happened. Reactions are queued, so by the time one is
+    // consumed the character may have walked on; the trigger engine refuses
+    // to fire an event against a room its subject has already left.
+    Guid? RoomId = null);
+
+public static class TriggerRequests
+{
+    // Builds the engine-only reaction that raises one content event, one
+    // level deeper than whatever caused it (§24 depth accounting).
+    public static GameActionRequest Build(
+        GameActionRequest cause,
+        TriggerEventKind eventKind,
+        string? roomKey = null,
+        string? itemKey = null,
+        string? npcName = null,
+        string? interactableName = null,
+        Guid? roomId = null) =>
+        new(
+            Guid.NewGuid(),
+            cause.UserId,
+            DevelopmentGameActions.FireTriggersActionId,
+            Depth: cause.Depth + 1,
+            TriggerEvent: new TriggerEventPayload(
+                eventKind, roomKey, itemKey, npcName, interactableName, roomId));
+
+    // The same reaction raised from outside the action pipeline — movement is
+    // a MediatR command, not a GameAction, but walking into a room is still
+    // an event content reacts to.
+    public static GameActionRequest BuildRoot(
+        Guid userId,
+        TriggerEventKind eventKind,
+        string? roomKey = null,
+        string? npcName = null,
+        Guid? roomId = null) =>
+        new(
+            Guid.NewGuid(),
+            userId,
+            DevelopmentGameActions.FireTriggersActionId,
+            Depth: 1,
+            TriggerEvent: new TriggerEventPayload(eventKind, roomKey, NpcName: npcName, RoomId: roomId));
+}
 
 public enum GameActionError
 {

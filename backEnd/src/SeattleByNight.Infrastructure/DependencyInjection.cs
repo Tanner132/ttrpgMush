@@ -9,8 +9,10 @@ using SeattleByNight.Application.Dice;
 using SeattleByNight.Application.GameEngine.Auditing;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Actions;
+using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Effects;
 using SeattleByNight.Application.GameEngine.Missions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.GameEngine.Runtime;
 using SeattleByNight.Application.GameEngine.StateChanges;
@@ -71,6 +73,15 @@ public static class DependencyInjection
         services.AddScoped<IMissionAssignmentStore, MissionStore>();
         services.AddScoped<IEncounterLifecycleStore, EncounterLifecycleStore>();
         services.AddScoped<IGameScopeResolver, GameScopeResolver>();
+        services.AddScoped<ISceneSessionReader, SceneSessionStore>();
+        services.AddScoped<ITriggerFireReader, SceneSessionStore>();
+        // Milestone 7 (§50): game content is served from the database, not
+        // from embedded resources. This registration replaces the Application
+        // layer's embedded provider, which stays behind as the seed source
+        // for the first published content set.
+        services.AddScoped<IGameContentStore, GameContentStore>();
+        services.AddScoped<IGameContentUsageReader, GameContentUsageReader>();
+        services.AddSingleton<IGameContentProvider, DatabaseGameContentProvider>();
 
         services
             .AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>

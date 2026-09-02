@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Application.RoomChat;
 using SeattleByNight.Application.WorldEditing;
@@ -84,6 +85,7 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
             var editor = new WorldEditorStore(
                 editorDb,
                 new AuditWriter(editorDb, TimeProvider.System),
+                new EmbeddedGameContentProvider(),
                 TimeProvider.System);
 
             var update = await editor.UpdateExitAsync(

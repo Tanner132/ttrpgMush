@@ -4,6 +4,7 @@ using SeattleByNight.Application.GameEngine.Auditing;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
+using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Effects;
 using SeattleByNight.Application.GameEngine.Missions;
@@ -46,6 +47,10 @@ internal sealed class FakePlaySessionStore : IPlaySessionStore
 
         return Session;
     }
+
+    public Task<ActivePlaySession?> GetActiveByCharacterIdAsync(
+        Guid characterId, DateTimeOffset now, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Session?.CharacterId == characterId ? Session : null);
 
     public Task<StartPlaySessionResult> StartOrResumeAsync(
         Guid userId, Guid characterId, TimeSpan idleTimeout, CancellationToken cancellationToken = default) =>
@@ -250,6 +255,17 @@ internal sealed class FakeRoomContentReader : IRoomContentReader
     public Task<IReadOnlyList<NpcSnapshot>> GetNpcsInRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<NpcSnapshot>>(Npcs.Where(npc => npc.RoomId == roomId).ToArray());
 
+    // Which rooms belong to which encounter instance, for the encounter-wide
+    // NPC lookup. Empty unless a test is exercising a cross-room effect.
+    public Dictionary<Guid, Guid> RoomEncounters { get; } = new();
+
+    public Task<IReadOnlyList<NpcSnapshot>> GetNpcsInEncounterAsync(
+        Guid encounterInstanceId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<NpcSnapshot>>(Npcs
+            .Where(npc => RoomEncounters.TryGetValue(npc.RoomId, out var encounter)
+                && encounter == encounterInstanceId)
+            .ToArray());
+
     public Task<InteractableSnapshot?> GetInteractableAsync(Guid interactableId, CancellationToken cancellationToken) =>
         Task.FromResult(Interactables.FirstOrDefault(interactable => interactable.Id == interactableId));
 
@@ -265,6 +281,11 @@ internal sealed class FakeRoomContentReader : IRoomContentReader
 
     public Task<int> GetRoomEnvironmentModifierAsync(Guid roomId, CancellationToken cancellationToken) =>
         Task.FromResult(EnvironmentModifiers.TryGetValue(roomId, out var modifier) ? modifier : 0);
+
+    public Task<string?> GetRoomContentKeyAsync(Guid roomId, CancellationToken cancellationToken) =>
+        Task.FromResult(RoomContentKeys.TryGetValue(roomId, out var key) ? key : null);
+
+    public Dictionary<Guid, string> RoomContentKeys { get; } = new();
 }
 
 // Captures reactions the executor fires instead of running them — the tests
@@ -299,6 +320,13 @@ internal sealed class FakeMissionReader : IMissionReader
         Task.FromResult<IReadOnlyList<MissionInstanceSnapshot>>(
             Instances.Where(instance => instance.CharacterId == characterId).ToList());
 
+    public Task<IReadOnlyDictionary<string, int>> CountOpenInstancesByMissionAsync(
+        CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyDictionary<string, int>>(
+            Instances
+                .GroupBy(instance => instance.MissionId, StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal));
+
     public Task<EncounterInstanceSnapshot?> GetActiveEncounterForCharacterAsync(
         Guid characterId, CancellationToken cancellationToken) =>
         Task.FromResult(ParticipantsByCharacter.TryGetValue(characterId, out var encounterId)
@@ -323,6 +351,30 @@ internal sealed class FakeMissionReader : IMissionReader
     public Task<IReadOnlyList<WorldItemSnapshot>> GetItemsInRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<WorldItemSnapshot>>(
             Items.Where(item => item.RoomId == roomId).ToList());
+
+    public Task<IReadOnlyList<WorldItemSnapshot>> GetItemsOwnedByCharacterAsync(
+        Guid characterId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<WorldItemSnapshot>>(
+            Items.Where(item => item.OwnerCharacterId == characterId).ToList());
+
+    // Availability mirrors the store's headline rule (no open instance); the
+    // cooldown/one-time nuances live in the infrastructure tests.
+    public Task<bool> IsMissionAvailableAsync(
+        Guid characterId,
+        SeattleByNight.Application.GameEngine.Missions.Content.MissionDefinition definition,
+        CancellationToken cancellationToken) =>
+        Task.FromResult(!Instances.Any(instance =>
+            instance.CharacterId == characterId
+            && string.Equals(instance.MissionId, definition.Id, StringComparison.Ordinal)
+            && !instance.IsTerminal));
+}
+
+internal sealed class FakeSceneSessionReader : ISceneSessionReader
+{
+    public SceneSessionSnapshot? Session { get; set; }
+
+    public Task<SceneSessionSnapshot?> GetForCharacterAsync(Guid characterId, CancellationToken cancellationToken) =>
+        Task.FromResult(Session is not null && Session.CharacterId == characterId ? Session : null);
 }
 
 internal sealed class FakeTravelNotifier : ITravelNotifier
@@ -355,4 +407,15 @@ internal sealed class FakeGameCommandQueue : IGameCommandQueue
         Enqueued.Enqueue((scopeId, request));
         return Task.FromResult(GameActionOutcome.Final(null, null));
     }
+}
+
+// Milestone 7: nothing has fired yet unless a test says so, so an authored
+// fire-once trigger always gets its one chance in a fresh harness.
+internal sealed class FakeTriggerFireReader : ITriggerFireReader
+{
+    public HashSet<(Guid CharacterId, Guid MissionInstanceId, string TriggerKey)> Fired { get; } = [];
+
+    public Task<bool> HasFiredAsync(
+        Guid characterId, Guid missionInstanceId, string triggerKey, CancellationToken cancellationToken) =>
+        Task.FromResult(Fired.Contains((characterId, missionInstanceId, triggerKey)));
 }

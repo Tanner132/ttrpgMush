@@ -16,6 +16,7 @@ export const COMMANDS: CommandMetadata[] = [
   { name: 'edge', usage: '/edge <yes|no>', description: 'Answer a pending Edge decision.' },
   { name: 'defend', usage: '/defend <standard|full>', description: 'Answer a pending defense decision. Full Defense adds Willpower but costs 10 initiative.' },
   { name: 'missions', usage: '/missions', description: 'Show your missions and objectives.' },
+  { name: 'choose', usage: '<number> (or /<number>)', description: 'Pick a numbered dialogue option when one is on screen.' },
   { name: 'help', usage: '/help', description: 'List available commands.' },
   { name: 'who', usage: '/who', description: 'List characters online right now.' },
   { name: 'look', usage: '/look', description: 'Describe the current room.' },

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using SeattleByNight.Api.Authorization;
+using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.PlaySessions;
@@ -105,6 +106,10 @@ public static class MissionEndpoints
         AssignMissionRequest request,
         IGameContentProvider content,
         IMissionAssignmentStore assignmentStore,
+        IPlaySessionStore playSessionStore,
+        IGameCommandQueue queue,
+        IGameScopeResolver scopeResolver,
+        TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
         if (content.Current.FindMission(missionId) is not MissionDefinition definition)
@@ -114,6 +119,24 @@ public static class MissionEndpoints
         }
 
         var result = await assignmentStore.AssignAsync(request.CharacterId, definition, cancellationToken);
+
+        // §24: taking a mission is the same content event however it was
+        // taken. A scene choice raises it from the effect; an admin handing
+        // the job out has to raise it too, or an authored missionAccepted
+        // trigger fires on one path and silently not on the other. A character
+        // who is not logged in has no room to raise it into — the event is a
+        // thing that happens somewhere, so there is nothing to raise.
+        if (result.IsSuccess
+            && await playSessionStore.GetActiveByCharacterIdAsync(
+                request.CharacterId, timeProvider.GetUtcNow(), cancellationToken) is { } session)
+        {
+            var scopeId = await scopeResolver.ResolveScopeAsync(session.CurrentRoomId, cancellationToken);
+            await queue.EnqueueAsync(
+                scopeId,
+                TriggerRequests.BuildRoot(
+                    session.UserId, TriggerEventKind.MissionAccepted, roomId: session.CurrentRoomId),
+                cancellationToken);
+        }
 
         return result.Error switch
         {

@@ -12,4 +12,7 @@ public enum NpcAwareness
     // Fleeing means the NPC broke off and wants no part of what is left.
     Combat = 3,
     Fleeing = 4,
+    // Milestone 6 talk route: the NPC was talked down and stands aside — it
+    // no longer joins combat draw-ins and stays out of the player's way.
+    Pacified = 5,
 }

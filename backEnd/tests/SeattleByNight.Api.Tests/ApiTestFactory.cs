@@ -48,6 +48,10 @@ public sealed class ApiTestFactory : IAsyncLifetime
         {
             await db.Database.MigrateAsync();
             await DevelopmentDataSeeder.SeedAsync(db);
+            // Milestone 7: startup seeding is switched off with the migration
+            // (MigrateOnStartup below), so the fixture imports the content
+            // bundle itself — the API serves content from the database now.
+            await GameContentSeeder.SeedAsync(db);
         }
 
         _factory = new WebApplicationFactory<Program>()

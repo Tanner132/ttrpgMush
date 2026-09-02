@@ -53,10 +53,64 @@
   font-size: 0.85rem;
   max-width: var(--sb-measure);
   color: var(--sb-text-muted);
+  border-left: 2px solid var(--sb-border-strong);
+  padding: 2px 0 2px var(--sb-space-3);
+  line-height: 1.55;
 }
 
 .message-log__local--error {
   color: var(--sb-danger);
+  border-left-color: var(--sb-danger);
+  background: color-mix(in srgb, var(--sb-danger) 7%, transparent);
+}
+
+/* A dialogue prompt: intro lines, clickable numbered options, and a hint. */
+.message-log__local--options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left-color: var(--sb-accent);
+}
+
+.message-log__option {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sb-space-3);
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 14px 4px 6px;
+  font-family: var(--sb-font-data);
+  font-size: 0.85rem;
+  text-align: left;
+  color: var(--sb-text);
+  background: color-mix(in srgb, var(--sb-accent) 5%, transparent);
+  border: 1px solid var(--sb-border);
+  cursor: pointer;
+}
+
+.message-log__option:hover,
+.message-log__option:focus-visible {
+  border-color: var(--sb-accent);
+  background: color-mix(in srgb, var(--sb-accent) 14%, transparent);
+}
+
+.message-log__option-number {
+  flex-shrink: 0;
+  min-width: 1.4em;
+  text-align: center;
+  font-weight: 700;
+  color: var(--sb-accent);
+}
+
+.message-log__option-label {
+  overflow-wrap: break-word;
+}
+
+.message-log__hint {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sb-text-faint);
 }
 
 .message-log__character--inline {
@@ -69,6 +123,12 @@
   color: var(--sb-accent);
 }
 
+/* Spoken dialogue — player and NPC alike. Softened a touch below the pure
+   accent so names (full accent, bold) still lead the line. */
+.message-log__say {
+  color: color-mix(in srgb, var(--sb-accent) 78%, var(--sb-text));
+}
+
 .message-log__emote {
   font-style: italic;
   color: var(--sb-info);
@@ -76,6 +136,14 @@
 
 .message-log__roll {
   color: var(--sb-warning);
+}
+
+/* Narration is the world speaking, not a character: no name, and set apart
+   from ordinary room chatter. */
+.message-log__narration {
+  font-style: italic;
+  color: var(--sb-text-muted);
+  white-space: pre-line;
 }
 
 .message-filter {

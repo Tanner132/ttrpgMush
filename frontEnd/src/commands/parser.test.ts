@@ -10,6 +10,24 @@ describe('parseCommand', () => {
     expect(parseCommand('  hello  ')).toEqual({ kind: 'speech', text: 'hello' })
   })
 
+  it('treats a bare small number as an option pick with chat fallback', () => {
+    expect(parseCommand('2')).toEqual(
+      { kind: 'option-select', number: 2, fallbackToChat: true, rawText: '2' })
+  })
+
+  it('treats a slash number as an option pick without fallback', () => {
+    expect(parseCommand('/3')).toEqual(
+      { kind: 'option-select', number: 3, fallbackToChat: false, rawText: '/3' })
+  })
+
+  it('leaves longer numbers as speech', () => {
+    expect(parseCommand('2000')).toEqual({ kind: 'speech', text: '2000' })
+  })
+
+  it('rejects arguments on a slash-number pick', () => {
+    expect(parseCommand('/2 please')).toMatchObject({ kind: 'usage-error', command: '2' })
+  })
+
   it('parses /say with an argument into a speech action', () => {
     expect(parseCommand('/say hello world')).toEqual({ kind: 'speech', text: 'hello world' })
   })

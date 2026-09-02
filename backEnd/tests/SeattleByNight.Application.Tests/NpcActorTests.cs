@@ -11,7 +11,10 @@ namespace SeattleByNight.Application.Tests;
 // limits — and never pauses the pipeline on a decision.
 public sealed class NpcActorTests
 {
-    private static readonly NpcTemplate Ganger = NpcTemplates.Find(NpcTemplates.StreetGangerId)!;
+    // Milestone 7: templates are content — the shipped bundle is where the
+    // ganger's numbers live now.
+    private static readonly NpcTemplate Ganger =
+        TestGameContent.Provider.Current.FindNpcTemplate(NpcTemplateIds.StreetGanger)!;
 
     private static NpcActor Actor(
         NpcAwareness awareness = NpcAwareness.Unaware, int physicalDamage = 0, int stunDamage = 0) =>

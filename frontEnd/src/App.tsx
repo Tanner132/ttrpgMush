@@ -13,6 +13,7 @@ import { useAccount } from './auth/useAccount.ts'
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage.tsx'))
 const AdminAuditPage = lazy(() => import('./pages/admin/AdminAuditPage.tsx'))
 const WorldEditorPage = lazy(() => import('./pages/admin/WorldEditorPage.tsx'))
+const WorldForgePage = lazy(() => import('./pages/admin/WorldForgePage.tsx'))
 const MethodSelectionPage = lazy(() => import('./components/characterCreation/MethodSelectionPage.tsx'))
 const CreatorShellPage = lazy(() => import('./pages/characterCreation/CreatorShellPage.tsx'))
 const CharacterSheetPage = lazy(() => import('./pages/CharacterSheetPage.tsx'))
@@ -41,6 +42,7 @@ export default function App() {
             </Route>
             <Route element={<WorldEditorRoute />}>
               <Route path="/admin/world" element={<WorldEditorPage />} />
+              <Route path="/admin/forge" element={<WorldForgePage />} />
             </Route>
           </Route>
           <Route path="/" element={<RootRedirect />} />

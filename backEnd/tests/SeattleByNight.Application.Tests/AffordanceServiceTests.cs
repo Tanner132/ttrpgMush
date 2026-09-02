@@ -1,5 +1,6 @@
 using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Combat;
+using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.GameEngine.Tests;
@@ -15,15 +16,20 @@ public sealed class AffordanceServiceTests
     private readonly Guid roomId = Guid.NewGuid();
     private readonly FakeRoomContentReader roomContent = new();
 
-    private Task<IReadOnlyList<GameAffordance>> ListAsync() =>
-        new AffordanceService(
-                roomContent, new InMemoryCombatTracker(), new FakeMissionReader(), TestGameContent.Provider)
+    private Task<IReadOnlyList<GameAffordance>> ListAsync()
+    {
+        var missions = new FakeMissionReader();
+        return new AffordanceService(
+                roomContent, new InMemoryCombatTracker(), missions, TestGameContent.Provider,
+                new FakeSceneSessionReader(),
+                new SceneConditionEvaluator(missions, TestGameContent.Provider))
             .GetAffordancesAsync(characterId, roomId, CancellationToken.None);
+    }
 
     private NpcSnapshot AddGanger(int physicalDamage = 0)
     {
         var npc = new NpcSnapshot(
-            Guid.NewGuid(), NpcTemplates.StreetGangerId, "Razor", roomId,
+            Guid.NewGuid(), NpcTemplateIds.StreetGanger, "Razor", roomId,
             physicalDamage, StunDamage: 0, NpcAwareness.Unaware);
         roomContent.Npcs.Add(npc);
         return npc;
@@ -41,17 +47,19 @@ public sealed class AffordanceServiceTests
     }
 
     [Fact]
-    public async Task An_npc_offers_observe_sneak_approach_and_attack_by_name()
+    public async Task An_npc_offers_observe_sneak_approach_talk_and_attack_by_name()
     {
         var npc = AddGanger();
 
         var affordances = await ListAsync();
 
         var targeted = affordances.Where(affordance => affordance.TargetId == npc.Id).ToList();
-        Assert.Equal(4, targeted.Count);
+        Assert.Equal(5, targeted.Count);
         Assert.Contains(targeted, affordance => affordance.DisplayName == "Observe Razor");
         Assert.Contains(targeted, affordance => affordance.DisplayName == "Sneak Past Razor");
         Assert.Contains(targeted, affordance => affordance.DisplayName == "Approach Razor");
+        // Milestone 6: the street-ganger template has an authored scene.
+        Assert.Contains(targeted, affordance => affordance.DisplayName == "Talk to Razor");
         Assert.Contains(targeted, affordance => affordance.DisplayName == "Attack Razor");
     }
 

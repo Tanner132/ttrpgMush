@@ -9,6 +9,8 @@ import {
   getWorldGraph,
   getWorldRoom,
   updateWorldExit,
+  getRoomDeletionCheck,
+  deleteWorldRoom,
   updateWorldRoom,
   type WorldGraph,
   type WorldRoom,
@@ -24,6 +26,8 @@ vi.mock('../../api/worldEditor.ts', async (importOriginal) => {
     updateWorldRoom: vi.fn(),
     createWorldExit: vi.fn(),
     updateWorldExit: vi.fn(),
+    getRoomDeletionCheck: vi.fn(),
+    deleteWorldRoom: vi.fn(),
   }
 })
 
@@ -35,6 +39,19 @@ let graph: WorldGraph
 beforeEach(() => {
   vi.resetAllMocks()
   graph = { rooms: [alpha, beta], exits: [oneWay] }
+  vi.mocked(getRoomDeletionCheck).mockResolvedValue({
+    canDelete: false,
+    incomingExits: 1,
+    outgoingExits: 1,
+    missionEntryLinks: [],
+    activeReturnLinks: 0,
+    charactersPresent: 0,
+    chatMessages: 0,
+    roomVisits: 0,
+    isEncounterRoom: false,
+    isStartingRoom: false,
+    reason: '2 exits still connect this room. Remove them first.',
+  })
   vi.mocked(getWorldGraph).mockImplementation(async () => graph)
   vi.mocked(getWorldRoom).mockImplementation(async (id) => ({ room: graph.rooms.find((room) => room.id === id)!, outgoingExits: graph.exits.filter((exit) => exit.sourceRoomId === id), incomingExits: graph.exits.filter((exit) => exit.destinationRoomId === id) }))
   vi.mocked(createWorldRoom).mockImplementation(async (request) => {
@@ -69,7 +86,9 @@ describe('WorldEditorPage', () => {
     await waitFor(() => expect(createWorldRoom).toHaveBeenCalledWith({ name: 'Neon Market', description: 'Crowded stalls', accessType: 'Public', mapX: 1, mapY: 0, mapLayer: 0 }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(await screen.findByLabelText('Room name')).toHaveValue('Neon Market')
-    expect(screen.queryByRole('button', { name: /delete|unplace|position room|new room/i })).not.toBeInTheDocument()
+    // Rooms are edited in place; there is still no unplace or reposition
+    // control. (Deleting one is Milestone 7's guarded operation, below.)
+    expect(screen.queryByRole('button', { name: /unplace|position room|new room/i })).not.toBeInTheDocument()
   })
 
   it('preserves the room draft and error when creation fails, then supports cancel and Escape', async () => {
@@ -176,5 +195,59 @@ describe('WorldEditorPage', () => {
 
     await waitFor(() => expect(createWorldExit).toHaveBeenCalledWith({ sourceRoomId: beta.id, destinationRoomId: alpha.id, direction: 'down', isHidden: false, isLocked: false }))
     expect(updateWorldExit).not.toHaveBeenCalled()
+  })
+
+  it('refuses to delete a room while anything still points at it', async () => {
+    const user = userEvent.setup()
+    renderWithRouter(<WorldEditorPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Alpha, coordinate 0, 0, layer 0' }))
+
+    expect(await screen.findByText('2 exits still connect this room. Remove them first.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete room' })).toBeDisabled()
+    expect(deleteWorldRoom).not.toHaveBeenCalled()
+  })
+
+  it('offers somewhere to move the occupants rather than refusing outright', async () => {
+    const user = userEvent.setup()
+    vi.mocked(getRoomDeletionCheck).mockResolvedValue({
+      canDelete: true,
+      incomingExits: 0,
+      outgoingExits: 0,
+      missionEntryLinks: [],
+      activeReturnLinks: 0,
+      charactersPresent: 1,
+      chatMessages: 0,
+      roomVisits: 0,
+      isEncounterRoom: false,
+      isStartingRoom: false,
+      reason: null,
+    })
+    vi.mocked(deleteWorldRoom).mockResolvedValue({
+      canDelete: true,
+      incomingExits: 0,
+      outgoingExits: 0,
+      missionEntryLinks: [],
+      activeReturnLinks: 0,
+      charactersPresent: 1,
+      chatMessages: 0,
+      roomVisits: 0,
+      isEncounterRoom: false,
+      isStartingRoom: false,
+      reason: null,
+    })
+
+    renderWithRouter(<WorldEditorPage />)
+    await user.click(await screen.findByRole('button', { name: 'Alpha, coordinate 0, 0, layer 0' }))
+
+    // Occupants gate the button until they have somewhere to go.
+    const remove = await screen.findByRole('button', { name: 'Delete room' })
+    expect(remove).toBeDisabled()
+
+    await user.selectOptions(screen.getByLabelText('Move them to'), beta.id)
+    expect(remove).toBeEnabled()
+    await user.click(remove)
+
+    expect(deleteWorldRoom).toHaveBeenCalledWith(alpha.id, beta.id)
   })
 })

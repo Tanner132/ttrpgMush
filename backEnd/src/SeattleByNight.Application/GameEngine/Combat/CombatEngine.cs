@@ -6,6 +6,8 @@ using SeattleByNight.Application.GameEngine.Auditing;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Dice;
+using SeattleByNight.Application.GameEngine.Missions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Modifiers;
 using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.GameEngine.Npcs;
@@ -72,6 +74,10 @@ public sealed class CombatEngine
     private readonly IRoomChatStore chatStore;
     private readonly IGameMessageBroadcaster broadcaster;
     private readonly IRoomContentReader roomContent;
+    private readonly IGameContentProvider gameContent;
+    private readonly IMissionReader missionReader;
+    private readonly IGameCommandQueue queue;
+    private readonly IGameScopeResolver scopeResolver;
     private readonly PlaySessionOptions playSessionOptions;
     private readonly TimeProvider timeProvider;
 
@@ -85,6 +91,10 @@ public sealed class CombatEngine
         IRoomChatStore chatStore,
         IGameMessageBroadcaster broadcaster,
         IRoomContentReader roomContent,
+        IGameContentProvider gameContent,
+        IMissionReader missionReader,
+        IGameCommandQueue queue,
+        IGameScopeResolver scopeResolver,
         PlaySessionOptions playSessionOptions,
         TimeProvider timeProvider)
     {
@@ -97,6 +107,10 @@ public sealed class CombatEngine
         this.chatStore = chatStore;
         this.broadcaster = broadcaster;
         this.roomContent = roomContent;
+        this.gameContent = gameContent;
+        this.missionReader = missionReader;
+        this.queue = queue;
+        this.scopeResolver = scopeResolver;
         this.playSessionOptions = playSessionOptions;
         this.timeProvider = timeProvider;
     }
@@ -260,12 +274,15 @@ public sealed class CombatEngine
         var npcs = await roomContent.GetNpcsInRoomAsync(session.CurrentRoomId, cancellationToken);
         foreach (var npc in npcs)
         {
-            if (NpcTemplates.Find(npc.TemplateId) is not { } template)
+            if (gameContent.Current.ResolveNpcTemplate(npc) is not { } template)
             {
                 continue;
             }
 
-            var joins = npc.Id == instigator.Id || template.Hostile;
+            // A talked-down (Pacified) NPC stays out of a fight it did not
+            // start — but attacking it directly drags it back in.
+            var joins = npc.Id == instigator.Id
+                || (template.Hostile && npc.Awareness != NpcAwareness.Pacified);
             if (!joins
                 || NpcDerivedValues.IsIncapacitated(npc, template)
                 || npc.Awareness == NpcAwareness.Fleeing)
@@ -523,7 +540,7 @@ public sealed class CombatEngine
         }
 
         var npc = await roomContent.GetNpcAsync(current.ActorId, cancellationToken);
-        var template = npc is null ? null : NpcTemplates.Find(npc.TemplateId);
+        var template = npc is null ? null : gameContent.Current.ResolveNpcTemplate(npc);
         if (npc is null || template is null)
         {
             // The NPC row vanished mid-fight (admin deletion): treat as fled.
@@ -959,6 +976,37 @@ public sealed class CombatEngine
                 : "goes down — the fight is over.",
             cancellationToken);
         await broadcaster.BroadcastCombatAsync(CombatView.Ended(combat), cancellationToken);
+
+        // §24: every NPC that went down in this fight is a content event.
+        // Raised after the commit, on the room's own queue, so a trigger that
+        // reacts to a defeat sees the settled world.
+        foreach (var defeated in combat.Participants.Where(p => p.IsNpc && p.Incapacitated))
+        {
+            var triggerScope = await scopeResolver.ResolveScopeAsync(combat.RoomId, cancellationToken);
+            _ = queue.EnqueueAsync(
+                triggerScope,
+                TriggerRequests.Build(
+                    request, TriggerEventKind.NpcDefeated, npcName: defeated.DisplayName,
+                    roomId: combat.RoomId),
+                CancellationToken.None);
+        }
+
+        // Milestone 6 defeat path: going down inside a mission's private
+        // encounter blows the job. A reaction (§24) — enqueued after this
+        // action's own commits, never awaited (this method runs on the same
+        // scope's consumer) — fails the mission and puts the runner back at
+        // the entry point with their damage (dev decision combat.no-pc-death).
+        if (!victory
+            && await missionReader.GetActiveEncounterByRoomAsync(combat.RoomId, cancellationToken) is not null)
+        {
+            var scopeId = await scopeResolver.ResolveScopeAsync(combat.RoomId, cancellationToken);
+            var reaction = new GameActionRequest(
+                Guid.NewGuid(),
+                request.UserId,
+                DevelopmentGameActions.MissionDefeatActionId,
+                Depth: request.Depth + 1);
+            _ = queue.EnqueueAsync(scopeId, reaction, CancellationToken.None);
+        }
     }
 
     private int RollInitiative(int dice) =>

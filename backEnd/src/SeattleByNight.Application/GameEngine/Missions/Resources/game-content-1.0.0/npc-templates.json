@@ -1,0 +1,58 @@
+{
+  "npcTemplates": [
+    {
+      "id": "street-ganger",
+      "displayName": "Street Ganger",
+      "description": "A low-level ganger looking for trouble — or watching for it.",
+      "pools": { "attack": 8, "defense": 7, "perception": 6, "sneaking": 5, "social": 4 },
+      "physicalMonitor": 10,
+      "stunMonitor": 10,
+      "armor": 9,
+      "initiativeBase": 7,
+      "initiativeDice": 1,
+      "body": 3,
+      "willpower": 3,
+      "hostile": true,
+      "weapon": {
+        "weaponId": "colt-america-l36",
+        "displayName": "Colt America L36",
+        "skillId": "attack",
+        "isRanged": true,
+        "accuracy": 0,
+        "baseDamage": 7,
+        "damageType": "physical",
+        "ap": 0,
+        "modes": ["semiAutomatic"],
+        "magazineSize": 11,
+        "recoilCompensation": 0
+      }
+    },
+    {
+      "id": "mr-johnson",
+      "displayName": "Mr. Johnson",
+      "description": "A corporate fixer in an immaculate suit, nursing a soykaf that never seems to empty.",
+      "pools": { "attack": 6, "defense": 8, "perception": 7, "sneaking": 4, "social": 8 },
+      "physicalMonitor": 10,
+      "stunMonitor": 10,
+      "armor": 12,
+      "initiativeBase": 8,
+      "initiativeDice": 1,
+      "body": 3,
+      "willpower": 5,
+      "hostile": false,
+      "weapon": {
+        "weaponId": "fichetti-tiffani-needler",
+        "displayName": "Fichetti Tiffani Needler",
+        "skillId": "attack",
+        "isRanged": true,
+        "accuracy": 0,
+        "baseDamage": 8,
+        "damageType": "physical",
+        "ap": 5,
+        "modes": ["semiAutomatic"],
+        "magazineSize": 4,
+        "recoilCompensation": 0
+      }
+    }
+  ]
+}

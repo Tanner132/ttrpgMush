@@ -54,6 +54,9 @@ public sealed class RoomConfiguration : IEntityTypeConfiguration<Room>
         builder.Property(r => r.EncounterInstanceId)
             .HasColumnName("encounter_instance_id")
             .HasColumnType("uuid");
+        builder.Property(r => r.ContentKey)
+            .HasColumnName("content_key")
+            .HasMaxLength(100);
 
         builder.HasIndex(r => r.EncounterInstanceId)
             .HasDatabaseName("ix_rooms_encounter_instance");

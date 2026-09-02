@@ -228,15 +228,37 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
     }
 
     [Fact]
-    public async Task DeleteWorldRoutes_AreNotExposed()
+    public async Task DeletingAnExit_IsStillNotExposed()
     {
         var admin = await _factory.LoginDevAdminAsync();
 
-        var roomResponse = await admin.DeleteAsync($"/api/admin/world/rooms/{Guid.NewGuid()}");
-        var exitResponse = await admin.DeleteAsync($"/api/admin/world/exits/{Guid.NewGuid()}");
+        // Milestone 7 section 5 gave ROOMS a guarded delete. Exits still have
+        // none: an exit is removed by editing the room graph, and there is no
+        // referential question to answer about one.
+        var response = await admin.DeleteAsync($"/api/admin/world/exits/{Guid.NewGuid()}");
 
-        Assert.Equal(HttpStatusCode.MethodNotAllowed, roomResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.MethodNotAllowed, exitResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeletingARoomThatDoesNotExist_IsNotFound()
+    {
+        var admin = await _factory.LoginDevAdminAsync();
+
+        var response = await admin.DeleteAsync($"/api/admin/world/rooms/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeletingARoom_Player_ReturnsForbidden()
+    {
+        var username = $"world-deleter-{Guid.NewGuid():N}";
+        var player = await _factory.RegisterAndLoginAsync(username, $"{username}@test.local", Password);
+
+        var response = await player.DeleteAsync($"/api/admin/world/rooms/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     private static object ValidRoom()

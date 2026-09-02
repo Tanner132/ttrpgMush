@@ -19,6 +19,10 @@ public sealed class Room
     // instance. Movement only admits participants moving within the same
     // instance; the shared world never links exits into these rooms.
     public Guid? EncounterInstanceId { get; set; }
+    // Milestone 7: the encounter definition's room key this row was
+    // materialized from. Null for shared-world rooms. Triggers watch rooms by
+    // key, so an instantiated room has to be able to say which key it is.
+    public string? ContentKey { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public Guid Version { get; set; } = Guid.NewGuid();
 }

@@ -4,6 +4,7 @@ using SeattleByNight.Application.CharacterCareer;
 using SeattleByNight.Application.GameEngine.Effects;
 using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Missions.Content;
+using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.StateChanges;
 using SeattleByNight.Domain.Entities;
 using SeattleByNight.Domain.Enums;
@@ -18,15 +19,20 @@ public sealed class StateChangeApplier : IStateChangeApplier
 {
     private readonly SeattleByNightDbContext dbContext;
     private readonly IGameContentProvider gameContent;
+    private readonly IMissionAssignmentStore missionAssignment;
     private readonly TimeProvider timeProvider;
 
     public StateChangeApplier(
         SeattleByNightDbContext dbContext,
         IGameContentProvider gameContent,
+        IMissionAssignmentStore missionAssignment,
         TimeProvider timeProvider)
     {
         this.dbContext = dbContext;
         this.gameContent = gameContent;
+        // Shares this applier's scoped DbContext, so an acceptance created
+        // mid-apply commits (or rolls back) with the rest of the change list.
+        this.missionAssignment = missionAssignment;
         this.timeProvider = timeProvider;
     }
 
@@ -61,7 +67,17 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 LeaveEncounterChange leave => await ApplyLeaveEncounterAsync(characterId, leave, now, cancellationToken),
                 PickUpItemChange pickUp => await ApplyPickUpItemAsync(characterId, pickUp, now, cancellationToken),
                 CompleteObjectiveChange objective => await ApplyCompleteObjectiveAsync(objective, now, cancellationToken),
+                FailObjectiveChange failObjective => await ApplyFailObjectiveAsync(failObjective, now, cancellationToken),
                 CompleteMissionChange mission => await ApplyCompleteMissionAsync(mission, now, cancellationToken),
+                BeginSceneChange begin => await ApplyBeginSceneAsync(characterId, begin, now, cancellationToken),
+                AdvanceSceneChange advance => await ApplyAdvanceSceneAsync(characterId, advance, now, cancellationToken),
+                SetPendingNegotiatedPayChange pay => await ApplySetPendingNegotiatedPayAsync(characterId, pay, now, cancellationToken),
+                EndSceneChange => await ApplyEndSceneAsync(characterId, cancellationToken),
+                AcceptMissionChange accept => await ApplyAcceptMissionAsync(characterId, accept, now, cancellationToken),
+                RemoveItemChange removeItem => await ApplyRemoveItemAsync(removeItem, cancellationToken),
+                FailMissionChange fail => await ApplyFailMissionAsync(fail, now, cancellationToken),
+                GrantItemChange grant => await ApplyGrantItemAsync(characterId, grant, now, cancellationToken),
+                RecordTriggerFireChange trigger => await ApplyRecordTriggerFireAsync(characterId, trigger, now, cancellationToken),
                 _ => throw new NotSupportedException($"State change '{change.GetType().Name}' has no applier."),
             });
         }
@@ -363,6 +379,9 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 AccessType = RoomAccessType.Instanced,
                 EnvironmentModifier = roomDefinition.EnvironmentModifier,
                 EncounterInstanceId = encounter.Id,
+                // Milestone 7: keep the authored key so room triggers can
+                // recognize the room this row became.
+                ContentKey = roomDefinition.Key,
                 CreatedAtUtc = now,
             };
             roomsByKey.Add(roomDefinition.Key, room);
@@ -384,12 +403,25 @@ public sealed class StateChangeApplier : IStateChangeApplier
 
         foreach (var npcDefinition in definition.Npcs)
         {
+            // Milestone 7 section 5: a retired template stops appearing. NPCs
+            // already standing keep resolving it, so nothing mid-run breaks.
+            if (gameContent.Current.FindNpcTemplate(npcDefinition.TemplateId) is { IsRetired: true })
+            {
+                continue;
+            }
+
+            // Milestone 7 section 4: the placement's overrides travel onto the
+            // row so it is self-describing; the base stat block stays in
+            // content and resolves live.
             dbContext.NpcInstances.Add(new NpcInstance
             {
                 TemplateId = npcDefinition.TemplateId,
                 Name = npcDefinition.Name,
                 RoomId = roomsByKey[npcDefinition.RoomKey].Id,
-                Awareness = NpcAwareness.Unaware.ToString(),
+                Description = npcDefinition.Description,
+                SceneId = npcDefinition.SceneId,
+                OverridesJson = NpcOverrideSerialization.Serialize(npcDefinition.Overrides),
+                Awareness = (npcDefinition.StartingAwareness ?? NpcAwareness.Unaware).ToString(),
                 CreatedAtUtc = now,
                 UpdatedAtUtc = now,
             });
@@ -409,6 +441,14 @@ public sealed class StateChangeApplier : IStateChangeApplier
 
         foreach (var itemDefinition in definition.Items)
         {
+            // Milestone 7: an item with no roomKey is declared but not placed
+            // — it exists so a GiveItem effect has a name and description to
+            // hand over, and materializes only when that effect fires.
+            if (itemDefinition.RoomKey is null)
+            {
+                continue;
+            }
+
             dbContext.WorldItemInstances.Add(new WorldItemInstance
             {
                 ItemKey = itemDefinition.Key,
@@ -447,6 +487,17 @@ public sealed class StateChangeApplier : IStateChangeApplier
         encounter.UpdatedAtUtc = now;
 
         await MoveCharacterAsync(characterId, change.PlaySessionId, encounter.ReturnRoomId, now, cancellationToken);
+
+        // Milestone 6: leaving with only delivery left archives the encounter
+        // — there is nothing to come back for, and the mission itself waits
+        // on the mission giver (ReadyToTurnIn set by CompleteObjective).
+        var mission = await dbContext.MissionInstances
+            .FirstOrDefaultAsync(row => row.Id == encounter.MissionInstanceId, cancellationToken);
+        if (mission?.Status == MissionInstanceStatus.ReadyToTurnIn.ToString()
+            && encounter.Status == EncounterInstanceStatus.Active.ToString())
+        {
+            encounter.Status = EncounterInstanceStatus.Completed.ToString();
+        }
 
         return new AppliedStateChange(
             "LeaveEncounter", $"Left encounter '{encounter.EncounterId}'.");
@@ -515,9 +566,63 @@ public sealed class StateChangeApplier : IStateChangeApplier
             mission.Status = MissionInstanceStatus.InProgress.ToString();
         }
 
+        // §35 (Milestone 6): when everything left to do is delivery, the
+        // mission is waiting on the mission giver.
+        var definition = gameContent.Current.FindMission(mission.MissionId);
+        if (definition is not null && nextIndex >= 0)
+        {
+            var remaining = objectives
+                .Where(objective => objective.Status is MissionObjectiveStatus.Active or MissionObjectiveStatus.Inactive)
+                .Select(objective => definition.Objectives.FirstOrDefault(candidate =>
+                    string.Equals(candidate.Key, objective.Key, StringComparison.Ordinal)))
+                .ToList();
+            if (remaining.Count > 0
+                && remaining.All(objective => objective?.Kind == MissionObjectiveKind.DeliverItem))
+            {
+                mission.Status = MissionInstanceStatus.ReadyToTurnIn.ToString();
+            }
+        }
+
         mission.UpdatedAtUtc = now;
 
         return new AppliedStateChange("CompleteObjective", $"Objective complete: {change.ObjectiveKey}.");
+    }
+
+    // Milestone 7: the failure half of the objective palette. Marks the named
+    // objective Failed; the accompanying FailMissionChange ends the run in the
+    // same commit, so there is never a moment where an objective is dead and
+    // the mission still looks live.
+    private async Task<AppliedStateChange> ApplyFailObjectiveAsync(
+        FailObjectiveChange change,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var mission = await dbContext.MissionInstances
+            .FirstOrDefaultAsync(row => row.Id == change.MissionInstanceId, cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Mission instance '{change.MissionInstanceId}' does not exist.");
+
+        var objectives = MissionSerialization.DeserializeObjectives(mission.ObjectivesJson).ToList();
+        var index = objectives.FindIndex(objective =>
+            string.Equals(objective.Key, change.ObjectiveKey, StringComparison.Ordinal));
+        if (index < 0)
+        {
+            throw new InvalidOperationException(
+                $"Mission instance '{mission.Id}' has no objective '{change.ObjectiveKey}'.");
+        }
+
+        if (objectives[index].Status is MissionObjectiveStatus.Completed or MissionObjectiveStatus.Failed)
+        {
+            return new AppliedStateChange(
+                "FailObjective",
+                $"Objective '{change.ObjectiveKey}' was already {objectives[index].Status.ToString().ToLowerInvariant()}.");
+        }
+
+        objectives[index] = objectives[index] with { Status = MissionObjectiveStatus.Failed };
+        mission.ObjectivesJson = MissionSerialization.SerializeObjectives(objectives);
+        mission.UpdatedAtUtc = now;
+
+        return new AppliedStateChange("FailObjective", $"Objective failed: {change.ObjectiveKey}.");
     }
 
     // §39: the mission's Completed transition and its reward grant are ONE
@@ -631,6 +736,246 @@ public sealed class StateChangeApplier : IStateChangeApplier
 
         return true;
     }
+
+    // §37: conversation position. One conversation per character — beginning
+    // a new one replaces whatever was open.
+    private async Task<AppliedStateChange> ApplyBeginSceneAsync(
+        Guid characterId,
+        BeginSceneChange change,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        // Reuse the character's row in place — a delete + insert against the
+        // unique character index has no guaranteed statement ordering.
+        var existing = await dbContext.SceneSessions
+            .FirstOrDefaultAsync(row => row.CharacterId == characterId, cancellationToken);
+        if (existing is not null)
+        {
+            existing.NpcInstanceId = change.NpcInstanceId;
+            existing.RoomId = change.RoomId;
+            existing.SceneId = change.SceneId;
+            existing.CurrentNodeId = change.NodeId;
+            existing.PendingNegotiatedNuyen = null;
+            existing.UpdatedAtUtc = now;
+        }
+        else
+        {
+            dbContext.SceneSessions.Add(new SceneSession
+            {
+                CharacterId = characterId,
+                NpcInstanceId = change.NpcInstanceId,
+                RoomId = change.RoomId,
+                SceneId = change.SceneId,
+                CurrentNodeId = change.NodeId,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
+            });
+        }
+
+        return new AppliedStateChange(
+            "BeginScene", $"Conversation '{change.SceneId}' opened at '{change.NodeId}'.");
+    }
+
+    private async Task<AppliedStateChange> ApplyAdvanceSceneAsync(
+        Guid characterId,
+        AdvanceSceneChange change,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var session = await RequireSceneSessionAsync(characterId, cancellationToken);
+        session.CurrentNodeId = change.NodeId;
+        session.UpdatedAtUtc = now;
+
+        return new AppliedStateChange("AdvanceScene", $"Conversation moved to '{change.NodeId}'.");
+    }
+
+    private async Task<AppliedStateChange> ApplySetPendingNegotiatedPayAsync(
+        Guid characterId,
+        SetPendingNegotiatedPayChange change,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var session = await RequireSceneSessionAsync(characterId, cancellationToken);
+        session.PendingNegotiatedNuyen = change.Nuyen;
+        session.UpdatedAtUtc = now;
+
+        return new AppliedStateChange(
+            "SetPendingNegotiatedPay", $"Negotiated pay recorded: {change.Nuyen} nuyen.");
+    }
+
+    private async Task<AppliedStateChange> ApplyEndSceneAsync(
+        Guid characterId, CancellationToken cancellationToken)
+    {
+        var rows = await dbContext.SceneSessions
+            .Where(row => row.CharacterId == characterId)
+            .ToListAsync(cancellationToken);
+        dbContext.SceneSessions.RemoveRange(rows);
+
+        return new AppliedStateChange(
+            "EndScene", rows.Count > 0 ? "Conversation ended." : "No conversation was open.");
+    }
+
+    // §36: acceptance creates the instance through the same assignment rules
+    // the admin path uses (the store shares this DbContext, so its writes join
+    // this transaction). A refusal here — a race, a lapsed cooldown check —
+    // throws, rolling back the whole choice.
+    private async Task<AppliedStateChange> ApplyAcceptMissionAsync(
+        Guid characterId,
+        AcceptMissionChange change,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var definition = gameContent.Current.FindMission(change.MissionId)
+            ?? throw new InvalidOperationException(
+                $"Mission definition '{change.MissionId}' is missing from the game content.");
+
+        var result = await missionAssignment.AssignAsync(characterId, definition, cancellationToken);
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException(
+                $"Mission '{change.MissionId}' could not be accepted: {result.Error}.");
+        }
+
+        if (change.NegotiatedNuyen is int nuyen)
+        {
+            var row = await dbContext.MissionInstances
+                .FirstAsync(instance => instance.Id == result.Instance!.Id, cancellationToken);
+            row.NegotiatedNuyen = nuyen;
+            row.UpdatedAtUtc = now;
+        }
+
+        return new AppliedStateChange(
+            "AcceptMission",
+            change.NegotiatedNuyen is int negotiated
+                ? $"Accepted '{definition.DisplayName}' at a negotiated {negotiated} nuyen."
+                : $"Accepted '{definition.DisplayName}'.");
+    }
+
+    // §38: the item leaves the world (handed over at turn-in). The audit
+    // envelope is the surviving record (dev decision
+    // mission.item-consumed-on-turn-in).
+    private async Task<AppliedStateChange> ApplyRemoveItemAsync(
+        RemoveItemChange change, CancellationToken cancellationToken)
+    {
+        var item = await dbContext.WorldItemInstances
+            .FirstOrDefaultAsync(row => row.Id == change.ItemId, cancellationToken)
+            ?? throw new InvalidOperationException($"World item '{change.ItemId}' does not exist.");
+
+        dbContext.WorldItemInstances.Remove(item);
+
+        return new AppliedStateChange("RemoveItem", $"{item.DisplayName} handed over — {change.Reason}");
+    }
+
+    // Milestone 6 defeat path: terminal failure. Idempotent — a mission
+    // already terminal stays as it is.
+    private async Task<AppliedStateChange> ApplyFailMissionAsync(
+        FailMissionChange change,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var mission = await dbContext.MissionInstances
+            .FirstOrDefaultAsync(row => row.Id == change.MissionInstanceId, cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Mission instance '{change.MissionInstanceId}' does not exist.");
+
+        var terminal = new[]
+        {
+            MissionInstanceStatus.Completed.ToString(),
+            MissionInstanceStatus.Failed.ToString(),
+            MissionInstanceStatus.Abandoned.ToString(),
+        };
+        if (terminal.Contains(mission.Status))
+        {
+            return new AppliedStateChange("FailMission", "The mission was already over.");
+        }
+
+        mission.Status = MissionInstanceStatus.Failed.ToString();
+        mission.UpdatedAtUtc = now;
+
+        var activeStatus = EncounterInstanceStatus.Active.ToString();
+        var encounters = await dbContext.EncounterInstances
+            .Where(row => row.MissionInstanceId == mission.Id && row.Status == activeStatus)
+            .ToListAsync(cancellationToken);
+        foreach (var encounter in encounters)
+        {
+            encounter.Status = EncounterInstanceStatus.Abandoned.ToString();
+            encounter.UpdatedAtUtc = now;
+        }
+
+        return new AppliedStateChange("FailMission", "Mission failed.");
+    }
+
+    // Milestone 7: an authored GiveItem hands over an encounter item that was
+    // never placed in a room. Provenance matches a placed item exactly, so
+    // objectives, turn-in, and the teardown sweep treat it the same way.
+    private async Task<AppliedStateChange> ApplyGrantItemAsync(
+        Guid characterId,
+        GrantItemChange change,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var alreadyHeld = await dbContext.WorldItemInstances.AnyAsync(
+            row => row.OwnerCharacterId == characterId
+                && row.MissionInstanceId == change.MissionInstanceId
+                && row.ItemKey == change.ItemKey,
+            cancellationToken);
+        if (alreadyHeld)
+        {
+            return new AppliedStateChange(
+                "GrantItem", $"{change.DisplayName} was already carried; nothing granted.");
+        }
+
+        dbContext.WorldItemInstances.Add(new WorldItemInstance
+        {
+            ItemKey = change.ItemKey,
+            DisplayName = change.DisplayName,
+            Description = change.Description,
+            MissionInstanceId = change.MissionInstanceId,
+            EncounterInstanceId = change.EncounterInstanceId,
+            OwnerCharacterId = characterId,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+        });
+
+        return new AppliedStateChange("GrantItem", $"Received: {change.DisplayName}.");
+    }
+
+    // The fire-once ledger. Written in the same transaction as the trigger's
+    // effects, so a trigger that fired and a trigger whose effects landed are
+    // the same event.
+    private async Task<AppliedStateChange> ApplyRecordTriggerFireAsync(
+        Guid characterId,
+        RecordTriggerFireChange change,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var already = await dbContext.TriggerFires.AnyAsync(
+            row => row.CharacterId == characterId
+                && row.MissionInstanceId == change.MissionInstanceId
+                && row.TriggerKey == change.TriggerKey,
+            cancellationToken);
+        if (already)
+        {
+            return new AppliedStateChange(
+                "RecordTriggerFire", $"Trigger '{change.TriggerKey}' had already fired.");
+        }
+
+        dbContext.TriggerFires.Add(new TriggerFire
+        {
+            CharacterId = characterId,
+            MissionInstanceId = change.MissionInstanceId,
+            TriggerKey = change.TriggerKey,
+            FiredAtUtc = now,
+        });
+
+        return new AppliedStateChange("RecordTriggerFire", $"Trigger '{change.TriggerKey}' fired.");
+    }
+
+    private async Task<SceneSession> RequireSceneSessionAsync(
+        Guid characterId, CancellationToken cancellationToken) =>
+        await dbContext.SceneSessions
+            .FirstOrDefaultAsync(row => row.CharacterId == characterId, cancellationToken)
+            ?? throw new InvalidOperationException($"Character '{characterId}' has no open conversation.");
 
     // Durable movement inside the applier's transaction: the same three
     // writes the movement store performs (location, close visit, open visit),

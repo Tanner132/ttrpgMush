@@ -14,6 +14,9 @@ export type ParsedCommand =
   | { kind: 'run' }
   | { kind: 'surge' }
   | { kind: 'missions' }
+  // A numbered option pick. fallbackToChat is true when the input was a bare
+  // number (no slash): if no numbered options are on offer, it goes to chat.
+  | { kind: 'option-select'; number: number; fallbackToChat: boolean; rawText: string }
   | { kind: 'edge-response'; optionId: string }
   | { kind: 'defend-response'; optionId: string }
   | { kind: 'unknown'; command: string }
@@ -23,6 +26,12 @@ export function parseCommand(raw: string): ParsedCommand {
   const input = raw.trim()
 
   if (!input.startsWith('/')) {
+    // A message that is only a small number reads as an option pick when
+    // numbered options are on screen — and as chat otherwise. One- or
+    // two-digit messages are practically never intentional speech.
+    if (/^\d{1,2}$/.test(input)) {
+      return { kind: 'option-select', number: Number(input), fallbackToChat: true, rawText: input }
+    }
     return { kind: 'speech', text: input }
   }
 
@@ -35,6 +44,14 @@ export function parseCommand(raw: string): ParsedCommand {
 
   if (command === '') {
     return { kind: 'unknown', command: '' }
+  }
+
+  // "/1", "/2", … — the unambiguous form of a numbered option pick.
+  if (/^\d{1,2}$/.test(command)) {
+    if (argument.length > 0) {
+      return { kind: 'usage-error', command, message: `Usage: /${command}` }
+    }
+    return { kind: 'option-select', number: Number(command), fallbackToChat: false, rawText: input }
   }
 
   if (command === 'help' || command === 'who' || command === 'look' || command === 'character' || command === 'missions') {

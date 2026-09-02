@@ -66,12 +66,72 @@ public sealed record PickUpItemChange(Guid ItemId) : StateChange;
 // that triggered it, so the objective completes in the same commit (§38).
 public sealed record CompleteObjectiveChange(Guid MissionInstanceId, string ObjectiveKey) : StateChange;
 
+// Milestone 7: the other half of the objective palette. Marks one objective
+// Failed. Because objectives are sequential, nothing after it can activate —
+// so authored content always emits this together with FailMissionChange, and
+// the pair commits at once. Kept a separate change so the mission record says
+// WHICH objective ended the run, which is what mission history reads back.
+public sealed record FailObjectiveChange(Guid MissionInstanceId, string ObjectiveKey) : StateChange;
+
 // §39: the mission's terminal success transition plus its reward grant,
 // atomically. The applier appends the career-ledger rows (karma + nuyen
 // Award transactions and a mission-reward receipt keyed deterministically by
 // MissionInstanceId) in the same transaction as the Completed status — the
 // grant happens exactly once even if the completing action replays.
 public sealed record CompleteMissionChange(Guid MissionInstanceId, int Karma, int Nuyen) : StateChange;
+
+// Milestone 6 (§37): scene-state mutations. Scene position commits
+// atomically with whatever the selected choice did — accepting a job and
+// advancing to the "accepted" node are one transaction, so a replay can
+// never re-run an effect from a node the conversation already left.
+// Milestone 7: NpcInstanceId is null for a scene a trigger opened, which has
+// no conversation partner.
+public sealed record BeginSceneChange(
+    Guid? NpcInstanceId, Guid RoomId, string SceneId, string NodeId) : StateChange;
+
+public sealed record AdvanceSceneChange(string NodeId) : StateChange;
+
+// §36: pay negotiated in this conversation, applied at acceptance.
+public sealed record SetPendingNegotiatedPayChange(int Nuyen) : StateChange;
+
+public sealed record EndSceneChange : StateChange;
+
+// §36: contract acceptance — creates the mission instance (repeatability
+// enforced by the same rules as admin assignment) carrying the negotiated
+// pay. MissionId names a content definition.
+public sealed record AcceptMissionChange(string MissionId, int? NegotiatedNuyen) : StateChange;
+
+// §38: the item leaves the world — handed over at turn-in. The row is
+// deleted; the audit envelope keeps the record (dev decision
+// mission.item-consumed-on-turn-in).
+public sealed record RemoveItemChange(Guid ItemId, string Reason) : StateChange;
+
+// Milestone 6 defeat path: the mission fails (dev decision
+// combat.no-pc-death — defeat, not death) and its live encounter is
+// archived. Durable consequences from earlier commits stand.
+public sealed record FailMissionChange(Guid MissionInstanceId) : StateChange;
+
+// ------------------------------------------------------------------------
+// Milestone 7 trigger/scene palette. These are the only ways authored content
+// can reach world state, which is what keeps the §23 invariant intact while
+// admins compose freely: every one of them is a tested engine primitive, and
+// content picks from the list rather than extending it.
+// ------------------------------------------------------------------------
+
+// Hands the character an item the encounter declares but never placed (or
+// placed elsewhere) — a fresh instance owned by them, provenance intact.
+public sealed record GrantItemChange(
+    Guid MissionInstanceId,
+    Guid EncounterInstanceId,
+    string ItemKey,
+    string DisplayName,
+    string Description) : StateChange;
+
+// Records that a fire-once trigger has fired. Committing it in the same
+// transaction as the trigger's own effects is what makes "fires once" true
+// even if the reaction is replayed.
+public sealed record RecordTriggerFireChange(
+    Guid MissionInstanceId, string TriggerKey) : StateChange;
 
 public enum EffectAttachDisposition
 {

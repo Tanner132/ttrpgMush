@@ -8,6 +8,7 @@ using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
+using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Missions.Content;
@@ -52,9 +53,20 @@ public static class DependencyInjection
         services.AddScoped<CombatEngine>();
         // Milestone 5: game content loads/validates once at startup (a
         // content error fails boot, like the catalog); the mission engine is
-        // scoped like the executor that drives it.
+        // scoped like the executor that drives it. Milestone 7 (§50): the
+        // Infrastructure layer replaces this with the database-backed
+        // provider — the embedded bundle remains the seed source, and the
+        // fallback for an Application-only composition.
         services.AddSingleton<IGameContentProvider>(new EmbeddedGameContentProvider());
+        services.AddScoped<GameContentPublisher>();
+        services.AddScoped<GameContentLifecycle>();
         services.AddScoped<MissionEngine>();
+        services.AddScoped<SceneConditionEvaluator>();
+        services.AddScoped<SceneEffectResolver>();
+        services.AddScoped<SceneEngine>();
+        // Milestone 7: the trigger engine reads content events off the same
+        // queue every other action runs on.
+        services.AddScoped<TriggerEngine>();
         services.AddScoped<GameActionExecutor>();
 
         return services;

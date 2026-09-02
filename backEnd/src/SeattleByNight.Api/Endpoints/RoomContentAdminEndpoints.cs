@@ -1,4 +1,5 @@
 using SeattleByNight.Api.Authorization;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Domain.Enums;
@@ -67,9 +68,11 @@ public static class RoomContentAdminEndpoints
         return endpoints;
     }
 
-    private static IResult ListTemplates()
+    // Milestone 7 section 4: templates are content now, so the placement tool
+    // lists whatever the running game is serving rather than a code catalog.
+    private static IResult ListTemplates(IGameContentProvider gameContent)
     {
-        var templates = NpcTemplates.All
+        var templates = gameContent.Current.NpcTemplates
             .Select(template => new NpcTemplateSummary(
                 template.TemplateId,
                 template.DisplayName,
@@ -99,10 +102,11 @@ public static class RoomContentAdminEndpoints
         Guid roomId,
         PlaceNpcRequest request,
         IRoomContentEditor editor,
+        IGameContentProvider gameContent,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.TemplateId)
-            || NpcTemplates.Find(request.TemplateId) is not NpcTemplate template)
+            || gameContent.Current.FindNpcTemplate(request.TemplateId) is not NpcTemplate template)
         {
             return Results.Problem(statusCode: StatusCodes.Status400BadRequest,
                 title: "Unknown NPC template.");

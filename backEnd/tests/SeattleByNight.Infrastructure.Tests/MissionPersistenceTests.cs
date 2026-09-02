@@ -56,7 +56,8 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
             instance.Objectives,
             objective => Assert.Equal(("enter-warehouse", MissionObjectiveStatus.Active), (objective.Key, objective.Status)),
             objective => Assert.Equal(("retrieve-package", MissionObjectiveStatus.Inactive), (objective.Key, objective.Status)),
-            objective => Assert.Equal(("leave-warehouse", MissionObjectiveStatus.Inactive), (objective.Key, objective.Status)));
+            objective => Assert.Equal(("leave-warehouse", MissionObjectiveStatus.Inactive), (objective.Key, objective.Status)),
+            objective => Assert.Equal(("deliver-package", MissionObjectiveStatus.Inactive), (objective.Key, objective.Status)));
     }
 
     [Fact]
@@ -107,16 +108,24 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         var rooms = await db.Rooms.AsNoTracking()
             .Where(room => room.EncounterInstanceId == encounter.Id)
             .ToListAsync();
-        Assert.Equal(3, rooms.Count);
+        Assert.Equal(4, rooms.Count);
         Assert.All(rooms, room => Assert.Equal(RoomAccessType.Instanced, room.AccessType));
         Assert.Contains(rooms, room => room.Id == encounter.EntryRoomId);
+        // Milestone 7: instantiated rooms keep the authored key, which is how
+        // a room trigger recognizes the room it watches.
+        Assert.All(rooms, room => Assert.False(string.IsNullOrWhiteSpace(room.ContentKey)));
+        Assert.Contains(rooms, room => room.ContentKey == "back-hallway");
 
         var roomIds = rooms.Select(room => room.Id).ToHashSet();
-        Assert.Equal(4, await db.RoomExits.CountAsync(exit => roomIds.Contains(exit.SourceRoomId)));
-        Assert.Equal(1, await db.NpcInstances.CountAsync(npc => roomIds.Contains(npc.RoomId)));
+        Assert.Equal(6, await db.RoomExits.CountAsync(exit => roomIds.Contains(exit.SourceRoomId)));
+        Assert.Equal(2, await db.NpcInstances.CountAsync(npc => roomIds.Contains(npc.RoomId)));
         Assert.Equal(1, await db.RoomInteractables.CountAsync(interactable => roomIds.Contains(interactable.RoomId)));
+        // The keycard is declared but unplaced, so only the package
+        // materializes as a room item at instantiation (Milestone 7).
         Assert.Equal(1, await db.WorldItemInstances.CountAsync(item =>
             item.EncounterInstanceId == encounter.Id && item.RoomId != null));
+        Assert.Equal(1, await db.WorldItemInstances.CountAsync(item =>
+            item.EncounterInstanceId == encounter.Id));
         Assert.Equal(1, await db.EncounterParticipants.CountAsync(participant =>
             participant.EncounterInstanceId == encounter.Id && participant.CharacterId == setup.CharacterId));
 
@@ -391,7 +400,8 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
     private async Task ApplyAsync(Guid characterId, IReadOnlyList<StateChange> changes)
     {
         await using var db = CreateDbContext();
-        var applier = new StateChangeApplier(db, GameContent, TimeProvider.System);
+        var applier = new StateChangeApplier(
+            db, GameContent, new MissionStore(db, TimeProvider.System), TimeProvider.System);
         await applier.ApplyAsync(characterId, changes);
     }
 

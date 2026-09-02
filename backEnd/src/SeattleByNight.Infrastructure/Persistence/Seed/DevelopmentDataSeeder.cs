@@ -25,6 +25,10 @@ public static class DevelopmentDataSeeder
     public static readonly Guid DevUserId = new("99999999-9999-9999-9999-999999999999");
     public static readonly Guid DevCharacterId = new("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
+    // Milestone 6 (§36): the fixer who offers the warehouse job, holding
+    // court in the Coffee Shop.
+    public static readonly Guid MrJohnsonNpcId = new("bbbbbbbb-bbbb-bbbb-bbbb-000000000001");
+
     public static readonly Guid AdministratorRoleId = new("77777777-7777-7777-7777-000000000001");
     public static readonly Guid WorldBuilderRoleId = new("77777777-7777-7777-7777-000000000002");
     public static readonly Guid ModeratorRoleId = new("77777777-7777-7777-7777-000000000003");
@@ -138,6 +142,20 @@ public static class DevelopmentDataSeeder
             .Select(exit => exit.Id)
             .ToHashSetAsync(cancellationToken);
         db.RoomExits.AddRange(seedExits.Where(exit => !existingSeedExitIds.Contains(exit.Id)));
+
+        if (!await db.NpcInstances.AnyAsync(npc => npc.Id == MrJohnsonNpcId, cancellationToken))
+        {
+            db.NpcInstances.Add(new NpcInstance
+            {
+                Id = MrJohnsonNpcId,
+                TemplateId = "mr-johnson",
+                Name = "Mr. Johnson",
+                RoomId = CoffeeShopId,
+                Awareness = NpcAwareness.Unaware.ToString(),
+                CreatedAtUtc = DateTimeOffset.UtcNow,
+                UpdatedAtUtc = DateTimeOffset.UtcNow,
+            });
+        }
 
         if (!await db.Users.AnyAsync(u => u.Id == DevUserId, cancellationToken))
         {

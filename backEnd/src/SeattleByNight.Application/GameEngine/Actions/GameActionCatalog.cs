@@ -15,6 +15,14 @@ public enum GameActionKind
     // encounter entry/exit, item possession, and objective/mission
     // transitions (§29/§35/§38).
     Mission,
+    // Milestone 6 conversation verbs (§37): dispatched to the SceneEngine,
+    // which walks the node graph, rolls choice tests through the real test
+    // engine, and turns choice effects into State Changes. Milestone 7
+    // generalized these from NPC dialogue to any authored scene.
+    Scene,
+    // Milestone 7: engine-only content events (§24), dispatched to the
+    // TriggerEngine, which matches them against authored triggers.
+    Trigger,
 }
 
 // What a submitted action must name as its target (§32). Untargeted actions
@@ -30,6 +38,10 @@ public enum GameActionTargetKind
     // character, and a world item instance in the current room.
     MissionInstance,
     Item,
+    // Milestone 6 (§37): a scene choice, identified by a deterministic id
+    // derived from (npc, node, choice) — resolved by the SceneEngine from
+    // the character's open conversation.
+    SceneChoice,
 }
 
 // §14: the universal action abstraction. Every player verb — rolling a test,
@@ -72,6 +84,16 @@ public static class DevelopmentGameActions
     public const string EnterEncounterActionId = "mission-enter";
     public const string TakeItemActionId = "take-item";
     public const string LeaveEncounterActionId = "mission-exit";
+
+    // Milestone 6 conversation verbs (§36/§37) and the defeat reaction.
+    public const string TalkNpcActionId = "talk-npc";
+    public const string SceneChoiceActionId = "scene-choice";
+    public const string MissionDefeatActionId = "mission-defeat";
+
+    // Milestone 7 engine-only reactions: the content-event carrier, and the
+    // combat opener an authored startCombat effect reaches for.
+    public const string FireTriggersActionId = "fire-triggers";
+    public const string TriggerCombatActionId = "trigger-combat";
 
     public static readonly IReadOnlyDictionary<string, GameActionDefinition> All = Build();
 
@@ -199,6 +221,54 @@ public static class DevelopmentGameActions
             "Leave",
             "Leave the mission site and return to where you came from.",
             GameActionKind.Mission);
+
+        // Conversation verbs (§36/§37): open a scene with an NPC whose
+        // template has one, and pick a choice from the current node. Choice
+        // ids are deterministic per (npc, node, choice); the SceneEngine
+        // resolves them from the character's open conversation.
+        actions[TalkNpcActionId] = new GameActionDefinition(
+            TalkNpcActionId,
+            "Talk to",
+            "Strike up a conversation.",
+            GameActionKind.Scene,
+            TargetKind: GameActionTargetKind.Npc);
+
+        actions[SceneChoiceActionId] = new GameActionDefinition(
+            SceneChoiceActionId,
+            "Say",
+            "Pick what to say next.",
+            GameActionKind.Scene,
+            TargetKind: GameActionTargetKind.SceneChoice);
+
+        // Reaction (§24): combat defeat inside a mission encounter fails the
+        // mission and returns the runner to the entry point.
+        actions[MissionDefeatActionId] = new GameActionDefinition(
+            MissionDefeatActionId,
+            "Mission Defeat",
+            "The runner went down mid-job; the mission fails.",
+            GameActionKind.Mission,
+            PlayerInvokable: false);
+
+        // Reaction (§24): carries one content event to the TriggerEngine,
+        // which decides whether any authored trigger fires on it. Untargeted
+        // — the event's subject travels in the request's TriggerEvent
+        // payload, because a room key or an item key is not a row id.
+        actions[FireTriggersActionId] = new GameActionDefinition(
+            FireTriggersActionId,
+            "Content Event",
+            "The engine raises a content event for authored triggers to react to.",
+            GameActionKind.Trigger,
+            PlayerInvokable: false);
+
+        // Reaction (§24): an authored startCombat effect opens the fight
+        // through the same entry point a failed sneak's alert uses.
+        actions[TriggerCombatActionId] = new GameActionDefinition(
+            TriggerCombatActionId,
+            "Trigger Combat",
+            "Authored content opens combat with a placed NPC.",
+            GameActionKind.Utility,
+            TargetKind: GameActionTargetKind.Npc,
+            PlayerInvokable: false);
 
         // Reaction (§24): fired by the engine when a sneak attempt fails.
         // Never player-invokable; runs at Depth > 0 on the same room queue.

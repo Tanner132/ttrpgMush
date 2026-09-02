@@ -29,5 +29,6 @@
 @import './components/slot-dashboard.css';
 @import './components/administration.css';
 @import './components/world-editor.css';
+@import './components/world-forge.css';
 @import './components/restrained-fx.css';
 @import './components/responsive.css';

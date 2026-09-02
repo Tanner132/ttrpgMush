@@ -2,13 +2,16 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import {
   createWorldExit,
   createWorldRoom,
+  deleteWorldRoom,
   ExitDirections,
+  getRoomDeletionCheck,
   getWorldGraph,
   updateWorldExit,
   updateWorldRoom,
   type ExitDirection,
   type ExitMutation,
   type WorldExit,
+  type RoomDeletionCheck,
   type WorldGraph,
   type WorldRoom,
 } from '../../api/worldEditor.ts'
@@ -202,6 +205,110 @@ function ReverseExitForm({ exit, busy, reverseExists, onCreate, onCancel }: { ex
   )
 }
 
+interface DeleteRoomPanelProps {
+  room: WorldRoom
+  rooms: WorldRoom[]
+  busy: boolean
+  onDelete: (relocateTo?: string) => Promise<void>
+}
+
+/**
+ * Milestone 7 section 5. A public world room only goes when nothing is still
+ * pointing at it, and the check runs before the button so the blockers are
+ * visible rather than discovered. Characters standing in it are the one
+ * blocker with a way out: pick somewhere to put them.
+ */
+function DeleteRoomPanel({ room, rooms, busy, onDelete }: DeleteRoomPanelProps) {
+  const [check, setCheck] = useState<RoomDeletionCheck | null>(null)
+  const [checkFailed, setCheckFailed] = useState(false)
+  const [relocateTo, setRelocateTo] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    const controller = new AbortController()
+    setCheck(null)
+    setCheckFailed(false)
+    setRelocateTo('')
+    void getRoomDeletionCheck(room.id, controller.signal)
+      .then((result) => {
+        if (!cancelled) setCheck(result)
+      })
+      .catch(() => {
+        if (!cancelled) setCheckFailed(true)
+      })
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [room.id])
+
+  const needsRelocation = check !== null && check.canDelete && check.charactersPresent > 0
+  const ready = check !== null && check.canDelete && (!needsRelocation || relocateTo !== '')
+
+  return (
+    <Panel title="Delete room">
+      <div className="ui-panel__body">
+        {checkFailed ? (
+          // Otherwise a failed request reads as a slow one, forever.
+          <p className="form__error">
+            The delete check could not be reached. Reselect the room to try again.
+          </p>
+        ) : check === null ? (
+          <p role="status" className="form__note">Checking what still points at this room…</p>
+        ) : check.canDelete ? (
+          <>
+            <p className="form__note">
+              Nothing points at this room{check.charactersPresent > 0
+                ? `, but ${check.charactersPresent} character${check.charactersPresent === 1 ? ' is' : 's are'} standing in it.`
+                : '.'}
+            </p>
+            {check.chatMessages + check.roomVisits > 0 && (
+              <p className="form__note">
+                Deleting it also erases {check.chatMessages} chat message
+                {check.chatMessages === 1 ? '' : 's'} and {check.roomVisits} visit
+                {check.roomVisits === 1 ? '' : 's'} recorded here. Ledgers, receipts and dice
+                audits are untouched.
+              </p>
+            )}
+            {needsRelocation && (
+              <label className="ui-field">
+                <span className="ui-field__label">Move them to</span>
+                <select
+                  className="ui-field__input"
+                  value={relocateTo}
+                  onChange={(event) => setRelocateTo(event.target.value)}
+                >
+                  <option value="">— choose a room —</option>
+                  {rooms
+                    .filter((candidate) => candidate.id !== room.id)
+                    .map((candidate) => (
+                      <option key={candidate.id} value={candidate.id}>
+                        {candidate.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            )}
+          </>
+        ) : (
+          // Descriptive state, not a response to an action: the reason is
+          // about the room you are looking at, so it is not an alert.
+          <p className="form__error">{check.reason}</p>
+        )}
+
+        <Button
+          intent="danger"
+          busy={busy}
+          disabled={!ready}
+          onClick={() => void onDelete(relocateTo === '' ? undefined : relocateTo)}
+        >
+          Delete room
+        </Button>
+      </div>
+    </Panel>
+  )
+}
+
 export default function WorldEditorPage() {
   const [graph, setGraph] = useState<WorldGraph | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -367,6 +474,29 @@ export default function WorldEditorPage() {
             {selectedRoom ? <>
               <Panel title="Room record"><RoomForm room={selectedRoom} busy={busy} onUpdate={async (room, name, description) => { await mutate(() => updateWorldRoom(room.id, { name, description, accessType: 'Public', version: room.version }), 'Room updated.', room.id) }} /></Panel>
               <Panel title="Coordinates"><div className="ui-panel__body"><p className="form__note">Layer {selectedRoom.mapLayer} · X {selectedRoom.mapX} · Y {selectedRoom.mapY}</p></div></Panel>
+              <DeleteRoomPanel
+                room={selectedRoom}
+                rooms={rooms}
+                busy={busy}
+                onDelete={async (relocateTo) => {
+                  // Inside mutate, so the request disables the button while it
+                  // is in flight and a network failure reaches the same banner
+                  // every other mutation uses. A refusal is thrown for the same
+                  // reason: the server's own wording is what the admin needs,
+                  // and it belongs where errors already go.
+                  const { id, name } = selectedRoom
+                  await mutate(async () => {
+                    const deleted = await deleteWorldRoom(id, relocateTo)
+                    if (!deleted.canDelete) {
+                      throw new Error(deleted.reason ?? 'The room could not be deleted.')
+                    }
+
+                    setSelectedId(null)
+                    setSelectedRoom(null)
+                    return deleted
+                  }, `${name} deleted.`)
+                }}
+              />
               <Panel title="Directed exits">
                 <div className="ui-panel__body">
                   <Button intent="info" onClick={() => { setEditingExit(null); setReversingExit(null) }}>Create exit</Button>

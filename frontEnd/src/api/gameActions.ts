@@ -7,7 +7,7 @@ export interface GameActionSummary {
   targetId: string | null
   displayName: string
   description: string
-  kind: 'Test' | 'Utility' | 'Combat' | 'Mission'
+  kind: 'Test' | 'Utility' | 'Combat' | 'Mission' | 'Scene' | 'Trigger'
 }
 
 export interface DecisionOption {

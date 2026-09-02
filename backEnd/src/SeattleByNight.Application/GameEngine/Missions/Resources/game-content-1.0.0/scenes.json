@@ -1,0 +1,299 @@
+{
+  "scenes": [
+    {
+      "id": "warehouse-hallway-ambush",
+      "startNodeId": "ambush",
+      "nodes": [
+        {
+          "nodeId": "ambush",
+          "text": "\"Wrong hallway, chummer.\" The muzzle steadies on your chest. You have about half a second.",
+          "choices": [
+            {
+              "choiceId": "dodge",
+              "label": "Dodge",
+              "conditions": [],
+              "testId": "dodge-gunfire",
+              "onSuccess": { "nextNodeId": "dodged" },
+              "onFailure": { "nextNodeId": "hit" }
+            },
+            {
+              "choiceId": "block",
+              "label": "Block",
+              "conditions": [],
+              "testId": "block-attacker",
+              "onSuccess": { "nextNodeId": "blocked" },
+              "onFailure": { "nextNodeId": "hit" }
+            }
+          ]
+        },
+        {
+          "nodeId": "dodged",
+          "text": "You drop and roll behind a stack of drywall sheets. The round goes through the space your chest was in and keeps going.",
+          "choices": [
+            {
+              "choiceId": "come-up-swinging",
+              "label": "Come up swinging",
+              "conditions": [],
+              "effects": [
+                { "kind": "startCombat", "npcName": "Hallway Enforcer" }
+              ],
+              "endsScene": true
+            }
+          ]
+        },
+        {
+          "nodeId": "blocked",
+          "text": "You close inside the barrel before he can track you, knock the pistol wide, and rip the lanyard off his neck on the way past. He backs off down the corridor, swearing, hands empty.",
+          "choices": [
+            {
+              "choiceId": "take-the-card",
+              "label": "Pocket the card and move on",
+              "conditions": [],
+              "effects": [
+                { "kind": "pacifyNpc", "npcName": "Hallway Enforcer" },
+                { "kind": "giveItem", "itemKey": "enforcer-keycard" }
+              ],
+              "endsScene": true
+            }
+          ]
+        },
+        {
+          "nodeId": "hit",
+          "text": "The shot takes you high in the shoulder and spins you into the wall. He is already stepping in for the second one.",
+          "choices": [
+            {
+              "choiceId": "fight",
+              "label": "Fight back",
+              "conditions": [],
+              "effects": [
+                { "kind": "dealDamage", "damage": 3, "damageType": "physical" },
+                { "kind": "startCombat", "npcName": "Hallway Enforcer" }
+              ],
+              "endsScene": true
+            }
+          ]
+        }
+      ]
+    }
+,
+    {
+      "id": "johnson-warehouse-job",
+      "npcTemplateId": "mr-johnson",
+      "startNodeId": "greeting",
+      "nodes": [
+        {
+          "nodeId": "greeting",
+          "text": "The suit looks up from his soykaf and takes your measure in one pass. \"Sit, if you're working. I represent a client with a logistics problem.\"",
+          "choices": [
+            {
+              "choiceId": "ask-job",
+              "label": "Ask about the work",
+              "conditions": [
+                { "kind": "missionAvailable", "missionId": "gang-warehouse-retrieval" }
+              ],
+              "nextNodeId": "job-offer"
+            },
+            {
+              "choiceId": "job-status",
+              "label": "Tell him the job is in progress",
+              "conditions": [
+                { "kind": "missionOpen", "missionId": "gang-warehouse-retrieval" }
+              ],
+              "nextNodeId": "in-progress"
+            },
+            {
+              "choiceId": "hand-over-package",
+              "label": "Hand over the package",
+              "conditions": [
+                { "kind": "missionReadyToTurnIn", "missionId": "gang-warehouse-retrieval" },
+                { "kind": "carryingItem", "itemKey": "package" }
+              ],
+              "effects": [
+                { "kind": "turnInMission", "missionId": "gang-warehouse-retrieval" }
+              ],
+              "nextNodeId": "paid"
+            },
+            {
+              "choiceId": "leave",
+              "label": "Walk away",
+              "conditions": [],
+              "endsScene": true
+            }
+          ]
+        },
+        {
+          "nodeId": "job-offer",
+          "text": "\"A gang crew is sitting on a sealed courier case in a warehouse off the Alley. My client wants it back, unopened. Quietly would be preferred; quietly is not required. Two thousand nuyen on delivery, plus my client's goodwill.\"",
+          "choices": [
+            {
+              "choiceId": "ask-details",
+              "label": "Ask for the details",
+              "conditions": [],
+              "nextNodeId": "details"
+            },
+            {
+              "choiceId": "negotiate",
+              "label": "Negotiate the pay",
+              "conditions": [ { "kind": "notYetNegotiated" } ],
+              "testId": "negotiate-pay",
+              "onSuccess": {
+                "nextNodeId": "negotiate-win",
+                "effects": [ { "kind": "setNegotiatedPay", "missionId": "gang-warehouse-retrieval" } ]
+              },
+              "onFailure": {
+                "nextNodeId": "negotiate-lose"
+              }
+            },
+            {
+              "choiceId": "accept",
+              "label": "Accept the job",
+              "conditions": [
+                { "kind": "missionAvailable", "missionId": "gang-warehouse-retrieval" }
+              ],
+              "effects": [
+                { "kind": "acceptMission", "missionId": "gang-warehouse-retrieval" }
+              ],
+              "nextNodeId": "accepted"
+            },
+            {
+              "choiceId": "decline",
+              "label": "Decline the job",
+              "conditions": [],
+              "endsScene": true
+            }
+          ]
+        },
+        {
+          "nodeId": "details",
+          "text": "\"Warehouse crew runs three or four gangers on rotation; expect at least one on the floor at all hours. The case is in the back storage room. My client does not care about the gangers either way — the case comes back sealed, that is the entire contract.\"",
+          "choices": [
+            {
+              "choiceId": "back-to-offer",
+              "label": "Back to the offer",
+              "conditions": [],
+              "nextNodeId": "job-offer"
+            }
+          ]
+        },
+        {
+          "nodeId": "negotiate-win",
+          "text": "He watches you over the rim of his cup for a long moment, then inclines his head a precise five degrees. \"You know your worth. Very well — the figure moves.\"",
+          "choices": [
+            {
+              "choiceId": "back-to-offer",
+              "label": "Back to the offer",
+              "conditions": [],
+              "nextNodeId": "job-offer"
+            }
+          ]
+        },
+        {
+          "nodeId": "negotiate-lose",
+          "text": "\"The figure is the figure.\" He sets the cup down with a click that closes the subject.",
+          "choices": [
+            {
+              "choiceId": "back-to-offer",
+              "label": "Back to the offer",
+              "conditions": [],
+              "nextNodeId": "job-offer"
+            }
+          ]
+        },
+        {
+          "nodeId": "accepted",
+          "text": "\"Then we have an arrangement. The warehouse is through the Alley. Bring me the case sealed and you will be paid the same hour.\" He returns to his soykaf; the meeting is over.",
+          "choices": [
+            {
+              "choiceId": "leave",
+              "label": "Head out",
+              "conditions": [],
+              "endsScene": true
+            }
+          ]
+        },
+        {
+          "nodeId": "in-progress",
+          "text": "\"I did not hire you for progress reports. The case, sealed, on this table — that is the report.\"",
+          "choices": [
+            {
+              "choiceId": "leave",
+              "label": "Leave him to his soykaf",
+              "conditions": [],
+              "endsScene": true
+            }
+          ]
+        },
+        {
+          "nodeId": "paid",
+          "text": "He inspects the seals without hurry, then nods once and slides the case out of sight. \"Sealed, as contracted. The transfer is already moving. My client remembers professionals.\" ",
+          "choices": [
+            {
+              "choiceId": "leave",
+              "label": "Take your leave",
+              "conditions": [],
+              "endsScene": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ganger-lookout-talk",
+      "npcTemplateId": "street-ganger",
+      "startNodeId": "confront",
+      "nodes": [
+        {
+          "nodeId": "confront",
+          "text": "The ganger pushes off the pallet rack and squares up, hand drifting toward a jacket pocket. \"You lost, chummer? This floor's spoken for.\"",
+          "choices": [
+            {
+              "choiceId": "talk-past",
+              "label": "Talk your way past",
+              "conditions": [],
+              "testId": "fast-talk",
+              "onSuccess": {
+                "nextNodeId": "talked-past",
+                "effects": [ { "kind": "pacifyNpc" } ]
+              },
+              "onFailure": {
+                "nextNodeId": "made",
+                "effects": [ { "kind": "alertNpc" } ],
+                "endsScene": false
+              }
+            },
+            {
+              "choiceId": "back-off",
+              "label": "Back off",
+              "conditions": [],
+              "endsScene": true
+            }
+          ]
+        },
+        {
+          "nodeId": "talked-past",
+          "text": "You spin it smooth — wrong address, right attitude, a name he half-recognizes. He sizes you up one more second, then jerks his chin toward the back. \"Make it quick and we never talked.\"",
+          "choices": [
+            {
+              "choiceId": "leave",
+              "label": "Move on",
+              "conditions": [],
+              "endsScene": true
+            }
+          ]
+        },
+        {
+          "nodeId": "made",
+          "text": "He isn't buying a word of it. \"Nice try, drekhead.\" His hand comes out of the jacket, and it isn't empty.",
+          "choices": [
+            {
+              "choiceId": "leave",
+              "label": "Brace yourself",
+              "conditions": [],
+              "endsScene": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

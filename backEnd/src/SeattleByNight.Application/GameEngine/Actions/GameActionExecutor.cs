@@ -5,9 +5,11 @@ using SeattleByNight.Application.GameEngine.Auditing;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Decisions;
+using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Effects;
 using SeattleByNight.Application.GameEngine.Missions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Modifiers;
 using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.GameEngine.Npcs;
@@ -60,10 +62,13 @@ public sealed class GameActionExecutor
     private readonly IRoomChatStore chatStore;
     private readonly IGameMessageBroadcaster broadcaster;
     private readonly IRoomContentReader roomContent;
+    private readonly IGameContentProvider gameContent;
     private readonly AffordanceService affordanceService;
     private readonly IGameCommandQueue queue;
     private readonly CombatEngine combatEngine;
     private readonly MissionEngine missionEngine;
+    private readonly SceneEngine sceneEngine;
+    private readonly TriggerEngine triggerEngine;
     private readonly IGameScopeResolver scopeResolver;
     private readonly PlaySessionOptions playSessionOptions;
     private readonly TimeProvider timeProvider;
@@ -82,10 +87,13 @@ public sealed class GameActionExecutor
         IRoomChatStore chatStore,
         IGameMessageBroadcaster broadcaster,
         IRoomContentReader roomContent,
+        IGameContentProvider gameContent,
         AffordanceService affordanceService,
         IGameCommandQueue queue,
         CombatEngine combatEngine,
         MissionEngine missionEngine,
+        SceneEngine sceneEngine,
+        TriggerEngine triggerEngine,
         IGameScopeResolver scopeResolver,
         PlaySessionOptions playSessionOptions,
         TimeProvider timeProvider)
@@ -103,10 +111,13 @@ public sealed class GameActionExecutor
         this.chatStore = chatStore;
         this.broadcaster = broadcaster;
         this.roomContent = roomContent;
+        this.gameContent = gameContent;
         this.affordanceService = affordanceService;
         this.queue = queue;
         this.combatEngine = combatEngine;
         this.missionEngine = missionEngine;
+        this.sceneEngine = sceneEngine;
+        this.triggerEngine = triggerEngine;
         this.scopeResolver = scopeResolver;
         this.playSessionOptions = playSessionOptions;
         this.timeProvider = timeProvider;
@@ -191,6 +202,14 @@ public sealed class GameActionExecutor
                 cancellationToken),
             GameActionKind.Mission => await missionEngine.ExecuteAsync(
                 new MissionActionContext(request, session), cancellationToken),
+            GameActionKind.Scene => await sceneEngine.ExecuteAsync(
+                new SceneActionContext(
+                    request, session, actor, sheetResult.Adapter, runtime,
+                    target.Npc, target.NpcTemplate, publishInitialOutcome),
+                cancellationToken),
+            GameActionKind.Trigger => await triggerEngine.ExecuteAsync(
+                new TriggerActionContext(request, session, actor, sheetResult.Adapter, runtime),
+                cancellationToken),
             _ => await ExecuteUtilityAsync(
                 request, definition, session, actor, effects, target, cancellationToken),
         };
@@ -228,7 +247,7 @@ public sealed class GameActionExecutor
                     return (ResolvedTarget.None, GameActionError.TargetNotFound);
                 }
 
-                if (NpcTemplates.Find(npc.TemplateId) is not NpcTemplate template)
+                if (gameContent.Current.ResolveNpcTemplate(npc) is not NpcTemplate template)
                 {
                     // A placed NPC whose template no longer exists is data
                     // corruption, not a bad request.
@@ -531,13 +550,31 @@ public sealed class GameActionExecutor
         // §38: a Hostile NPC that just snapped alert opens combat itself. This
         // runs on the room's queue consumer already, so the direct call is
         // safe — only enqueue-and-await would deadlock.
-        if (string.Equals(request.ActionId, DevelopmentGameActions.NpcAlertActionId, StringComparison.Ordinal)
-            && target.Npc is { } alertedNpc
-            && target.NpcTemplate is { Hostile: true } alertedTemplate
-            && !NpcDerivedValues.IsIncapacitated(alertedNpc, alertedTemplate))
+        // Milestone 7: an authored startCombat effect opens the fight the same
+        // way, minus the hostility gate — content that says "he shoots" means
+        // it, whatever the template's disposition.
+        var opensCombat =
+            (string.Equals(request.ActionId, DevelopmentGameActions.NpcAlertActionId, StringComparison.Ordinal)
+                && target.NpcTemplate is { Hostile: true })
+            || string.Equals(request.ActionId, DevelopmentGameActions.TriggerCombatActionId, StringComparison.Ordinal);
+
+        if (opensCombat
+            && target.Npc is { } aggressor
+            && target.NpcTemplate is { } aggressorTemplate
+            && !NpcDerivedValues.IsIncapacitated(aggressor, aggressorTemplate))
         {
             await combatEngine.StartNpcInitiatedCombatAsync(
-                request, session, actor, alertedNpc, cancellationToken);
+                request, session, actor, aggressor, cancellationToken);
+        }
+
+        // §24: inspecting something is an event content can react to.
+        if (string.Equals(
+                request.ActionId, DevelopmentGameActions.InspectInteractableActionId, StringComparison.Ordinal)
+            && target.Interactable is { } inspected)
+        {
+            await EnqueueTriggerAsync(
+                request, session, TriggerEventKind.InteractableInspected,
+                interactableName: inspected.Name, cancellationToken: cancellationToken);
         }
 
         return GameActionOutcome.Final(null, message ?? $"{definition.DisplayName} resolved.");
@@ -650,9 +687,39 @@ public sealed class GameActionExecutor
                     NpcEmote: "snaps alert, scanning the area!");
             }
 
+            case DevelopmentGameActions.TriggerCombatActionId:
+            {
+                // Reaction (§24), enqueued by an authored startCombat effect.
+                // The state change is the awareness flip; the fight itself is
+                // opened after the commit, above.
+                var npc = target.Npc!;
+                return new UtilityPlan(
+                    new StateChange[] { new SetNpcAwarenessChange(npc.Id, NpcAwareness.Combat) },
+                    Emote: null,
+                    $"{npc.Name} attacks.");
+            }
+
             default:
                 throw new NotSupportedException($"Utility action '{actionId}' has no handler.");
         }
+    }
+
+    // §24: raises a content event on the room's queue at Depth + 1, for the
+    // TriggerEngine to match against authored triggers. Fire-and-forget on the
+    // same consumer this action is running on — awaiting it would deadlock.
+    private async Task EnqueueTriggerAsync(
+        GameActionRequest request,
+        ActivePlaySession session,
+        TriggerEventKind eventKind,
+        string? interactableName = null,
+        CancellationToken cancellationToken = default)
+    {
+        var scopeId = await scopeResolver.ResolveScopeAsync(session.CurrentRoomId, cancellationToken);
+        _ = queue.EnqueueAsync(
+            scopeId,
+            TriggerRequests.Build(
+                request, eventKind, interactableName: interactableName, roomId: session.CurrentRoomId),
+            CancellationToken.None);
     }
 
     private async Task AppendAuditAsync(

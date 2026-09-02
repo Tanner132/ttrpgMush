@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
+using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Resolution;
 using SeattleByNight.Application.GameEngine.Tests;
@@ -11,6 +13,17 @@ namespace SeattleByNight.Application.Tests;
 
 public sealed class GameCommandQueueTests
 {
+    // A clock the test moves by hand, so scope reclamation can be observed
+    // without the test waiting half an hour for it.
+    private sealed class FakeTimeProvider : TimeProvider
+    {
+        private DateTimeOffset now = DateTimeOffset.UtcNow;
+
+        public override DateTimeOffset GetUtcNow() => now;
+
+        public void Advance(TimeSpan by) => now = now.Add(by);
+    }
+
     // Stands in for the DI container: every "scope" resolves a fresh executor
     // wired to the harness's shared fakes, mirroring how the real queue gets
     // a fresh DbContext per command over long-lived stores.
@@ -50,6 +63,8 @@ public sealed class GameCommandQueueTests
         public FakeGameTestAuditStore Audit { get; } = new();
         public GameCommandQueue Queue { get; }
 
+        public FakeTimeProvider Clock { get; } = new();
+
         public Harness()
         {
             var now = DateTimeOffset.UtcNow;
@@ -71,25 +86,44 @@ public sealed class GameCommandQueueTests
             var combatTracker = new InMemoryCombatTracker();
             var resolver = new TestResolver(roller);
             var options = new PlaySessionOptions();
+            var missions = new FakeMissionReader();
+            var scopeResolver = new FakeGameScopeResolver();
+            var innerQueue = new FakeGameCommandQueue();
             var combatEngine = new CombatEngine(
                 combatTracker, resolver, roller, new FixedSeedSource(), Applier, Audit,
                 new FakeRoomChatStore(), new FakeGameMessageBroadcaster(),
-                roomContent, options, TimeProvider.System);
-            var missions = new FakeMissionReader();
+                roomContent, TestGameContent.Provider, missions, innerQueue, scopeResolver, options,
+                TimeProvider.System);
             var missionEngine = new MissionEngine(
                 missions, TestGameContent.Provider, Applier, Audit,
                 new FakeRoomChatStore(), new FakeGameMessageBroadcaster(),
-                new FakeTravelNotifier(), options);
+                new FakeTravelNotifier(), roomContent, innerQueue, scopeResolver, options);
+            var sceneSessions = new FakeSceneSessionReader();
+            var sceneConditions = new SceneConditionEvaluator(missions, TestGameContent.Provider);
+            var sceneEffects = new SceneEffectResolver(
+                TestGameContent.Provider, missions, roomContent, sceneSessions);
+            var sceneEngine = new SceneEngine(
+                sceneSessions, TestGameContent.Provider, sceneConditions, sceneEffects, roomContent,
+                resolver, roller, new FixedSeedSource(), Applier, Audit,
+                new FakeRoomChatStore(), new FakeGameMessageBroadcaster(),
+                innerQueue, scopeResolver, options, TimeProvider.System);
+            var triggerEngine = new TriggerEngine(
+                TestGameContent.Provider, missions, new FakeTriggerFireReader(), sceneSessions, roomContent,
+                sceneConditions, sceneEffects, sceneEngine, resolver, new FixedSeedSource(), Applier, Audit,
+                new FakeGameMessageBroadcaster(), innerQueue, scopeResolver, TimeProvider.System);
             Queue = new GameCommandQueue(
                 new SingleExecutorScopeFactory(() => new GameActionExecutor(
                     Sessions, sheets, new FakeRuntimeStateStore(), Effects, new FixedSeedSource(),
                     resolver, roller, new FakeDecisionBroker(), Applier, Audit,
                     new FakeRoomChatStore(), new FakeGameMessageBroadcaster(),
-                    roomContent,
-                    new AffordanceService(roomContent, combatTracker, missions, TestGameContent.Provider),
+                    roomContent, TestGameContent.Provider,
+                    new AffordanceService(
+                        roomContent, combatTracker, missions, TestGameContent.Provider,
+                        sceneSessions, sceneConditions),
                     new FakeGameCommandQueue(),
-                    combatEngine, missionEngine, new FakeGameScopeResolver(), options, TimeProvider.System)),
-                TimeProvider.System);
+                    combatEngine, missionEngine, sceneEngine, triggerEngine, scopeResolver, options, TimeProvider.System)),
+                Clock,
+                NullLogger<GameCommandQueue>.Instance);
         }
 
         // The run/surge utilities keep these tests dice-free.
@@ -205,6 +239,58 @@ public sealed class GameCommandQueueTests
         Assert.Equal(GameActionError.ActionFailed, failed.Error);
         Assert.True(next.IsSuccess);
         Assert.Single(harness.Audit.Entries);
+    }
+
+    [Fact]
+    public async Task An_idle_scope_is_reclaimed_and_a_busy_one_is_not()
+    {
+        var harness = new Harness();
+        var otherScope = Guid.NewGuid();
+
+        Assert.True((await harness.Queue.EnqueueAsync(harness.ScopeId, harness.Request())).IsSuccess);
+        Assert.Equal(1, harness.Queue.ActiveScopes);
+
+        // Nothing queued, nothing running, and long enough since: the channel
+        // and its consumer go. Scopes are keyed by encounter instance as well
+        // as by room, and encounter instances are created per mission run — a
+        // map that only ever grew would grow for the life of the server.
+        harness.Clock.Advance(TimeSpan.FromHours(1));
+        Assert.True((await harness.Queue.EnqueueAsync(otherScope, harness.Request())).IsSuccess);
+        Assert.Equal(1, harness.Queue.ActiveScopes);
+
+        // And the survivor is still a working queue.
+        Assert.True((await harness.Queue.EnqueueAsync(otherScope, harness.Request())).IsSuccess);
+    }
+
+    [Fact]
+    public async Task A_scope_with_an_action_still_running_is_never_reclaimed()
+    {
+        var harness = new Harness();
+        var blocked = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        harness.Sessions.OnGetActive = call =>
+        {
+            if (call == 1)
+            {
+                blocked.SetResult();
+                return release.Task;
+            }
+
+            return Task.CompletedTask;
+        };
+
+        var stuck = harness.Queue.EnqueueAsync(harness.ScopeId, harness.Request());
+        await blocked.Task;
+
+        // Reclaiming a scope mid-action would let the next command start a
+        // SECOND consumer for it, which is the reentrancy the queue exists to
+        // prevent — so an action in flight pins its scope however long it runs.
+        harness.Clock.Advance(TimeSpan.FromHours(1));
+        await harness.Queue.EnqueueAsync(Guid.NewGuid(), harness.Request());
+        Assert.Equal(2, harness.Queue.ActiveScopes);
+
+        release.SetResult();
+        await stuck;
     }
 
     [Fact]

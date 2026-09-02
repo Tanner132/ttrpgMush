@@ -1,0 +1,43 @@
+{
+  "tests": [
+    {
+      "id": "dodge-gunfire",
+      "displayName": "Dodge",
+      "description": "Intuition + Reaction [Physical] (2) — read the shot and get out of its way.",
+      "kind": "threshold",
+      "limit": "physical",
+      "threshold": 2,
+      "pool": [
+        { "kind": "attribute", "id": "intuition" },
+        { "kind": "attribute", "id": "reaction" }
+      ],
+      "tags": ["physical", "defense"]
+    },
+    {
+      "id": "block-attacker",
+      "displayName": "Block",
+      "description": "Strength + Unarmed Combat [Physical] (2) — close inside the barrel and knock it aside.",
+      "kind": "threshold",
+      "limit": "physical",
+      "threshold": 2,
+      "pool": [
+        { "kind": "attribute", "id": "strength" },
+        { "kind": "skill", "id": "unarmed-combat" }
+      ],
+      "tags": ["physical", "combat", "melee"]
+    },
+    {
+      "id": "read-shipping-records",
+      "displayName": "Read the Records",
+      "description": "Logic + Computer [Mental] (1) — make sense of the gang's shipping log before it locks you out.",
+      "kind": "threshold",
+      "limit": "mental",
+      "threshold": 1,
+      "pool": [
+        { "kind": "attribute", "id": "logic" },
+        { "kind": "skill", "id": "computer" }
+      ],
+      "tags": ["mental"]
+    }
+  ]
+}

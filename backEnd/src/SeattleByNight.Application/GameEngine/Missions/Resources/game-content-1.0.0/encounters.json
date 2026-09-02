@@ -22,19 +22,38 @@
           "name": "Back Storage Room",
           "description": "A cramped room behind the racking, lit by a single bare tube. Crates and lockboxes are stacked to the ceiling in no order anyone sane could explain.",
           "environmentModifier": 0
+        },
+        {
+          "key": "back-hallway",
+          "name": "Back Hallway",
+          "description": "A short service corridor off the dock, drywall scarred to the studs. It dead-ends at a padlocked fire door, and the corner halfway down is a blind one.",
+          "environmentModifier": 0
         }
       ],
       "exits": [
         { "fromRoomKey": "loading-dock", "toRoomKey": "warehouse-floor", "direction": "north" },
         { "fromRoomKey": "warehouse-floor", "toRoomKey": "loading-dock", "direction": "south" },
         { "fromRoomKey": "warehouse-floor", "toRoomKey": "storage-room", "direction": "east" },
-        { "fromRoomKey": "storage-room", "toRoomKey": "warehouse-floor", "direction": "west" }
+        { "fromRoomKey": "storage-room", "toRoomKey": "warehouse-floor", "direction": "west" },
+        { "fromRoomKey": "loading-dock", "toRoomKey": "back-hallway", "direction": "east" },
+        { "fromRoomKey": "back-hallway", "toRoomKey": "loading-dock", "direction": "west" }
       ],
       "npcs": [
         {
           "roomKey": "warehouse-floor",
           "templateId": "street-ganger",
           "name": "Warehouse Ganger"
+        },
+        {
+          "roomKey": "back-hallway",
+          "templateId": "street-ganger",
+          "name": "Hallway Enforcer",
+          "description": "Heavier than the kids out on the floor, in a scuffed ballistic vest that has stopped things before. He watches the corner like it is his job, because it is.",
+          "startingAwareness": "suspicious",
+          "overrides": {
+            "armor": 12,
+            "pools": { "defense": 9 }
+          }
         }
       ],
       "items": [
@@ -43,6 +62,11 @@
           "roomKey": "storage-room",
           "name": "Sealed Courier Package",
           "description": "A hard-shell courier case, corporate seals intact. Exactly what the job description promised."
+        },
+        {
+          "key": "enforcer-keycard",
+          "name": "Scuffed Keycard",
+          "description": "A door card on a snapped lanyard, still warm. Whatever it opens, its owner is not getting it back tonight."
         }
       ],
       "interactables": [
@@ -52,6 +76,45 @@
           "description": "An old inventory terminal, still logged in. The gang's shipping records scroll past — someone sloppy runs this place.",
           "isHidden": true,
           "discoveryThreshold": 2
+        }
+      ],
+      "triggers": [
+        {
+          "key": "hallway-ambush",
+          "event": "playerEnteredRoom",
+          "roomKey": "back-hallway",
+          "repeatable": false,
+          "reactions": [
+            {
+              "kind": "narrate",
+              "text": "A man steps out from around the blind corner and brings a pistol up in both hands."
+            },
+            {
+              "kind": "openScene",
+              "sceneId": "warehouse-hallway-ambush"
+            }
+          ]
+        },
+        {
+          "key": "ledger-terminal-records",
+          "event": "interactableInspected",
+          "interactableName": "Ledger Terminal",
+          "repeatable": false,
+          "reactions": [
+            {
+              "kind": "runTest",
+              "testId": "read-shipping-records",
+              "onSuccess": {
+                "text": "The shipping log resolves into something readable: three crates in, one crate out, and a courier case nobody logged at all."
+              },
+              "onFailure": {
+                "text": "The session times out mid-scroll and the terminal throws up a lock screen. Somewhere out on the floor, a chime answers it.",
+                "effects": [
+                  { "kind": "alertNpc", "npcName": "Warehouse Ganger" }
+                ]
+              }
+            }
+          ]
         }
       ]
     }

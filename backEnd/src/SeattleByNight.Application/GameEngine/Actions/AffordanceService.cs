@@ -1,4 +1,5 @@
 using SeattleByNight.Application.GameEngine.Combat;
+using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Npcs;
@@ -30,17 +31,23 @@ public sealed class AffordanceService
     private readonly ICombatTracker combatTracker;
     private readonly IMissionReader missionReader;
     private readonly IGameContentProvider gameContent;
+    private readonly ISceneSessionReader sceneSessions;
+    private readonly SceneConditionEvaluator sceneConditions;
 
     public AffordanceService(
         IRoomContentReader roomContent,
         ICombatTracker combatTracker,
         IMissionReader missionReader,
-        IGameContentProvider gameContent)
+        IGameContentProvider gameContent,
+        ISceneSessionReader sceneSessions,
+        SceneConditionEvaluator sceneConditions)
     {
         this.roomContent = roomContent;
         this.combatTracker = combatTracker;
         this.missionReader = missionReader;
         this.gameContent = gameContent;
+        this.sceneSessions = sceneSessions;
+        this.sceneConditions = sceneConditions;
     }
 
     public async Task<IReadOnlyList<GameAffordance>> GetAffordancesAsync(
@@ -131,7 +138,7 @@ public sealed class AffordanceService
         var npcs = await roomContent.GetNpcsInRoomAsync(roomId, cancellationToken);
         foreach (var npc in npcs)
         {
-            if (NpcTemplates.Find(npc.TemplateId) is not NpcTemplate template)
+            if (gameContent.Current.ResolveNpcTemplate(npc) is not NpcTemplate template)
             {
                 continue;
             }
@@ -145,6 +152,14 @@ public sealed class AffordanceService
                 AddNpcAffordance(affordances, DevelopmentGameTests.SneakPastId, npc);
                 AddNpcAffordance(affordances, DevelopmentGameActions.ApproachNpcActionId, npc);
 
+                // §37: NPCs whose template has an authored scene can be
+                // spoken to — unless they are already past talking.
+                if (npc.Awareness != NpcAwareness.Fleeing
+                    && gameContent.Current.FindSceneForNpc(npc) is not null)
+                {
+                    AddNpcAffordance(affordances, DevelopmentGameActions.TalkNpcActionId, npc);
+                }
+
                 // §38: a freeform attack is what opens combat. A fleeing NPC
                 // is already gone as a target.
                 if (npc.Awareness != NpcAwareness.Fleeing)
@@ -153,6 +168,8 @@ public sealed class AffordanceService
                 }
             }
         }
+
+        await AddSceneChoiceAffordancesAsync(affordances, characterId, roomId, npcs, cancellationToken);
 
         var interactables = await roomContent.GetInteractablesInRoomAsync(roomId, cancellationToken);
         if (interactables.Count > 0)
@@ -176,6 +193,58 @@ public sealed class AffordanceService
         }
 
         return affordances;
+    }
+
+    // §37: the visible choices of the character's open scene. A conversation
+    // is offered only while its partner is still in the room; a scene a
+    // trigger opened (Milestone 7) has no partner and is anchored to the room
+    // it started in. The same condition evaluation the scene engine trusts
+    // renders this list.
+    private async Task AddSceneChoiceAffordancesAsync(
+        List<GameAffordance> affordances,
+        Guid characterId,
+        Guid roomId,
+        IReadOnlyList<NpcSnapshot> npcsInRoom,
+        CancellationToken cancellationToken)
+    {
+        var session = await sceneSessions.GetForCharacterAsync(characterId, cancellationToken);
+        if (session is null || session.RoomId != roomId)
+        {
+            return;
+        }
+
+        NpcSnapshot? npc = null;
+        if (session.NpcInstanceId is Guid npcInstanceId)
+        {
+            npc = npcsInRoom.FirstOrDefault(candidate => candidate.Id == npcInstanceId);
+            if (npc is null)
+            {
+                // The conversation partner walked off; the stale session is
+                // replaced by the next talk.
+                return;
+            }
+        }
+
+        if (gameContent.Current.FindScene(session.SceneId) is not { } scene
+            || scene.FindNode(session.CurrentNodeId) is not { } node)
+        {
+            return;
+        }
+
+        var definition = DevelopmentGameActions.All[DevelopmentGameActions.SceneChoiceActionId];
+        foreach (var choice in node.Choices)
+        {
+            if (await sceneConditions.AreSatisfiedAsync(
+                    choice.Conditions, characterId, session, cancellationToken))
+            {
+                affordances.Add(new GameAffordance(
+                    definition.ActionId,
+                    SceneChoiceIds.Derive(session.Id, node.NodeId, choice.ChoiceId),
+                    choice.Label,
+                    npc is not null ? $"({npc.Name}) {choice.Label}" : choice.Label,
+                    definition.Kind));
+            }
+        }
     }
 
     // Milestone 5 (§32): mission affordances are pure state functions —

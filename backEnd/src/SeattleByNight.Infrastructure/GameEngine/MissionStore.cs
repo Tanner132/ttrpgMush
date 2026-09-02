@@ -38,6 +38,19 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
         return row is null ? null : ToSnapshot(row);
     }
 
+    public async Task<IReadOnlyDictionary<string, int>> CountOpenInstancesByMissionAsync(
+        CancellationToken cancellationToken)
+    {
+        var counts = await dbContext.MissionInstances
+            .AsNoTracking()
+            .Where(instance => OpenStatuses.Contains(instance.Status))
+            .GroupBy(instance => instance.MissionId)
+            .Select(group => new { MissionId = group.Key, Count = group.Count() })
+            .ToListAsync(cancellationToken);
+
+        return counts.ToDictionary(entry => entry.MissionId, entry => entry.Count, StringComparer.Ordinal);
+    }
+
     public async Task<IReadOnlyList<MissionInstanceSnapshot>> GetOpenInstancesForCharacterAsync(
         Guid characterId, CancellationToken cancellationToken)
     {
@@ -123,10 +136,42 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
         return rows.Select(ToSnapshot).ToArray();
     }
 
+    public async Task<IReadOnlyList<WorldItemSnapshot>> GetItemsOwnedByCharacterAsync(
+        Guid characterId, CancellationToken cancellationToken)
+    {
+        var rows = await dbContext.WorldItemInstances
+            .AsNoTracking()
+            .Where(item => item.OwnerCharacterId == characterId)
+            .OrderBy(item => item.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+        return rows.Select(ToSnapshot).ToArray();
+    }
+
+    public async Task<bool> IsMissionAvailableAsync(
+        Guid characterId, MissionDefinition definition, CancellationToken cancellationToken)
+    {
+        // Milestone 7 section 5: a retired mission stops being offered. Runs
+        // already in flight are untouched — they finish on the definition they
+        // started with, which is still in the served document.
+        if (definition.IsRetired)
+        {
+            return false;
+        }
+
+        var (error, _) = await CheckRepeatabilityAsync(
+            characterId, definition, timeProvider.GetUtcNow(), cancellationToken);
+        return error == MissionAssignError.None;
+    }
+
     public async Task<MissionAssignResult> AssignAsync(
         Guid characterId, MissionDefinition definition, CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();
+
+        if (definition.IsRetired)
+        {
+            return new MissionAssignResult(MissionAssignError.Retired);
+        }
 
         var characterExists = await dbContext.Characters
             .AnyAsync(character => character.Id == characterId
@@ -146,38 +191,11 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
             return new MissionAssignResult(MissionAssignError.EntryRoomMissing);
         }
 
-        var history = await dbContext.MissionInstances
-            .AsNoTracking()
-            .Where(instance => instance.CharacterId == characterId && instance.MissionId == definition.Id)
-            .Select(instance => new { instance.Status, instance.CompletedAtUtc })
-            .ToListAsync(cancellationToken);
-
-        if (history.Any(instance => OpenStatuses.Contains(instance.Status)))
+        var (repeatabilityError, cooldownEndsAtUtc) = await CheckRepeatabilityAsync(
+            characterId, definition, now, cancellationToken);
+        if (repeatabilityError != MissionAssignError.None)
         {
-            return new MissionAssignResult(MissionAssignError.AlreadyActive);
-        }
-
-        // §34/§39 economy safeguard: repeatability rules exist from day one.
-        var completions = history
-            .Where(instance => instance.Status == MissionInstanceStatus.Completed.ToString())
-            .ToList();
-        if (completions.Count > 0)
-        {
-            switch (definition.Repeatability.Kind)
-            {
-                case MissionRepeatabilityKind.OneTime:
-                    return new MissionAssignResult(MissionAssignError.NotRepeatable);
-
-                case MissionRepeatabilityKind.Cooldown:
-                    var lastCompleted = completions.Max(instance => instance.CompletedAtUtc) ?? now;
-                    var cooldownEnds = lastCompleted + TimeSpan.FromHours(definition.Repeatability.CooldownHours!.Value);
-                    if (cooldownEnds > now)
-                    {
-                        return new MissionAssignResult(MissionAssignError.CooldownActive, CooldownEndsAtUtc: cooldownEnds);
-                    }
-
-                    break;
-            }
+            return new MissionAssignResult(repeatabilityError, CooldownEndsAtUtc: cooldownEndsAtUtc);
         }
 
         var objectives = definition.Objectives
@@ -200,6 +218,50 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new MissionAssignResult(MissionAssignError.None, ToSnapshot(row));
+    }
+
+    // §34/§39 economy safeguard: repeatability rules exist from day one and
+    // gate both assignment and scene offers.
+    private async Task<(MissionAssignError Error, DateTimeOffset? CooldownEndsAtUtc)> CheckRepeatabilityAsync(
+        Guid characterId,
+        MissionDefinition definition,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var history = await dbContext.MissionInstances
+            .AsNoTracking()
+            .Where(instance => instance.CharacterId == characterId && instance.MissionId == definition.Id)
+            .Select(instance => new { instance.Status, instance.CompletedAtUtc })
+            .ToListAsync(cancellationToken);
+
+        if (history.Any(instance => OpenStatuses.Contains(instance.Status)))
+        {
+            return (MissionAssignError.AlreadyActive, null);
+        }
+
+        var completions = history
+            .Where(instance => instance.Status == MissionInstanceStatus.Completed.ToString())
+            .ToList();
+        if (completions.Count > 0)
+        {
+            switch (definition.Repeatability.Kind)
+            {
+                case MissionRepeatabilityKind.OneTime:
+                    return (MissionAssignError.NotRepeatable, null);
+
+                case MissionRepeatabilityKind.Cooldown:
+                    var lastCompleted = completions.Max(instance => instance.CompletedAtUtc) ?? now;
+                    var cooldownEnds = lastCompleted + TimeSpan.FromHours(definition.Repeatability.CooldownHours!.Value);
+                    if (cooldownEnds > now)
+                    {
+                        return (MissionAssignError.CooldownActive, cooldownEnds);
+                    }
+
+                    break;
+            }
+        }
+
+        return (MissionAssignError.None, null);
     }
 
     private static MissionInstanceSnapshot ToSnapshot(MissionInstance row) =>
