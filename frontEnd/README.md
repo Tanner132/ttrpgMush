@@ -10,20 +10,53 @@ npm run dev       # start the Vite dev server (proxies /api and /hubs)
 npm run test      # run the Vitest suite
 npm run lint      # oxlint
 npm run build     # typecheck + production build
+npm run gen:api   # regenerate src/api/generated from the backend OpenAPI document
 ```
+
+`src/api/generated` is produced from
+`../backEnd/src/SeattleByNight.Api/openapi/SeattleByNight.Api.json`. Rerun
+`gen:api` and commit the result after any backend contract change; CI fails on a
+stale copy.
+
+## Routes
+
+| Route | Page | Access |
+| --- | --- | --- |
+| `/login` | `LoginPage` | Anonymous |
+| `/characters` | `CharactersPage` (slot dashboard) | Authenticated |
+| `/characters/create`, `/characters/create/:characterId` | `MethodSelectionPage`, `CreatorShellPage` | Authenticated |
+| `/characters/:characterId/sheet` | `CharacterSheetPage` | Authenticated owner |
+| `/play` | `GameplayPage` | Active play session |
+| `/admin/users`, `/admin/audit` | `AdminUsersPage`, `AdminAuditPage` | `Administrator` |
+| `/admin/world`, `/admin/forge` | `WorldEditorPage`, `WorldForgePage` | `Administrator`, `WorldBuilder` |
+
+Route guards are a convenience; the server is authoritative.
 
 ## Folder conventions
 
 | Path | Responsibility |
 | --- | --- |
-| `src/pages` | Route-level pages (`LoginPage`, `CharactersPage`, `GameplayPage`) |
+| `src/pages` | Route-level pages, including `admin/` and `characterCreation/` |
 | `src/components` | Reusable UI and page-composed sections |
-| `src/components/ui` | The cyberdeck design-system primitives |
+| `src/components/ui` | Design-system primitives (`Button`, `Modal`, `Panel`, `Tabs`, …) |
+| `src/components/characterCreation` | Creator shell, catalog helpers, and one component per step under `steps/` |
+| `src/components/careerSheet` | The shared character sheet used by both the route and the `/character` modal |
+| `src/components/worldForge` | World Forge editors and the shared draft/save/publish hook (`useContentDraft`) |
+| `src/commands` | Composer command registry, parser, and dispatcher |
 | `src/hooks` | Gameplay lifecycle hooks (session, presence, transcript, idle) |
 | `src/realtime` | SignalR client and hooks |
-| `src/api` | REST API clients |
+| `src/api` | REST clients and generated API types |
 | `src/auth` | Account restoration context |
-| `src/styles` | Design tokens, base styles, and component styles |
+| `src/styles` | Design tokens, base styles, and per-component styles |
+
+Conventions:
+
+- The frontend never calculates rules values (costs, maximums, pools, prices).
+  It renders what the server returns.
+- A World Forge editor that owns part of a content fragment must round-trip the
+  rest of the fragment untouched.
+- When a design mockup shows a control with no backing functionality, build it
+  as inert markup; do not invent behavior for it.
 
 ## Visual language
 

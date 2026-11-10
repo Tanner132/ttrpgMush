@@ -1,14 +1,15 @@
 # SHEET-901: Career Rules And Catalog Contract
 
-This document is the frozen rules and catalog-gap contract for Milestone 9
-(`../MILESTONE_09_CAREER_CHARACTER_SHEETS.md`). It follows the same review
+This document is the frozen rules and catalog-gap contract for career
+advancement (originally "Milestone 9"; the remaining work is workstream 2 of
+[`V1_ROADMAP.md`](V1_ROADMAP.md)). It follows the same review
 discipline as the Milestone 8 baseline (`SR5_RULESET_BASELINE.md`,
 `SR5_RULE_DECISIONS.md`, and the `sr5-catalog/` ledgers): every rule below cites
 an approved-PDF page, and every gap is named rather than invented. It is a
 planning and verification contract, not a runtime catalog.
 
-**Sequencing note:** the project's own delivery rule (`../ROADMAP.md`, "Release
-Sequence" item 9) says CHAR-812 (the Milestone 8 completeness/accessibility
+**Sequencing note (historical):** the delivery rule in force at the time (the
+since-retired root roadmap, "Release Sequence" item 9) said CHAR-812 (the Milestone 8 completeness/accessibility
 release gate) should land before this freeze. CHAR-812 has not been started.
 The project owner explicitly approved starting Milestone 9 rules work ahead of
 CHAR-812 on 2026-08-25; this is a recorded process exception, not a rules

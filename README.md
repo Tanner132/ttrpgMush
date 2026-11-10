@@ -1,118 +1,140 @@
 # Seattle by Night
 
-A web-based MUSH client for a Shadowrun 5e game set in Seattle. It combines
-text-based multiplayer roleplay, persistent locations, room-scoped chat, and
-server-authoritative movement through a directed room graph.
+A browser-based MUSH for a Shadowrun Fifth Edition game set in Seattle. Players
+build full SR5 characters, walk a persistent room graph, roleplay in room-scoped
+chat, and run automated jobs against a server-authoritative rules engine. Staff
+build the world and its missions from inside the running game.
 
-## Architecture
+- Product and engineering context: [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md)
+- What is left for v1: [`roadmap/V1_ROADMAP.md`](roadmap/V1_ROADMAP.md)
+- SR5 rules decisions, source manifest, and catalog ledgers: [`roadmap/`](roadmap/)
 
-The backend is a modular monolith built on ASP.NET Core (.NET 10). It separates
-concerns into projects with strict dependency direction.
+## What works today
+
+| Area | Capability |
+| --- | --- |
+| Accounts | Register, log in, log out (ASP.NET Core Identity, HTTP-only cookie, antiforgery). Roles: `Administrator`, `WorldBuilder`, `Moderator`. |
+| Character creation | Complete SR5 creator (Standard Priority and Sum-to-Ten): identity, priorities, metatype and metavariants, attributes, qualities, magic/resonance, augmentations, skills, knowledge, contacts, martial arts, gear with attachments and vehicle mods, lifestyle, review and atomic finalization. Two character slots per account. |
+| Character sheet | Career sheet at `/characters/:id/sheet` and in play via `/character`. Karma advancement for attributes, Edge/Magic/Resonance, active skills, skill groups, knowledge skills, languages, and specializations. |
+| World | Persistent rooms on a layered coordinate grid joined by directed exits (hidden/locked supported). Server-authoritative movement. |
+| Play | Realtime room chat (speech, emotes, dice), presence, arrivals/departures, session-scoped transcript, idle expiry. |
+| Rules engine | SR5 tests (success, threshold, opposed) built from the real sheet, limits, wound modifiers, Edge (Push the Limit, Second Chance), active effects, seeded and audited dice. |
+| NPCs and combat | Placed NPCs with awareness states, room interactables with discovery, and structured-time combat: initiative passes, action economy, ranged and melee attacks, defense, soak, condition monitors, NPC turns, turn timers. |
+| Missions | Private instanced encounters, objectives, mission items, Johnson dialogue with negotiation, and Karma/nuyen rewards granted exactly once through the career ledger. One player per instance. |
+| World Forge | Staff content builder at `/admin/forge`: missions, encounters, NPC templates and placements, scenes/dialogue, triggers, and test definitions with a draft → validate → publish → retire lifecycle. |
+| Administration | User role management, append-only audit log, coordinate world editor at `/admin/world`. |
+
+Not built yet: spellcasting, Matrix actions, rigging, group missions, non-public
+rooms, quality/magic career advancement, nuyen purchases, moderation tools, and
+email confirmation/password reset. See the roadmap.
+
+## Repository layout
 
 ```text
 backEnd/
   src/
-    SeattleByNight.Api/            Composition root: endpoints, SignalR hubs, host config
-    SeattleByNight.Application/    Use cases (commands, queries, MediatR handlers)
-    SeattleByNight.Domain/         Entities and domain enums (no dependencies)
+    SeattleByNight.Api/            Composition root: endpoints, SignalR hub, background services
+    SeattleByNight.Application/    Use cases, SR5 catalog and evaluators, game engine
+    SeattleByNight.Domain/         Entities and enums (no dependencies)
     SeattleByNight.Infrastructure/ EF Core, PostgreSQL, migrations, seeding, stores
-  tests/
-    SeattleByNight.Domain.Tests/          Domain unit tests
-    SeattleByNight.Infrastructure.Tests/  PostgreSQL integration tests
-    SeattleByNight.Api.Tests/             API + SignalR integration tests
-
+  tests/                           Domain, Application, Infrastructure, and Api test projects
 frontEnd/                          Vite + React + TypeScript single-page app
+roadmap/                           v1 roadmap and SR5 rules/catalog reference
+compose.yaml                       Local PostgreSQL
+compose.production.yaml            Full production stack
 ```
-
-Dependency direction:
-
-```text
-Api -> Application -> Domain
-Api -> Infrastructure -> Application -> Domain
-                    -> Domain
-```
-
-`Domain` depends on nothing. `Infrastructure` implements the feature-specific
-persistence interfaces declared by `Application`. `Api` wires everything together.
 
 ## Prerequisites
 
 - .NET 10 SDK
-- Node.js 24+ (LTS)
-- Docker Desktop (with WSL 2 on Windows)
+- Node.js 24+
+- Docker Desktop (WSL 2 on Windows) — required for local PostgreSQL and for the
+  Infrastructure and Api test projects
 
-Verify locally:
+## Local setup
 
-```powershell
-dotnet --version
-node --version
-docker --version
-```
-
-## Setup
-
-### 1. Configure and start PostgreSQL
+### 1. Start PostgreSQL
 
 ```powershell
 Copy-Item .env.example .env
 docker compose up -d postgres
-docker compose ps
 ```
 
-The database is available at `localhost:5432` with the credentials in `.env`
+The database listens on `localhost:5432` with the credentials in `.env`
 (defaults: user `seattlebynight`, password `localdevpassword`, database
-`seattlebynight`). `.env` is gitignored; never commit real credentials.
+`seattlebynight`). `.env` is gitignored.
 
-### 2. Configure the connection string
+### 2. Run the backend (`http://localhost:5263`)
 
-The backend reads `ConnectionStrings:SeattleByNight`. In the Development
-environment it falls back to a localhost connection string matching the
-container above. For other environments, provide it explicitly:
+```powershell
+dotnet run --project backEnd/src/SeattleByNight.Api
+```
+
+In Development the API falls back to a localhost connection string, applies
+migrations on startup, and seeds sample data: a few rooms, the `devuser` /
+`DevPassword1!` account with the `Administrator` role, and a finalized
+`Dev Runner` character. It also imports the embedded starter game content (the
+gang-warehouse mission) as the first published content set.
+
+Outside Development, set the connection string explicitly:
 
 ```powershell
 $env:ConnectionStrings__SeattleByNight = "Host=localhost;Port=5432;Database=seattlebynight;Username=seattlebynight;Password=localdevpassword"
 ```
 
-### 3. Apply migrations
+To apply migrations by hand:
 
 ```powershell
 dotnet tool restore
 dotnet ef database update --project backEnd/src/SeattleByNight.Infrastructure --startup-project backEnd/src/SeattleByNight.Api
 ```
 
-In Development, the API also applies migrations and seeds deterministic sample
-data on startup (Downtown Street, Coffee Shop, Alley, their exits, and a
-development `devuser` / `DevPassword1!` account with the `Dev Runner` character
-in Downtown Street). In Development, `devuser` is also granted the
-`Administrator` role as the bootstrap administrator. No elevated role is ever
-assigned automatically outside Development.
+### 3. Run the frontend (`http://localhost:5173`)
+
+```powershell
+npm --prefix frontEnd install
+npm --prefix frontEnd run dev
+```
+
+The Vite dev server proxies `/api` and `/hubs` (including WebSockets) to the
+backend. All frontend requests use relative URLs.
+
+## Checks
+
+```powershell
+dotnet test backEnd/SeattleByNight.slnx
+npm --prefix frontEnd run test -- --run
+npm --prefix frontEnd run lint
+npm --prefix frontEnd run build
+```
+
+- Domain and Application tests need no external services.
+- Infrastructure and Api tests use Testcontainers, so Docker must be running.
+- Building the Api project regenerates `backEnd/src/SeattleByNight.Api/openapi/SeattleByNight.Api.json`.
+  After a contract change, run `npm --prefix frontEnd run gen:api` and commit
+  both the OpenAPI document and `frontEnd/src/api/generated`. CI fails if either
+  is stale.
 
 ## Roles and the first administrator
 
-Role definitions are created idempotently by database migration in every
-environment. In production, the first administrator must be granted explicitly
-by an operator; there is no default administrative credential or silent
-elevation.
+Role definitions are created by migration in every environment. New
+registrations receive no role, and nothing outside Development grants one
+automatically.
 
-In a container deployment, set `Bootstrap__AdministratorEmail` to the operator's
-address (`BOOTSTRAP_ADMINISTRATOR_EMAIL` in the Compose environment). Register
-that account through the normal flow, then restart the API: startup grants it the
-`Administrator` role and logs the grant. Until the account exists, startup logs a
-warning and continues. This is explicit operator configuration, not silent
-elevation, and it is a no-op once the grant has been made.
+| Role | Access |
+| --- | --- |
+| `Administrator` | Everything: role management, audit log, world editor, World Forge. |
+| `WorldBuilder` | World editor and World Forge only. |
+| `Moderator` | Reserved. The policy exists; no moderation feature uses it yet. |
 
-Manual bootstrap procedure, if you would rather not configure the email:
+To bootstrap a deployment, set `Bootstrap__AdministratorEmail`
+(`BOOTSTRAP_ADMINISTRATOR_EMAIL` in the Compose environment), register that
+account through the normal flow, then restart the API. Startup grants the role
+and logs it; until the account exists it logs a warning and continues.
 
-```powershell
-# 1. Apply migrations to create the role definitions (idempotent).
-dotnet ef database update --project backEnd/src/SeattleByNight.Infrastructure --startup-project backEnd/src/SeattleByNight.Api
-
-# 2. Create (or choose) the operator account through the normal registration flow,
-#    then grant Administrator using psql. Replace the placeholder IDs.
-```
+Manual alternative with `psql`:
 
 ```sql
--- Find the target user's id and the Administrator role's id, then:
 INSERT INTO asp_net_user_roles (user_id, role_id)
 SELECT u.id, r.id
 FROM asp_net_users u, asp_net_roles r
@@ -121,250 +143,67 @@ WHERE u.normalized_user_name = 'OPERATOR_USERNAME'
 ON CONFLICT DO NOTHING;
 ```
 
-`WorldBuilder` grants access to the world editor without granting user-role or
-audit-log administration. `Moderator` is reserved for later moderation work.
+## Playing
 
-## Running the applications
+Type plain text to speak. Commands:
 
-Backend (defaults to `http://localhost:5263`):
+| Command | Effect |
+| --- | --- |
+| `/say <text>`, `/emote <action>` | Speak or act in the room. |
+| `/roll <NdS[+/-M]>` | Free-form dice, rolled and recorded by the server. |
+| `/look`, `/who`, `/help` | Local output only; never broadcast or stored. |
+| `/go <direction>` | Move through a visible exit. |
+| `/character` | Open your character sheet without leaving the room. |
+| `/test [name] [edge]` | Perform a game test, or list the available ones. `edge` spends Edge to Push the Limit. |
+| `/do [name] [edge]` | Perform any action currently available to you (for example `/do sneak past razor`), or list them. |
+| `/run` | Toggle running. |
+| `/edge <yes\|no>`, `/defend <standard\|full>` | Answer a pending Edge or defense decision. |
+| `/missions` | Show your missions and objectives. |
+| `<number>` | Pick a numbered dialogue or scene choice. |
 
-```powershell
-dotnet run --project backEnd/src/SeattleByNight.Api
-```
+`/surge` is a development-only test effect.
 
-Frontend (defaults to `http://localhost:5173`):
+The server computes which actions each player can take right now; typed
+commands are validated against that same list.
 
-```powershell
-npm --prefix frontEnd install
-npm --prefix frontEnd run dev
-```
+## HTTP and realtime surface
 
-The frontend dev server proxies `/api` and `/hubs` (with WebSocket support) to
-`http://localhost:5263`; see `frontEnd/vite.config.ts`. All frontend fetch and
-SignalR code uses relative URLs.
+The committed OpenAPI document
+(`backEnd/src/SeattleByNight.Api/openapi/SeattleByNight.Api.json`) is the
+authoritative contract. In summary:
 
-Health endpoints:
+| Prefix | Purpose | Access |
+| --- | --- | --- |
+| `/health/live`, `/health/ready` | Liveness and PostgreSQL readiness | Anonymous |
+| `/api/antiforgery/token` | Token for the `X-XSRF-TOKEN` header | Anonymous |
+| `/api/account` | Register, login, logout, current user | Mixed |
+| `/api/character-creation` | Catalog, drafts, change preview, finalize | Authenticated owner |
+| `/api/characters` | List, delete, career sheet, advancements | Authenticated owner |
+| `/api/play-session` | Start/resume, current room session, activity renewal | Authenticated |
+| `/api/game/actions`, `/api/game/decisions` | List/perform game actions, answer decisions | Authenticated |
+| `/api/game/missions` | The caller's missions | Authenticated |
+| `/api/admin/users`, `/api/admin/audit` | Role management, audit log | `Administrator` |
+| `/api/admin/world` | Rooms, exits, room deletion, NPC/interactable placement, room environment | `Administrator`, `WorldBuilder` |
+| `/api/admin/content` | World Forge content lifecycle | `Administrator`, `WorldBuilder` |
+| `/api/admin/missions` | List mission definitions, assign a mission to a character | `Administrator`, `WorldBuilder` |
 
-- Liveness: `GET /health/live` (does not require PostgreSQL)
-- Readiness: `GET /health/ready` (checks PostgreSQL connectivity)
+Every state-changing request requires the antiforgery header. IDs the caller
+does not own return `404`; stale optimistic-concurrency versions return `409`.
 
-## HTTP API
+SignalR hub `/hubs/room-chat` (authenticated):
 
-Authentication uses an HTTP-only, same-site cookie issued by ASP.NET Core
-Identity. State-changing cookie-authenticated endpoints require an antiforgery
-header `X-XSRF-TOKEN` obtained from `GET /api/antiforgery/token`.
+- Client → server: `JoinCurrentRoom`, `RecordActivity`, `SendMessage`,
+  `RollDice`, `MoveThroughExit`, `GetOnlineCharacters`.
+- Server → client: `MessageReceived`, `CombatUpdated`, `DecisionRequested`,
+  `CharacterArrived`, `CharacterDeparted`, `RoomChanged`, `RoomPresenceChanged`,
+  `SessionExpired`.
 
-### Account
+## Deployment
 
-- `POST /api/account/register` — `{ email, username, password }`
-- `POST /api/account/login` — `{ login, password }` (email or username)
-- `POST /api/account/logout` — ends the active play session, then signs out
-- `GET /api/account/me` — `{ id, email, userName, roles }`
+One application instance and one PostgreSQL database. No Redis, broker, or
+replicas.
 
-### Characters
-
-- `GET /api/characters` — lists the current user's finalized playable characters
-  (the SR5 creator flow, under Character creation below, is the only way to
-  create one — maximum two total drafts and finalized characters per user)
-- `GET /api/characters/{characterId}/sheet` — returns the owner's immutable
-  finalized sheet
-- `GET /api/characters/{characterId}/career-sheet` — owner-scoped composed
-  career sheet: current permanent attributes/derived statistics (baseline +
-  career progression), current Karma/nuyen, bounded recent transaction/
-  advancement history, acquired inventory, and `nextActions` (exact cost,
-  eligibility, and blocking reasons for every advanceable attribute); `409`
-  if career state hasn't been initialized/backfilled yet
-- `POST /api/characters/{characterId}/advancements/attributes` — `{ expectedVersion,
-  requestId, attributeId }`; raises one Physical/Mental attribute, Edge, Magic,
-  or Resonance by exactly one rating at `new rating x 5` Karma, capped at that
-  attribute's natural maximum; version-checked (`409` on a stale
-  `expectedVersion`) and idempotent by client-generated `requestId` (a retried
-  request returns the original result rather than spending again)
-
-### Character creation
-
-- `GET /api/character-creation/catalogs/current?method=` — current immutable catalog
-- `GET /api/character-creation/catalogs/{catalogId}/{version}` — retained pinned catalog
-- `POST /api/character-creation/drafts` — `{ name, creationMethodId }`
-- `GET /api/character-creation/drafts` — lists resumable drafts
-- `GET /api/character-creation/drafts/{characterId}` — canonical evaluated draft
-- `PUT /api/character-creation/drafts/{characterId}` — replaces a draft using
-  `{ expectedVersion, name, document }`
-- `POST /api/character-creation/drafts/{characterId}/change-preview` — evaluates
-  a candidate document without saving it
-- `DELETE /api/character-creation/drafts/{characterId}` — discards using
-  `{ expectedVersion }`
-- `POST /api/character-creation/drafts/{characterId}/finalize` — finalizes using
-  `{ expectedVersion }`; rule-invalid drafts return `422` diagnostics
-
-All character-creation routes require authentication. Mutations also require
-antiforgery, non-owned IDs return `404`, and stale versions return `409`.
-
-### Play session
-
-- `POST /api/play-session/start` — `{ characterId }`; starts or resumes a session
-- `GET /api/play-session/current` — current `RoomSession` (optional `?cursor=` for older messages)
-- `POST /api/play-session/activity` — renews the idle timeout (throttled)
-
-The `RoomSession` response contains the play-session ID and expiry, the current
-character, room, visible exits, durable occupants, the latest message page, and
-an older-messages cursor.
-
-### Administration
-
-Administrative endpoints use named authorization policies rather than inline
-role checks. Roles are `Administrator`, `WorldBuilder`, and `Moderator`. New
-registrations receive no roles.
-
-- `GET /api/admin/users?query=` — user lookup for role management (role-management policy)
-- `POST /api/admin/users/{userId}/roles` — `{ roleName }`; assigns a role (role-management policy)
-- `DELETE /api/admin/users/{userId}/roles/{roleName}` — removes a role; the last administrator cannot be removed
-- `GET /api/admin/audit` — cursor-paginated audit log (audit-reader policy);
-  filters: `actor`, `action`, `targetType`, `targetId`, `from`, `to`, `cursor`
-- `GET /api/admin/world` — bounded complete room graph for world builders,
-  including hidden and locked directed exits
-- `GET /api/admin/world/rooms/{roomId}` — room editor details with distinct
-  incoming and outgoing exits
-- `POST /api/admin/world/rooms`, `PUT /api/admin/world/rooms/{roomId}` — create
-  and update rooms
-- `POST /api/admin/world/exits`, `PUT /api/admin/world/exits/{exitId}` — create
-  and update one directed exit at a time
-
-Every administrative mutation appends an append-only audit record in the same
-transaction as the mutation. Audit records cannot be updated or deleted through
-the API.
-
-### World editor
-
-`/admin/world` is available to `Administrator` and `WorldBuilder`. It provides a
-layered coordinate grid, an accessible room list, empty-cell room creation, room
-metadata editing, and explicit incoming/outgoing exit editing.
-
-Coordinates are required, unique within a layer, and immutable. Selecting an
-empty grid cell opens the room metadata form. Saving creates both directed paths
-to each occupied same-layer compass neighbor. Those exits are defaults only:
-persisted directed exits remain authoritative and builders can rewire them or
-change hidden and locked state. Vertical `up` and `down` exits are added
-explicitly.
-
-Exits have no separate names. Their direction is the player-visible label, and a
-room can have at most one exit for each approved compass or vertical direction.
-A manually created reverse path remains a separate confirmed operation.
-
-Rooms and exits carry opaque version tokens. An update based on a stale version
-returns `409 Conflict` and preserves the newer committed value. Reload before
-retrying the edit.
-
-There are no room or exit deletion commands, endpoints, or editor controls.
-Incorrect world data is recovered by editing the record or by locking/hiding an
-exit while it is repaired.
-
-## SignalR hub
-
-Route: `/hubs/room-chat` (authenticated).
-
-Client-to-server methods:
-
-- `JoinCurrentRoom()` — joins the group for the active session's database room
-  and returns the authoritative `RoomPresence` snapshot for that room
-- `RecordActivity()` — throttled meaningful browser activity; returns the
-  authoritative renewed `expiresAtUtc`
-- `SendMessage(content, type)` — persists and broadcasts a room message of the
-  given type (`Say` or `Emote`); returns the authoritative renewed `expiresAtUtc`
-- `RollDice(expression)` — parses, rolls, and persists a server-rendered `Roll`
-  message; returns the authoritative renewed `expiresAtUtc`
-- `MoveThroughExit(exitId)` — moves through a valid exit from the current room
-- `GetOnlineCharacters()` — returns the distinct online characters across all
-  rooms (id and name only; never their rooms)
-
-Server-to-client events:
-
-- `MessageReceived(message)`
-- `CharacterDeparted(event)` — `{ roomId, character }` to other clients in the old room
-- `CharacterArrived(event)` — `{ roomId, character }` to other clients in the new room
-- `RoomChanged(roomSession)` — to the moving client
-- `RoomPresenceChanged(presence)` — `{ roomId, revision, onlineCharacters }`
-  broadcast to a room when its distinct online-character set changes
-- `SessionExpired()`
-
-Movement is server-authoritative: the client supplies only an exit ID, the
-server validates the active session and exit, commits the durable move, and only
-then changes SignalR group membership.
-
-The frontend derives its idle warning from the authoritative `expiresAtUtc`
-timestamps carried by `RoomSession` (from `JoinCurrentRoom` and `RoomChanged`)
-and by the results of `RecordActivity` and `SendMessage`; there is no separate
-warning event.
-
-## Gameplay commands
-
-The composer accepts plain text (speech) and a small command set parsed entirely
-on the client:
-
-- `/say <text>` — speak; identical to typing plain text
-- `/emote <action>` — act in the current room; rendered as `Name <action>`
-- `/roll <NdS[+/-M]>` — roll dice (e.g. `2d6+3`); the expression is submitted to
-  the server, which parses, rolls, and persists the authoritative result
-- `/help` — list commands
-- `/look` — describe the current room, its visible exits, and its occupants
-- `/go <direction|exit>` — move through a visible exit resolved locally, then
-  submitted to the server as the authoritative exit ID
-- `/who` — list characters online right now (no locations)
-
-`/help`, `/look`, `/who`, and parser/usage errors are private local transcript
-output and are never persisted or broadcast. `/go` persists only the resulting
-movement; the command text is not a chat message.
-
-## Tests
-
-```powershell
-dotnet test backEnd/SeattleByNight.slnx
-npm --prefix frontEnd run test -- --run
-```
-
-- Domain tests require no external services.
-- Infrastructure and API integration tests use Testcontainers to run an
-  isolated PostgreSQL container, so Docker must be running.
-
-## Build and lint checks
-
-```powershell
-dotnet build backEnd/SeattleByNight.slnx
-npm --prefix frontEnd run lint
-npm --prefix frontEnd run build
-```
-
-## Manual multi-browser verification
-
-1. Start PostgreSQL, the backend, and the frontend (see above).
-2. Open two browser windows to `http://localhost:5173` and register two
-   different accounts (or register one and log in as `devuser` /
-   `DevPassword1!` in the other).
-3. In each window, create a character and enter the world.
-4. Move both characters into the same room and send messages; each window shows
-   new messages without refreshing.
-5. Move one character through an exit and confirm the other window shows the
-   departure/arrival, while the mover stops receiving old-room chat and starts
-   receiving new-room chat.
-6. Reload a window and confirm the same play session and eligible transcript are
-   restored. Log out and back in to confirm a fresh session starts with empty
-   history.
-7. Confirm presence in the occupants sidebar: two online characters show as
-   "online"; disconnect one tab and confirm its character becomes "offline" but
-   remains listed as a durable occupant; open a second tab for one character and
-   confirm it still shows a single online entry.
-
-## Deployment target
-
-The current deployment target is a single application instance serving both the
-REST API and the built React frontend, backed by one PostgreSQL database. No
-Redis, load balancer, message broker, or multiple replicas are required yet.
-
-### Container deployment
-
-`compose.production.yaml` builds and runs the whole stack:
-
-```
+```text
 Cloudflare -> Nginx Proxy Manager -> (Tailscale) -> frontend nginx :8080
                                                       |- /        static React build
                                                       |- /api/    backend:8080
@@ -373,49 +212,35 @@ Cloudflare -> Nginx Proxy Manager -> (Tailscale) -> frontend nginx :8080
                                                                   postgres:5432
 ```
 
-PostgreSQL sits on an `internal` network and publishes no port, so it is
-unreachable from the LAN, from Tailscale, and from the internet. The frontend
-binds only to the host's Tailscale address.
-
 ```bash
 cp .env.production.example .env    # then fill in real values
 docker compose -f compose.production.yaml up -d --build
 ```
 
+Pushing to `main` runs CI (`.github/workflows/ci.yml`): backend tests, frontend
+typecheck/lint/tests, generated-contract checks, then a deploy job on the
+self-hosted `mush` runner that rebuilds the stack from
+`/opt/seattlebynight/.env`, waits for the backend health check, and verifies the
+path through nginx.
+
 Operational notes:
 
-- Migrations are applied by the API at startup. Outside Development a failure
-  stops the app rather than serving requests against an unmigrated database.
-- The data protection key ring is persisted to the `dataprotection_keys` volume.
-  Losing it signs out every user and invalidates every issued antiforgery token.
-- The real client address reaches the rate limiter via Cloudflare's
-  `CF-Connecting-IP`, which the frontend nginx converts to `X-Forwarded-For`.
-  That is only trustworthy while the origin cannot be reached directly, so the
-  VPS firewall must restrict 80/443 to Cloudflare's published ranges (or use a
-  Cloudflare Tunnel). Cloudflare Access does not cover a direct-to-origin request.
-- `postgres_data` has no backup automation yet; schedule a `pg_dump` off-box.
+- The API applies migrations at startup. Outside Development a migration failure
+  stops the app.
+- PostgreSQL is on an internal network and publishes no port. The frontend binds
+  only to the host's Tailscale address.
+- The data protection key ring lives in the `dataprotection_keys` volume. Losing
+  it signs out every user.
+- The rate limiter trusts `CF-Connecting-IP` (converted to `X-Forwarded-For` by
+  nginx). That is only safe while the origin cannot be reached directly.
+- `postgres_data` has **no backup automation**. Schedule an off-box `pg_dump`.
 
-## Security and hardening
+## Known limitations
 
-- Passwords are stored only through ASP.NET Core Identity's salted, one-way
-  password hasher.
-- Authentication is cookie-based and HTTP-only; the `Secure` flag is required
-  outside local HTTP Development.
-- Character selection and all gameplay operations are authorized against the
-  authenticated user's ownership; room, character, and session IDs are never
-  accepted as credentials.
-- Administrative endpoints are guarded by named authorization policies, and
-  every administrative mutation writes an append-only audit record.
-
-Authentication hardening (email confirmation and password-reset delivery) is
-deferred and must be completed before enabling non-public rooms or production
-deployment. Moderation APIs remain a later milestone.
-
-## Deferred work
-
-- Room ownership and access policies beyond public rooms
-- Email confirmation and password-reset delivery
-- Moderation APIs (role and policy scaffolding already exists)
-- Gameplay systems (character sheets, dice, combat, initiative, equipment, Matrix)
-- In-memory caching and invalidation
-- Graphical map rendering
+- No email confirmation or password reset. An account with a lost password
+  cannot be recovered without database access.
+- No moderation tooling.
+- All rooms are public.
+- The SR5 catalog is a single mutable pre-alpha schema; a content change can
+  invalidate existing drafts and sheets. See
+  [`roadmap/SR5_RULESET_MANIFEST.md`](roadmap/SR5_RULESET_MANIFEST.md).
