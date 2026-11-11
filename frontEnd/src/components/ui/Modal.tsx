@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useId, useRef, type ReactNode, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
   title: string
@@ -53,7 +54,10 @@ export function Modal({ title, children, onClose, initialFocusRef, size = 'defau
     }
   }, [initialFocusRef])
 
-  return (
+  // Rendered at the end of the document, not where it is declared: a panel's
+  // chamfered corners use clip-path, which would otherwise clip the overlay to
+  // the panel it was opened from.
+  return createPortal(
     <div className="ui-modal__overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
       <div ref={dialogRef} className={size === 'wide' ? 'ui-modal ui-modal--wide' : 'ui-modal'} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
         <div className="ui-modal__header">
@@ -62,6 +66,7 @@ export function Modal({ title, children, onClose, initialFocusRef, size = 'defau
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

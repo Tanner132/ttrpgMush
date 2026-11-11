@@ -16,8 +16,8 @@ public sealed class SceneSession
     // Where the scene is playing. An NPC-bound scene ends when the player
     // walks away; a trigger scene needs its own anchor to do the same.
     public Guid RoomId { get; set; }
-    public string SceneId { get; set; } = string.Empty;
-    public string CurrentNodeId { get; set; } = string.Empty;
+    public Guid SceneId { get; set; }
+    public Guid CurrentNodeId { get; set; }
     // §36: pay negotiated in THIS conversation, applied to the mission
     // instance at acceptance. Walking away without accepting discards it.
     public int? PendingNegotiatedNuyen { get; set; }

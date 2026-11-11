@@ -18,8 +18,12 @@ public sealed class WorldGraphReader : IWorldGraphReader
 
     public async Task<WorldGraph?> GetGraphAsync(CancellationToken cancellationToken)
     {
+        // WF-25: the editor edits the shared map. A run's copies sit on the
+        // map's coordinates too, so including them would stack a copy on top
+        // of every job-site room.
         var rooms = await _db.Rooms
             .AsNoTracking()
+            .Where(room => room.EncounterInstanceId == null)
             .OrderBy(room => room.Name)
             .ThenBy(room => room.Id)
             .Take(MaxRooms + 1)
@@ -43,6 +47,7 @@ public sealed class WorldGraphReader : IWorldGraphReader
         var exits = await (from exit in _db.RoomExits.AsNoTracking()
             join source in _db.Rooms.AsNoTracking() on exit.SourceRoomId equals source.Id
             join destination in _db.Rooms.AsNoTracking() on exit.DestinationRoomId equals destination.Id
+            where source.EncounterInstanceId == null && destination.EncounterInstanceId == null
             orderby source.Name, exit.Direction, exit.Id
             select new WorldExit(
                 exit.Id,

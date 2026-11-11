@@ -11,6 +11,7 @@ public sealed class RoomInteractableConfiguration : IEntityTypeConfiguration<Roo
         builder.ToTable("room_interactables");
 
         builder.HasKey(interactable => interactable.Id);
+        builder.Property(interactable => interactable.SourceInteractableId).HasColumnName("source_interactable_id").HasColumnType("uuid");
         builder.Property(interactable => interactable.Id).HasColumnName("id").HasColumnType("uuid").ValueGeneratedNever();
         builder.Property(interactable => interactable.RoomId).HasColumnName("room_id").HasColumnType("uuid").IsRequired();
         builder.Property(interactable => interactable.Name).HasColumnName("name").HasMaxLength(200).IsRequired();

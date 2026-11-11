@@ -32,12 +32,12 @@ public sealed class SceneSessionStore : ISceneSessionReader, ITriggerFireReader
     }
 
     public Task<bool> HasFiredAsync(
-        Guid characterId, Guid missionInstanceId, string triggerKey, CancellationToken cancellationToken) =>
+        Guid characterId, Guid missionInstanceId, Guid triggerId, CancellationToken cancellationToken) =>
         dbContext.TriggerFires
             .AsNoTracking()
             .AnyAsync(
                 fire => fire.CharacterId == characterId
                     && fire.MissionInstanceId == missionInstanceId
-                    && fire.TriggerKey == triggerKey,
+                    && fire.TriggerId == triggerId,
                 cancellationToken);
 }

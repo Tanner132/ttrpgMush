@@ -33,11 +33,12 @@ public static class GameContentComposer
         GameContentKind.Scene => "scenes",
         GameContentKind.Test => "tests",
         GameContentKind.NpcTemplate => "npcTemplates",
+        GameContentKind.Place => "places",
         _ => throw new GameContentException($"Unknown game content kind '{kind}'."),
     };
 
     // One definition pulled out of (or on its way into) a merged document.
-    public sealed record Fragment(GameContentKind Kind, string ContentKey, string DisplayName, string Json);
+    public sealed record Fragment(GameContentKind Kind, Guid ContentKey, string DisplayName, string Json);
 
     // Builds the merged document text from a set of definition payloads.
     // Order within a kind follows the caller; the loader is order-independent
@@ -119,23 +120,25 @@ public static class GameContentComposer
     // The authored id of a definition payload, read the same way whether it
     // came from the bundle or from the builder — the store's key column has
     // to agree with what the loader will read out of the payload.
-    public static string ReadContentKey(string json, GameContentKind kind) =>
+    public static Guid ReadContentKey(string json, GameContentKind kind) =>
         ReadContentKey(ParseDefinitionObject(json, kind), kind);
 
     public static string ReadDisplayName(string json, GameContentKind kind) =>
         ReadDisplayName(ParseDefinitionObject(json, kind), kind);
 
-    private static string ReadContentKey(JsonObject definition, GameContentKind kind) =>
-        definition["id"]?.GetValue<string>() is { } id && !string.IsNullOrWhiteSpace(id)
+    // WF-27: every stored definition is keyed by its own GUID.
+    private static Guid ReadContentKey(JsonObject definition, GameContentKind kind) =>
+        definition["id"] is JsonValue value
+            && value.TryGetValue<string>(out var text)
+            && Guid.TryParse(text, out var id)
+            && id != Guid.Empty
             ? id
-            : throw new GameContentException($"Every {kind.ToString().ToLowerInvariant()} must declare an id.");
+            : throw new GameContentException($"Every {kind.ToString().ToLowerInvariant()} must declare a GUID id.");
 
-    // Scenes carry no display name of their own; the builder lists them by
-    // their id.
     private static string ReadDisplayName(JsonObject definition, GameContentKind kind) =>
         definition["displayName"]?.GetValue<string>() is { } name && !string.IsNullOrWhiteSpace(name)
             ? name
-            : ReadContentKey(definition, kind);
+            : ReadContentKey(definition, kind).ToString();
 
     private static JsonNode ParseDefinition(string json, GameContentKind kind) =>
         ParseDefinitionObject(json, kind);

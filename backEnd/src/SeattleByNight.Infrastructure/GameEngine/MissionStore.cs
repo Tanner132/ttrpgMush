@@ -38,7 +38,7 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
         return row is null ? null : ToSnapshot(row);
     }
 
-    public async Task<IReadOnlyDictionary<string, int>> CountOpenInstancesByMissionAsync(
+    public async Task<IReadOnlyDictionary<Guid, int>> CountOpenInstancesByMissionAsync(
         CancellationToken cancellationToken)
     {
         var counts = await dbContext.MissionInstances
@@ -48,7 +48,7 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
             .Select(group => new { MissionId = group.Key, Count = group.Count() })
             .ToListAsync(cancellationToken);
 
-        return counts.ToDictionary(entry => entry.MissionId, entry => entry.Count, StringComparer.Ordinal);
+        return counts.ToDictionary(entry => entry.MissionId, entry => entry.Count);
     }
 
     public async Task<IReadOnlyList<MissionInstanceSnapshot>> GetOpenInstancesForCharacterAsync(
@@ -200,7 +200,7 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
 
         var objectives = definition.Objectives
             .Select((objective, index) => new MissionObjectiveState(
-                objective.Key,
+                objective.Id,
                 index == 0 ? MissionObjectiveStatus.Active : MissionObjectiveStatus.Inactive))
             .ToArray();
 
@@ -287,11 +287,13 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
     private static WorldItemSnapshot ToSnapshot(WorldItemInstance row) =>
         new(
             row.Id,
-            row.ItemKey,
+            row.ItemId,
             row.DisplayName,
             row.Description,
             row.MissionInstanceId,
             row.EncounterInstanceId,
             row.RoomId,
-            row.OwnerCharacterId);
+            row.OwnerCharacterId,
+            row.IsHidden,
+            row.DiscoveryThreshold);
 }

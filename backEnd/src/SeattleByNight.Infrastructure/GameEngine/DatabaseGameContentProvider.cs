@@ -62,20 +62,21 @@ public sealed class DatabaseGameContentProvider(IServiceScopeFactory scopes) : I
     // offer-side gates read.
     private static GameContentDocument StampRetirement(
         GameContentDocument document,
-        IReadOnlyDictionary<GameContentKind, IReadOnlySet<string>> retired)
+        IReadOnlyDictionary<GameContentKind, IReadOnlySet<Guid>> retired)
     {
         if (retired.Count == 0)
         {
             return document;
         }
 
-        IReadOnlySet<string> KeysOf(GameContentKind kind) =>
-            retired.TryGetValue(kind, out var keys) ? keys : new HashSet<string>();
+        IReadOnlySet<Guid> KeysOf(GameContentKind kind) =>
+            retired.TryGetValue(kind, out var keys) ? keys : new HashSet<Guid>();
 
         var encounters = KeysOf(GameContentKind.Encounter);
         var missions = KeysOf(GameContentKind.Mission);
         var scenes = KeysOf(GameContentKind.Scene);
         var templates = KeysOf(GameContentKind.NpcTemplate);
+        var places = KeysOf(GameContentKind.Place);
 
         return document with
         {
@@ -96,6 +97,9 @@ public sealed class DatabaseGameContentProvider(IServiceScopeFactory scopes) : I
                 .ToArray(),
             NpcTemplates = document.NpcTemplates
                 .Select(entry => entry with { IsRetired = templates.Contains(entry.TemplateId) })
+                .ToArray(),
+            Places = document.Places
+                .Select(entry => entry with { IsRetired = places.Contains(entry.Id) })
                 .ToArray(),
         };
     }

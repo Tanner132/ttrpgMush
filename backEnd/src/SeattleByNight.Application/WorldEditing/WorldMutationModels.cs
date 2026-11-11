@@ -83,4 +83,12 @@ public interface IWorldEditorStore
         Guid version,
         RoomExitMutation mutation,
         CancellationToken cancellationToken = default);
+
+    // WF-28: removes one directed exit; the way back, if there is one, is its
+    // own exit. Refused (as a validation error naming the site) when it would
+    // cut a room of a live job site off from the site's entry room.
+    Task<WorldMutationResult<WorldExit>> DeleteExitAsync(
+        Guid actorUserId,
+        Guid exitId,
+        CancellationToken cancellationToken = default);
 }

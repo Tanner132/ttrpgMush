@@ -179,6 +179,38 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
 
     private static readonly EmbeddedGameContentProvider GameContent = new();
 
+    // WF-25: every map room gets a readable content key, and Private is an
+    // authorable access type.
+    [Fact]
+    public async Task CreateRoom_KeepsTheAccessTypeItWasGiven()
+    {
+        await using var db = CreateDbContext();
+        var store = CreateStore(db);
+
+        var first = await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
+            new CreateRoomMutation("Clinic Door", "Room", "Private", 700, 700, 70));
+        var second = await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
+            new CreateRoomMutation("Clinic  Door!", "Room", "Public", 705, 705, 70));
+
+        Assert.Equal(RoomAccessType.Private, first.Value!.AccessType);
+        Assert.Equal(RoomAccessType.Public, second.Value!.AccessType);
+    }
+
+    [Fact]
+    public async Task UpdateRoom_RefusesToMakeAJobSiteRoomPublic()
+    {
+        await using var db = CreateDbContext();
+        var dock = await db.Rooms.AsNoTracking().SingleAsync(room => room.Id == ShippedContentIds.SiteRooms.LoadingDock);
+
+        var result = await CreateStore(db).UpdateRoomAsync(DevelopmentDataSeeder.DevUserId, dock.Id, dock.Version,
+            new UpdateRoomMutation(dock.Name, dock.Description, "Public"));
+
+        Assert.Equal(WorldMutationError.Validation, result.Error);
+        Assert.Contains("accessType", result.ValidationErrors.Keys);
+        Assert.Equal(RoomAccessType.Private,
+            (await db.Rooms.AsNoTracking().SingleAsync(room => room.Id == dock.Id)).AccessType);
+    }
+
     private SeattleByNightDbContext CreateDbContext() => new(
         new DbContextOptionsBuilder<SeattleByNightDbContext>().UseNpgsql(_connectionString).Options);
 

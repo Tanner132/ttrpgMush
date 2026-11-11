@@ -250,6 +250,43 @@ built follows it; these are the load-bearing rules.
   materializes its own room, item, and NPC rows. Instances survive disconnects
   within a grace window (15 minutes by default) and are swept when abandoned.
   One player per instance today; the model holds a participant collection.
+- **Every authored record is keyed by a GUID (WF-27).** Rooms, job sites,
+  jobs, objectives, listeners, conversations (and their steps and choices),
+  stat blocks, authored tests, NPC placements, items and inspectables are all
+  referenced by id; names are display text only. Engine vocabulary (skills,
+  pools, effect and event kinds, actions, built-in tests) keeps its names, so
+  a test reference is a built-in name or an authored test's GUID. The shipped
+  bundle's ids are in `ShippedContentIds`.
+- **Job sites are map rooms (WF-25).** Every map room has an access type:
+  `Public`, or `Private` (part of a job site). An encounter names its site
+  rooms by map room id; a run's copy is made from the map rows (name,
+  description, environment, position, and the exits between them with
+  hidden/locked flags) and each copy records its `SourceRoomId` — as copied
+  NPCs and inspectables record `SourceNpcId` / `SourceInteractableId` — so
+  events in a copy carry the original's id. Nobody stands in a `Private` map
+  room: walking into one enters the runner's run copy through the
+  `mission-enter` action (`IRunAccessPolicy` decides who may), and everyone
+  else finds the door locked. The publish gate checks sites against the map
+  (`JobSiteMapValidator`: rooms on the map, Private, reachable from the entry).
+- **Events belong to rooms (WF-20, WF-26).** Every event happens in a room.
+  A room's own reactions are a `Place` definition keyed by the room's id; they
+  fire every time. A job's listeners live on the mission, each naming a room
+  (its site, or a public room); only one job may listen to a given event
+  (room + kind + subject), and they fire once per run. The room reacts first,
+  then the job. In a public room, narration goes to the player who caused it
+  and a job's lines reach only its runner while the room sees a cover line
+  (`othersSee`). Johnsons are world NPCs placed in Public rooms
+  (`WorldNpcPlacement`). Room events beyond entry (WF-21): `sneakAttempted`
+  (with outcome), `combatStarted`, `lockedExitTried`, `playerLeftRoom`.
+- **Deleting (WF-27).** Deleting a room deletes its NPCs, items, inspectables,
+  its own events and its exits both ways; it is refused while a job listens to
+  the room or builds a site from it. A world NPC a listener names cannot be
+  removed. Refusals name what still points at the record.
+- **Hidden items (WF-27).** Items, like inspectables, can be hidden with a
+  search difficulty; observe-area reveals them per character
+  (`DiscoverySubjectType.Item`), and an undiscovered item cannot be taken.
+- **Content writes are serialized (WF-22).** Publish, delete and draft saves
+  run under one advisory lock (`IGameContentStore.RunExclusiveAsync`).
 - **Rewards.** Karma and nuyen are granted through the career ledger, keyed by
   mission instance, exactly once.
 - The action and test catalogs are still partly code-defined
@@ -303,8 +340,9 @@ content with no historical references.
 
 - Routes: `/login`, `/characters`, `/characters/create`,
   `/characters/create/:characterId`, `/characters/:characterId/sheet`, `/play`,
-  `/admin/users`, `/admin/audit`, `/admin/world`, `/admin/forge`. Guards redirect
-  by authentication, active session, and role; the server remains authoritative.
+  `/admin/users`, `/admin/audit`, `/admin/forge` (Places, Jobs, Library;
+  `/admin/world` redirects to Places). Guards redirect by authentication, active
+  session, and role; the server remains authoritative.
 - Creator and administration routes are separate production chunks.
 - The command composer parses commands on the client. Local-only commands never
   reach the server; everything else submits intent.

@@ -1,3 +1,4 @@
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SeattleByNight.Application.GameEngine.Actions;
@@ -16,8 +17,8 @@ namespace SeattleByNight.Infrastructure.Tests;
 // keycard.
 public abstract class AmbushPlaythroughHarness : PlaythroughHarness
 {
-    protected const string AmbushSceneId = "warehouse-hallway-ambush";
-    protected const string MissionId = "gang-warehouse-retrieval";
+    protected static readonly Guid AmbushSceneId = ShippedContentIds.Scenes.WarehouseHallwayAmbush;
+    protected static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
 
     // Takes the job the admin way (the dialogue route is the stealth run's
     // business), travels to the site, and walks into the blind corner.
@@ -76,21 +77,21 @@ public sealed class AmbushBlockPlaythroughTests : AmbushPlaythroughHarness
             // A trigger-opened scene has no conversation partner — that is
             // the whole point of generalizing dialogue into scenes.
             Assert.Null(scene.NpcInstanceId);
-            Assert.Equal("ambush", scene.CurrentNodeId);
+            Assert.Equal(ShippedContentIds.SceneNodes.Ambush, scene.CurrentNodeId);
         }
 
         // Block is an AUTHORED test: Strength + Unarmed Combat, threshold 2.
         // Two hits and no misses, so the Edge Second Chance offer never fires.
         Roller.Enqueue(5, 5);
         var block = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("ambush", "block"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.WarehouseHallwayAmbushAmbushBlock));
         Assert.Equal(GameActionError.None, block.Error);
 
         // The node the success branch moved to, with its one option.
         Assert.Contains("Pocket the card", block.Message);
 
         var takeCard = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("blocked", "take-the-card"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.WarehouseHallwayAmbushBlockedTakeTheCard));
         Assert.Equal(GameActionError.None, takeCard.Error);
 
         var enforcerId = await HallwayEnforcerIdAsync();
@@ -104,7 +105,7 @@ public sealed class AmbushBlockPlaythroughTests : AmbushPlaythroughHarness
             // giveItem materialized an encounter item that was never placed
             // in a room, carrying its mission provenance.
             var keycard = await verify.WorldItemInstances.AsNoTracking()
-                .SingleAsync(item => item.ItemKey == "enforcer-keycard");
+                .SingleAsync(item => item.ItemId == ShippedContentIds.Items.EnforcerKeycard);
             Assert.Equal(CharacterId, keycard.OwnerCharacterId);
             Assert.Null(keycard.RoomId);
             Assert.Equal(missionInstanceId, keycard.MissionInstanceId);
@@ -114,7 +115,7 @@ public sealed class AmbushBlockPlaythroughTests : AmbushPlaythroughHarness
             Assert.True(await verify.TriggerFires.AnyAsync(
                 fire => fire.CharacterId == CharacterId
                     && fire.MissionInstanceId == missionInstanceId
-                    && fire.TriggerKey == "hallway-ambush"));
+                    && fire.TriggerId == ShippedContentIds.Triggers.HallwayAmbush));
 
             // §46: the trigger and both scene choices are in the audit log.
             var audited = await verify.GameTestAuditRecords
@@ -140,7 +141,7 @@ public sealed class AmbushBlockPlaythroughTests : AmbushPlaythroughHarness
             Assert.False(await verify.SceneSessions.AnyAsync(s => s.CharacterId == CharacterId));
             Assert.Equal(
                 1,
-                await verify.TriggerFires.CountAsync(fire => fire.TriggerKey == "hallway-ambush"));
+                await verify.TriggerFires.CountAsync(fire => fire.TriggerId == ShippedContentIds.Triggers.HallwayAmbush));
         }
     }
 }
@@ -166,7 +167,7 @@ public sealed class AmbushDodgePlaythroughTests : AmbushPlaythroughHarness
         // fires; the harness answers it with its default (keep the roll).
         Roller.Enqueue(1, 2, 3, 4);
         var dodge = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("ambush", "dodge"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.WarehouseHallwayAmbushAmbushDodge));
         Assert.Equal(GameActionError.None, dodge.Error);
 
         // Initiative for the fight the failure branch starts: the player and
@@ -174,7 +175,7 @@ public sealed class AmbushDodgePlaythroughTests : AmbushPlaythroughHarness
         Roller.Enqueue(3);
         Roller.Enqueue(6);
         var fightBack = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("hit", "fight"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.WarehouseHallwayAmbushHitFight));
         Assert.Equal(GameActionError.None, fightBack.Error);
 
         await using (var verify = Db())

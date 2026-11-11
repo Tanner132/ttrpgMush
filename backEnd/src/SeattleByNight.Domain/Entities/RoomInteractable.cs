@@ -8,6 +8,8 @@ public sealed class RoomInteractable
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid RoomId { get; set; }
+    // WF-27: the job-site inspectable a run's copy was made from.
+    public Guid? SourceInteractableId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool IsHidden { get; set; }

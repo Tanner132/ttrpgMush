@@ -8,6 +8,19 @@ public sealed record CreateRoomExitCommand(Guid ActorUserId, RoomExitMutation Mu
 public sealed record UpdateRoomExitCommand(Guid ActorUserId, Guid ExitId, Guid Version, RoomExitMutation Mutation)
     : IRequest<WorldMutationResult<WorldExit>>;
 
+public sealed record DeleteRoomExitCommand(Guid ActorUserId, Guid ExitId)
+    : IRequest<WorldMutationResult<WorldExit>>;
+
+public sealed class DeleteRoomExitCommandHandler : IRequestHandler<DeleteRoomExitCommand, WorldMutationResult<WorldExit>>
+{
+    private readonly IWorldEditorStore _store;
+
+    public DeleteRoomExitCommandHandler(IWorldEditorStore store) => _store = store;
+
+    public Task<WorldMutationResult<WorldExit>> Handle(DeleteRoomExitCommand request, CancellationToken cancellationToken) =>
+        _store.DeleteExitAsync(request.ActorUserId, request.ExitId, cancellationToken);
+}
+
 public sealed class CreateRoomExitCommandHandler : IRequestHandler<CreateRoomExitCommand, WorldMutationResult<WorldExit>>
 {
     private readonly IWorldEditorStore _store;

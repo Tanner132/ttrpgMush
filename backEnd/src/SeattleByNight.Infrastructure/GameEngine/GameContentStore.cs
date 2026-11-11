@@ -24,7 +24,7 @@ public sealed class GameContentStore(
                 .Where(definition => definition.Status != nameof(GameContentStatus.Draft)),
             cancellationToken);
 
-    public async Task<IReadOnlyDictionary<GameContentKind, IReadOnlySet<string>>> ListRetiredKeysAsync(
+    public async Task<IReadOnlyDictionary<GameContentKind, IReadOnlySet<Guid>>> ListRetiredKeysAsync(
         CancellationToken cancellationToken = default)
     {
         var rows = await db.GameContentDefinitions.AsNoTracking()
@@ -32,37 +32,59 @@ public sealed class GameContentStore(
             .Select(definition => new { definition.Kind, definition.ContentKey })
             .ToListAsync(cancellationToken);
 
-        // Each kind matches keys the way its own ids are compared everywhere
-        // else: NPC template ids are case-insensitive (the loader refuses two
-        // that differ only in case, and every lookup ignores it), while
-        // encounter, mission and scene ids are Ordinal. Using one comparer for
-        // all four would let two ids differing only in case cross-match, and
-        // retiring one would take the other out of play with it.
         return rows
             .GroupBy(row => Enum.Parse<GameContentKind>(row.Kind))
             .ToDictionary(
                 group => group.Key,
-                group => (IReadOnlySet<string>)group
-                    .Select(row => row.ContentKey)
-                    .ToHashSet(group.Key == GameContentKind.NpcTemplate
-                        ? StringComparer.OrdinalIgnoreCase
-                        : StringComparer.Ordinal));
+                group => (IReadOnlySet<Guid>)group.Select(row => row.ContentKey).ToHashSet());
     }
 
     public async Task<GameContentDefinitionRecord?> FindAsync(
-        GameContentKind kind, string contentKey, CancellationToken cancellationToken = default)
+        GameContentKind kind, Guid contentKey, CancellationToken cancellationToken = default)
     {
         var entity = await FindEntityAsync(kind, contentKey, cancellationToken);
         return entity is null ? null : ToRecord(entity);
     }
 
-    public async Task<GameContentDefinitionRecord> SaveDraftAsync(
+    // One key for the whole corpus: publishes are rare and whole-corpus
+    // validated, so serializing them costs nothing anyone will feel.
+    private const long CorpusLockKey = 0x5EA7_7EC0_4E7E;
+
+    public async Task<T> RunExclusiveAsync<T>(
+        Func<CancellationToken, Task<T>> work, CancellationToken cancellationToken = default)
+    {
+        if (db.Database.CurrentTransaction is not null)
+        {
+            return await work(cancellationToken);
+        }
+
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        // Transaction-scoped: released on commit or rollback, so a crash
+        // mid-publish can never leave the corpus locked.
+        await db.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({CorpusLockKey})", cancellationToken);
+        var result = await work(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
+
+    public Task<GameContentDefinitionRecord> SaveDraftAsync(
         GameContentKind kind,
-        string contentKey,
+        Guid contentKey,
         string displayName,
         string draftJson,
         Guid actorUserId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        RunExclusiveAsync(
+            ct => SaveDraftLockedAsync(kind, contentKey, displayName, draftJson, actorUserId, ct),
+            cancellationToken);
+
+    private async Task<GameContentDefinitionRecord> SaveDraftLockedAsync(
+        GameContentKind kind,
+        Guid contentKey,
+        string displayName,
+        string draftJson,
+        Guid actorUserId,
+        CancellationToken cancellationToken)
     {
         var now = time.GetUtcNow();
         var entity = await FindEntityAsync(kind, contentKey, cancellationToken);
@@ -90,7 +112,7 @@ public sealed class GameContentStore(
             new Dictionary<string, string>
             {
                 ["kind"] = entity.Kind,
-                ["contentKey"] = entity.ContentKey,
+                ["contentKey"] = entity.ContentKey.ToString(),
             });
 
         await db.SaveChangesAsync(cancellationToken);
@@ -115,7 +137,7 @@ public sealed class GameContentStore(
             new Dictionary<string, string>
             {
                 ["kind"] = entity.Kind,
-                ["contentKey"] = entity.ContentKey,
+                ["contentKey"] = entity.ContentKey.ToString(),
             });
 
         await db.SaveChangesAsync(cancellationToken);
@@ -140,7 +162,7 @@ public sealed class GameContentStore(
             new Dictionary<string, string>
             {
                 ["kind"] = entity.Kind,
-                ["contentKey"] = entity.ContentKey,
+                ["contentKey"] = entity.ContentKey.ToString(),
             });
 
         await db.SaveChangesAsync(cancellationToken);
@@ -149,7 +171,7 @@ public sealed class GameContentStore(
 
     public async Task DeleteAsync(
         GameContentKind kind,
-        string contentKey,
+        Guid contentKey,
         Guid actorUserId,
         CancellationToken cancellationToken = default)
     {
@@ -162,7 +184,7 @@ public sealed class GameContentStore(
             new Dictionary<string, string>
             {
                 ["kind"] = entity.Kind,
-                ["contentKey"] = entity.ContentKey,
+                ["contentKey"] = entity.ContentKey.ToString(),
                 ["status"] = entity.Status,
             });
 
@@ -171,7 +193,7 @@ public sealed class GameContentStore(
     }
 
     private Task<GameContentDefinition?> FindEntityAsync(
-        GameContentKind kind, string contentKey, CancellationToken cancellationToken) =>
+        GameContentKind kind, Guid contentKey, CancellationToken cancellationToken) =>
         db.GameContentDefinitions.SingleOrDefaultAsync(
             definition => definition.Kind == kind.ToString() && definition.ContentKey == contentKey,
             cancellationToken);

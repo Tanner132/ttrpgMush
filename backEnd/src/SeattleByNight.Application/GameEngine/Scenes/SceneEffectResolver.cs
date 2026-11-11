@@ -35,13 +35,13 @@ public sealed record QueuedReaction(Guid RoomId, GameActionRequest Request);
 
 // A node the caller must present after the commit (§24), because the player
 // is being re-prompted by something other than their own choice.
-public sealed record ScenePrompt(SceneDefinition Scene, string NodeId);
+public sealed record ScenePrompt(SceneDefinition Scene, Guid NodeId);
 
 // One content event an effect list implies (24). NpcName is the subject an
 // npc-scoped event happened to, resolved against the scene's own NPC when the
 // effect did not name one.
 public sealed record SceneEffectEvent(
-        TriggerEventKind Event, string? NpcName = null, string? ItemKey = null);
+        TriggerEventKind Event, Guid? NpcId = null, Guid? ItemId = null, Guid? MissionId = null);
 
 public sealed record ResolvedEffects(
     IReadOnlyList<StateChange> Changes,
@@ -66,10 +66,14 @@ public sealed class SceneEffectResolver(
     private const int NegotiationNuyenPerNetHit = 200;
     private const int NegotiationMaxNetHits = 5;
 
+    // tally: the running damage total to stack on. A caller that resolves
+    // several effect lists inside ONE commit (a trigger's reactions) passes the
+    // same tally to each, so damage stacks across lists as well as within one.
     public async Task<ResolvedEffects> ResolveAsync(
         IReadOnlyList<SceneEffect>? effects,
         SceneEffectContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        SceneDamageTally? tally = null)
     {
         var changes = new List<StateChange>();
         var reactions = new List<QueuedReaction>();
@@ -81,7 +85,7 @@ public sealed class SceneEffectResolver(
         // read the same starting snapshot would overwrite the first instead of
         // stacking on it. The tally carries the running total across the list
         // so authored effects compose in sequence, as the milestone promises.
-        var tally = DamageTally.From(context.Runtime);
+        tally ??= SceneDamageTally.From(context.Runtime);
 
         foreach (var effect in effects ?? [])
         {
@@ -101,7 +105,7 @@ public sealed class SceneEffectResolver(
         List<StateChange> changes,
         List<QueuedReaction> reactions,
         List<string> notes,
-        DamageTally tally,
+        SceneDamageTally tally,
         CancellationToken cancellationToken)
     {
         var characterId = context.Session.CharacterId;
@@ -109,12 +113,12 @@ public sealed class SceneEffectResolver(
         switch (effect.Kind)
         {
             case SceneEffectKind.AcceptMission:
-                changes.Add(new AcceptMissionChange(effect.MissionId!, context.PendingNegotiatedNuyen));
+                changes.Add(new AcceptMissionChange(effect.MissionId!.Value, context.PendingNegotiatedNuyen));
                 break;
 
             case SceneEffectKind.SetNegotiatedPay:
             {
-                var mission = content.Current.FindMission(effect.MissionId!)
+                var mission = content.Current.FindMission(effect.MissionId!.Value)
                     ?? throw new InvalidOperationException(
                         $"Negotiation references unknown mission '{effect.MissionId}'.");
                 var netHits = Math.Max(0, context.Resolution?.NetHits ?? 0);
@@ -126,7 +130,7 @@ public sealed class SceneEffectResolver(
             case SceneEffectKind.TurnInMission:
             {
                 var turnIn = await BuildTurnInChangesAsync(
-                    characterId, effect.MissionId!, context.SceneNpc, cancellationToken);
+                    characterId, effect.MissionId!.Value, context.SceneNpc, cancellationToken);
                 if (turnIn is null)
                 {
                     throw new InvalidOperationException(
@@ -231,14 +235,13 @@ public sealed class SceneEffectResolver(
                         "A giveItem effect needs a live encounter to take the item from.");
                 var definition = content.Current.FindEncounter(encounter.EncounterId)
                     ?? throw new InvalidOperationException(
-                        $"Encounter definition '{encounter.EncounterId}' is missing from the game content.");
-                var item = definition.Items.FirstOrDefault(candidate =>
-                    string.Equals(candidate.Key, effect.ItemKey, StringComparison.Ordinal))
+                        $"Job site {encounter.EncounterId} is missing from the game content.");
+                var item = definition.FindItem(effect.ItemId!.Value)
                     ?? throw new InvalidOperationException(
-                        $"Encounter '{encounter.EncounterId}' does not declare item '{effect.ItemKey}'.");
+                        $"Job site '{definition.DisplayName}' has no item {effect.ItemId}.");
 
                 changes.Add(new GrantItemChange(
-                    encounter.MissionInstanceId, encounter.Id, item.Key, item.Name, item.Description));
+                    encounter.MissionInstanceId, encounter.Id, item.Id, item.Name, item.Description));
                 notes.Add($"You pocket the {item.Name}.");
 
                 // §38: acquiring an item completes its objective as a
@@ -253,11 +256,11 @@ public sealed class SceneEffectResolver(
                     && content.Current.FindMission(instance.MissionId) is { } mission
                     && mission.Objectives.FirstOrDefault(objective =>
                         objective.Kind == MissionObjectiveKind.PickUpItem
-                        && string.Equals(objective.ItemKey, item.Key, StringComparison.Ordinal)
-                        && instance.FindObjective(objective.Key)
+                        && objective.ItemId == item.Id
+                        && instance.FindObjective(objective.Id)
                             is { Status: MissionObjectiveStatus.Active }) is { } acquired)
                 {
-                    changes.Add(new CompleteObjectiveChange(instance.Id, acquired.Key));
+                    changes.Add(new CompleteObjectiveChange(instance.Id, acquired.Id));
                     notes.Add($"Objective complete: {acquired.DisplayName}.");
                 }
 
@@ -267,8 +270,7 @@ public sealed class SceneEffectResolver(
             case SceneEffectKind.TakeItem:
             {
                 var owned = await missionReader.GetItemsOwnedByCharacterAsync(characterId, cancellationToken);
-                var item = owned.FirstOrDefault(candidate =>
-                    string.Equals(candidate.ItemKey, effect.ItemKey, StringComparison.Ordinal));
+                var item = owned.FirstOrDefault(candidate => candidate.ItemId == effect.ItemId);
                 if (item is not null)
                 {
                     changes.Add(new RemoveItemChange(item.Id, "taken from you."));
@@ -280,10 +282,10 @@ public sealed class SceneEffectResolver(
 
             case SceneEffectKind.CompleteObjective:
             {
-                if (await FindOpenInstanceAsync(characterId, effect.MissionId!, cancellationToken) is { } instance
-                    && instance.FindObjective(effect.ObjectiveKey!) is { Status: MissionObjectiveStatus.Active })
+                if (await FindOpenInstanceAsync(characterId, effect.MissionId!.Value, cancellationToken) is { } instance
+                    && instance.FindObjective(effect.ObjectiveId!.Value) is { Status: MissionObjectiveStatus.Active })
                 {
-                    changes.Add(new CompleteObjectiveChange(instance.Id, effect.ObjectiveKey!));
+                    changes.Add(new CompleteObjectiveChange(instance.Id, effect.ObjectiveId.Value));
                 }
 
                 break;
@@ -291,14 +293,14 @@ public sealed class SceneEffectResolver(
 
             case SceneEffectKind.FailObjective:
             {
-                if (await FindOpenInstanceAsync(characterId, effect.MissionId!, cancellationToken) is { } instance
-                    && instance.FindObjective(effect.ObjectiveKey!) is
+                if (await FindOpenInstanceAsync(characterId, effect.MissionId!.Value, cancellationToken) is { } instance
+                    && instance.FindObjective(effect.ObjectiveId!.Value) is
                         { Status: MissionObjectiveStatus.Active or MissionObjectiveStatus.Inactive })
                 {
                     // Objectives are sequential, so nothing after a failed one
                     // can ever activate. Both changes go in the same commit:
                     // the run is over, and the record says where it went wrong.
-                    changes.Add(new FailObjectiveChange(instance.Id, effect.ObjectiveKey!));
+                    changes.Add(new FailObjectiveChange(instance.Id, effect.ObjectiveId.Value));
                     changes.Add(new FailMissionChange(instance.Id));
                 }
 
@@ -307,7 +309,7 @@ public sealed class SceneEffectResolver(
 
             case SceneEffectKind.FailMission:
             {
-                if (await FindOpenInstanceAsync(characterId, effect.MissionId!, cancellationToken) is { } instance)
+                if (await FindOpenInstanceAsync(characterId, effect.MissionId!.Value, cancellationToken) is { } instance)
                 {
                     changes.Add(new FailMissionChange(instance.Id));
                 }
@@ -321,18 +323,17 @@ public sealed class SceneEffectResolver(
                 // most one open scene, and an effect that fired while they
                 // were somewhere else must not yank an unrelated conversation.
                 var session = await sceneSessions.GetForCharacterAsync(characterId, cancellationToken);
-                if (session is null
-                    || !string.Equals(session.SceneId, effect.SceneId, StringComparison.Ordinal))
+                if (session is null || session.SceneId != effect.SceneId)
                 {
                     break;
                 }
 
-                var scene = content.Current.FindScene(effect.SceneId!)
+                var scene = content.Current.FindScene(effect.SceneId!.Value)
                     ?? throw new InvalidOperationException(
                         $"Effect 'advanceScene' names unknown scene '{effect.SceneId}'.");
 
-                changes.Add(new AdvanceSceneChange(effect.NodeId!));
-                return new ScenePrompt(scene, effect.NodeId!);
+                changes.Add(new AdvanceSceneChange(effect.NodeId!.Value));
+                return new ScenePrompt(scene, effect.NodeId.Value);
             }
         }
 
@@ -346,7 +347,7 @@ public sealed class SceneEffectResolver(
     // "accept the mission" have to raise the same event, or an authored
     // reaction fires on one path and silently not on the other.
     public static IReadOnlyList<SceneEffectEvent> EventsFor(
-        IReadOnlyList<SceneEffect>? effects, string? sceneNpcName)
+        IReadOnlyList<SceneEffect>? effects, Guid? sceneNpcId)
     {
         var events = new List<SceneEffectEvent>();
         foreach (var effect in effects ?? [])
@@ -354,12 +355,12 @@ public sealed class SceneEffectResolver(
             switch (effect.Kind)
             {
                 case SceneEffectKind.AcceptMission:
-                    events.Add(new SceneEffectEvent(TriggerEventKind.MissionAccepted, null));
+                    events.Add(new SceneEffectEvent(TriggerEventKind.MissionAccepted, MissionId: effect.MissionId));
                     break;
 
                 case SceneEffectKind.PacifyNpc:
                     events.Add(new SceneEffectEvent(
-                        TriggerEventKind.NpcPacified, effect.NpcName ?? sceneNpcName));
+                        TriggerEventKind.NpcPacified, effect.NpcId ?? sceneNpcId));
                     break;
 
                 case SceneEffectKind.GiveItem:
@@ -367,24 +368,12 @@ public sealed class SceneEffectResolver(
                     // so a trigger can react to a handover the same way it
                     // reacts to something taken off the floor.
                     events.Add(new SceneEffectEvent(
-                        TriggerEventKind.ItemPickedUp, ItemKey: effect.ItemKey));
+                        TriggerEventKind.ItemPickedUp, ItemId: effect.ItemId));
                     break;
             }
         }
 
         return events;
-    }
-
-    // The character's damage as this effect list has left it so far, so each
-    // dealDamage lands on top of the last rather than beside it.
-    private sealed class DamageTally
-    {
-        public int Physical { get; set; }
-
-        public int Stun { get; set; }
-
-        public static DamageTally From(CharacterRuntimeSnapshot runtime) =>
-            new() { Physical = runtime.PhysicalDamage, Stun = runtime.StunDamage };
     }
 
     // An alert's NPC: the one it names anywhere in the encounter the character
@@ -393,7 +382,7 @@ public sealed class SceneEffectResolver(
     private async Task<NpcSnapshot?> ResolveAlertTargetAsync(
         SceneEffect effect, SceneEffectContext context, CancellationToken cancellationToken)
     {
-        if (effect.NpcName is null)
+        if (effect.NpcId is not { } npcId)
         {
             return context.SceneNpc;
         }
@@ -406,8 +395,7 @@ public sealed class SceneEffectResolver(
         }
 
         var npcs = await roomContent.GetNpcsInEncounterAsync(encounter.Id, cancellationToken);
-        return npcs.FirstOrDefault(npc =>
-            string.Equals(npc.Name, effect.NpcName, StringComparison.Ordinal));
+        return npcs.FirstOrDefault(npc => npc.ContentId == npcId);
     }
 
     // An effect's NPC: the one it names, else the one the scene is with. A
@@ -416,14 +404,13 @@ public sealed class SceneEffectResolver(
     private async Task<NpcSnapshot?> ResolveNpcAsync(
         SceneEffect effect, SceneEffectContext context, CancellationToken cancellationToken)
     {
-        if (effect.NpcName is null)
+        if (effect.NpcId is not { } npcId)
         {
             return context.SceneNpc;
         }
 
         var npcs = await roomContent.GetNpcsInRoomAsync(context.Session.CurrentRoomId, cancellationToken);
-        return npcs.FirstOrDefault(npc =>
-            string.Equals(npc.Name, effect.NpcName, StringComparison.Ordinal));
+        return npcs.FirstOrDefault(npc => npc.ContentId == npcId);
     }
 
     // The reaction is described here and enqueued by the caller, after its
@@ -440,18 +427,17 @@ public sealed class SceneEffectResolver(
                 TargetId: targetId));
 
     private async Task<MissionInstanceSnapshot?> FindOpenInstanceAsync(
-        Guid characterId, string missionId, CancellationToken cancellationToken)
+        Guid characterId, Guid missionId, CancellationToken cancellationToken)
     {
         var open = await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken);
-        return open.FirstOrDefault(instance =>
-            string.Equals(instance.MissionId, missionId, StringComparison.Ordinal));
+        return open.FirstOrDefault(instance => instance.MissionId == missionId);
     }
 
     // §38/§39: the delivery — objective, item handoff, and the mission's
     // Completed transition with its ledgered rewards — as one change list.
     private async Task<IReadOnlyList<StateChange>?> BuildTurnInChangesAsync(
         Guid characterId,
-        string missionId,
+        Guid missionId,
         NpcSnapshot? npc,
         CancellationToken cancellationToken)
     {
@@ -463,8 +449,7 @@ public sealed class SceneEffectResolver(
 
         var open = await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken);
         var instance = open.FirstOrDefault(candidate =>
-            string.Equals(candidate.MissionId, missionId, StringComparison.Ordinal)
-            && candidate.Status == MissionInstanceStatus.ReadyToTurnIn);
+            candidate.MissionId == missionId && candidate.Status == MissionInstanceStatus.ReadyToTurnIn);
         if (instance is null)
         {
             return null;
@@ -472,7 +457,7 @@ public sealed class SceneEffectResolver(
 
         var deliverObjective = definition.Objectives.FirstOrDefault(objective =>
             objective.Kind == MissionObjectiveKind.DeliverItem
-            && instance.FindObjective(objective.Key) is { Status: MissionObjectiveStatus.Active });
+            && instance.FindObjective(objective.Id) is { Status: MissionObjectiveStatus.Active });
         if (deliverObjective is null)
         {
             return null;
@@ -480,8 +465,7 @@ public sealed class SceneEffectResolver(
 
         var owned = await missionReader.GetItemsOwnedByCharacterAsync(characterId, cancellationToken);
         var item = owned.FirstOrDefault(candidate =>
-            string.Equals(candidate.ItemKey, deliverObjective.ItemKey, StringComparison.Ordinal)
-            && candidate.MissionInstanceId == instance.Id);
+            candidate.ItemId == deliverObjective.ItemId && candidate.MissionInstanceId == instance.Id);
         if (item is null)
         {
             return null;
@@ -492,9 +476,23 @@ public sealed class SceneEffectResolver(
 
         return
         [
-            new CompleteObjectiveChange(instance.Id, deliverObjective.Key),
+            new CompleteObjectiveChange(instance.Id, deliverObjective.Id),
             new RemoveItemChange(item.Id, $"delivered to {npc?.Name ?? "the client"}."),
             new CompleteMissionChange(instance.Id, karma, nuyen),
         ];
     }
+}
+
+// The character's damage as the effects resolved so far have left it, so each
+// dealDamage lands on top of the last rather than beside it. Damage is emitted
+// as an absolute total, so two effects that each read the start-of-action
+// snapshot would overwrite one another instead of stacking.
+public sealed class SceneDamageTally
+{
+    public int Physical { get; set; }
+
+    public int Stun { get; set; }
+
+    public static SceneDamageTally From(CharacterRuntimeSnapshot runtime) =>
+        new() { Physical = runtime.PhysicalDamage, Stun = runtime.StunDamage };
 }

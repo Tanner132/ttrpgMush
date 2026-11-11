@@ -97,9 +97,21 @@ public sealed class TriggerEngine
         this.timeProvider = timeProvider;
     }
 
-    // One authored trigger together with the mission instance that scopes its
-    // fire-once record.
-    private sealed record Candidate(TriggerDefinition Trigger, Guid MissionInstanceId);
+    // WF-26: one authored listener and who owns it. A room's own listeners
+    // fire every time; a job's are scoped to the run (fire-once ledger).
+    private sealed record Candidate(TriggerDefinition Trigger, Guid? MissionInstanceId)
+    {
+        public bool IsJob => MissionInstanceId is not null;
+
+        public static Candidate ForRoom(TriggerDefinition trigger) => new(trigger, null);
+
+        public static Candidate ForJob(TriggerDefinition trigger, Guid missionInstanceId) =>
+            new(trigger, missionInstanceId);
+    }
+
+    // The engine's cover line when a job reaches its runner privately in a
+    // public room (WF-26). An author can write their own per listener.
+    public const string DefaultOthersSee = "reaches for their commlink and answers a call.";
 
     public async Task<GameActionOutcome> ExecuteAsync(
         TriggerActionContext context, CancellationToken cancellationToken)
@@ -110,12 +122,30 @@ public sealed class TriggerEngine
         }
 
         // Reactions are queued, so a fast player can leave before the event
-        // they caused is consumed. Firing anyway would anchor the scene, the
-        // narration and the reaction scope to a room they are no longer in —
-        // so a stale event is dropped rather than misapplied.
-        if (payload.RoomId is { } eventRoomId && eventRoomId != context.Session.CurrentRoomId)
+        // they caused is consumed (WF-6). What happens then depends on what
+        // the event is about:
+        //  * Walking into a room IS the moment; if they have already walked
+        //    out again it never really happened, so the event is dropped.
+        //  * Anything else (an NPC defeated, a mission accepted, an item
+        //    taken) did happen, and a fire-once trigger that misses it can
+        //    never fire again. Its game consequences still land, resolved
+        //    against the room the event happened in; only the parts that need
+        //    the player standing there — lines spoken into the room, a scene
+        //    opening, a fight starting — are skipped.
+        //  * Leaving a room (WF-21) is about the room left behind, and always
+        //    arrives after the player has gone: it runs where they are now,
+        //    which is where anything it says should reach them.
+        var stale = payload.Event != TriggerEventKind.PlayerLeftRoom
+            && payload.RoomId is { } eventRoomId
+            && eventRoomId != context.Session.CurrentRoomId;
+        if (stale && payload.Event == TriggerEventKind.PlayerEnteredRoom)
         {
             return GameActionOutcome.Final(null, "The moment passed.");
+        }
+
+        if (stale)
+        {
+            context = context with { Session = context.Session with { CurrentRoomId = payload.RoomId!.Value } };
         }
 
         var candidates = await FindMatchingTriggersAsync(context, payload, cancellationToken);
@@ -127,7 +157,7 @@ public sealed class TriggerEngine
         var fired = 0;
         foreach (var candidate in candidates)
         {
-            if (await RunAsync(context, candidate, cancellationToken))
+            if (await RunAsync(context, candidate, stale, cancellationToken))
             {
                 fired++;
             }
@@ -136,10 +166,11 @@ public sealed class TriggerEngine
         return GameActionOutcome.Final(null, fired > 0 ? $"{fired} trigger(s) fired." : "No content reacted.");
     }
 
-    // Which authored triggers this event matches: the encounter the character
-    // is standing in, plus every open mission's world-side triggers. Filters
-    // are compared field by field; a null filter on the trigger means it does
-    // not care about that part of the subject.
+    // WF-26: every event happens in a room, and only that room's listeners
+    // hear it — the room's own first, then a job's. In a run's private copy
+    // the job is that run's; in a public room, it is any job the character
+    // has open. Listeners name the map room; a run's copy stands for the map
+    // room it was copied from (WF-27).
     private async Task<IReadOnlyList<Candidate>> FindMatchingTriggersAsync(
         TriggerActionContext context,
         TriggerEventPayload payload,
@@ -147,52 +178,63 @@ public sealed class TriggerEngine
     {
         var characterId = context.Session.CharacterId;
         var candidates = new List<Candidate>();
-
-        var encounter = await missionReader.GetActiveEncounterByRoomAsync(
-            context.Session.CurrentRoomId, cancellationToken)
-            ?? await missionReader.GetActiveEncounterForCharacterAsync(characterId, cancellationToken);
-
-        if (encounter is not null
-            && content.Current.FindEncounter(encounter.EncounterId) is { } encounterDefinition)
+        var eventRoomId = payload.RoomId ?? context.Session.CurrentRoomId;
+        if (await roomContent.GetMapRoomIdAsync(eventRoomId, cancellationToken) is not { } mapRoomId)
         {
-            candidates.AddRange(encounterDefinition.Triggers
-                .Where(trigger => Matches(trigger, payload))
-                .Select(trigger => new Candidate(trigger, encounter.MissionInstanceId)));
+            return candidates;
         }
 
+        if (content.Current.FindPlace(mapRoomId) is { IsRetired: false } place)
+        {
+            candidates.AddRange(place.Triggers
+                .Where(trigger => Matches(trigger, mapRoomId, payload, missionId: null))
+                .Select(Candidate.ForRoom));
+        }
+
+        var run = await missionReader.GetActiveEncounterByRoomAsync(eventRoomId, cancellationToken);
         var open = await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken);
         foreach (var instance in open)
         {
-            if (content.Current.FindMission(instance.MissionId) is not { } missionDefinition)
+            if (run is not null && instance.Id != run.MissionInstanceId)
             {
                 continue;
             }
 
-            candidates.AddRange(missionDefinition.Triggers
-                .Where(trigger => Matches(trigger, payload))
-                .Select(trigger => new Candidate(trigger, instance.Id)));
+            if (content.Current.FindMission(instance.MissionId) is not { } mission)
+            {
+                continue;
+            }
+
+            candidates.AddRange(mission.Triggers
+                .Where(trigger => Matches(trigger, mapRoomId, payload, mission.Id))
+                .Select(trigger => Candidate.ForJob(trigger, instance.Id)));
         }
 
         return candidates;
     }
 
-    private static bool Matches(TriggerDefinition trigger, TriggerEventPayload payload) =>
+    private static bool Matches(
+        TriggerDefinition trigger, Guid mapRoomId, TriggerEventPayload payload, Guid? missionId) =>
         trigger.Event == payload.Event
-        && (trigger.RoomKey is null || string.Equals(trigger.RoomKey, payload.RoomKey, StringComparison.Ordinal))
-        && (trigger.ItemKey is null || string.Equals(trigger.ItemKey, payload.ItemKey, StringComparison.Ordinal))
-        && (trigger.NpcName is null || string.Equals(trigger.NpcName, payload.NpcName, StringComparison.Ordinal))
-        && (trigger.InteractableName is null
-            || string.Equals(trigger.InteractableName, payload.InteractableName, StringComparison.Ordinal));
+        && trigger.RoomId == mapRoomId
+        && (trigger.ItemId is null || trigger.ItemId == payload.ItemId)
+        && (trigger.NpcId is null || trigger.NpcId == payload.NpcId)
+        && (trigger.InteractableId is null || trigger.InteractableId == payload.InteractableId)
+        && (trigger.Outcome is null || trigger.Outcome == payload.Outcome)
+        // An event about a job reaches only the job it is about.
+        && (!trigger.IsAboutTheJob || missionId == payload.MissionId);
 
+    // offstage: the character has left the room this event happened in, so
+    // only the trigger's game consequences run (see ExecuteAsync).
     private async Task<bool> RunAsync(
-        TriggerActionContext context, Candidate candidate, CancellationToken cancellationToken)
+        TriggerActionContext context, Candidate candidate, bool offstage, CancellationToken cancellationToken)
     {
         var trigger = candidate.Trigger;
         var characterId = context.Session.CharacterId;
 
-        if (!trigger.Repeatable
-            && await triggerFires.HasFiredAsync(
-                characterId, candidate.MissionInstanceId, trigger.Key, cancellationToken))
+        if (candidate.MissionInstanceId is Guid runId
+            && !trigger.Repeatable
+            && await triggerFires.HasFiredAsync(characterId, runId, trigger.Id, cancellationToken))
         {
             return false;
         }
@@ -223,6 +265,11 @@ public sealed class TriggerEngine
         // set by openScene, by a test branch's scene, or by an advanceScene
         // effect moving a conversation they already had open.
         ScenePrompt? prompt = null;
+        // One running damage total for the whole trigger. Every reaction's
+        // effects commit together against the same start-of-action snapshot,
+        // so a runTest branch dealing 3P followed by applyEffects dealing 2P
+        // must land as +5, not as whichever absolute total was written last.
+        var damage = SceneDamageTally.From(context.Runtime);
 
         var npcsInRoom = await roomContent.GetNpcsInRoomAsync(
             context.Session.CurrentRoomId, cancellationToken);
@@ -231,8 +278,9 @@ public sealed class TriggerEngine
         // does not stack — it OVERWRITES the first, negotiated pay and all.
         // A conversation already under way is not interrupted; the trigger
         // does everything else it was written to do.
-        var alreadyTalking = await sceneSessions.GetForCharacterAsync(characterId, cancellationToken)
-            is not null;
+        // Offstage, nobody is there to be shown a scene either.
+        var alreadyTalking = offstage
+            || await sceneSessions.GetForCharacterAsync(characterId, cancellationToken) is not null;
 
         foreach (var reaction in trigger.Reactions)
         {
@@ -251,7 +299,7 @@ public sealed class TriggerEngine
                     // fire-once race must not leave an NPC having spoken for
                     // something that never happened (the post-commit rule
                     // above, which this case used to be the exception to).
-                    var npc = FindNpc(npcsInRoom, reaction.NpcName);
+                    var npc = FindNpc(npcsInRoom, reaction.NpcId);
                     if (npc is not null)
                     {
                         broadcasts.Add(PendingBroadcast.Speech(
@@ -270,7 +318,7 @@ public sealed class TriggerEngine
                     // Offerable, not merely resolvable: retiring a scene has
                     // to stop it being served even while the trigger that
                     // opens it is still published (section 5).
-                    var opened = content.Current.FindOfferableScene(reaction.SceneId!);
+                    var opened = content.Current.FindOfferableScene(reaction.SceneId!.Value);
                     if (opened is null || alreadyTalking)
                     {
                         break;
@@ -278,8 +326,7 @@ public sealed class TriggerEngine
 
                     var boundNpc = opened.NpcTemplateId is null
                         ? null
-                        : npcsInRoom.FirstOrDefault(npc =>
-                            string.Equals(npc.TemplateId, opened.NpcTemplateId, StringComparison.OrdinalIgnoreCase));
+                        : npcsInRoom.FirstOrDefault(npc => npc.TemplateId == opened.NpcTemplateId);
                     changes.Add(SceneEngine.OpenSceneChange(
                         opened, context.Session.CurrentRoomId, boundNpc?.Id));
                     prompt = new ScenePrompt(opened, opened.StartNodeId);
@@ -290,7 +337,7 @@ public sealed class TriggerEngine
                 {
                     var definition = content.Current.FindTest(reaction.TestId!)
                         ?? throw new InvalidOperationException(
-                            $"Trigger '{trigger.Key}' names unknown test '{reaction.TestId}'.");
+                            $"Listener {trigger.Id} names unknown test '{reaction.TestId}'.");
 
                     // A trigger test is the world acting on the character, so
                     // there is no second party holding a dice pool. Rolling an
@@ -301,7 +348,7 @@ public sealed class TriggerEngine
                     if (definition.OpposedPoolId is not null)
                     {
                         throw new InvalidOperationException(
-                            $"Trigger '{trigger.Key}' runs opposed test '{definition.TestId}', "
+                            $"Listener {trigger.Id} runs opposed test '{definition.TestId}', "
                                 + "but a trigger has no NPC to oppose it.");
                     }
 
@@ -321,13 +368,13 @@ public sealed class TriggerEngine
                     }
 
                     prompt = await ResolveEffectsAsync(
-                        context, branch.Effects, resolution, changes, reactions, broadcasts,
-                        raised, cancellationToken)
+                        context, Offstage(branch.Effects, offstage), resolution, damage, changes, reactions,
+                        broadcasts, raised, cancellationToken)
                         ?? prompt;
 
-                    if (branch.SceneId is not null
+                    if (branch.SceneId is { } branchSceneId
                         && !alreadyTalking
-                        && content.Current.FindOfferableScene(branch.SceneId) is { } branched)
+                        && content.Current.FindOfferableScene(branchSceneId) is { } branched)
                     {
                         changes.Add(SceneEngine.OpenSceneChange(
                             branched, context.Session.CurrentRoomId, npcInstanceId: null));
@@ -339,8 +386,8 @@ public sealed class TriggerEngine
 
                 case TriggerReactionKind.ApplyEffects:
                     prompt = await ResolveEffectsAsync(
-                        context, reaction.Effects, resolution, changes, reactions, broadcasts,
-                        raised, cancellationToken)
+                        context, Offstage(reaction.Effects, offstage), resolution, damage, changes, reactions,
+                        broadcasts, raised, cancellationToken)
                         ?? prompt;
                     break;
             }
@@ -348,9 +395,9 @@ public sealed class TriggerEngine
 
         // The fire-once record commits with the effects: a trigger that fired
         // and a trigger whose consequences landed are the same event.
-        if (!trigger.Repeatable)
+        if (candidate.MissionInstanceId is Guid firedRunId && !trigger.Repeatable)
         {
-            changes.Add(new RecordTriggerFireChange(candidate.MissionInstanceId, trigger.Key));
+            changes.Add(new RecordTriggerFireChange(firedRunId, trigger.Id));
         }
 
         var applied = changes.Count > 0
@@ -359,16 +406,38 @@ public sealed class TriggerEngine
 
         await AppendAuditAsync(context, trigger, resolutions, applied, cancellationToken);
 
-        foreach (var pending in broadcasts)
+        // Offstage, the lines would land in a room the player has left and a
+        // prompt would describe a place they are not standing in.
+        if (!offstage)
         {
-            await SendAsync(context.Session.CurrentRoomId, pending, cancellationToken);
-        }
+            // WF-26: in a public room, what a trigger says is the player's
+            // business. Narration is written to them ("you…") and goes to
+            // them alone; an NPC the room owns speaks aloud; a job's lines
+            // reach only its runner, and everyone else sees a cover line.
+            // Inside a run's private copy everyone present is on the run.
+            var inPublic = await roomContent.IsPublicMapRoomAsync(context.Session.CurrentRoomId, cancellationToken);
+            if (inPublic && candidate.IsJob && (broadcasts.Count > 0 || prompt is not null))
+            {
+                await broadcaster.BroadcastAsync(
+                    new RoomMessage(
+                        Guid.NewGuid(), context.Session.CurrentRoomId, characterId, context.Session.CharacterName,
+                        trigger.OthersSee ?? DefaultOthersSee, ChatMessageType.Emote, timeProvider.GetUtcNow()),
+                    cancellationToken);
+            }
 
-        // The scene's own prompt goes out after its session row exists, so a
-        // player who answers immediately hits a session the engine can find.
-        if (prompt is not null)
-        {
-            await PresentSceneNodeAsync(context, prompt, cancellationToken);
+            foreach (var pending in broadcasts)
+            {
+                var privately = inPublic && (pending.Npc is null || candidate.IsJob);
+                await SendAsync(context, pending, privately, cancellationToken);
+            }
+
+            // The scene's own prompt goes out after its session row exists, so
+            // a player who answers immediately hits a session the engine can
+            // find.
+            if (prompt is not null)
+            {
+                await PresentSceneNodeAsync(context, prompt, privately: inPublic, cancellationToken);
+            }
         }
 
         foreach (var reaction in reactions)
@@ -385,24 +454,37 @@ public sealed class TriggerEngine
         return true;
     }
 
+    // Offstage, a fight cannot start with someone who has already left the
+    // room, and a conversation cannot be moved on without showing the player
+    // where it went — so those two effects are skipped. Every other effect is
+    // a consequence, not a scene, and still lands.
+    private static IReadOnlyList<SceneEffect>? Offstage(IReadOnlyList<SceneEffect>? effects, bool offstage) =>
+        offstage && effects is not null
+            ? effects
+                .Where(effect => effect.Kind is not (SceneEffectKind.StartCombat or SceneEffectKind.AdvanceScene))
+                .ToList()
+            : effects;
+
     // Returns the node an advanceScene effect wants presented, if any.
     private async Task<ScenePrompt?> ResolveEffectsAsync(
         TriggerActionContext context,
         IReadOnlyList<SceneEffect>? sceneEffects,
         ResolutionResult? resolution,
+        SceneDamageTally damage,
         List<StateChange> changes,
         List<QueuedReaction> reactions,
         List<PendingBroadcast> broadcasts,
         List<SceneEffectEvent> raised,
         CancellationToken cancellationToken)
     {
-        raised.AddRange(SceneEffectResolver.EventsFor(sceneEffects, sceneNpcName: null));
+        raised.AddRange(SceneEffectResolver.EventsFor(sceneEffects, sceneNpcId: null));
         var resolved = await effects.ResolveAsync(
             sceneEffects,
             new SceneEffectContext(
                 context.Request, context.Session, context.Adapter, context.Runtime,
                 SceneNpc: null, PendingNegotiatedNuyen: null, resolution),
-            cancellationToken);
+            cancellationToken,
+            damage);
 
         changes.AddRange(resolved.Changes);
         reactions.AddRange(resolved.Reactions);
@@ -420,8 +502,8 @@ public sealed class TriggerEngine
         _ = queue.EnqueueAsync(
             scopeId,
             TriggerRequests.Build(
-                context.Request, raised.Event, npcName: raised.NpcName, itemKey: raised.ItemKey,
-                roomId: context.Session.CurrentRoomId),
+                context.Request, raised.Event, context.Session.CurrentRoomId,
+                npcId: raised.NpcId, itemId: raised.ItemId, missionId: raised.MissionId),
             CancellationToken.None);
     }
 
@@ -430,7 +512,7 @@ public sealed class TriggerEngine
     // single-player encounter that reaches exactly the person who has to
     // answer, and the choices themselves are already in their affordance list.
     private async Task PresentSceneNodeAsync(
-        TriggerActionContext context, ScenePrompt prompt, CancellationToken cancellationToken)
+        TriggerActionContext context, ScenePrompt prompt, bool privately, CancellationToken cancellationToken)
     {
         var session = await SceneSessionForAsync(context, prompt.Scene, cancellationToken);
         var npc = session.NpcInstanceId is Guid npcId
@@ -439,7 +521,13 @@ public sealed class TriggerEngine
 
         var text = await sceneEngine.PresentAsync(
             prompt.Scene, prompt.NodeId, session, npc, speakNodeText: true, cancellationToken);
-        await NarrateAsync(context.Session.CurrentRoomId, text, cancellationToken);
+        await DeliverAsync(
+            context,
+            new RoomMessage(
+                Guid.NewGuid(), context.Session.CurrentRoomId, Guid.Empty, string.Empty, text,
+                ChatMessageType.Narration, timeProvider.GetUtcNow()),
+            privately,
+            cancellationToken);
     }
 
     private async Task<SceneSessionSnapshot> SceneSessionForAsync(
@@ -452,8 +540,8 @@ public sealed class TriggerEngine
             scene.Id, scene.StartNodeId, null);
     }
 
-    private static NpcSnapshot? FindNpc(IReadOnlyList<NpcSnapshot> npcs, string? name) =>
-        name is null ? null : npcs.FirstOrDefault(npc => string.Equals(npc.Name, name, StringComparison.Ordinal));
+    private static NpcSnapshot? FindNpc(IReadOnlyList<NpcSnapshot> npcs, Guid? npcId) =>
+        npcId is null ? null : npcs.FirstOrDefault(npc => npc.ContentId == npcId);
 
     // One line a fired trigger owes the room, held until its changes commit.
     // Narration has no speaker; an NPC line carries the one who said it.
@@ -466,24 +554,24 @@ public sealed class TriggerEngine
             new(npc, text, type);
     }
 
-    private Task SendAsync(Guid roomId, PendingBroadcast pending, CancellationToken cancellationToken) =>
-        pending.Npc is { } npc
-            ? BroadcastNpcAsync(npc, pending.Text, pending.Type, cancellationToken)
-            : NarrateAsync(roomId, pending.Text, cancellationToken);
-
-    private Task NarrateAsync(Guid roomId, string text, CancellationToken cancellationToken) =>
-        broadcaster.BroadcastAsync(
-            new RoomMessage(
-                Guid.NewGuid(), roomId, Guid.Empty, string.Empty, text,
-                ChatMessageType.Narration, timeProvider.GetUtcNow()),
+    private Task SendAsync(
+        TriggerActionContext context, PendingBroadcast pending, bool privately, CancellationToken cancellationToken) =>
+        DeliverAsync(
+            context,
+            pending.Npc is { } npc
+                ? new RoomMessage(
+                    Guid.NewGuid(), npc.RoomId, npc.Id, npc.Name, pending.Text, pending.Type, timeProvider.GetUtcNow())
+                : new RoomMessage(
+                    Guid.NewGuid(), context.Session.CurrentRoomId, Guid.Empty, string.Empty, pending.Text,
+                    ChatMessageType.Narration, timeProvider.GetUtcNow()),
+            privately,
             cancellationToken);
 
-    private Task BroadcastNpcAsync(
-        NpcSnapshot npc, string text, ChatMessageType type, CancellationToken cancellationToken) =>
-        broadcaster.BroadcastAsync(
-            new RoomMessage(
-                Guid.NewGuid(), npc.RoomId, npc.Id, npc.Name, text, type, timeProvider.GetUtcNow()),
-            cancellationToken);
+    private Task DeliverAsync(
+        TriggerActionContext context, RoomMessage message, bool privately, CancellationToken cancellationToken) =>
+        privately
+            ? broadcaster.SendToUserAsync(context.Request.UserId, message, cancellationToken)
+            : broadcaster.BroadcastAsync(message, cancellationToken);
 
     private async Task AppendAuditAsync(
         TriggerActionContext context,
@@ -501,7 +589,7 @@ public sealed class TriggerEngine
             context.Request.RequestId,
             context.Request.ActionId,
             context.Request.TriggerEvent!.Event.ToString(),
-            trigger.Key,
+            trigger.Id.ToString(),
             first,
             resolutions,
             stateChanges);

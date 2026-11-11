@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SeattleByNight.Application.Auditing;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Domain.Entities;
@@ -13,11 +14,14 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
 {
     private readonly SeattleByNightDbContext dbContext;
     private readonly TimeProvider timeProvider;
+    private readonly IAuditWriter? auditWriter;
 
-    public RoomContentStore(SeattleByNightDbContext dbContext, TimeProvider timeProvider)
+    public RoomContentStore(
+        SeattleByNightDbContext dbContext, TimeProvider timeProvider, IAuditWriter? auditWriter = null)
     {
         this.dbContext = dbContext;
         this.timeProvider = timeProvider;
+        this.auditWriter = auditWriter;
     }
 
     public async Task<NpcSnapshot?> GetNpcAsync(Guid npcId, CancellationToken cancellationToken)
@@ -77,6 +81,15 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
         return rows.Select(ToSnapshot).ToArray();
     }
 
+    public async Task<IReadOnlyList<HiddenItemSnapshot>> GetHiddenItemsInRoomAsync(
+        Guid roomId, CancellationToken cancellationToken) =>
+        await dbContext.WorldItemInstances
+            .AsNoTracking()
+            .Where(item => item.RoomId == roomId && item.OwnerCharacterId == null && item.IsHidden)
+            .OrderBy(item => item.DisplayName)
+            .Select(item => new HiddenItemSnapshot(item.Id, item.DisplayName, item.DiscoveryThreshold))
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlySet<Guid>> GetDiscoveredSubjectIdsAsync(
         Guid characterId, DiscoverySubjectType subjectType, CancellationToken cancellationToken)
     {
@@ -101,16 +114,37 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
         return modifiers.Count > 0 ? modifiers[0] : 0;
     }
 
-    public async Task<string?> GetRoomContentKeyAsync(Guid roomId, CancellationToken cancellationToken)
+    public async Task<Guid?> GetRunCopyIdAsync(
+        Guid encounterInstanceId, Guid mapRoomId, CancellationToken cancellationToken)
     {
-        var keys = await dbContext.Rooms
+        var ids = await dbContext.Rooms
             .AsNoTracking()
-            .Where(room => room.Id == roomId)
-            .Select(room => room.ContentKey)
+            .Where(room => room.EncounterInstanceId == encounterInstanceId && room.SourceRoomId == mapRoomId)
+            .Select(room => room.Id)
             .ToListAsync(cancellationToken);
 
-        return keys.Count > 0 ? keys[0] : null;
+        return ids.Count > 0 ? ids[0] : null;
     }
+
+    public async Task<Guid?> GetMapRoomIdAsync(Guid roomId, CancellationToken cancellationToken)
+    {
+        var rooms = await dbContext.Rooms
+            .AsNoTracking()
+            .Where(room => room.Id == roomId)
+            .Select(room => new { room.Id, room.SourceRoomId })
+            .ToListAsync(cancellationToken);
+
+        return rooms.Count > 0 ? rooms[0].SourceRoomId ?? rooms[0].Id : null;
+    }
+
+    public Task<bool> IsPublicMapRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
+        dbContext.Rooms
+            .AsNoTracking()
+            .AnyAsync(
+                room => room.Id == roomId
+                    && room.EncounterInstanceId == null
+                    && room.AccessType == RoomAccessType.Public,
+                cancellationToken);
 
     public async Task<NpcSnapshot?> CreateNpcAsync(NewNpcInstance npc, CancellationToken cancellationToken)
     {
@@ -167,6 +201,68 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
         return ToSnapshot(row);
     }
 
+    public async Task<InteractableSnapshot?> UpdateInteractableAsync(
+        Guid actorUserId, Guid interactableId, NewRoomInteractable interactable, CancellationToken cancellationToken)
+    {
+        var row = await FindMapInteractableAsync(interactable.RoomId, interactableId, cancellationToken);
+        if (row is null)
+        {
+            return null;
+        }
+
+        row.Name = interactable.Name;
+        row.Description = interactable.Description;
+        row.IsHidden = interactable.IsHidden;
+        row.DiscoveryThreshold = interactable.DiscoveryThreshold;
+
+        auditWriter?.Append(
+            actorUserId, AuditActions.RoomInspectableUpdated, AuditTargetTypes.RoomInspectable, row.Id, Details(row));
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return ToSnapshot(row);
+    }
+
+    public async Task<bool> DeleteInteractableAsync(
+        Guid actorUserId, Guid roomId, Guid interactableId, CancellationToken cancellationToken)
+    {
+        var row = await FindMapInteractableAsync(roomId, interactableId, cancellationToken);
+        if (row is null)
+        {
+            return false;
+        }
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        // Who had found it is a fact about something that no longer exists.
+        var subjectType = DiscoverySubjectType.Interactable.ToString();
+        await dbContext.CharacterDiscoveries
+            .Where(discovery => discovery.SubjectType == subjectType && discovery.SubjectId == interactableId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        dbContext.RoomInteractables.Remove(row);
+        auditWriter?.Append(
+            actorUserId, AuditActions.RoomInspectableRemoved, AuditTargetTypes.RoomInspectable, row.Id, Details(row));
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return true;
+    }
+
+    // An inspectable in that room, when the room is on the map.
+    private Task<RoomInteractable?> FindMapInteractableAsync(
+        Guid roomId, Guid interactableId, CancellationToken cancellationToken) =>
+        dbContext.RoomInteractables.FirstOrDefaultAsync(
+            interactable => interactable.Id == interactableId
+                && interactable.RoomId == roomId
+                && dbContext.Rooms.Any(room => room.Id == roomId && room.EncounterInstanceId == null),
+            cancellationToken);
+
+    private static Dictionary<string, string> Details(RoomInteractable row) => new()
+    {
+        ["roomId"] = row.RoomId.ToString(),
+        ["name"] = row.Name,
+        ["isHidden"] = row.IsHidden.ToString(),
+        ["discoveryThreshold"] = row.DiscoveryThreshold.ToString(),
+    };
+
     public async Task<bool> SetRoomEnvironmentModifierAsync(
         Guid roomId, int modifier, CancellationToken cancellationToken)
     {
@@ -194,8 +290,10 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
                 : NpcAwareness.Unaware,
             row.Description,
             row.SceneId,
-            NpcOverrideSerialization.Deserialize(row.OverridesJson));
+            NpcOverrideSerialization.Deserialize(row.OverridesJson),
+            row.SourceNpcId);
 
     private static InteractableSnapshot ToSnapshot(RoomInteractable row) =>
-        new(row.Id, row.RoomId, row.Name, row.Description, row.IsHidden, row.DiscoveryThreshold);
+        new(row.Id, row.RoomId, row.Name, row.Description, row.IsHidden, row.DiscoveryThreshold,
+            row.SourceInteractableId);
 }

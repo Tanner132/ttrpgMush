@@ -16,7 +16,7 @@ namespace SeattleByNight.Api.Endpoints;
 public sealed record GameContentSummary(
     Guid Id,
     GameContentKind Kind,
-    string ContentKey,
+    Guid ContentKey,
     string DisplayName,
     GameContentStatus Status,
     bool HasPendingEdits,
@@ -38,8 +38,9 @@ public sealed record GameContentSummary(
 // One placement built on an NPC template: who it is, and which encounter and
 // room it stands in.
 public sealed record GameContentDependent(
-    string EncounterId,
-    string RoomKey,
+    Guid EncounterId,
+    string EncounterName,
+    Guid RoomId,
     string Name);
 
 public sealed record GameContentInventoryResponse(
@@ -62,6 +63,11 @@ public sealed record GameContentValidationResponse(bool IsValid, string? Error);
 // is not. Retire is always available for anything that has been live, so the
 // answer to "no" is never "you are stuck".
 public sealed record GameContentDeletableResponse(bool CanDelete, string? Reason);
+
+// WF-28: several definitions validated or published as one set.
+public sealed record GameContentSetRequest(IReadOnlyList<GameContentSetItem>? Items);
+
+public sealed record GameContentSetItem(GameContentKind Kind, Guid ContentKey);
 
 public sealed record PaletteOption(string Id, string DisplayName);
 
@@ -112,6 +118,10 @@ public static class GameContentEndpoints
     // graph, small enough that a runaway client cannot fill a jsonb column.
     private const int MaxPayloadCharacters = 200_000;
 
+    // A job is a site, a Johnson's conversation, a handful of prompts and the
+    // job itself; fifty is far more than any one job needs.
+    private const int MaxSetSize = 50;
+
     public static IEndpointRouteBuilder MapGameContentEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/admin/content")
@@ -119,16 +129,27 @@ public static class GameContentEndpoints
 
         group.MapGet("/", GetInventoryAsync);
         group.MapGet("/palette", GetPalette);
-        group.MapGet("/{kind}/{contentKey}", GetDefinitionAsync);
-        group.MapPut("/{kind}/{contentKey}", SaveDraftAsync).RequireAntiforgery();
-        group.MapPost("/{kind}/{contentKey}/validate", ValidateDraftAsync).RequireAntiforgery();
-        group.MapPost("/{kind}/{contentKey}/publish", PublishAsync).RequireAntiforgery();
-        group.MapPost("/{kind}/{contentKey}/retire", RetireAsync).RequireAntiforgery();
-        group.MapGet("/{kind}/{contentKey}/deletable", GetDeletableAsync);
-        group.MapDelete("/{kind}/{contentKey}", DeleteAsync).RequireAntiforgery();
+        group.MapGet("/references", GetReferencesAsync);
+        group.MapPost("/validate", ValidateSetAsync).RequireAntiforgery();
+        group.MapPost("/publish", PublishSetAsync).RequireAntiforgery();
+        group.MapGet("/{kind}/{contentKey:guid}", GetDefinitionAsync);
+        group.MapPut("/{kind}/{contentKey:guid}", SaveDraftAsync).RequireAntiforgery();
+        group.MapPost("/{kind}/{contentKey:guid}/validate", ValidateDraftAsync).RequireAntiforgery();
+        group.MapPost("/{kind}/{contentKey:guid}/publish", PublishAsync).RequireAntiforgery();
+        group.MapPost("/{kind}/{contentKey:guid}/retire", RetireAsync).RequireAntiforgery();
+        group.MapGet("/{kind}/{contentKey:guid}/deletable", GetDeletableAsync);
+        group.MapDelete("/{kind}/{contentKey:guid}", DeleteAsync).RequireAntiforgery();
 
         return endpoints;
     }
+
+    // WF-23: every id a picker can offer, read off the served document and the
+    // map in one go.
+    private static async Task<IResult> GetReferencesAsync(
+        IGameContentProvider content,
+        IJobSiteMapReader map,
+        CancellationToken cancellationToken) =>
+        Results.Ok(ContentReferences.Build(content.Current, await map.ReadAsync(cancellationToken)));
 
     private static async Task<IResult> GetInventoryAsync(
         IGameContentStore store,
@@ -232,7 +253,7 @@ public static class GameContentEndpoints
 
     private static async Task<IResult> GetDefinitionAsync(
         string kind,
-        string contentKey,
+        Guid contentKey,
         IGameContentStore store,
         GameContentPublisher publisher,
         CancellationToken cancellationToken)
@@ -260,7 +281,7 @@ public static class GameContentEndpoints
 
     private static async Task<IResult> SaveDraftAsync(
         string kind,
-        string contentKey,
+        Guid contentKey,
         SaveGameContentDraftRequest request,
         IGameContentStore store,
         UserManager<ApplicationUser> userManager,
@@ -285,7 +306,7 @@ public static class GameContentEndpoints
             return Results.Unauthorized();
         }
 
-        string payloadKey;
+        Guid payloadKey;
         string displayName;
         try
         {
@@ -300,7 +321,7 @@ public static class GameContentEndpoints
             return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: exception.Message);
         }
 
-        if (!string.Equals(payloadKey, contentKey, StringComparison.Ordinal))
+        if (payloadKey != contentKey)
         {
             return Results.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
@@ -316,7 +337,7 @@ public static class GameContentEndpoints
 
     private static async Task<IResult> ValidateDraftAsync(
         string kind,
-        string contentKey,
+        Guid contentKey,
         GameContentPublisher publisher,
         CancellationToken cancellationToken)
     {
@@ -331,7 +352,7 @@ public static class GameContentEndpoints
 
     private static async Task<IResult> PublishAsync(
         string kind,
-        string contentKey,
+        Guid contentKey,
         GameContentPublisher publisher,
         UserManager<ApplicationUser> userManager,
         HttpContext httpContext,
@@ -355,9 +376,67 @@ public static class GameContentEndpoints
         return Results.Ok(new GameContentValidationResponse(result.IsSuccess, result.Error));
     }
 
+    // A job's site, its conversations and the job itself, checked together.
+    private static async Task<IResult> ValidateSetAsync(
+        GameContentSetRequest request,
+        GameContentPublisher publisher,
+        CancellationToken cancellationToken)
+    {
+        if (!TryReadSet(request, out var items, out var problem))
+        {
+            return problem;
+        }
+
+        var result = await publisher.ValidateSetAsync(items, cancellationToken);
+        return Results.Ok(new GameContentValidationResponse(result.IsSuccess, result.Error));
+    }
+
+    private static async Task<IResult> PublishSetAsync(
+        GameContentSetRequest request,
+        GameContentPublisher publisher,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        if (!TryReadSet(request, out var items, out var problem))
+        {
+            return problem;
+        }
+
+        var actor = await userManager.GetUserAsync(httpContext.User);
+        if (actor is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        // As with a single publish, a refusal is the gate doing its job.
+        var result = await publisher.PublishSetAsync(items, actor.Id, cancellationToken);
+        return Results.Ok(new GameContentValidationResponse(result.IsSuccess, result.Error));
+    }
+
+    private static bool TryReadSet(
+        GameContentSetRequest request, out IReadOnlyList<GameContentRef> items, out IResult problem)
+    {
+        items = (request.Items ?? [])
+            .Select(item => new GameContentRef(item.Kind, item.ContentKey))
+            .Distinct()
+            .ToArray();
+
+        if (items.Count is 0 or > MaxSetSize || items.Any(item => !Enum.IsDefined(item.Kind)))
+        {
+            problem = Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: $"Name between 1 and {MaxSetSize} definitions, each by kind and id.");
+            return false;
+        }
+
+        problem = Results.Empty;
+        return true;
+    }
+
     private static async Task<IResult> RetireAsync(
         string kind,
-        string contentKey,
+        Guid contentKey,
         GameContentLifecycle lifecycle,
         UserManager<ApplicationUser> userManager,
         HttpContext httpContext,
@@ -380,7 +459,7 @@ public static class GameContentEndpoints
 
     private static async Task<IResult> GetDeletableAsync(
         string kind,
-        string contentKey,
+        Guid contentKey,
         GameContentLifecycle lifecycle,
         CancellationToken cancellationToken)
     {
@@ -395,7 +474,7 @@ public static class GameContentEndpoints
 
     private static async Task<IResult> DeleteAsync(
         string kind,
-        string contentKey,
+        Guid contentKey,
         GameContentLifecycle lifecycle,
         UserManager<ApplicationUser> userManager,
         HttpContext httpContext,
@@ -434,7 +513,7 @@ public static class GameContentEndpoints
     }
 
     private static int RunningFor(
-        GameContentDefinitionRecord definition, IReadOnlyDictionary<string, int> running) =>
+        GameContentDefinitionRecord definition, IReadOnlyDictionary<Guid, int> running) =>
         definition.Kind == GameContentKind.Mission
             && running.TryGetValue(definition.ContentKey, out var count)
                 ? count
@@ -446,9 +525,8 @@ public static class GameContentEndpoints
             ? []
             : content.Encounters
                 .SelectMany(encounter => encounter.Npcs
-                    .Where(npc => string.Equals(
-                        npc.TemplateId, definition.ContentKey, StringComparison.OrdinalIgnoreCase))
-                    .Select(npc => new GameContentDependent(encounter.Id, npc.RoomKey, npc.Name)))
+                    .Where(npc => npc.TemplateId == definition.ContentKey)
+                    .Select(npc => new GameContentDependent(encounter.Id, encounter.DisplayName, npc.RoomId, npc.Name)))
                 .ToArray();
 
     private static GameContentSummary ToSummary(

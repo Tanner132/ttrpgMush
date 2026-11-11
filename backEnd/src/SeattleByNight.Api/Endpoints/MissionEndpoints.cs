@@ -10,13 +10,13 @@ using SeattleByNight.Infrastructure.Identity;
 namespace SeattleByNight.Api.Endpoints;
 
 public sealed record MissionObjectiveSummary(
-    string Key,
+    Guid Id,
     string DisplayName,
     MissionObjectiveStatus Status);
 
 public sealed record MissionInstanceSummary(
     Guid Id,
-    string MissionId,
+    Guid MissionId,
     string DisplayName,
     string Description,
     MissionInstanceStatus Status,
@@ -25,10 +25,10 @@ public sealed record MissionInstanceSummary(
     DateTimeOffset? CompletedAtUtc);
 
 public sealed record MissionDefinitionSummary(
-    string Id,
+    Guid Id,
     string DisplayName,
     string Description,
-    string EncounterId,
+    Guid EncounterId,
     int RewardKarma,
     int RewardNuyen);
 
@@ -48,7 +48,7 @@ public static class MissionEndpoints
         var admin = endpoints.MapGroup("/api/admin/missions")
             .RequireAuthorization(AuthorizationPolicies.WorldEditing);
         admin.MapGet("/", ListDefinitions);
-        admin.MapPost("/{missionId}/assign", AssignAsync).RequireAntiforgery();
+        admin.MapPost("/{missionId:guid}/assign", AssignAsync).RequireAntiforgery();
 
         return endpoints;
     }
@@ -102,7 +102,7 @@ public static class MissionEndpoints
     }
 
     private static async Task<IResult> AssignAsync(
-        string missionId,
+        Guid missionId,
         AssignMissionRequest request,
         IGameContentProvider content,
         IMissionAssignmentStore assignmentStore,
@@ -134,7 +134,8 @@ public static class MissionEndpoints
             await queue.EnqueueAsync(
                 scopeId,
                 TriggerRequests.BuildRoot(
-                    session.UserId, TriggerEventKind.MissionAccepted, roomId: session.CurrentRoomId),
+                    session.UserId, TriggerEventKind.MissionAccepted, roomId: session.CurrentRoomId,
+                    missionId: definition.Id),
                 cancellationToken);
         }
 
@@ -167,17 +168,16 @@ public static class MissionEndpoints
         var definition = content.FindMission(instance.MissionId);
         var objectives = instance.Objectives
             .Select(objective => new MissionObjectiveSummary(
-                objective.Key,
-                definition?.Objectives.FirstOrDefault(candidate =>
-                    string.Equals(candidate.Key, objective.Key, StringComparison.Ordinal))?.DisplayName
-                    ?? objective.Key,
+                objective.ObjectiveId,
+                definition?.Objectives.FirstOrDefault(candidate => candidate.Id == objective.ObjectiveId)?.DisplayName
+                    ?? "Objective",
                 objective.Status))
             .ToList();
 
         return new MissionInstanceSummary(
             instance.Id,
             instance.MissionId,
-            definition?.DisplayName ?? instance.MissionId,
+            definition?.DisplayName ?? "Unknown job",
             definition?.Description ?? string.Empty,
             instance.Status,
             objectives,

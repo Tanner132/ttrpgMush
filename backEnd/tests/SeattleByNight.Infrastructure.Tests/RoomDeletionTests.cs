@@ -59,25 +59,86 @@ public sealed class RoomDeletionTests : IAsyncLifetime
             record => record.Action == AuditActions.RoomDeleted && record.TargetId == roomId));
     }
 
+    // WF-27: a room takes everything in it with it — its NPCs, items,
+    // inspectables, its own events — and every exit into or out of it.
     [Fact]
-    public async Task A_room_with_exits_pointing_at_it_is_refused()
+    public async Task Deleting_a_room_deletes_its_contents_its_events_and_its_exits_both_ways()
     {
-        await using var db = Db();
-        var store = Store(db);
+        var roomId = await CreateIsolatedRoomAsync("Back Office");
+        var neighbourId = await CreateIsolatedRoomAsync("Corridor");
+        var now = DateTimeOffset.UtcNow;
+        await using (var db = Db())
+        {
+            db.RoomExits.AddRange(
+                new RoomExit { SourceRoomId = roomId, DestinationRoomId = neighbourId, Direction = "east" },
+                new RoomExit { SourceRoomId = neighbourId, DestinationRoomId = roomId, Direction = "west" });
+            db.NpcInstances.Add(new NpcInstance
+            {
+                TemplateId = ShippedContentIds.NpcTemplates.StreetGanger, Name = "Clerk", RoomId = roomId,
+                Awareness = nameof(NpcAwareness.Unaware), CreatedAtUtc = now, UpdatedAtUtc = now,
+            });
+            db.WorldItemInstances.Add(new WorldItemInstance
+            {
+                ItemId = Guid.NewGuid(), DisplayName = "Ledger", Description = "d", RoomId = roomId,
+                CreatedAtUtc = now, UpdatedAtUtc = now,
+            });
+            db.RoomInteractables.Add(new RoomInteractable
+            {
+                Id = Guid.NewGuid(), RoomId = roomId, Name = "Safe", Description = "d", CreatedAtUtc = now,
+            });
+            var events = $$"""{ "id": "{{roomId}}", "displayName": "Back Office", "triggers": [] }""";
+            db.GameContentDefinitions.Add(new GameContentDefinition
+            {
+                Kind = nameof(GameContentKind.Place), ContentKey = roomId, DisplayName = "Back Office",
+                Status = nameof(GameContentStatus.Published), DraftJson = events, PublishedJson = events,
+                CreatedAtUtc = now, UpdatedAtUtc = now, PublishedAtUtc = now,
+            });
+            await db.SaveChangesAsync();
+        }
 
-        var check = await store.CheckRoomDeletionAsync(DevelopmentDataSeeder.CoffeeShopId);
+        await using (var db = Db())
+        {
+            var check = await Store(db).CheckRoomDeletionAsync(roomId);
+            Assert.True(check!.CanDelete, check.Reason);
+            Assert.Equal((1, 1), (check.IncomingExits, check.OutgoingExits));
+            Assert.Equal((1, 1, 1), (check.NpcsRemoved, check.ItemsRemoved, check.InspectablesRemoved));
 
-        Assert.False(check!.CanDelete);
-        Assert.True(check.IncomingExits > 0);
-        Assert.Contains("exits still connect this room", check.Reason);
-
-        var refused = await store.DeleteRoomAsync(
-            DevelopmentDataSeeder.DevUserId, DevelopmentDataSeeder.CoffeeShopId, null);
-        Assert.Equal(WorldMutationError.None, refused.Error);
-        Assert.False(refused.Value!.CanDelete);
+            var deleted = await Store(db).DeleteRoomAsync(DevelopmentDataSeeder.DevUserId, roomId, null);
+            Assert.True(deleted.Value!.CanDelete, deleted.Value.Reason);
+        }
 
         await using var verify = Db();
-        Assert.True(await verify.Rooms.AnyAsync(room => room.Id == DevelopmentDataSeeder.CoffeeShopId));
+        Assert.False(await verify.Rooms.AnyAsync(room => room.Id == roomId));
+        Assert.True(await verify.Rooms.AnyAsync(room => room.Id == neighbourId));
+        Assert.False(await verify.RoomExits.AnyAsync(exit => exit.SourceRoomId == roomId || exit.DestinationRoomId == roomId));
+        Assert.False(await verify.NpcInstances.AnyAsync(npc => npc.RoomId == roomId));
+        Assert.False(await verify.WorldItemInstances.AnyAsync(item => item.RoomId == roomId));
+        Assert.False(await verify.RoomInteractables.AnyAsync(interactable => interactable.RoomId == roomId));
+        Assert.False(await verify.GameContentDefinitions.AnyAsync(definition => definition.ContentKey == roomId));
+    }
+
+    // WF-26/27: a job listening in a room needs the room; the refusal names
+    // the job so the builder knows where to go.
+    [Fact]
+    public async Task A_room_a_job_listens_in_is_refused_by_name()
+    {
+        await using var db = Db();
+        var check = await Store(db).CheckRoomDeletionAsync(DevelopmentDataSeeder.CoffeeShopId);
+
+        Assert.False(check!.CanDelete);
+        Assert.Contains("Gang Warehouse Retrieval", check.ListeningJobs!);
+        Assert.Contains("Jobs listen to events in this room: Gang Warehouse Retrieval", check.Reason);
+    }
+
+    // A job site's room cannot go while the site is built from it.
+    [Fact]
+    public async Task A_job_site_room_is_refused_by_the_sites_name()
+    {
+        await using var db = Db();
+        var check = await Store(db).CheckRoomDeletionAsync(ShippedContentIds.SiteRooms.BackHallway);
+
+        Assert.False(check!.CanDelete);
+        Assert.Contains("Gang Warehouse", check.JobSites!);
     }
 
     [Fact]
@@ -99,8 +160,8 @@ public sealed class RoomDeletionTests : IAsyncLifetime
         var check = await Store(db).CheckRoomDeletionAsync(DevelopmentDataSeeder.AlleyId);
 
         Assert.False(check!.CanDelete);
-        Assert.Contains("gang-warehouse-retrieval", check.MissionEntryLinks);
-        Assert.Contains("Mission entry links point here", check.Reason);
+        Assert.Contains("Gang Warehouse Retrieval", check.MissionEntryLinks);
+        Assert.Contains("Job entry links point here", check.Reason);
     }
 
     [Fact]

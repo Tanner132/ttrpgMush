@@ -45,7 +45,8 @@ public sealed class SceneConditionEvaluator
         {
             case SceneConditionKind.MissionAvailable:
             {
-                if (content.Current.FindMission(condition.MissionId!) is not { } definition)
+                if (condition.MissionId is not { } missionId
+                    || content.Current.FindMission(missionId) is not { } definition)
                 {
                     return false;
                 }
@@ -57,7 +58,7 @@ public sealed class SceneConditionEvaluator
             {
                 var open = await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken);
                 return open.Any(instance =>
-                    string.Equals(instance.MissionId, condition.MissionId, StringComparison.Ordinal)
+                    instance.MissionId == condition.MissionId
                     && instance.Status != Domain.Enums.MissionInstanceStatus.ReadyToTurnIn);
             }
 
@@ -65,7 +66,7 @@ public sealed class SceneConditionEvaluator
             {
                 var open = await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken);
                 return open.Any(instance =>
-                    string.Equals(instance.MissionId, condition.MissionId, StringComparison.Ordinal)
+                    instance.MissionId == condition.MissionId
                     && instance.Status == Domain.Enums.MissionInstanceStatus.ReadyToTurnIn);
             }
 
@@ -73,8 +74,7 @@ public sealed class SceneConditionEvaluator
             case SceneConditionKind.NotCarryingItem:
             {
                 var items = await missionReader.GetItemsOwnedByCharacterAsync(characterId, cancellationToken);
-                var carrying = items.Any(item =>
-                    string.Equals(item.ItemKey, condition.ItemKey, StringComparison.Ordinal));
+                var carrying = items.Any(item => item.ItemId == condition.ItemId);
                 return condition.Kind == SceneConditionKind.CarryingItem ? carrying : !carrying;
             }
 

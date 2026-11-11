@@ -3,7 +3,7 @@ using SeattleByNight.Domain;
 
 namespace SeattleByNight.Application.WorldEditing;
 
-internal static class WorldMutationValidation
+public static class WorldMutationValidation
 {
     public static Dictionary<string, string[]> ValidateCreateRoom(CreateRoomMutation mutation)
     {
@@ -12,10 +12,7 @@ internal static class WorldMutationValidation
         AddRequiredLength(errors, "name", mutation.Name, 120);
         AddRequiredLength(errors, "description", mutation.Description, 4000);
 
-        if (mutation.AccessType != nameof(RoomAccessType.Public))
-        {
-            errors["accessType"] = ["Access type must be Public."];
-        }
+        AddAccessTypeError(errors, mutation.AccessType);
 
         AddCoordinateError(errors, "mapX", mutation.MapX);
         AddCoordinateError(errors, "mapY", mutation.MapY);
@@ -24,16 +21,36 @@ internal static class WorldMutationValidation
         return errors;
     }
 
+    // WF-25: a room is Public, or Private (part of a job site; only runners on
+    // the run get in, into their run's copy). Instanced is engine-only: it
+    // marks a run's copy and is never authored.
+    public static bool TryParseAuthoredAccessType(string? value, out RoomAccessType accessType)
+    {
+        accessType = value switch
+        {
+            nameof(RoomAccessType.Public) => RoomAccessType.Public,
+            nameof(RoomAccessType.Private) => RoomAccessType.Private,
+            _ => RoomAccessType.Instanced,
+        };
+
+        return accessType != RoomAccessType.Instanced;
+    }
+
+    private static void AddAccessTypeError(Dictionary<string, string[]> errors, string? accessType)
+    {
+        if (!TryParseAuthoredAccessType(accessType, out _))
+        {
+            errors["accessType"] = ["Access type must be Public or Private."];
+        }
+    }
+
     public static Dictionary<string, string[]> ValidateUpdateRoom(UpdateRoomMutation mutation, Guid version)
     {
         var errors = new Dictionary<string, string[]>();
         AddRequiredLength(errors, "name", mutation.Name, 120);
         AddRequiredLength(errors, "description", mutation.Description, 4000);
 
-        if (mutation.AccessType != nameof(RoomAccessType.Public))
-        {
-            errors["accessType"] = ["Access type must be Public."];
-        }
+        AddAccessTypeError(errors, mutation.AccessType);
 
         if (version == Guid.Empty)
         {

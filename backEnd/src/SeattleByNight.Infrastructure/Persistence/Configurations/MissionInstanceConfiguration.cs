@@ -12,7 +12,7 @@ public sealed class MissionInstanceConfiguration : IEntityTypeConfiguration<Miss
 
         builder.HasKey(instance => instance.Id);
         builder.Property(instance => instance.Id).HasColumnName("id").HasColumnType("uuid").ValueGeneratedNever();
-        builder.Property(instance => instance.MissionId).HasColumnName("mission_id").HasMaxLength(100).IsRequired();
+        builder.Property(instance => instance.MissionId).HasColumnName("mission_id").HasColumnType("uuid").IsRequired();
         builder.Property(instance => instance.CharacterId).HasColumnName("character_id").HasColumnType("uuid").IsRequired();
         builder.Property(instance => instance.Status).HasColumnName("status").HasMaxLength(50).IsRequired();
         builder.Property(instance => instance.ObjectivesJson).HasColumnName("objectives").HasColumnType("jsonb").IsRequired();

@@ -1,3 +1,4 @@
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;

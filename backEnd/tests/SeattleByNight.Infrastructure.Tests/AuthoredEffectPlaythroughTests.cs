@@ -15,23 +15,13 @@ namespace SeattleByNight.Infrastructure.Tests;
 // change of any kind. Nothing in the engine knows these triggers exist.
 public abstract class AuthoredEffectHarness : PlaythroughHarness
 {
-    protected const string MissionId = "gang-warehouse-retrieval";
-    protected const string EncounterId = "gang-warehouse";
+    protected static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
+    protected static readonly Guid EncounterId = ShippedContentIds.Encounters.GangWarehouse;
 
     // Appends a trigger to the published warehouse encounter and publishes it
     // — exactly what an admin does in the World Forge, including the loader
     // gate the publish has to pass.
-    protected Task PublishTriggerAsync(string triggerJson) =>
-        PublishDefinitionAsync(GameContentKind.Encounter, EncounterId, encounter =>
-        {
-            if (encounter["triggers"] is not JsonArray triggers)
-            {
-                triggers = [];
-                encounter["triggers"] = triggers;
-            }
-
-            triggers.Add(JsonNode.Parse(triggerJson));
-        });
+    protected Task PublishTriggerAsync(string triggerJson) => PublishJobTriggerAsync(triggerJson);
 
     // Takes the job and travels into the encounter. Content is published
     // before this runs, so the instance starts life knowing about it.
@@ -55,7 +45,7 @@ public abstract class AuthoredEffectHarness : PlaythroughHarness
         return missionInstanceId;
     }
 
-    protected async Task<MissionObjectiveStatus> ObjectiveStatusAsync(Guid missionInstanceId, string key)
+    protected async Task<MissionObjectiveStatus> ObjectiveStatusAsync(Guid missionInstanceId, Guid key)
     {
         await using var scope = Provider.CreateAsyncScope();
         var missions = scope.ServiceProvider.GetRequiredService<IMissionReader>();
@@ -96,7 +86,7 @@ public sealed class AuthoredFailObjectiveTests : AuthoredEffectHarness
         var missionInstanceId = await AcceptAndEnterAsync();
         Assert.Equal(
             MissionObjectiveStatus.Active,
-            await ObjectiveStatusAsync(missionInstanceId, "retrieve-package"));
+            await ObjectiveStatusAsync(missionInstanceId, ShippedContentIds.Objectives.RetrievePackage));
 
         var dock = await CurrentRoomAsync();
         await MoveAsync(await FindExitAsync(dock, "north"));
@@ -113,7 +103,7 @@ public sealed class AuthoredFailObjectiveTests : AuthoredEffectHarness
         // is the whole reason failObjective is not just failMission.
         Assert.Equal(
             MissionObjectiveStatus.Failed,
-            await ObjectiveStatusAsync(missionInstanceId, "retrieve-package"));
+            await ObjectiveStatusAsync(missionInstanceId, ShippedContentIds.Objectives.RetrievePackage));
 
         await using var verify = Db();
         // Both changes landed in one commit: the encounter archived with the
@@ -137,6 +127,7 @@ public sealed class AuthoredAdvanceSceneTests : AuthoredEffectHarness
             {
               "key": "authored-lookout-interrupt",
               "event": "npcSpokenTo",
+              "roomKey": "warehouse-floor",
               "npcName": "Warehouse Ganger",
               "reactions": [
                 {
@@ -173,8 +164,8 @@ public sealed class AuthoredAdvanceSceneTests : AuthoredEffectHarness
         await WaitUntilAsync(
             async db => await db.SceneSessions.AnyAsync(session =>
                 session.CharacterId == CharacterId
-                && session.SceneId == "ganger-lookout-talk"
-                && session.CurrentNodeId == "made"),
+                && session.SceneId == ShippedContentIds.Scenes.GangerLookoutTalk
+                && session.CurrentNodeId == ShippedContentIds.SceneNodes.Made),
             "the authored trigger to move the conversation");
 
         await using var verify = Db();

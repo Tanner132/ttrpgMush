@@ -9,11 +9,20 @@ namespace SeattleByNight.Infrastructure.Movement;
 public sealed class MovementStore : IMovementStore
 {
     private readonly SeattleByNightDbContext _dbContext;
+    private readonly IRunAccessPolicy _runAccess;
     private readonly TimeProvider _timeProvider;
 
+    // Without a run-access policy nobody may enter a job site's private
+    // rooms by walking in; the "Travel to" affordance still works.
     public MovementStore(SeattleByNightDbContext dbContext, TimeProvider timeProvider)
+        : this(dbContext, NoRunAccess.Instance, timeProvider)
+    {
+    }
+
+    public MovementStore(SeattleByNightDbContext dbContext, IRunAccessPolicy runAccess, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
+        _runAccess = runAccess;
         _timeProvider = timeProvider;
     }
 
@@ -86,7 +95,9 @@ public sealed class MovementStore : IMovementStore
         if (exit.IsLocked)
         {
             await transaction.RollbackAsync(cancellationToken);
-            return MovementStoreResult.Failure(MoveCharacterError.ExitLocked);
+            return exit.SourceRoomId == character.CurrentRoomId
+                ? MovementStoreResult.Locked(session.Id, exit.SourceRoomId)
+                : MovementStoreResult.Failure(MoveCharacterError.ExitLocked);
         }
 
         if (exit.SourceRoomId != character.CurrentRoomId)
@@ -97,7 +108,26 @@ public sealed class MovementStore : IMovementStore
 
         if (!exit.DestinationIsAccessible)
         {
+            // WF-25: a job site's private map room. Nobody stands in it: a
+            // runner allowed onto a run through it arrives in their run's
+            // copy (entered by the caller, through the action pipeline), and
+            // for everyone else the door behaves as locked.
+            var destination = await _dbContext.Rooms
+                .AsNoTracking()
+                .Where(room => room.Id == exit.DestinationRoomId)
+                .Select(room => new { room.Id, room.AccessType, room.EncounterInstanceId })
+                .FirstOrDefaultAsync(cancellationToken);
+
             await transaction.RollbackAsync(cancellationToken);
+
+            if (destination is { AccessType: RoomAccessType.Private, EncounterInstanceId: null })
+            {
+                var runId = await _runAccess.FindEnterableRunAsync(character.Id, destination.Id, cancellationToken);
+                return runId is Guid missionInstanceId
+                    ? MovementStoreResult.EnterRun(session.Id, exit.SourceRoomId, new RunEntry(missionInstanceId, destination.Id))
+                    : MovementStoreResult.Locked(session.Id, exit.SourceRoomId);
+            }
+
             return MovementStoreResult.Failure(MoveCharacterError.DestinationUnavailable);
         }
 
@@ -157,4 +187,13 @@ public sealed class MovementStore : IMovementStore
 
         return MovementStoreResult.Success(session.Id, exit.SourceRoomId, exit.DestinationRoomId);
     }
+}
+
+internal sealed class NoRunAccess : IRunAccessPolicy
+{
+    public static NoRunAccess Instance { get; } = new();
+
+    public Task<Guid?> FindEnterableRunAsync(
+        Guid characterId, Guid siteRoomId, CancellationToken cancellationToken = default) =>
+        Task.FromResult<Guid?>(null);
 }

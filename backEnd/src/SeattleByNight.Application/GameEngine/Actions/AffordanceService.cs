@@ -239,7 +239,7 @@ public sealed class AffordanceService
             {
                 affordances.Add(new GameAffordance(
                     definition.ActionId,
-                    SceneChoiceIds.Derive(session.Id, node.NodeId, choice.ChoiceId),
+                    SceneChoiceIds.Derive(session.Id, choice.Id),
                     choice.Label,
                     npc is not null ? $"({npc.Name}) {choice.Label}" : choice.Label,
                     definition.Kind));
@@ -279,7 +279,7 @@ public sealed class AffordanceService
 
                 var enter = DevelopmentGameActions.All[DevelopmentGameActions.EnterEncounterActionId];
                 var encounterName = gameContent.Current.FindEncounter(definition.EncounterId)?.DisplayName
-                    ?? definition.EncounterId;
+                    ?? "the job site";
                 affordances.Add(new GameAffordance(
                     enter.ActionId,
                     instance.Id,
@@ -294,7 +294,13 @@ public sealed class AffordanceService
         // Inside the instance: only its own participant can be here at all.
         var items = await missionReader.GetItemsInRoomAsync(roomId, cancellationToken);
         var take = DevelopmentGameActions.All[DevelopmentGameActions.TakeItemActionId];
-        foreach (var item in items)
+
+        // WF-27: a hidden item is not there to take until this character's
+        // search has turned it up.
+        var foundItems = items.Any(item => item.IsHidden)
+            ? await roomContent.GetDiscoveredSubjectIdsAsync(characterId, DiscoverySubjectType.Item, cancellationToken)
+            : new HashSet<Guid>();
+        foreach (var item in items.Where(item => !item.IsHidden || foundItems.Contains(item.Id)))
         {
             affordances.Add(new GameAffordance(
                 take.ActionId,
@@ -308,7 +314,7 @@ public sealed class AffordanceService
         {
             var leave = DevelopmentGameActions.All[DevelopmentGameActions.LeaveEncounterActionId];
             var encounterName = gameContent.Current.FindEncounter(currentEncounter.EncounterId)?.DisplayName
-                ?? currentEncounter.EncounterId;
+                ?? "the job site";
             affordances.Add(new GameAffordance(
                 leave.ActionId,
                 null,

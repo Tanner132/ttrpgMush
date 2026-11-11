@@ -6,4 +6,6 @@ public enum DiscoverySubjectType
 {
     Interactable = 0,
     Npc = 1,
+    // WF-27: a hidden item lying in a room.
+    Item = 2,
 }

@@ -10,7 +10,7 @@ namespace SeattleByNight.Domain.Entities;
 public sealed class EncounterInstance
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string EncounterId { get; set; } = string.Empty;
+    public Guid EncounterId { get; set; }
     public Guid MissionInstanceId { get; set; }
     public string Status { get; set; } = string.Empty;
     // The instantiated room the player arrives in (and leaves from).

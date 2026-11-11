@@ -16,7 +16,7 @@ namespace SeattleByNight.Infrastructure.GameEngine;
 public sealed class GameContentUsageReader(SeattleByNightDbContext db) : IGameContentUsageReader
 {
     public async Task<GameContentUsage> CountHistoricalReferencesAsync(
-        GameContentKind kind, string contentKey, CancellationToken cancellationToken = default) =>
+        GameContentKind kind, Guid contentKey, CancellationToken cancellationToken = default) =>
         kind switch
         {
             GameContentKind.Mission => new GameContentUsage(
@@ -38,7 +38,7 @@ public sealed class GameContentUsageReader(SeattleByNightDbContext db) : IGameCo
             // rolled, and those records have to keep naming something real.
             GameContentKind.Test => new GameContentUsage(
                 await db.GameTestAuditRecords.CountAsync(
-                    record => record.TestId == contentKey, cancellationToken),
+                    record => record.TestId == contentKey.ToString(), cancellationToken),
                 "recorded test rolls"),
 
             // Scene sessions are live conversational state, not history — a

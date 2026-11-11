@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SeattleByNight.Domain;
 using SeattleByNight.Domain.Entities;
 using SeattleByNight.Infrastructure.Identity;
 using SeattleByNight.Infrastructure.Persistence.Configurations;

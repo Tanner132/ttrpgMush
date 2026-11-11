@@ -5,5 +5,5 @@ namespace SeattleByNight.Application.GameEngine.Scenes;
 public interface ITriggerFireReader
 {
     Task<bool> HasFiredAsync(
-        Guid characterId, Guid missionInstanceId, string triggerKey, CancellationToken cancellationToken);
+        Guid characterId, Guid missionInstanceId, Guid triggerId, CancellationToken cancellationToken);
 }

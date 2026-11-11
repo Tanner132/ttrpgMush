@@ -13,7 +13,7 @@ public sealed class GameContentDefinitionConfiguration : IEntityTypeConfiguratio
         builder.HasKey(definition => definition.Id);
         builder.Property(definition => definition.Id).HasColumnName("id").HasColumnType("uuid").ValueGeneratedNever();
         builder.Property(definition => definition.Kind).HasColumnName("kind").HasMaxLength(40).IsRequired();
-        builder.Property(definition => definition.ContentKey).HasColumnName("content_key").HasMaxLength(100).IsRequired();
+        builder.Property(definition => definition.ContentKey).HasColumnName("content_key").HasColumnType("uuid").IsRequired();
         builder.Property(definition => definition.DisplayName).HasColumnName("display_name").HasMaxLength(200).IsRequired();
         builder.Property(definition => definition.Status).HasColumnName("status").HasMaxLength(40).IsRequired();
         builder.Property(definition => definition.PublishedJson).HasColumnName("published_payload").HasColumnType("jsonb");

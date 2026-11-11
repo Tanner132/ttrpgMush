@@ -186,6 +186,7 @@ public sealed class CombatEngine
         await BroadcastNpcMessageAsync(
             combat.RoomId, aggressor.Id, aggressor.Name,
             "goes for a weapon — combat begins!", cancellationToken);
+        await RaiseCombatStartedAsync(request, combat, aggressor, cancellationToken);
 
         var advance = CombatRules.AdvanceTurn(combat, RollInitiative);
         if (advance.Next is { IsNpc: false })
@@ -224,6 +225,7 @@ public sealed class CombatEngine
             context.Request.UserId,
             $"squares up against {targetNpc.Name} — combat begins!",
             cancellationToken);
+        await RaiseCombatStartedAsync(context.Request, combat, targetNpc, cancellationToken);
 
         var advance = CombatRules.AdvanceTurn(combat, RollInitiative);
         if (advance.Next is { IsNpc: false } playerParticipant)
@@ -243,6 +245,20 @@ public sealed class CombatEngine
 
         return GameActionOutcome.Final(
             null, $"{advance.Next!.DisplayName} is faster — brace yourself.");
+    }
+
+    // WF-21: a fight breaking out is a content event, named for the NPC it
+    // started with. Raised after the fight exists and never awaited: this
+    // runs on the room's own queue consumer.
+    private async Task RaiseCombatStartedAsync(
+        GameActionRequest request, CombatState combat, NpcSnapshot instigator, CancellationToken cancellationToken)
+    {
+        var scopeId = await scopeResolver.ResolveScopeAsync(combat.RoomId, cancellationToken);
+        _ = queue.EnqueueAsync(
+            scopeId,
+            TriggerRequests.Build(
+                request, TriggerEventKind.CombatStarted, combat.RoomId, npcId: instigator.ContentId),
+            CancellationToken.None);
     }
 
     // Participants: the player, the named NPC, and every conscious Hostile
@@ -294,6 +310,7 @@ public sealed class CombatEngine
             participants.Add(new CombatParticipant
             {
                 ActorId = npc.Id,
+                ContentId = npc.ContentId,
                 IsNpc = true,
                 DisplayName = npc.Name,
                 Profile = profile,
@@ -986,8 +1003,7 @@ public sealed class CombatEngine
             _ = queue.EnqueueAsync(
                 triggerScope,
                 TriggerRequests.Build(
-                    request, TriggerEventKind.NpcDefeated, npcName: defeated.DisplayName,
-                    roomId: combat.RoomId),
+                    request, TriggerEventKind.NpcDefeated, combat.RoomId, npcId: defeated.ContentId),
                 CancellationToken.None);
         }
 

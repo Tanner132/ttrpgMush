@@ -51,7 +51,10 @@ public sealed record ClearCharacterDamageChange(Guid CharacterId) : StateChange;
 // interactables, participant row — and moves the character (durable location
 // + room visit) to the entry room; re-entry within the instance lifetime just
 // moves the character back in. PlaySessionId names the visit to swing.
-public sealed record EnterEncounterChange(Guid MissionInstanceId, Guid PlaySessionId) : StateChange;
+// RoomId (WF-25): the site's map room the runner arrives in. Null means the
+// site's entry room; a runner who walked in through a door into one of the
+// site's map rooms arrives in their run's copy of that room instead.
+public sealed record EnterEncounterChange(Guid MissionInstanceId, Guid PlaySessionId, Guid? RoomId = null) : StateChange;
 
 // Leaves the encounter: moves the character (durable location + room visit)
 // back to the instance's return room. Mission/encounter status transitions
@@ -64,14 +67,14 @@ public sealed record PickUpItemChange(Guid ItemId) : StateChange;
 // §35: marks one objective Completed and activates the next Inactive one
 // (dev decision mission.sequential-objectives). Emitted alongside the change
 // that triggered it, so the objective completes in the same commit (§38).
-public sealed record CompleteObjectiveChange(Guid MissionInstanceId, string ObjectiveKey) : StateChange;
+public sealed record CompleteObjectiveChange(Guid MissionInstanceId, Guid ObjectiveId) : StateChange;
 
 // Milestone 7: the other half of the objective palette. Marks one objective
 // Failed. Because objectives are sequential, nothing after it can activate —
 // so authored content always emits this together with FailMissionChange, and
 // the pair commits at once. Kept a separate change so the mission record says
 // WHICH objective ended the run, which is what mission history reads back.
-public sealed record FailObjectiveChange(Guid MissionInstanceId, string ObjectiveKey) : StateChange;
+public sealed record FailObjectiveChange(Guid MissionInstanceId, Guid ObjectiveId) : StateChange;
 
 // §39: the mission's terminal success transition plus its reward grant,
 // atomically. The applier appends the career-ledger rows (karma + nuyen
@@ -87,9 +90,9 @@ public sealed record CompleteMissionChange(Guid MissionInstanceId, int Karma, in
 // Milestone 7: NpcInstanceId is null for a scene a trigger opened, which has
 // no conversation partner.
 public sealed record BeginSceneChange(
-    Guid? NpcInstanceId, Guid RoomId, string SceneId, string NodeId) : StateChange;
+    Guid? NpcInstanceId, Guid RoomId, Guid SceneId, Guid NodeId) : StateChange;
 
-public sealed record AdvanceSceneChange(string NodeId) : StateChange;
+public sealed record AdvanceSceneChange(Guid NodeId) : StateChange;
 
 // §36: pay negotiated in this conversation, applied at acceptance.
 public sealed record SetPendingNegotiatedPayChange(int Nuyen) : StateChange;
@@ -99,7 +102,7 @@ public sealed record EndSceneChange : StateChange;
 // §36: contract acceptance — creates the mission instance (repeatability
 // enforced by the same rules as admin assignment) carrying the negotiated
 // pay. MissionId names a content definition.
-public sealed record AcceptMissionChange(string MissionId, int? NegotiatedNuyen) : StateChange;
+public sealed record AcceptMissionChange(Guid MissionId, int? NegotiatedNuyen) : StateChange;
 
 // §38: the item leaves the world — handed over at turn-in. The row is
 // deleted; the audit envelope keeps the record (dev decision
@@ -123,7 +126,7 @@ public sealed record FailMissionChange(Guid MissionInstanceId) : StateChange;
 public sealed record GrantItemChange(
     Guid MissionInstanceId,
     Guid EncounterInstanceId,
-    string ItemKey,
+    Guid ItemId,
     string DisplayName,
     string Description) : StateChange;
 
@@ -131,7 +134,7 @@ public sealed record GrantItemChange(
 // transaction as the trigger's own effects is what makes "fires once" true
 // even if the reaction is replayed.
 public sealed record RecordTriggerFireChange(
-    Guid MissionInstanceId, string TriggerKey) : StateChange;
+    Guid MissionInstanceId, Guid TriggerId) : StateChange;
 
 public enum EffectAttachDisposition
 {

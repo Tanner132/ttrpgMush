@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
@@ -52,6 +53,33 @@ public sealed class GameCommandQueueTests
         }
     }
 
+    // Captures what the queue logs, so a fault's log record can be asserted
+    // rather than assumed.
+    private sealed class RecordingLogger : ILogger<GameCommandQueue>
+    {
+        public List<(LogLevel Level, Exception? Exception, IReadOnlyDictionary<string, object?> State)> Records { get; } = new();
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            var values = state as IEnumerable<KeyValuePair<string, object?>>
+                ?? Array.Empty<KeyValuePair<string, object?>>();
+            lock (Records)
+            {
+                Records.Add((logLevel, exception, values.ToDictionary(pair => pair.Key, pair => pair.Value)));
+            }
+        }
+    }
+
     private sealed class Harness
     {
         public Guid UserId { get; } = Guid.NewGuid();
@@ -64,6 +92,8 @@ public sealed class GameCommandQueueTests
         public GameCommandQueue Queue { get; }
 
         public FakeTimeProvider Clock { get; } = new();
+
+        public RecordingLogger Logger { get; } = new();
 
         public Harness()
         {
@@ -123,7 +153,7 @@ public sealed class GameCommandQueueTests
                     new FakeGameCommandQueue(),
                     combatEngine, missionEngine, sceneEngine, triggerEngine, scopeResolver, options, TimeProvider.System)),
                 Clock,
-                NullLogger<GameCommandQueue>.Instance);
+                Logger);
         }
 
         // The run/surge utilities keep these tests dice-free.
@@ -239,6 +269,44 @@ public sealed class GameCommandQueueTests
         Assert.Equal(GameActionError.ActionFailed, failed.Error);
         Assert.True(next.IsSuccess);
         Assert.Single(harness.Audit.Entries);
+    }
+
+    [Fact]
+    public async Task A_command_that_throws_is_logged_with_its_action_request_scope_and_user()
+    {
+        var harness = new Harness();
+        var fault = new InvalidOperationException("authored content named a room that does not exist");
+        harness.Sessions.OnGetActive = _ => throw fault;
+        var request = harness.Request();
+
+        var outcome = await harness.Queue.EnqueueAsync(harness.ScopeId, request);
+
+        // The player only ever sees a generic ActionFailed, so this record is
+        // the only place an admin can learn which authored content broke.
+        Assert.Equal(GameActionError.ActionFailed, outcome.Error);
+        var record = Assert.Single(harness.Logger.Records, entry => entry.Level == LogLevel.Error);
+        Assert.Same(fault, record.Exception);
+        Assert.Equal(request.ActionId, record.State["ActionId"]);
+        Assert.Equal(request.RequestId, record.State["RequestId"]);
+        Assert.Equal(harness.ScopeId, record.State["ScopeId"]);
+        Assert.Equal(harness.UserId, record.State["UserId"]);
+    }
+
+    [Fact]
+    public async Task A_reclaimed_scope_comes_back_as_a_working_queue_that_runs_each_command_once()
+    {
+        var harness = new Harness();
+
+        Assert.True((await harness.Queue.EnqueueAsync(harness.ScopeId, harness.Request())).IsSuccess);
+
+        // The next submission to the same scope sweeps it (idle an hour) and
+        // then needs it again: it must land on a fresh scope and run exactly
+        // once, not be lost in the closed channel or written to both.
+        harness.Clock.Advance(TimeSpan.FromHours(1));
+        Assert.True((await harness.Queue.EnqueueAsync(harness.ScopeId, harness.Request())).IsSuccess);
+
+        Assert.Equal(1, harness.Queue.ActiveScopes);
+        Assert.Equal(2, harness.Audit.Entries.Count);
     }
 
     [Fact]

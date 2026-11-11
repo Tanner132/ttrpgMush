@@ -14,12 +14,12 @@ public sealed class TriggerFireConfiguration : IEntityTypeConfiguration<TriggerF
         builder.Property(fire => fire.Id).HasColumnName("id").HasColumnType("uuid").ValueGeneratedNever();
         builder.Property(fire => fire.CharacterId).HasColumnName("character_id").HasColumnType("uuid").IsRequired();
         builder.Property(fire => fire.MissionInstanceId).HasColumnName("mission_instance_id").HasColumnType("uuid").IsRequired();
-        builder.Property(fire => fire.TriggerKey).HasColumnName("trigger_key").HasMaxLength(100).IsRequired();
+        builder.Property(fire => fire.TriggerId).HasColumnName("trigger_id").HasColumnType("uuid").IsRequired();
         builder.Property(fire => fire.FiredAtUtc).HasColumnName("fired_at_utc").HasColumnType("timestamp with time zone");
 
         // The uniqueness IS the fire-once rule: a duplicate insert is how a
         // race between two reactions loses rather than double-firing.
-        builder.HasIndex(fire => new { fire.CharacterId, fire.MissionInstanceId, fire.TriggerKey })
+        builder.HasIndex(fire => new { fire.CharacterId, fire.MissionInstanceId, fire.TriggerId })
             .IsUnique()
             .HasDatabaseName("ux_trigger_fires_character_mission_key");
 

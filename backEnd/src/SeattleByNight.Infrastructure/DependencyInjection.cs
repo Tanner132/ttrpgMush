@@ -59,6 +59,9 @@ public static class DependencyInjection
         services.AddScoped<IUserAdminStore, UserAdminStore>();
         services.AddScoped<IAuditLogReader, AuditLogReader>();
         services.AddScoped<IWorldGraphReader, WorldGraphReader>();
+        services.AddScoped<IJobSiteMapReader, JobSiteMapReader>();
+        services.AddScoped<IRunAccessPolicy, RunAccessPolicy>();
+        services.AddScoped<IWorldNpcStore, WorldNpcStore>();
         services.AddScoped<IWorldEditorStore, WorldEditorStore>();
         services.AddSingleton<IDiceRandom, CryptographicDiceRandom>();
         services.AddSingleton<IDiceEngine, DiceEngine>();

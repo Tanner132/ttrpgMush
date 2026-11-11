@@ -18,7 +18,7 @@ public sealed record GameContentUsage(int Count, string Description);
 public interface IGameContentUsageReader
 {
     Task<GameContentUsage> CountHistoricalReferencesAsync(
-        GameContentKind kind, string contentKey, CancellationToken cancellationToken = default);
+        GameContentKind kind, Guid contentKey, CancellationToken cancellationToken = default);
 }
 
 // Milestone 7 section 5: the two ways content leaves play, and the difference
@@ -41,13 +41,13 @@ public sealed class GameContentLifecycle(
     IGameContentUsageReader usage)
 {
     public async Task<GameContentDeleteCheck> CanDeleteAsync(
-        GameContentKind kind, string contentKey, CancellationToken cancellationToken = default)
+        GameContentKind kind, Guid contentKey, CancellationToken cancellationToken = default)
     {
         var definition = await store.FindAsync(kind, contentKey, cancellationToken);
         if (definition is null)
         {
             return GameContentDeleteCheck.Refused(
-                $"No {kind.ToString().ToLowerInvariant()} named '{contentKey}' exists.");
+                $"No {kind.ToString().ToLowerInvariant()} with id '{contentKey}' exists.");
         }
 
         // A draft has never been live, so nothing can have referenced it and
@@ -61,7 +61,7 @@ public sealed class GameContentLifecycle(
         if (referenced.Count > 0)
         {
             return GameContentDeleteCheck.Refused(
-                $"'{contentKey}' is referenced by {referenced.Count} {referenced.Description}. "
+                $"'{definition.DisplayName}' is referenced by {referenced.Count} {referenced.Description}. "
                     + "Retire it instead — that takes it out of play and leaves the record intact.");
         }
 
@@ -74,7 +74,7 @@ public sealed class GameContentLifecycle(
         return validation.IsSuccess
             ? GameContentDeleteCheck.Allowed()
             : GameContentDeleteCheck.Refused(
-                $"Other content still points at '{contentKey}': {validation.Error} "
+                $"Other content still points at '{definition.DisplayName}': {validation.Error} "
                     + "Retire it instead, or remove the references first.");
     }
 
@@ -83,7 +83,7 @@ public sealed class GameContentLifecycle(
     // is what stops it being offered to anyone new.
     public async Task<GameContentPublishResult> RetireAsync(
         GameContentKind kind,
-        string contentKey,
+        Guid contentKey,
         Guid actorUserId,
         CancellationToken cancellationToken = default)
     {
@@ -91,13 +91,13 @@ public sealed class GameContentLifecycle(
         if (definition is null)
         {
             return GameContentPublishResult.Failure(
-                $"No {kind.ToString().ToLowerInvariant()} named '{contentKey}' exists.");
+                $"No {kind.ToString().ToLowerInvariant()} with id '{contentKey}' exists.");
         }
 
         if (definition.Status == GameContentStatus.Draft)
         {
             return GameContentPublishResult.Failure(
-                $"'{contentKey}' has never been published, so there is nothing to retire. Delete it instead.");
+                $"'{definition.DisplayName}' has never been published, so there is nothing to retire. Delete it instead.");
         }
 
         if (definition.Status == GameContentStatus.Retired)
@@ -112,18 +112,32 @@ public sealed class GameContentLifecycle(
 
     public async Task<GameContentPublishResult> DeleteAsync(
         GameContentKind kind,
-        string contentKey,
+        Guid contentKey,
         Guid actorUserId,
         CancellationToken cancellationToken = default)
     {
-        var check = await CanDeleteAsync(kind, contentKey, cancellationToken);
-        if (!check.CanDelete)
+        // WF-22: the reference check and the delete are one transaction under
+        // the corpus lock, so a publish that starts pointing at this cannot
+        // land in between.
+        var result = await store.RunExclusiveAsync(
+            async ct =>
+            {
+                var check = await CanDeleteAsync(kind, contentKey, ct);
+                if (!check.CanDelete)
+                {
+                    return GameContentPublishResult.Failure(check.Reason!);
+                }
+
+                await store.DeleteAsync(kind, contentKey, actorUserId, ct);
+                return GameContentPublishResult.Success();
+            },
+            cancellationToken);
+
+        if (result.IsSuccess)
         {
-            return GameContentPublishResult.Failure(check.Reason!);
+            await content.ReloadAsync(cancellationToken);
         }
 
-        await store.DeleteAsync(kind, contentKey, actorUserId, cancellationToken);
-        await content.ReloadAsync(cancellationToken);
-        return GameContentPublishResult.Success();
+        return result;
     }
 }

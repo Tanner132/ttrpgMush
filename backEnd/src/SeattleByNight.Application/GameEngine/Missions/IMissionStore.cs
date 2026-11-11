@@ -19,7 +19,7 @@ public interface IMissionReader
     // shows this before a publish because published edits affect new
     // instances only — an admin about to change a mission wants to know how
     // many characters are still playing the version they are replacing.
-    Task<IReadOnlyDictionary<string, int>> CountOpenInstancesByMissionAsync(
+    Task<IReadOnlyDictionary<Guid, int>> CountOpenInstancesByMissionAsync(
         CancellationToken cancellationToken);
 
     // The Active encounter instance this character participates in, if any.

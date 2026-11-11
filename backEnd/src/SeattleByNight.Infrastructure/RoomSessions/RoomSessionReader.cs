@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.GameEngine.Combat;
+using SeattleByNight.Application.Movement;
 using SeattleByNight.Application.RoomSessions;
 using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence;
@@ -10,11 +11,14 @@ public sealed class RoomSessionReader : IRoomSessionReader
 {
     private readonly SeattleByNightDbContext _dbContext;
     private readonly ICombatTracker _combatTracker;
+    private readonly IRunAccessPolicy _runAccess;
 
-    public RoomSessionReader(SeattleByNightDbContext dbContext, ICombatTracker combatTracker)
+    public RoomSessionReader(
+        SeattleByNightDbContext dbContext, ICombatTracker combatTracker, IRunAccessPolicy runAccess)
     {
         _dbContext = dbContext;
         _combatTracker = combatTracker;
+        _runAccess = runAccess;
     }
 
     public async Task<RoomSession?> GetByPlaySessionIdAsync(
@@ -62,7 +66,7 @@ public sealed class RoomSessionReader : IRoomSessionReader
             return null;
         }
 
-        var exits = await _dbContext.RoomExits
+        var exitRows = await _dbContext.RoomExits
             .AsNoTracking()
             .Where(e => e.SourceRoomId == character.CurrentRoomId && !e.IsHidden)
             .OrderBy(e => e.Direction)
@@ -70,13 +74,29 @@ public sealed class RoomSessionReader : IRoomSessionReader
                 _dbContext.Rooms.AsNoTracking(),
                 e => e.DestinationRoomId,
                 r => r.Id,
-                (e, r) => new RoomExitSummary(
+                (e, r) => new
+                {
                     e.Id,
                     e.Direction,
                     e.DestinationRoomId,
                     r.Name,
-                    e.IsLocked))
+                    e.IsLocked,
+                    r.AccessType,
+                    r.EncounterInstanceId,
+                })
             .ToListAsync(cancellationToken);
+
+        // WF-25: a door into a job site's private room opens only for a
+        // runner on that job, so for everyone else it is shown as what it
+        // behaves as — locked.
+        var exits = new List<RoomExitSummary>(exitRows.Count);
+        foreach (var e in exitRows)
+        {
+            var locked = e.IsLocked
+                || (e is { AccessType: RoomAccessType.Private, EncounterInstanceId: null }
+                    && await _runAccess.FindEnterableRunAsync(character.Id, e.DestinationRoomId, cancellationToken) is null);
+            exits.Add(new RoomExitSummary(e.Id, e.Direction, e.DestinationRoomId, e.Name, locked));
+        }
 
         var occupants = await _dbContext.Characters
             .AsNoTracking()

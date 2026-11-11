@@ -16,7 +16,7 @@ namespace SeattleByNight.Infrastructure.Tests;
 // has explicitly pinned the value.
 public abstract class NpcTemplateHarness : PlaythroughHarness
 {
-    protected const string MissionId = "gang-warehouse-retrieval";
+    protected static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
 
     protected async Task EnterTheWarehouseAsync()
     {

@@ -7,7 +7,6 @@ import { getCurrentAccount, logout, type Account } from './api/account.ts'
 import { listCharacters } from './api/characters.ts'
 import { getRoomSession, type RoomSession } from './api/roomSession.ts'
 import { ApiError } from './api/client.ts'
-import { getWorldGraph } from './api/worldEditor.ts'
 
 vi.mock('./api/account.ts', () => ({
   getCurrentAccount: vi.fn(),
@@ -45,13 +44,18 @@ vi.mock('./realtime/useRoomChat.ts', () => ({
   }),
 }))
 
-vi.mock('./api/worldEditor.ts', () => ({
-  getWorldGraph: vi.fn().mockResolvedValue({ rooms: [], exits: [] }),
-  getWorldRoom: vi.fn(),
-  createWorldRoom: vi.fn(),
-  updateWorldRoom: vi.fn(),
-  createWorldExit: vi.fn(),
-  updateWorldExit: vi.fn(),
+// The World Forge loads the content inventory, palette, references and map
+// when it opens; an empty world is enough to see it render.
+vi.mock('./forge/api.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./forge/api.ts')>()),
+  getInventory: vi.fn().mockResolvedValue({ contentId: 'c', revision: 'r', corpusError: null, runningInstances: 0, definitions: [] }),
+  getPalette: vi.fn().mockResolvedValue({
+    attributes: [], skills: [], testKinds: [], limits: [], testTags: [], opposedPools: [], builtInTests: [], npcPools: [],
+    npcAwareness: [], damageTypes: [], firingModes: [], objectiveKinds: [], repeatabilityKinds: [], sceneConditionKinds: [],
+    sceneEffectKinds: [], sceneDamageTypes: [], triggerEventKinds: [], triggerReactionKinds: [], exitDirections: [],
+  }),
+  getReferences: vi.fn().mockResolvedValue({ encounters: [], missions: [], scenes: [], tests: [], npcTemplates: [], places: [], rooms: [] }),
+  getWorld: vi.fn().mockResolvedValue({ rooms: [], exits: [] }),
 }))
 
 const account: Account = { id: 'user-1', email: 'dev@example.com', userName: 'devuser', roles: [] }
@@ -75,7 +79,6 @@ const downtownSession: RoomSession = {
 
 beforeEach(() => {
   vi.resetAllMocks()
-  vi.mocked(getWorldGraph).mockResolvedValue({ rooms: [], exits: [] })
 })
 
 describe('route guards', () => {
@@ -166,13 +169,14 @@ describe('route guards', () => {
     expect(await screen.findByText('You do not have permission to view this page.')).toBeInTheDocument()
   })
 
-  it('allows world builders into the world editor and shows its navigation', async () => {
+  it('sends world builders from the old world editor address to Places in the Forge', async () => {
     vi.mocked(getCurrentAccount).mockResolvedValue(worldBuilderAccount)
 
     renderWithProviders(<App />, ['/admin/world'])
 
-    expect(await screen.findByText('Coordinate operations')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'World editor' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'An empty map' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'World forge' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Places' })).toHaveAttribute('aria-current', 'page')
     expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument()
   })
 

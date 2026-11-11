@@ -21,6 +21,9 @@ public sealed class GameMessageBroadcaster : IGameMessageBroadcaster
     public Task BroadcastAsync(RoomMessage message, CancellationToken cancellationToken = default) =>
         hubContext.Clients.Group(RoomGroupNames.For(message.RoomId)).MessageReceived(message);
 
+    public Task SendToUserAsync(Guid userId, RoomMessage message, CancellationToken cancellationToken = default) =>
+        hubContext.Clients.User(userId.ToString()).MessageReceived(message);
+
     public Task BroadcastCombatAsync(CombatView view, CancellationToken cancellationToken = default) =>
         hubContext.Clients.Group(RoomGroupNames.For(view.RoomId)).CombatUpdated(view);
 

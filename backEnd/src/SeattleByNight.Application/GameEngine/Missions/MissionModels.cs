@@ -6,11 +6,11 @@ namespace SeattleByNight.Application.GameEngine.Missions;
 
 // §35: one objective's live state inside a mission instance. Persisted as a
 // small JSON list on the instance row (ProgressionJson precedent).
-public sealed record MissionObjectiveState(string Key, MissionObjectiveStatus Status);
+public sealed record MissionObjectiveState(Guid ObjectiveId, MissionObjectiveStatus Status);
 
 public sealed record MissionInstanceSnapshot(
     Guid Id,
-    string MissionId,
+    Guid MissionId,
     Guid CharacterId,
     MissionInstanceStatus Status,
     IReadOnlyList<MissionObjectiveState> Objectives,
@@ -22,13 +22,13 @@ public sealed record MissionInstanceSnapshot(
         or MissionInstanceStatus.Failed
         or MissionInstanceStatus.Abandoned;
 
-    public MissionObjectiveState? FindObjective(string key) =>
-        Objectives.FirstOrDefault(objective => string.Equals(objective.Key, key, StringComparison.Ordinal));
+    public MissionObjectiveState? FindObjective(Guid objectiveId) =>
+        Objectives.FirstOrDefault(objective => objective.ObjectiveId == objectiveId);
 }
 
 public sealed record EncounterInstanceSnapshot(
     Guid Id,
-    string EncounterId,
+    Guid EncounterId,
     Guid MissionInstanceId,
     EncounterInstanceStatus Status,
     Guid EntryRoomId,
@@ -38,13 +38,17 @@ public sealed record EncounterInstanceSnapshot(
 // OwnerCharacterId is set.
 public sealed record WorldItemSnapshot(
     Guid Id,
-    string ItemKey,
+    // WF-27: the job-site item this instance was made from.
+    Guid ItemId,
     string DisplayName,
     string Description,
     Guid? MissionInstanceId,
     Guid? EncounterInstanceId,
     Guid? RoomId,
-    Guid? OwnerCharacterId);
+    Guid? OwnerCharacterId,
+    // WF-27: hidden until a search finds it, per character.
+    bool IsHidden = false,
+    int DiscoveryThreshold = 0);
 
 // §39: the receipt payload recorded when a mission reward is granted through
 // the career ledger.

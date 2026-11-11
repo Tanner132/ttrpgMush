@@ -10,8 +10,8 @@ public sealed record SceneSessionSnapshot(
     Guid CharacterId,
     Guid? NpcInstanceId,
     Guid RoomId,
-    string SceneId,
-    string CurrentNodeId,
+    Guid SceneId,
+    Guid CurrentNodeId,
     int? PendingNegotiatedNuyen);
 
 // Read side of scene state; mutations flow through State Changes.
@@ -31,10 +31,13 @@ public static class SceneChoiceIds
     // Anchored on the SESSION rather than the NPC because a trigger-opened
     // scene has no NPC, and because a new session is what makes a stale
     // number from a finished scene stop resolving.
-    public static Guid Derive(Guid sceneSessionId, string nodeId, string choiceId)
+    //
+    // WF-27: a choice has its own id, unique across all content, so the
+    // session and the choice are enough.
+    public static Guid Derive(Guid sceneSessionId, Guid choiceId)
     {
         var hash = MD5.HashData(
-            Encoding.UTF8.GetBytes($"scene-choice:{sceneSessionId:N}:{nodeId}:{choiceId}"));
+            Encoding.UTF8.GetBytes($"scene-choice:{sceneSessionId:N}:{choiceId:N}"));
         return new Guid(hash);
     }
 }

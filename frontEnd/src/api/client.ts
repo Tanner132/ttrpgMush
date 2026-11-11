@@ -12,6 +12,8 @@ interface ProblemDetails {
   title?: string
   detail?: string
   status?: number
+  // ASP.NET validation problems: field name → messages.
+  errors?: Record<string, string[]>
 }
 
 let csrfToken: string | null = null
@@ -35,6 +37,10 @@ async function parseError(response: Response): Promise<ApiError> {
     const body = (await response.json()) as ProblemDetails
     if (body.title) message = body.title
     else if (body.detail) message = body.detail
+    // A validation problem's title is generic ("One or more validation errors
+    // occurred."); the field messages are what tells someone what to fix.
+    const fieldMessages = Object.values(body.errors ?? {}).flat().filter((entry) => typeof entry === 'string')
+    if (fieldMessages.length > 0) message = fieldMessages.join(' ')
   } catch {
     // The response was not JSON; fall back to the generic message.
   }

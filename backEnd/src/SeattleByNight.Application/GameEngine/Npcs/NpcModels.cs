@@ -12,22 +12,29 @@ namespace SeattleByNight.Application.GameEngine.Npcs;
 // value.
 public sealed record NpcSnapshot(
     Guid Id,
-    string TemplateId,
+    Guid TemplateId,
     string Name,
     Guid RoomId,
     int PhysicalDamage,
     int StunDamage,
     NpcAwareness Awareness,
     string? Description = null,
-    string? SceneId = null,
-    NpcStatOverrides? Overrides = null);
+    Guid? SceneId = null,
+    NpcStatOverrides? Overrides = null,
+    // WF-27: the job-site placement a run's NPC was made from; null for a
+    // world NPC, which is its own record. What content names it by.
+    Guid? SourceNpcId = null)
+{
+    // The id listeners and effects name this NPC by.
+    public Guid ContentId => SourceNpcId ?? Id;
+}
 
 public sealed record NewNpcInstance(
-    string TemplateId,
+    Guid TemplateId,
     string Name,
     Guid RoomId,
     string? Description = null,
-    string? SceneId = null,
+    Guid? SceneId = null,
     NpcAwareness Awareness = NpcAwareness.Unaware,
     NpcStatOverrides? Overrides = null);
 

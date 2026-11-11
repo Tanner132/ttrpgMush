@@ -19,7 +19,9 @@ public sealed class WorldItemInstanceConfiguration : IEntityTypeConfiguration<Wo
 
         builder.HasKey(item => item.Id);
         builder.Property(item => item.Id).HasColumnName("id").HasColumnType("uuid").ValueGeneratedNever();
-        builder.Property(item => item.ItemKey).HasColumnName("item_key").HasMaxLength(100).IsRequired();
+        builder.Property(item => item.ItemId).HasColumnName("item_id").HasColumnType("uuid").IsRequired();
+        builder.Property(item => item.IsHidden).HasColumnName("is_hidden");
+        builder.Property(item => item.DiscoveryThreshold).HasColumnName("discovery_threshold");
         builder.Property(item => item.DisplayName).HasColumnName("display_name").HasMaxLength(200).IsRequired();
         builder.Property(item => item.Description).HasColumnName("description").HasMaxLength(4000).IsRequired();
         builder.Property(item => item.MissionInstanceId).HasColumnName("mission_instance_id").HasColumnType("uuid");

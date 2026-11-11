@@ -1,10 +1,10 @@
 {
   "missions": [
     {
-      "id": "gang-warehouse-retrieval",
+      "id": "c5c1844a-eb16-4278-a8ce-89b90b3ff11d",
       "displayName": "Gang Warehouse Retrieval",
       "description": "A corporate client wants a sealed courier package recovered from a gang-held warehouse. Get in, take the package, get out. How loud you are is your business.",
-      "encounterId": "gang-warehouse",
+      "encounterId": "dd942386-7883-4d93-8201-571fdffb872c",
       "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
       "repeatability": {
         "kind": "cooldown",
@@ -16,37 +16,80 @@
       },
       "objectives": [
         {
-          "key": "enter-warehouse",
+          "id": "23b71c4f-274e-4e16-b0f0-de7aa985ed57",
           "displayName": "Enter the warehouse",
           "kind": "enterEncounter"
         },
         {
-          "key": "retrieve-package",
+          "id": "0609ca43-dd89-440a-8f6b-19583d8ae55c",
           "displayName": "Retrieve the courier package",
           "kind": "pickUpItem",
-          "itemKey": "package"
+          "itemId": "86c291a8-4ad0-436c-ad63-73973a3b7c19"
         },
         {
-          "key": "leave-warehouse",
+          "id": "47eb6a5c-7a96-4580-8a55-be595afc2988",
           "displayName": "Leave the warehouse",
           "kind": "exitEncounter"
         },
         {
-          "key": "deliver-package",
+          "id": "7b1f1d57-da5d-43ad-b46e-6f14a3a3b087",
           "displayName": "Deliver the package to Mr. Johnson",
           "kind": "deliverItem",
-          "itemKey": "package"
+          "itemId": "86c291a8-4ad0-436c-ad63-73973a3b7c19"
         }
       ],
       "triggers": [
         {
-          "key": "advance-cleared",
+          "id": "9a136fe9-a6c3-4356-b4a4-d3ae6488fb77",
+          "event": "playerEnteredRoom",
+          "roomId": "e0e0e0e0-0000-4000-8000-000000000004",
+          "repeatable": false,
+          "reactions": [
+            {
+              "kind": "narrate",
+              "text": "A man steps out from around the blind corner and brings a pistol up in both hands."
+            },
+            {
+              "kind": "openScene",
+              "sceneId": "2b40be93-5470-464d-802c-aedfa02171f2"
+            }
+          ]
+        },
+        {
+          "id": "45a97f57-2124-40bc-8122-6f0172c1ff4a",
+          "event": "interactableInspected",
+          "roomId": "e0e0e0e0-0000-4000-8000-000000000003",
+          "interactableId": "575e22bf-3c6b-4921-ac9a-11bf80242872",
+          "repeatable": false,
+          "reactions": [
+            {
+              "kind": "runTest",
+              "testId": "017e2a55-843f-4e5e-a7f9-102310427c33",
+              "onSuccess": {
+                "text": "The shipping log resolves into something readable: three crates in, one crate out, and a courier case nobody logged at all."
+              },
+              "onFailure": {
+                "text": "The session times out mid-scroll and the terminal throws up a lock screen. Somewhere out on the floor, a chime answers it.",
+                "effects": [
+                  {
+                    "kind": "alertNpc",
+                    "npcId": "f83134f1-47e5-4cde-9fde-8277384646eb"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "32398281-92f8-4508-bbba-0e29cca5a2e3",
           "event": "missionAccepted",
+          "roomId": "22222222-2222-2222-2222-222222222222",
+          "othersSee": "glances at their commlink as it chirps.",
           "repeatable": false,
           "conditions": [
             {
               "kind": "missionOpen",
-              "missionId": "gang-warehouse-retrieval"
+              "missionId": "c5c1844a-eb16-4278-a8ce-89b90b3ff11d"
             }
           ],
           "reactions": [

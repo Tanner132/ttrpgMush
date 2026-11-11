@@ -50,6 +50,7 @@ public static class WorldEditorEndpoints
         group.MapDelete("/rooms/{roomId:guid}", DeleteRoomAsync).RequireAntiforgery();
         group.MapPost("/exits", CreateExitAsync).RequireAntiforgery();
         group.MapPut("/exits/{exitId:guid}", UpdateExitAsync).RequireAntiforgery();
+        group.MapDelete("/exits/{exitId:guid}", DeleteExitAsync).RequireAntiforgery();
 
         return endpoints;
     }
@@ -189,6 +190,24 @@ public static class WorldEditorEndpoints
         var result = await mediator.Send(new UpdateRoomExitCommand(actor.Id, exitId, request.Version, mutation));
 
         return MutationResult(result, Results.Ok);
+    }
+
+    private static async Task<IResult> DeleteExitAsync(
+        Guid exitId,
+        UserManager<ApplicationUser> userManager,
+        IMediator mediator,
+        HttpContext httpContext)
+    {
+        var actor = await userManager.GetUserAsync(httpContext.User);
+
+        if (actor is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await mediator.Send(new DeleteRoomExitCommand(actor.Id, exitId));
+
+        return MutationResult(result, _ => Results.NoContent());
     }
 
     private static RoomExitMutation ToMutation(

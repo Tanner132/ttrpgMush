@@ -228,16 +228,135 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
     }
 
     [Fact]
-    public async Task DeletingAnExit_IsStillNotExposed()
+    public async Task DeleteExit_RemovesItAndIsAudited()
+    {
+        var admin = await _factory.LoginDevAdminAsync();
+        var room = (await (await admin.PostAsJsonAsync("/api/admin/world/rooms", ValidRoom()))
+            .Content.ReadFromJsonAsync<WorldRoomDto>())!;
+        var created = (await (await admin.PostAsJsonAsync("/api/admin/world/exits", new
+        {
+            sourceRoomId = room.Id,
+            destinationRoomId = room.Id,
+            direction = "up",
+            isHidden = false,
+            isLocked = false
+        })).Content.ReadFromJsonAsync<WorldExitDto>())!;
+
+        var response = await admin.DeleteAsync($"/api/admin/world/exits/{created.Id}");
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        await using var db = _factory.CreateDbContext();
+        Assert.False(await db.RoomExits.AnyAsync(exit => exit.Id == created.Id));
+        Assert.True(await db.AuditRecords.AnyAsync(record =>
+            record.Action == AuditActions.RoomExitDeleted && record.TargetId == created.Id));
+
+        // Gone is gone: a second delete has nothing to remove.
+        var again = await admin.DeleteAsync($"/api/admin/world/exits/{created.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, again.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteExit_ThatALiveJobSiteNeeds_IsRefusedAndSaysWhy()
     {
         var admin = await _factory.LoginDevAdminAsync();
 
-        // Milestone 7 section 5 gave ROOMS a guarded delete. Exits still have
-        // none: an exit is removed by editing the room graph, and there is no
-        // referential question to answer about one.
-        var response = await admin.DeleteAsync($"/api/admin/world/exits/{Guid.NewGuid()}");
+        // The only way from the Warehouse Floor into the Storage Room. Without
+        // it the shipped job site has a room nobody can reach.
+        var onlyWayIn = new Guid("e0e0e0e0-0000-4000-9000-000000000003");
 
-        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        var response = await admin.DeleteAsync($"/api/admin/world/exits/{onlyWayIn}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Gang Warehouse", body);
+        await using var db = _factory.CreateDbContext();
+        Assert.True(await db.RoomExits.AnyAsync(exit => exit.Id == onlyWayIn));
+        Assert.False(await db.AuditRecords.AnyAsync(record =>
+            record.Action == AuditActions.RoomExitDeleted && record.TargetId == onlyWayIn));
+    }
+
+    [Fact]
+    public async Task DeleteExit_Player_ReturnsForbidden()
+    {
+        var username = $"exit-deleter-{Guid.NewGuid():N}";
+        var player = await _factory.RegisterAndLoginAsync(username, $"{username}@test.local", Password);
+
+        var response = await player.DeleteAsync($"/api/admin/world/exits/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AnInspectableOnTheMap_CanBeRewordedAndRemoved_AndBothAreAudited()
+    {
+        var admin = await _factory.LoginDevAdminAsync();
+        var room = (await (await admin.PostAsJsonAsync("/api/admin/world/rooms", ValidRoom()))
+            .Content.ReadFromJsonAsync<WorldRoomDto>())!;
+        var path = $"/api/admin/world/rooms/{room.Id}/interactables";
+        var placedResponse = await admin.PostAsJsonAsync(path, new
+        {
+            name = "Notice board",
+            description = "Flyers three deep.",
+            isHidden = false,
+            discoveryThreshold = 0
+        });
+        placedResponse.EnsureSuccessStatusCode();
+        var placed = (await placedResponse.Content.ReadFromJsonAsync<InspectableDto>())!;
+
+        var updateResponse = await admin.PutAsJsonAsync($"{path}/{placed.Id}", new
+        {
+            name = "Notice board",
+            description = "Flyers three deep, and one fresh missing-person poster.",
+            isHidden = true,
+            discoveryThreshold = 2
+        });
+        updateResponse.EnsureSuccessStatusCode();
+        var updated = (await updateResponse.Content.ReadFromJsonAsync<InspectableDto>())!;
+        Assert.Equal(placed.Id, updated.Id);
+        Assert.True(updated.IsHidden);
+        Assert.Equal(2, updated.DiscoveryThreshold);
+        Assert.Contains("missing-person", updated.Description);
+
+        // It has to be in the room named: another room's id finds nothing.
+        var elsewhere = await admin.PutAsJsonAsync(
+            $"/api/admin/world/rooms/{Guid.NewGuid()}/interactables/{placed.Id}",
+            new { name = "Moved", description = "Somewhere else.", isHidden = false, discoveryThreshold = 0 });
+        Assert.Equal(HttpStatusCode.NotFound, elsewhere.StatusCode);
+
+        var blank = await admin.PutAsJsonAsync($"{path}/{placed.Id}", new
+        {
+            name = "",
+            description = "No name.",
+            isHidden = false,
+            discoveryThreshold = 0
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, blank.StatusCode);
+
+        var removed = await admin.DeleteAsync($"{path}/{placed.Id}");
+        Assert.Equal(HttpStatusCode.NoContent, removed.StatusCode);
+        var left = await admin.GetFromJsonAsync<List<InspectableDto>>(path);
+        Assert.Empty(left!);
+        Assert.Equal(HttpStatusCode.NotFound, (await admin.DeleteAsync($"{path}/{placed.Id}")).StatusCode);
+
+        await using var db = _factory.CreateDbContext();
+        var audited = await db.AuditRecords.AsNoTracking()
+            .Where(record => record.TargetId == placed.Id)
+            .OrderBy(record => record.CreatedAtUtc)
+            .Select(record => record.Action)
+            .ToListAsync();
+        Assert.Equal([AuditActions.RoomInspectableUpdated, AuditActions.RoomInspectableRemoved], audited);
+    }
+
+    [Fact]
+    public async Task RemovingAnInspectable_Player_ReturnsForbidden()
+    {
+        var username = $"inspectable-remover-{Guid.NewGuid():N}";
+        var player = await _factory.RegisterAndLoginAsync(username, $"{username}@test.local", Password);
+
+        var response = await player.DeleteAsync(
+            $"/api/admin/world/rooms/{Guid.NewGuid()}/interactables/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
@@ -285,6 +404,14 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
         int MapLayer,
         DateTimeOffset CreatedAtUtc,
         Guid Version);
+
+    private sealed record InspectableDto(
+        Guid Id,
+        Guid RoomId,
+        string Name,
+        string Description,
+        bool IsHidden,
+        int DiscoveryThreshold);
 
     private sealed record WorldExitDto(
         Guid Id,

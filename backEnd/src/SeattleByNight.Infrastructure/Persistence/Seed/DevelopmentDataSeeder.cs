@@ -1,3 +1,5 @@
+using SeattleByNight.Application.GameEngine.Missions.Content;
+using SeattleByNight.Application.GameEngine.Npcs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.Authorization;
@@ -136,6 +138,34 @@ public static class DevelopmentDataSeeder
                     Direction = "up"
                 }
         };
+        // WF-25: the shipped Gang Warehouse job site — four Private map rooms
+        // east of town, connected as the job expects. Only runners on the job
+        // get in; their run's copy is made from these rows.
+        var site = ShippedContentIds.SiteRooms.LoadingDock;
+        if (!await db.Rooms.AnyAsync(room => room.Id == site, cancellationToken))
+        {
+            db.Rooms.AddRange(
+                SiteRoom(ShippedContentIds.SiteRooms.LoadingDock, "Warehouse Loading Dock", 10, 0, 0,
+                    "A cracked concrete apron under a rusted awning. Roll-up doors sit half open, and the smell of machine oil and stale rain hangs in the air. The alley you came in from lies back the way you came."),
+                SiteRoom(ShippedContentIds.SiteRooms.WarehouseFloor, "Warehouse Floor", 10, 1, -1,
+                    "Rows of shrink-wrapped pallets rise toward flickering sodium lights. Narrow lanes between the racks give plenty of cover — for you, and for whoever is watching the stock."),
+                SiteRoom(ShippedContentIds.SiteRooms.StorageRoom, "Back Storage Room", 11, 1, 0,
+                    "A cramped room behind the racking, lit by a single bare tube. Crates and lockboxes are stacked to the ceiling in no order anyone sane could explain."),
+                SiteRoom(ShippedContentIds.SiteRooms.BackHallway, "Back Hallway", 11, 0, 0,
+                    "A short service corridor off the dock, drywall scarred to the studs. It dead-ends at a padlocked fire door, and the corner halfway down is a blind one."));
+        }
+
+        seedExits =
+        [
+            .. seedExits,
+            SiteExit(1, ShippedContentIds.SiteRooms.LoadingDock, ShippedContentIds.SiteRooms.WarehouseFloor, "north"),
+            SiteExit(2, ShippedContentIds.SiteRooms.WarehouseFloor, ShippedContentIds.SiteRooms.LoadingDock, "south"),
+            SiteExit(3, ShippedContentIds.SiteRooms.WarehouseFloor, ShippedContentIds.SiteRooms.StorageRoom, "east"),
+            SiteExit(4, ShippedContentIds.SiteRooms.StorageRoom, ShippedContentIds.SiteRooms.WarehouseFloor, "west"),
+            SiteExit(5, ShippedContentIds.SiteRooms.LoadingDock, ShippedContentIds.SiteRooms.BackHallway, "east"),
+            SiteExit(6, ShippedContentIds.SiteRooms.BackHallway, ShippedContentIds.SiteRooms.LoadingDock, "west"),
+        ];
+
         var seedExitIds = seedExits.Select(exit => exit.Id).ToArray();
         var existingSeedExitIds = await db.RoomExits
             .Where(exit => seedExitIds.Contains(exit.Id))
@@ -148,7 +178,7 @@ public static class DevelopmentDataSeeder
             db.NpcInstances.Add(new NpcInstance
             {
                 Id = MrJohnsonNpcId,
-                TemplateId = "mr-johnson",
+                TemplateId = NpcTemplateIds.MrJohnson,
                 Name = "Mr. Johnson",
                 RoomId = CoffeeShopId,
                 Awareness = NpcAwareness.Unaware.ToString(),
@@ -425,4 +455,26 @@ public static class DevelopmentDataSeeder
             Lifestyles = canonicalSheet.Lifestyles! with { StartingCash = startingCash },
         };
     }
+
+    private static Room SiteRoom(Guid id, string name, int x, int y, int environment, string description) =>
+        new()
+        {
+            Id = id,
+            Name = name,
+            Description = description,
+            AccessType = RoomAccessType.Private,
+            EnvironmentModifier = environment,
+            MapX = x,
+            MapY = y,
+            MapLayer = 0,
+        };
+
+    private static RoomExit SiteExit(int n, Guid from, Guid to, string direction) =>
+        new()
+        {
+            Id = new Guid($"e0e0e0e0-0000-4000-9000-{n:D12}"),
+            SourceRoomId = from,
+            DestinationRoomId = to,
+            Direction = direction,
+        };
 }

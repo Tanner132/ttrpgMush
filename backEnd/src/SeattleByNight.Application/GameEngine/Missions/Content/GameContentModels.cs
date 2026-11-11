@@ -18,64 +18,64 @@ public sealed record GameContentDocument(
     IReadOnlyList<SkillTestDefinition> Tests,
     IReadOnlyList<NpcTemplate> NpcTemplates)
 {
-    public EncounterDefinition? FindEncounter(string encounterId) =>
-        Encounters.FirstOrDefault(encounter => string.Equals(encounter.Id, encounterId, StringComparison.Ordinal));
+    // WF-20/WF-26: a map room's own events, one definition per room.
+    public IReadOnlyList<PlaceDefinition> Places { get; init; } = [];
 
-    public MissionDefinition? FindMission(string missionId) =>
-        Missions.FirstOrDefault(mission => string.Equals(mission.Id, missionId, StringComparison.Ordinal));
+    // WF-27: every authored record is found by its id; names are display only.
+    public PlaceDefinition? FindPlace(Guid roomId) =>
+        Places.FirstOrDefault(place => place.Id == roomId);
+
+    public EncounterDefinition? FindEncounter(Guid encounterId) =>
+        Encounters.FirstOrDefault(encounter => encounter.Id == encounterId);
+
+    public MissionDefinition? FindMission(Guid missionId) =>
+        Missions.FirstOrDefault(mission => mission.Id == missionId);
 
     // Resolves anything the document holds, retired included — a scene that
     // was retired mid-conversation still has to be able to finish.
-    public SceneDefinition? FindScene(string sceneId) =>
-        Scenes.FirstOrDefault(scene => string.Equals(scene.Id, sceneId, StringComparison.Ordinal));
+    public SceneDefinition? FindScene(Guid sceneId) =>
+        Scenes.FirstOrDefault(scene => scene.Id == sceneId);
 
-    // The scene a trigger is allowed to OPEN. Same split as the affordance
-    // gate above: FindScene resolves anything so a conversation already open
-    // can finish, while opening a new one goes through here so retiring a
-    // scene stops it being served even while the trigger that opens it stays
-    // published (§5).
-    public SceneDefinition? FindOfferableScene(string sceneId) =>
+    // The scene a trigger is allowed to OPEN: FindScene resolves anything so a
+    // conversation already open can finish, while opening a new one goes
+    // through here so retiring a scene stops it being served even while the
+    // trigger that opens it stays published (§5).
+    public SceneDefinition? FindOfferableScene(Guid sceneId) =>
         FindScene(sceneId) is { IsRetired: false } scene ? scene : null;
 
     // The scene an NPC template speaks — its scene (§37). One per template
-    // for the MVP; the first in document order wins, which since Milestone 7
-    // is the store's content-key order rather than the authored files' order.
-    public SceneDefinition? FindSceneForNpcTemplate(string npcTemplateId) =>
-        Scenes.FirstOrDefault(scene =>
-            scene.NpcTemplateId is not null
-            && !scene.IsRetired
-            && string.Equals(scene.NpcTemplateId, npcTemplateId, StringComparison.OrdinalIgnoreCase));
+    // for the MVP; the first in document order wins.
+    public SceneDefinition? FindSceneForNpcTemplate(Guid npcTemplateId) =>
+        Scenes.FirstOrDefault(scene => scene.NpcTemplateId == npcTemplateId && !scene.IsRetired);
 
     // The scene a PLACED NPC speaks. A placement may rebind its scene; absent
-    // a binding it falls through to whatever its template speaks, which is
-    // the two-layer model applied to dialogue.
-    // The ENTRY point into a conversation: a retired scene is not offered to
-    // anyone new, which is what "retired dialogue stops being offered by the
-    // affordance gate" means.
+    // a binding it falls through to whatever its template speaks. A retired
+    // scene is not offered to anyone new.
     public SceneDefinition? FindSceneForNpc(NpcSnapshot npc) =>
         npc.SceneId is { } bound
             ? FindScene(bound) is { IsRetired: false } scene ? scene : null
             : FindSceneForNpcTemplate(npc.TemplateId);
 
-    // Milestone 7: tests are authorable content. Admin-authored definitions
-    // win over the code catalog's development tests, which remain as the
-    // built-in palette every content set can rely on.
+    // Milestone 7: tests are authorable content. A test reference is either an
+    // authored test's id (a GUID) or the name of a built-in test from the
+    // engine's own palette (WF-27: engine vocabulary keeps its names).
     public SkillTestDefinition? FindTest(string testId) =>
-        Tests.FirstOrDefault(test => string.Equals(test.TestId, testId, StringComparison.Ordinal))
+        Tests.FirstOrDefault(test => string.Equals(test.TestId, testId, StringComparison.OrdinalIgnoreCase))
         ?? DevelopmentGameTests.Find(testId);
 
     // Milestone 7 §4: the base stat block, authored once and shared by every
     // placement that names it.
-    public NpcTemplate? FindNpcTemplate(string templateId) =>
-        NpcTemplates.FirstOrDefault(template =>
-            string.Equals(template.TemplateId, templateId, StringComparison.OrdinalIgnoreCase));
+    public NpcTemplate? FindNpcTemplate(Guid templateId) =>
+        NpcTemplates.FirstOrDefault(template => template.TemplateId == templateId);
 
     // The effective stat block for a placed NPC: its base template with the
-    // placement's sparse diff applied. Every engine that needs an NPC's
-    // numbers goes through here, so "template first, overrides on top" has one
-    // implementation rather than one per caller.
+    // placement's sparse diff applied.
     public NpcTemplate? ResolveNpcTemplate(NpcSnapshot npc) =>
         FindNpcTemplate(npc.TemplateId)?.WithOverrides(npc.Overrides);
+
+    // WF-27: a job-site placement anywhere in the document, by its id.
+    public EncounterNpcDefinition? FindSiteNpc(Guid npcId) =>
+        Encounters.SelectMany(site => site.Npcs).FirstOrDefault(npc => npc.Id == npcId);
 }
 
 // Milestone 7 section 5: retired content stays in the served document so
@@ -87,66 +87,62 @@ public interface IRetirableDefinition
     bool IsRetired { get; init; }
 }
 
-// §28: the static shape of a playable encounter space. Rooms are declared by
-// key; instantiation materializes them as real Room rows for one instance.
+// §28/WF-25/WF-27: a job site. Its rooms are map rooms, named by their ids;
+// their names, descriptions and exits are the map's. What the site adds is the
+// job's content placed in those rooms, every piece with its own id.
 public sealed record EncounterDefinition(
-    string Id,
+    Guid Id,
     string DisplayName,
-    string EntryRoomKey,
-    IReadOnlyList<EncounterRoomDefinition> Rooms,
-    IReadOnlyList<EncounterExitDefinition> Exits,
+    Guid EntryRoomId,
+    IReadOnlyList<Guid> RoomIds,
     IReadOnlyList<EncounterNpcDefinition> Npcs,
     IReadOnlyList<EncounterItemDefinition> Items,
-    IReadOnlyList<EncounterInteractableDefinition> Interactables,
-    // Milestone 7: event-driven content. Evaluated while the acting character
-    // is inside an instance of this encounter.
-    IReadOnlyList<TriggerDefinition> Triggers) : IRetirableDefinition
+    IReadOnlyList<EncounterInteractableDefinition> Interactables) : IRetirableDefinition
 {
     public bool IsRetired { get; init; }
+
+    public bool HasRoom(Guid roomId) => RoomIds.Contains(roomId);
+
+    public EncounterNpcDefinition? FindNpc(Guid npcId) => Npcs.FirstOrDefault(npc => npc.Id == npcId);
+
+    public EncounterItemDefinition? FindItem(Guid itemId) => Items.FirstOrDefault(item => item.Id == itemId);
+
+    public EncounterInteractableDefinition? FindInteractable(Guid interactableId) =>
+        Interactables.FirstOrDefault(interactable => interactable.Id == interactableId);
 }
 
-public sealed record EncounterRoomDefinition(
-    string Key,
-    string Name,
-    string Description,
-    int EnvironmentModifier = 0);
-
-// One-way by declaration: author both directions explicitly, the same way
-// the seeded world's exits are paired.
-public sealed record EncounterExitDefinition(
-    string FromRoomKey,
-    string ToRoomKey,
-    string Direction);
-
-// Milestone 7 §4: a placed NPC is its base template plus overrides. Name and
-// room are required (they are what makes it a placement at all); everything
-// else is optional and falls through to the template, so a template fix
-// reaches every NPC that has not explicitly pinned the value.
+// Milestone 7 §4: a placed NPC is its base template plus overrides. Everything
+// optional falls through to the template, so a template fix reaches every NPC
+// that has not explicitly pinned the value.
 public sealed record EncounterNpcDefinition(
-    string RoomKey,
-    string TemplateId,
+    Guid Id,
+    Guid RoomId,
+    Guid TemplateId,
     string Name,
     // Player-visible description override.
     string? Description = null,
     // Scene binding override. Absent means this NPC speaks whatever scene is
-    // bound to its template, which is how the warehouse lookout works.
-    string? SceneId = null,
+    // bound to its template.
+    Guid? SceneId = null,
     // Awareness the NPC is instantiated with. Absent means Unaware.
     NpcAwareness? StartingAwareness = null,
     // The sparse mechanical diff — the escape hatch, not the normal case.
     NpcStatOverrides? Overrides = null);
 
-// RoomKey null means the item is declared but not placed anywhere: it exists
-// only to be handed over by a GiveItem effect (Milestone 7), which needs the
-// name and description a placed item would have carried.
+// RoomId null means the item is declared but not placed anywhere: it exists
+// only to be handed over by a GiveItem effect. A hidden item is found by
+// searching the room, like a hidden inspectable (WF-27).
 public sealed record EncounterItemDefinition(
-    string Key,
+    Guid Id,
     string Name,
     string Description,
-    string? RoomKey = null);
+    Guid? RoomId = null,
+    bool IsHidden = false,
+    int DiscoveryThreshold = 0);
 
 public sealed record EncounterInteractableDefinition(
-    string RoomKey,
+    Guid Id,
+    Guid RoomId,
     string Name,
     string Description,
     bool IsHidden = false,
@@ -155,10 +151,10 @@ public sealed record EncounterInteractableDefinition(
 // §34: a reusable mission definition, including repeatability from day one
 // (§39 economy safeguard).
 public sealed record MissionDefinition(
-    string Id,
+    Guid Id,
     string DisplayName,
     string Description,
-    string EncounterId,
+    Guid EncounterId,
     // The shared-world room that offers the "travel to the site" affordance
     // (mission-linked room, §32). References a stable seeded/admin room id;
     // assignment validates it exists (dev decision mission.entry-link-room).
@@ -166,9 +162,9 @@ public sealed record MissionDefinition(
     MissionRepeatability Repeatability,
     MissionRewards Rewards,
     IReadOnlyList<MissionObjectiveDefinition> Objectives,
-    // Milestone 7: triggers that watch the shared world rather than the
-    // encounter — evaluated whenever the character has an open instance of
-    // this mission, wherever they are standing.
+    // WF-26: the job's listeners. Each names a room — one of the job's site
+    // rooms, or a public room — and an event in it. In the site they reach
+    // the run's own copy; in a public room, a runner with the job open.
     IReadOnlyList<TriggerDefinition> Triggers) : IRetirableDefinition
 {
     public bool IsRetired { get; init; }
@@ -200,10 +196,10 @@ public enum MissionObjectiveKind
 }
 
 public sealed record MissionObjectiveDefinition(
-    string Key,
+    Guid Id,
     string DisplayName,
     MissionObjectiveKind Kind,
-    string? ItemKey = null);
+    Guid? ItemId = null);
 
 // ------------------------------------------------------------------------
 // Scenes (§37, generalized in Milestone 7): a node graph defined as data —
@@ -220,27 +216,28 @@ public sealed record MissionObjectiveDefinition(
 // ------------------------------------------------------------------------
 
 public sealed record SceneDefinition(
-    string Id,
-    string StartNodeId,
+    Guid Id,
+    string DisplayName,
+    Guid StartNodeId,
     IReadOnlyList<SceneNodeDefinition> Nodes,
-    string? NpcTemplateId = null) : IRetirableDefinition
+    Guid? NpcTemplateId = null) : IRetirableDefinition
 {
     public bool IsRetired { get; init; }
 
     // A scene bound to an NPC template IS that NPC's dialogue.
     public bool IsDialogue => NpcTemplateId is not null;
 
-    public SceneNodeDefinition? FindNode(string nodeId) =>
-        Nodes.FirstOrDefault(node => string.Equals(node.NodeId, nodeId, StringComparison.Ordinal));
+    public SceneNodeDefinition? FindNode(Guid nodeId) =>
+        Nodes.FirstOrDefault(node => node.Id == nodeId);
 }
 
 public sealed record SceneNodeDefinition(
-    string NodeId,
+    Guid Id,
     string Text,
     IReadOnlyList<SceneChoiceDefinition> Choices);
 
 public sealed record SceneChoiceDefinition(
-    string ChoiceId,
+    Guid Id,
     string Label,
     IReadOnlyList<SceneCondition> Conditions,
     // Names a test — an authored one from the content set, or one of the
@@ -249,12 +246,12 @@ public sealed record SceneChoiceDefinition(
     string? TestId = null,
     SceneOutcome? OnSuccess = null,
     SceneOutcome? OnFailure = null,
-    string? NextNodeId = null,
+    Guid? NextNodeId = null,
     IReadOnlyList<SceneEffect>? Effects = null,
     bool EndsScene = false);
 
 public sealed record SceneOutcome(
-    string? NextNodeId = null,
+    Guid? NextNodeId = null,
     IReadOnlyList<SceneEffect>? Effects = null,
     bool EndsScene = false);
 
@@ -280,8 +277,8 @@ public enum SceneConditionKind
 
 public sealed record SceneCondition(
     SceneConditionKind Kind,
-    string? MissionId = null,
-    string? ItemKey = null);
+    Guid? MissionId = null,
+    Guid? ItemId = null);
 
 // What a chosen option or a fired trigger does to the world, resolved into
 // State Changes by the engine so everything commits atomically and lands in
@@ -339,19 +336,19 @@ public enum SceneDamageType
 
 public sealed record SceneEffect(
     SceneEffectKind Kind,
-    string? MissionId = null,
-    string? ItemKey = null,
-    string? ObjectiveKey = null,
-    // Names a placed NPC by its placement name, for effects that act on
-    // someone other than the NPC a scene is with.
-    string? NpcName = null,
+    Guid? MissionId = null,
+    Guid? ItemId = null,
+    Guid? ObjectiveId = null,
+    // Names an NPC by id — a job's placement, or a world NPC — for effects
+    // that act on someone other than the NPC a scene is with.
+    Guid? NpcId = null,
     int? Damage = null,
     SceneDamageType? DamageType = null,
     // advanceScene: which scene this is allowed to move, and where to. The
     // scene id is a guard — a character has at most one open scene, so the
     // effect does nothing unless that scene is the one named.
-    string? SceneId = null,
-    string? NodeId = null);
+    Guid? SceneId = null,
+    Guid? NodeId = null);
 
 // ------------------------------------------------------------------------
 // Triggers (Milestone 7): (event, conditions) → reaction sequence. This is
@@ -373,6 +370,19 @@ public enum TriggerEventKind
     NpcPacified,
     MissionAccepted,
     InteractableInspected,
+    // WF-21. The character tried to sneak past an NPC; the trigger's Outcome
+    // filter can pick success or failure.
+    SneakAttempted,
+    // A fight began in the room, with the named NPC.
+    CombatStarted,
+    // The character tried an exit that is locked to them (a locked door, or a
+    // job site's private room they are not on the run for). The event's room
+    // is the one they were standing in.
+    LockedExitTried,
+    // The character walked out of a room. The event's room is the one they left; by
+    // the time this is consumed they are already elsewhere, so it runs its
+    // consequences without the room-bound parts (see TriggerEngine).
+    PlayerLeftRoom,
 }
 
 public enum TriggerReactionKind
@@ -399,30 +409,59 @@ public enum TriggerReactionKind
 public sealed record TriggerTestOutcome(
     string? Text = null,
     IReadOnlyList<SceneEffect>? Effects = null,
-    string? SceneId = null);
+    Guid? SceneId = null);
 
 public sealed record TriggerReactionDefinition(
     TriggerReactionKind Kind,
     string? Text = null,
-    string? NpcName = null,
-    string? SceneId = null,
+    Guid? NpcId = null,
+    Guid? SceneId = null,
     string? TestId = null,
     TriggerTestOutcome? OnSuccess = null,
     TriggerTestOutcome? OnFailure = null,
     IReadOnlyList<SceneEffect>? Effects = null);
 
+// WF-20/WF-26: a map room's own events. Id is the room's map id. They fire
+// every time, for anyone in the room.
+public sealed record PlaceDefinition(
+    Guid Id,
+    string DisplayName,
+    IReadOnlyList<TriggerDefinition> Triggers) : IRetirableDefinition
+{
+    public bool IsRetired { get; init; }
+}
+
 public sealed record TriggerDefinition(
-    // Unique within its owning encounter or mission; also the fire-once key.
-    string Key,
+    // WF-27: the listener's own id; a job's is also its fire-once key.
+    Guid Id,
     TriggerEventKind Event,
     IReadOnlyList<TriggerReactionDefinition> Reactions,
-    // Subject filters. A null filter means "any subject of this event kind";
-    // the loader enforces the ones an event genuinely needs.
-    string? RoomKey = null,
-    string? ItemKey = null,
-    string? NpcName = null,
-    string? InteractableName = null,
+    // WF-26: the map room the event happens in. Every event has one; a room's
+    // own events are in the room itself.
+    Guid RoomId,
+    // Subject filters, by id. A null filter means "any subject of this event
+    // kind"; the loader enforces the ones an event genuinely needs.
+    Guid? ItemId = null,
+    Guid? NpcId = null,
+    Guid? InteractableId = null,
     IReadOnlyList<SceneCondition>? Conditions = null,
-    // Fire-once is the default: an ambush that re-runs every time you walk
-    // back through the door is a bug, not content.
-    bool Repeatable = false);
+    // A job's listeners fire once per run unless repeatable; a room's always
+    // repeat.
+    bool Repeatable = false,
+    // WF-21: for an event that has one (a sneak attempt), only fire on this
+    // outcome. Null fires on either.
+    TriggerOutcome? Outcome = null,
+    // WF-26: what everyone else in a public room sees when a job's reaction
+    // reaches its runner privately. Null uses the engine's default.
+    string? OthersSee = null)
+{
+    // Events about the job itself: they only ever reach the job they are
+    // about, so no two jobs can contend for them.
+    public bool IsAboutTheJob => Event is TriggerEventKind.MissionAccepted or TriggerEventKind.EncounterEntered;
+}
+
+public enum TriggerOutcome
+{
+    Success,
+    Failure,
+}

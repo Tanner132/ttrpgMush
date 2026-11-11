@@ -9,7 +9,7 @@ namespace SeattleByNight.Application.GameEngine.Missions.Content;
 public sealed record GameContentDefinitionRecord(
     Guid Id,
     GameContentKind Kind,
-    string ContentKey,
+    Guid ContentKey,
     string DisplayName,
     GameContentStatus Status,
     string? PublishedJson,
@@ -42,11 +42,11 @@ public interface IGameContentStore
 
     // The content keys that are retired, by kind — the flag the provider
     // stamps onto the composed definitions.
-    Task<IReadOnlyDictionary<GameContentKind, IReadOnlySet<string>>> ListRetiredKeysAsync(
+    Task<IReadOnlyDictionary<GameContentKind, IReadOnlySet<Guid>>> ListRetiredKeysAsync(
         CancellationToken cancellationToken = default);
 
     Task<GameContentDefinitionRecord?> FindAsync(
-        GameContentKind kind, string contentKey, CancellationToken cancellationToken = default);
+        GameContentKind kind, Guid contentKey, CancellationToken cancellationToken = default);
 
     // Creates the definition or replaces its draft payload. Never touches the
     // published payload, so saving a draft can never disturb a running game.
@@ -55,7 +55,7 @@ public interface IGameContentStore
     // and exits already are.
     Task<GameContentDefinitionRecord> SaveDraftAsync(
         GameContentKind kind,
-        string contentKey,
+        Guid contentKey,
         string displayName,
         string draftJson,
         Guid actorUserId,
@@ -77,7 +77,16 @@ public interface IGameContentStore
     // write half of the delete gate, not the gate.
     Task DeleteAsync(
         GameContentKind kind,
-        string contentKey,
+        Guid contentKey,
         Guid actorUserId,
         CancellationToken cancellationToken = default);
+
+    // WF-22: runs a check-then-write against the corpus as one transaction,
+    // holding the corpus lock, so two storytellers cannot interleave — a
+    // delete's "nothing points at it" cannot race a publish that starts
+    // pointing at it, and a draft saved mid-publish cannot be what gets
+    // promoted unchecked. Re-entrant: inside it, the store's own writes join
+    // the open transaction.
+    Task<T> RunExclusiveAsync<T>(
+        Func<CancellationToken, Task<T>> work, CancellationToken cancellationToken = default);
 }

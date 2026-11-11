@@ -62,6 +62,10 @@ public sealed class CombatParticipant
 {
     public required Guid ActorId { get; init; }
 
+    // WF-27: for an NPC, the id content names it by (a run's NPC carries its
+    // placement's id); the player's own id otherwise.
+    public Guid ContentId { get; init; }
+
     public required bool IsNpc { get; init; }
 
     // Players only: keys the play session, decisions, and per-user SignalR

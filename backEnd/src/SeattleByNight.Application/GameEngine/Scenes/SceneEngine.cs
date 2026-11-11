@@ -126,7 +126,7 @@ public sealed class SceneEngine
 
     public Task<string> PresentAsync(
         SceneDefinition scene,
-        string nodeId,
+        Guid nodeId,
         SceneSessionSnapshot session,
         NpcSnapshot? npc,
         bool speakNodeText,
@@ -162,7 +162,7 @@ public sealed class SceneEngine
 
         // §24: talking to someone is an event content can react to.
         await EnqueueTriggerAsync(
-            context.Request, context.Session, TriggerEventKind.NpcSpokenTo, npcName: npc.Name,
+            context.Request, context.Session, TriggerEventKind.NpcSpokenTo, npcId: npc.ContentId,
             cancellationToken: cancellationToken);
 
         return GameActionOutcome.Final(null, message);
@@ -206,7 +206,7 @@ public sealed class SceneEngine
         }
 
         var choice = node.Choices.FirstOrDefault(candidate =>
-            SceneChoiceIds.Derive(session.Id, node.NodeId, candidate.ChoiceId) == context.Request.TargetId);
+            SceneChoiceIds.Derive(session.Id, candidate.Id) == context.Request.TargetId);
         if (choice is null)
         {
             return GameActionOutcome.Failure(GameActionError.TargetNotFound);
@@ -261,11 +261,11 @@ public sealed class SceneEngine
         // §24: what the choice DID is also a content event. The derivation is
         // shared with the trigger engine so the same effect raises the same
         // event wherever it was authored.
-        foreach (var raised in SceneEffectResolver.EventsFor(outcome.Effects, npc?.Name))
+        foreach (var raised in SceneEffectResolver.EventsFor(outcome.Effects, npc?.ContentId))
         {
             await EnqueueTriggerAsync(
                 context.Request, context.Session, raised.Event,
-                npcName: raised.NpcName, itemKey: raised.ItemKey,
+                npcId: raised.NpcId, itemId: raised.ItemId, missionId: raised.MissionId,
                 cancellationToken: cancellationToken);
         }
 
@@ -315,7 +315,7 @@ public sealed class SceneEngine
                 // reachable with an NPC is a runtime question — so it fails
                 // loudly here rather than rolling an unopposed "opposed" test.
                 throw new InvalidOperationException(
-                    $"Test '{definition.TestId}' is opposed, but scene choice '{choice.ChoiceId}' "
+                    $"Test '{definition.TestId}' is opposed, but scene choice '{choice.Label}' "
                         + "has no NPC to oppose it.");
             }
 
@@ -457,13 +457,13 @@ public sealed class SceneEngine
     private async Task<string> PresentNodeAsync(
         NpcSnapshot? npc,
         SceneDefinition scene,
-        string nodeId,
+        Guid nodeId,
         SceneSessionSnapshot session,
         bool speakNodeText,
         CancellationToken cancellationToken)
     {
         var node = scene.FindNode(nodeId)
-            ?? throw new InvalidOperationException($"Scene '{scene.Id}' has no node '{nodeId}'.");
+            ?? throw new InvalidOperationException($"Scene '{scene.DisplayName}' has no step {nodeId}.");
 
         if (speakNodeText)
         {
@@ -503,15 +503,16 @@ public sealed class SceneEngine
         GameActionRequest request,
         ActivePlaySession session,
         TriggerEventKind eventKind,
-        string? npcName = null,
-        string? itemKey = null,
+        Guid? npcId = null,
+        Guid? itemId = null,
+        Guid? missionId = null,
         CancellationToken cancellationToken = default)
     {
         var scopeId = await scopeResolver.ResolveScopeAsync(session.CurrentRoomId, cancellationToken);
         _ = queue.EnqueueAsync(
             scopeId,
             TriggerRequests.Build(
-                request, eventKind, npcName: npcName, itemKey: itemKey, roomId: session.CurrentRoomId),
+                request, eventKind, session.CurrentRoomId, npcId: npcId, itemId: itemId, missionId: missionId),
             CancellationToken.None);
     }
 

@@ -19,7 +19,7 @@ namespace SeattleByNight.Application.GameEngine.Npcs;
 public sealed record NpcPool(string PoolId, string DisplayName, int Dice);
 
 public sealed record NpcTemplate(
-    string TemplateId,
+    Guid TemplateId,
     string DisplayName,
     string Description,
     IReadOnlyDictionary<string, NpcPool> Pools,
@@ -151,6 +151,6 @@ public static class NpcPoolIds
 // the stat blocks themselves live in content.
 public static class NpcTemplateIds
 {
-    public const string StreetGanger = "street-ganger";
-    public const string MrJohnson = "mr-johnson";
+    public static readonly Guid StreetGanger = Missions.Content.ShippedContentIds.NpcTemplates.StreetGanger;
+    public static readonly Guid MrJohnson = Missions.Content.ShippedContentIds.NpcTemplates.MrJohnson;
 }

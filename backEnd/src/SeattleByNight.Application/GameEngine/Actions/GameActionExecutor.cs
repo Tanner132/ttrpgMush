@@ -417,12 +417,25 @@ public sealed class GameActionExecutor
             case DevelopmentGameTests.SneakPastId:
             {
                 var npc = target.Npc!;
+
+                // WF-21: content can react to the attempt either way — a
+                // guard who notices the runner slipping by, a camera that
+                // only fires on a failure.
+                var sneakScope = await scopeResolver.ResolveScopeAsync(session.CurrentRoomId, cancellationToken);
+                var sneakEvent = TriggerRequests.Build(
+                    request,
+                    TriggerEventKind.SneakAttempted,
+                    session.CurrentRoomId,
+                    npcId: npc.ContentId,
+                    outcome: resolution.Success ? TriggerOutcome.Success : TriggerOutcome.Failure);
+                void RaiseSneak() => _ = queue.EnqueueAsync(sneakScope, sneakEvent, CancellationToken.None);
+
                 if (resolution.Success)
                 {
-                    return ($"You slip past {npc.Name} unnoticed.", null);
+                    return ($"You slip past {npc.Name} unnoticed.", RaiseSneak);
                 }
 
-                Action? fireReaction = null;
+                Action? fireReaction = RaiseSneak;
                 if (npc.Awareness != NpcAwareness.Alerted
                     && !NpcDerivedValues.IsIncapacitated(npc, target.NpcTemplate!))
                 {
@@ -438,7 +451,11 @@ public sealed class GameActionExecutor
                         DevelopmentGameActions.NpcAlertActionId,
                         Depth: request.Depth + 1,
                         TargetId: npc.Id);
-                    fireReaction = () => _ = queue.EnqueueAsync(reactionScope, reaction, CancellationToken.None);
+                    fireReaction = () =>
+                    {
+                        RaiseSneak();
+                        _ = queue.EnqueueAsync(reactionScope, reaction, CancellationToken.None);
+                    };
                 }
 
                 return ($"{npc.Name} spots you — you've been made.", fireReaction);
@@ -472,34 +489,47 @@ public sealed class GameActionExecutor
 
                 var interactables = await roomContent.GetInteractablesInRoomAsync(
                     session.CurrentRoomId, cancellationToken);
+                var hiddenItems = await roomContent.GetHiddenItemsInRoomAsync(
+                    session.CurrentRoomId, cancellationToken);
                 var hidden = interactables.Where(interactable => interactable.IsHidden).ToList();
-                if (hidden.Count == 0)
+                if (hidden.Count == 0 && hiddenItems.Count == 0)
                 {
                     return (null, null);
                 }
-
-                var discovered = await roomContent.GetDiscoveredSubjectIdsAsync(
-                    session.CharacterId, DiscoverySubjectType.Interactable, cancellationToken);
 
                 // Hits gate discovery: anything whose threshold the (limited)
                 // hits reach is revealed at once (dev decision
-                // discovery.observe-area-threshold).
-                var revealed = hidden
-                    .Where(interactable => !discovered.Contains(interactable.Id)
-                        && interactable.DiscoveryThreshold <= resolution.LimitedHits)
-                    .ToList();
-                if (revealed.Count == 0)
+                // discovery.observe-area-threshold). WF-27: hidden items are
+                // found the same way as hidden inspectables.
+                var found = new List<string>();
+                if (hidden.Count > 0)
                 {
-                    return (null, null);
+                    var discovered = await roomContent.GetDiscoveredSubjectIdsAsync(
+                        session.CharacterId, DiscoverySubjectType.Interactable, cancellationToken);
+                    foreach (var interactable in hidden.Where(interactable => !discovered.Contains(interactable.Id)
+                        && interactable.DiscoveryThreshold <= resolution.LimitedHits))
+                    {
+                        changes.Add(new RecordDiscoveryChange(
+                            DiscoverySubjectType.Interactable, interactable.Id, interactable.Name));
+                        found.Add(interactable.Name);
+                    }
                 }
 
-                foreach (var interactable in revealed)
+                if (hiddenItems.Count > 0)
                 {
-                    changes.Add(new RecordDiscoveryChange(
-                        DiscoverySubjectType.Interactable, interactable.Id, interactable.Name));
+                    var discoveredItems = await roomContent.GetDiscoveredSubjectIdsAsync(
+                        session.CharacterId, DiscoverySubjectType.Item, cancellationToken);
+                    foreach (var item in hiddenItems.Where(item => !discoveredItems.Contains(item.Id)
+                        && item.DiscoveryThreshold <= resolution.LimitedHits))
+                    {
+                        changes.Add(new RecordDiscoveryChange(DiscoverySubjectType.Item, item.Id, item.Name));
+                        found.Add(item.Name);
+                    }
                 }
 
-                return ($"You notice: {string.Join(", ", revealed.Select(i => i.Name))}.", null);
+                return found.Count == 0
+                    ? (null, null)
+                    : ($"You notice: {string.Join(", ", found)}.", null);
             }
 
             default:
@@ -574,7 +604,7 @@ public sealed class GameActionExecutor
         {
             await EnqueueTriggerAsync(
                 request, session, TriggerEventKind.InteractableInspected,
-                interactableName: inspected.Name, cancellationToken: cancellationToken);
+                interactableId: inspected.ContentId, cancellationToken: cancellationToken);
         }
 
         return GameActionOutcome.Final(null, message ?? $"{definition.DisplayName} resolved.");
@@ -711,14 +741,13 @@ public sealed class GameActionExecutor
         GameActionRequest request,
         ActivePlaySession session,
         TriggerEventKind eventKind,
-        string? interactableName = null,
+        Guid? interactableId = null,
         CancellationToken cancellationToken = default)
     {
         var scopeId = await scopeResolver.ResolveScopeAsync(session.CurrentRoomId, cancellationToken);
         _ = queue.EnqueueAsync(
             scopeId,
-            TriggerRequests.Build(
-                request, eventKind, interactableName: interactableName, roomId: session.CurrentRoomId),
+            TriggerRequests.Build(request, eventKind, session.CurrentRoomId, interactableId: interactableId),
             CancellationToken.None);
     }
 

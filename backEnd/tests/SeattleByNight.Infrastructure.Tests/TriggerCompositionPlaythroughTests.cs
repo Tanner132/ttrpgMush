@@ -20,20 +20,10 @@ namespace SeattleByNight.Infrastructure.Tests;
 // and nothing lands on a player who has already walked away.
 public abstract class TriggerCompositionHarness : PlaythroughHarness
 {
-    protected const string MissionId = "gang-warehouse-retrieval";
-    protected const string EncounterId = "gang-warehouse";
+    protected static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
+    protected static readonly Guid EncounterId = ShippedContentIds.Encounters.GangWarehouse;
 
-    protected Task PublishEncounterTriggerAsync(string triggerJson) =>
-        PublishDefinitionAsync(GameContentKind.Encounter, EncounterId, encounter =>
-        {
-            if (encounter["triggers"] is not JsonArray triggers)
-            {
-                triggers = [];
-                encounter["triggers"] = triggers;
-            }
-
-            triggers.Add(JsonNode.Parse(triggerJson));
-        });
+    protected Task PublishEncounterTriggerAsync(string triggerJson) => PublishJobTriggerAsync(triggerJson);
 
     protected async Task<Guid> AcceptAndEnterAsync()
     {
@@ -164,7 +154,7 @@ public sealed class ComposedReactionPlaythroughTests : TriggerCompositionHarness
         await MoveAsync(await FindExitAsync(await CurrentRoomAsync(), "north"));
 
         await WaitUntilAsync(
-            async db => await db.TriggerFires.AnyAsync(fire => fire.TriggerKey == "pallet-collapse"),
+            async db => await db.TriggerFires.AnyAsync(fire => fire.TriggerId == LegacyContentFixtures.TriggerId("gang-warehouse-retrieval", "pallet-collapse")),
             "the pallet trigger to fire");
 
         await using (var verify = Db())
@@ -196,42 +186,59 @@ public sealed class ComposedReactionPlaythroughTests : TriggerCompositionHarness
         Assert.True(narration < speech, "the NPC spoke before the narration it was written after");
     }
 
-    private sealed class RecordingBroadcaster : IGameMessageBroadcaster
+    // WF-4: the tally used to live inside one effects list, so a test branch's
+    // damage and a later applyEffects' damage each wrote an absolute total from
+    // the same starting snapshot, and the last one written won.
+    [Fact]
+    public async Task Damage_stacks_across_separate_reactions_of_one_trigger()
     {
-        private readonly List<RoomMessage> messages = [];
-
-        public void Clear()
-        {
-            lock (messages)
+        await PublishEncounterTriggerAsync("""
             {
-                messages.Clear();
+              "key": "tripwire",
+              "event": "playerEnteredRoom",
+              "roomKey": "warehouse-floor",
+              "reactions": [
+                {
+                  "kind": "runTest", "testId": "read-shipping-records",
+                  "onSuccess": { "text": "You step over the wire." },
+                  "onFailure": {
+                    "text": "A tripwire drops a crate on you.",
+                    "effects": [ { "kind": "dealDamage", "damage": 3, "damageType": "physical" } ]
+                  }
+                },
+                {
+                  "kind": "applyEffects",
+                  "effects": [ { "kind": "dealDamage", "damage": 2, "damageType": "physical" } ]
+                }
+              ]
             }
+            """);
+
+        await AcceptAndEnterAsync();
+
+        int baseline;
+        await using (var db = Db())
+        {
+            baseline = await db.CharacterRuntimeStates.AsNoTracking()
+                .Where(state => state.CharacterId == CharacterId)
+                .Select(state => state.PhysicalDamage)
+                .SingleAsync();
         }
 
-        public List<RoomMessage> Snapshot()
-        {
-            lock (messages)
-            {
-                return [.. messages];
-            }
-        }
+        // No hits against a threshold of 1: the failure branch runs.
+        Roller.Enqueue(1, 2, 3, 4);
+        await MoveAsync(await FindExitAsync(await CurrentRoomAsync(), "north"));
 
-        public Task BroadcastAsync(RoomMessage message, CancellationToken cancellationToken = default)
-        {
-            lock (messages)
-            {
-                messages.Add(message);
-            }
+        await WaitUntilAsync(
+            async db => await db.TriggerFires.AnyAsync(fire => fire.TriggerId == LegacyContentFixtures.TriggerId("gang-warehouse-retrieval", "tripwire")),
+            "the tripwire trigger to fire");
 
-            return Task.CompletedTask;
-        }
-
-        public Task BroadcastCombatAsync(CombatView view, CancellationToken cancellationToken = default) =>
-            Task.CompletedTask;
-
-        public Task NotifyDecisionAsync(
-            Guid userId, PendingDecisionInfo decision, CancellationToken cancellationToken = default) =>
-            Task.CompletedTask;
+        await using var verify = Db();
+        var damage = await verify.CharacterRuntimeStates.AsNoTracking()
+            .Where(state => state.CharacterId == CharacterId)
+            .Select(state => state.PhysicalDamage)
+            .SingleAsync();
+        Assert.Equal(baseline + 5, damage);
     }
 }
 
@@ -270,7 +277,7 @@ public sealed class MultiTestTriggerAuditPlaythroughTests : TriggerCompositionHa
         await WalkToStorageRoomAsync();
 
         await WaitUntilAsync(
-            async db => await db.TriggerFires.AnyAsync(fire => fire.TriggerKey == "double-check"),
+            async db => await db.TriggerFires.AnyAsync(fire => fire.TriggerId == LegacyContentFixtures.TriggerId("gang-warehouse-retrieval", "double-check")),
             "the double-check trigger to fire");
 
         await using var verify = Db();
@@ -309,7 +316,7 @@ public sealed class RetiredSceneTriggerPlaythroughTests : TriggerCompositionHarn
         {
             var lifecycle = scope.ServiceProvider.GetRequiredService<GameContentLifecycle>();
             var retired = await lifecycle.RetireAsync(
-                GameContentKind.Scene, "warehouse-hallway-ambush", DevelopmentDataSeeder.DevUserId);
+                GameContentKind.Scene, ShippedContentIds.Scenes.WarehouseHallwayAmbush, DevelopmentDataSeeder.DevUserId);
             Assert.True(retired.IsSuccess, retired.Error);
         }
 
@@ -319,7 +326,7 @@ public sealed class RetiredSceneTriggerPlaythroughTests : TriggerCompositionHarn
         // it can no longer do is put a retired conversation in front of anyone.
         await MoveAsync(await FindExitAsync(await CurrentRoomAsync(), "east"));
         await WaitUntilAsync(
-            async db => await db.TriggerFires.AnyAsync(fire => fire.TriggerKey == "hallway-ambush"),
+            async db => await db.TriggerFires.AnyAsync(fire => fire.TriggerId == ShippedContentIds.Triggers.HallwayAmbush),
             "the hallway ambush trigger to fire");
 
         await using var verify = Db();
@@ -335,6 +342,10 @@ public sealed class AdminAssignmentEventPlaythroughTests : TriggerCompositionHar
     [Fact]
     public async Task Assigning_a_mission_raises_missionAccepted_so_its_trigger_fires()
     {
+        // WF-26: the event happens where the character is, and the shipped
+        // listener is in the Johnson's coffee shop — so that is where they
+        // stand when the job is handed out.
+        await MoveAsync(DevelopmentDataSeeder.DowntownToCoffeeExitId);
         Guid missionInstanceId;
         await using (var scope = Provider.CreateAsyncScope())
         {
@@ -356,12 +367,13 @@ public sealed class AdminAssignmentEventPlaythroughTests : TriggerCompositionHar
             await queue.EnqueueAsync(
                 await resolver.ResolveScopeAsync(session.CurrentRoomId),
                 TriggerRequests.BuildRoot(
-                    session.UserId, TriggerEventKind.MissionAccepted, roomId: session.CurrentRoomId));
+                    session.UserId, TriggerEventKind.MissionAccepted, roomId: session.CurrentRoomId,
+                    missionId: MissionId));
         }
 
         await WaitUntilAsync(
             async db => await db.TriggerFires.AnyAsync(
-                fire => fire.MissionInstanceId == missionInstanceId && fire.TriggerKey == "advance-cleared"),
+                fire => fire.MissionInstanceId == missionInstanceId && fire.TriggerId == ShippedContentIds.Triggers.AdvanceCleared),
             "the advance-cleared mission trigger to fire");
     }
 }
@@ -381,7 +393,7 @@ public sealed class StaleEventPlaythroughTests : TriggerCompositionHarness
         await using (var db = Db())
         {
             hallwayId = await db.Rooms
-                .Where(room => room.Name == "Back Hallway")
+                .Where(room => room.Name == "Back Hallway" && room.EncounterInstanceId != null)
                 .Select(room => room.Id)
                 .SingleAsync();
         }
@@ -395,15 +407,152 @@ public sealed class StaleEventPlaythroughTests : TriggerCompositionHarness
             await queue.EnqueueAsync(
                 await resolver.ResolveScopeAsync(hallwayId),
                 TriggerRequests.BuildRoot(
-                    UserId, TriggerEventKind.PlayerEnteredRoom, "back-hallway", roomId: hallwayId));
+                    UserId, TriggerEventKind.PlayerEnteredRoom, roomId: hallwayId));
         }
 
         // Quiesce the encounter's scope behind the stale event.
         await ActAsync(Application.GameEngine.Tests.DevelopmentGameTests.ObserveAreaId);
 
         await using var verify = Db();
-        Assert.False(await verify.TriggerFires.AnyAsync(fire => fire.TriggerKey == "hallway-ambush"));
+        Assert.False(await verify.TriggerFires.AnyAsync(fire => fire.TriggerId == ShippedContentIds.Triggers.HallwayAmbush));
         Assert.False(await verify.SceneSessions.AnyAsync(session => session.CharacterId == CharacterId));
         Assert.Equal(dockId, await CurrentRoomAsync());
     }
+}
+
+// WF-6: an event that is not about walking into a room still happened even if
+// the player has moved on by the time it is consumed. A fire-once trigger that
+// missed it could never fire again, so its consequences land; only what needs
+// the player standing there (lines in the room, a scene) is skipped.
+public sealed class OffstageEventPlaythroughTests : TriggerCompositionHarness
+{
+    private readonly RecordingBroadcaster recorder = new();
+
+    protected override IGameMessageBroadcaster CreateBroadcaster() => recorder;
+
+    [Fact]
+    public async Task A_defeat_consumed_after_the_player_left_still_applies_its_consequences_but_not_its_flavor()
+    {
+        await PublishEncounterTriggerAsync("""
+            {
+              "key": "enforcer-down",
+              "event": "npcDefeated",
+              "roomKey": "back-hallway",
+              "npcName": "Hallway Enforcer",
+              "reactions": [
+                { "kind": "narrate", "text": "The enforcer's radio crackles on the floor." },
+                { "kind": "openScene", "sceneId": "warehouse-hallway-ambush" },
+                {
+                  "kind": "applyEffects",
+                  "effects": [ { "kind": "dealDamage", "damage": 1, "damageType": "stun" } ]
+                }
+              ]
+            }
+            """);
+
+        await AcceptAndEnterAsync();
+
+        Guid hallwayId;
+        int baselineStun;
+        await using (var db = Db())
+        {
+            hallwayId = await db.Rooms
+                .Where(room => room.Name == "Back Hallway" && room.EncounterInstanceId != null)
+                .Select(room => room.Id)
+                .SingleAsync();
+            baselineStun = await db.CharacterRuntimeStates.AsNoTracking()
+                .Where(state => state.CharacterId == CharacterId)
+                .Select(state => state.StunDamage)
+                .SingleAsync();
+        }
+
+        recorder.Clear();
+
+        // The hallway enforcer's defeat, consumed while the player stands on
+        // the dock: the shape a defeat-then-walk-away race produces.
+        await using (var scope = Provider.CreateAsyncScope())
+        {
+            var queue = scope.ServiceProvider.GetRequiredService<IGameCommandQueue>();
+            var resolver = scope.ServiceProvider.GetRequiredService<IGameScopeResolver>();
+            await queue.EnqueueAsync(
+                await resolver.ResolveScopeAsync(hallwayId),
+                TriggerRequests.BuildRoot(
+                    UserId, TriggerEventKind.NpcDefeated, roomId: hallwayId, npcId: ShippedContentIds.SiteNpcs.HallwayEnforcer));
+        }
+
+        await WaitUntilAsync(
+            async db => await db.TriggerFires.AnyAsync(fire => fire.TriggerId == LegacyContentFixtures.TriggerId("gang-warehouse-retrieval", "enforcer-down")),
+            "the defeat trigger to fire even though the player had left");
+
+        await using var verify = Db();
+        var stun = await verify.CharacterRuntimeStates.AsNoTracking()
+            .Where(state => state.CharacterId == CharacterId)
+            .Select(state => state.StunDamage)
+            .SingleAsync();
+        Assert.Equal(baselineStun + 1, stun);
+
+        Assert.False(await verify.SceneSessions.AnyAsync(session => session.CharacterId == CharacterId));
+        Assert.DoesNotContain(
+            recorder.Snapshot(),
+            message => message.Content.StartsWith("The enforcer's radio", StringComparison.Ordinal));
+    }
+}
+
+internal sealed class RecordingBroadcaster : IGameMessageBroadcaster
+{
+    // Everything said, in order; Recipient is null for the whole room, or the
+    // one user a private line went to (WF-26).
+    private readonly List<(RoomMessage Message, Guid? Recipient)> messages = [];
+
+    public void Clear()
+    {
+        lock (messages)
+        {
+            messages.Clear();
+        }
+    }
+
+    // Every line, public or private.
+    public List<RoomMessage> Snapshot()
+    {
+        lock (messages)
+        {
+            return [.. messages.Select(entry => entry.Message)];
+        }
+    }
+
+    public List<(RoomMessage Message, Guid? Recipient)> Deliveries()
+    {
+        lock (messages)
+        {
+            return [.. messages];
+        }
+    }
+
+    public Task BroadcastAsync(RoomMessage message, CancellationToken cancellationToken = default)
+    {
+        lock (messages)
+        {
+            messages.Add((message, null));
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendToUserAsync(Guid userId, RoomMessage message, CancellationToken cancellationToken = default)
+    {
+        lock (messages)
+        {
+            messages.Add((message, userId));
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task BroadcastCombatAsync(CombatView view, CancellationToken cancellationToken = default) =>
+        Task.CompletedTask;
+
+    public Task NotifyDecisionAsync(
+        Guid userId, PendingDecisionInfo decision, CancellationToken cancellationToken = default) =>
+        Task.CompletedTask;
 }

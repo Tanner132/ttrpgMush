@@ -12,8 +12,12 @@ import { useAccount } from './auth/useAccount.ts'
 
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage.tsx'))
 const AdminAuditPage = lazy(() => import('./pages/admin/AdminAuditPage.tsx'))
-const WorldEditorPage = lazy(() => import('./pages/admin/WorldEditorPage.tsx'))
-const WorldForgePage = lazy(() => import('./pages/admin/WorldForgePage.tsx'))
+const ForgeShell = lazy(() => import('./forge/ForgeShell.tsx'))
+const ForgeHome = lazy(() => import('./forge/ForgeHome.tsx'))
+const PlacesPage = lazy(() => import('./forge/places/PlacesPage.tsx'))
+const JobsPage = lazy(() => import('./forge/jobs/JobsPage.tsx'))
+const JobEditorPage = lazy(() => import('./forge/jobs/JobEditor.tsx'))
+const LibraryPage = lazy(() => import('./forge/library/LibraryPage.tsx'))
 const MethodSelectionPage = lazy(() => import('./components/characterCreation/MethodSelectionPage.tsx'))
 const CreatorShellPage = lazy(() => import('./pages/characterCreation/CreatorShellPage.tsx'))
 const CharacterSheetPage = lazy(() => import('./pages/CharacterSheetPage.tsx'))
@@ -41,8 +45,20 @@ export default function App() {
               <Route path="/admin/audit" element={<AdminAuditPage />} />
             </Route>
             <Route element={<WorldEditorRoute />}>
-              <Route path="/admin/world" element={<WorldEditorPage />} />
-              <Route path="/admin/forge" element={<WorldForgePage />} />
+              {/* The World Forge redesign replaces the old world editor; its map is Places. */}
+              <Route path="/admin/world" element={<Navigate to="/admin/forge/places" replace />} />
+              <Route path="/admin/forge" element={<ForgeShell />}>
+                <Route index element={<ForgeHome />} />
+                <Route path="places" element={<PlacesPage />} />
+                <Route path="jobs" element={<JobsPage />} />
+                <Route path="jobs/:id" element={<JobEditorPage />} />
+                <Route path="jobs/:id/:step" element={<JobEditorPage />} />
+                <Route path="library" element={<Navigate to="/admin/forge/library/stat-blocks" replace />} />
+                <Route path="library/stat-blocks" element={<LibraryPage shelf="stat-blocks" />} />
+                <Route path="library/stat-blocks/:id" element={<LibraryPage shelf="stat-blocks" />} />
+                <Route path="library/dice-tests" element={<LibraryPage shelf="dice-tests" />} />
+                <Route path="library/dice-tests/:id" element={<LibraryPage shelf="dice-tests" />} />
+              </Route>
             </Route>
           </Route>
           <Route path="/" element={<RootRedirect />} />

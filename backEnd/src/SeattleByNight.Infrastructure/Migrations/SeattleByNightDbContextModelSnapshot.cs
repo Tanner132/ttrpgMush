@@ -879,10 +879,8 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at_utc");
 
-                    b.Property<string>("EncounterId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                    b.Property<Guid>("EncounterId")
+                        .HasColumnType("uuid")
                         .HasColumnName("encounter_id");
 
                     b.Property<Guid>("EntryRoomId")
@@ -958,10 +956,8 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<string>("ContentKey")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                    b.Property<Guid>("ContentKey")
+                        .HasColumnType("uuid")
                         .HasColumnName("content_key");
 
                     b.Property<DateTimeOffset>("CreatedAtUtc")
@@ -1089,10 +1085,8 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("completed_at_utc");
 
-                    b.Property<string>("MissionId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                    b.Property<Guid>("MissionId")
+                        .HasColumnType("uuid")
                         .HasColumnName("mission_id");
 
                     b.Property<int?>("NegotiatedNuyen")
@@ -1161,19 +1155,20 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("room_id");
 
-                    b.Property<string>("SceneId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                    b.Property<Guid?>("SceneId")
+                        .HasColumnType("uuid")
                         .HasColumnName("scene_id");
+
+                    b.Property<Guid?>("SourceNpcId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_npc_id");
 
                     b.Property<int>("StunDamage")
                         .HasColumnType("integer")
                         .HasColumnName("stun_damage");
 
-                    b.Property<string>("TemplateId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
                         .HasColumnName("template_id");
 
                     b.Property<DateTimeOffset>("UpdatedAtUtc")
@@ -1242,11 +1237,6 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("access_type");
 
-                    b.Property<string>("ContentKey")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("content_key");
-
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at_utc");
@@ -1282,6 +1272,10 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("character varying(120)")
                         .HasColumnName("name");
 
+                    b.Property<Guid?>("SourceRoomId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_room_id");
+
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("uuid")
@@ -1291,6 +1285,8 @@ namespace SeattleByNight.Infrastructure.Migrations
 
                     b.HasIndex("EncounterInstanceId")
                         .HasDatabaseName("ix_rooms_encounter_instance");
+
+                    b.HasIndex("SourceRoomId");
 
                     b.HasIndex("MapLayer", "MapX", "MapY")
                         .IsUnique()
@@ -1386,6 +1382,10 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("room_id");
 
+                    b.Property<Guid?>("SourceInteractableId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_interactable_id");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RoomId")
@@ -1449,10 +1449,8 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at_utc");
 
-                    b.Property<string>("CurrentNodeId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                    b.Property<Guid>("CurrentNodeId")
+                        .HasColumnType("uuid")
                         .HasColumnName("current_node_id");
 
                     b.Property<Guid?>("NpcInstanceId")
@@ -1467,10 +1465,8 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("room_id");
 
-                    b.Property<string>("SceneId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                    b.Property<Guid>("SceneId")
+                        .HasColumnType("uuid")
                         .HasColumnName("scene_id");
 
                     b.Property<DateTimeOffset>("UpdatedAtUtc")
@@ -1506,17 +1502,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("mission_instance_id");
 
-                    b.Property<string>("TriggerKey")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("trigger_key");
+                    b.Property<Guid>("TriggerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("trigger_id");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MissionInstanceId");
 
-                    b.HasIndex("CharacterId", "MissionInstanceId", "TriggerKey")
+                    b.HasIndex("CharacterId", "MissionInstanceId", "TriggerId")
                         .IsUnique()
                         .HasDatabaseName("ux_trigger_fires_character_mission_key");
 
@@ -1539,6 +1533,10 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("description");
 
+                    b.Property<int>("DiscoveryThreshold")
+                        .HasColumnType("integer")
+                        .HasColumnName("discovery_threshold");
+
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -1549,11 +1547,13 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("encounter_instance_id");
 
-                    b.Property<string>("ItemKey")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("item_key");
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_hidden");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
 
                     b.Property<Guid?>("MissionInstanceId")
                         .HasColumnType("uuid")
@@ -1937,6 +1937,11 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("EncounterInstanceId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SeattleByNight.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("SourceRoomId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.RoomExit", b =>

@@ -50,16 +50,33 @@ public sealed class GameCommandQueue : IGameCommandQueue
 
     private sealed class ScopeState
     {
+        public ScopeState(DateTimeOffset createdAt)
+        {
+            // A brand-new scope counts as just used. Starting at zero made it
+            // idle-eligible the instant it existed, so a sweep landing between
+            // its creation and its first write could reclaim it out from under
+            // the caller that created it.
+            lastActivityTicks = createdAt.UtcTicks;
+        }
+
         public Channel<QueuedCommand> Channel { get; } =
             System.Threading.Channels.Channel.CreateUnbounded<QueuedCommand>(
                 new UnboundedChannelOptions { SingleReader = true });
 
         public ConcurrentDictionary<Guid, ProcessedEntry> Processed { get; } = new();
 
+        // Guards the pair "decide this scope is idle and close it" against the
+        // pair "count a command in and write it". Without it a writer could
+        // slip a command into the channel between the sweeper's idle check and
+        // its close: the orphaned consumer would still drain that command while
+        // the next caller started a second consumer for the same scope — two
+        // actions in one scope at once, the reentrancy this queue exists to
+        // prevent.
+        public object Gate { get; } = new();
+
         // Commands written but not yet finished. A scope is only reclaimable
         // at zero: reclaiming one whose consumer is mid-action would let the
-        // next command start a SECOND consumer for the same scope, and two
-        // consumers is exactly the reentrancy the queue exists to prevent.
+        // next command start a SECOND consumer for the same scope.
         private int inFlight;
 
         private long lastActivityTicks;
@@ -75,12 +92,15 @@ public sealed class GameCommandQueue : IGameCommandQueue
 
         public void Left() => Interlocked.Decrement(ref inFlight);
 
-        // Set once the scope has been taken out of the map and its channel
-        // closed. A caller that grabbed it just before sees this and retries.
-        public volatile bool Reclaimed;
+        // Set, under Gate, once the scope's channel has been closed. A caller
+        // that grabbed the scope just before sees this and retries on a fresh
+        // scope; its command was never written, so nothing runs twice.
+        public bool Reclaimed;
     }
 
-    private sealed record ProcessedEntry(Lazy<Task<GameActionOutcome>> Outcome, DateTimeOffset EnqueuedAtUtc);
+    // Outcome is null when the scope was reclaimed before the command could be
+    // written: the caller retries on a fresh scope.
+    private sealed record ProcessedEntry(Lazy<Task<GameActionOutcome>?> Outcome, DateTimeOffset EnqueuedAtUtc);
 
     private readonly ConcurrentDictionary<Guid, ScopeState> scopes = new();
     private readonly IServiceScopeFactory scopeFactory;
@@ -115,12 +135,13 @@ public sealed class GameCommandQueue : IGameCommandQueue
         var now = timeProvider.GetUtcNow();
         MaybePruneScopes(now);
 
-        // Two attempts, because a scope can be reclaimed between the lookup
-        // and the write. The second attempt runs against a scope that was
-        // created after the reclamation, so it cannot lose the same race twice.
-        for (var attempt = 0; ; attempt++)
+        // A scope can be reclaimed between the lookup and the write. When that
+        // happens the write is refused (nothing was queued), and the caller
+        // retries on a freshly created scope — which cannot be reclaimed again
+        // until it has sat idle for IdleScopeRetention, so this terminates.
+        while (true)
         {
-            var scope = scopes.GetOrAdd(scopeId, id => StartScope(id));
+            var scope = scopes.GetOrAdd(scopeId, _ => StartScope(scopeId, now));
             scope.Touch(now);
             PruneProcessed(scope, now);
 
@@ -128,27 +149,27 @@ public sealed class GameCommandQueue : IGameCommandQueue
             var entry = scope.Processed.GetOrAdd(
                 request.RequestId,
                 _ => new ProcessedEntry(
-                    new Lazy<Task<GameActionOutcome>>(
+                    new Lazy<Task<GameActionOutcome>?>(
                         () => Enqueue(scope, request),
                         LazyThreadSafetyMode.ExecutionAndPublication),
                     now));
 
             var outcome = entry.Outcome.Value;
-            if (attempt > 0 || !scope.Reclaimed)
+            if (outcome is not null)
             {
                 return outcome;
             }
 
-            // The scope was closed under us; forget it and its half-written
-            // command, and start again on a live one.
+            // The scope was closed under us before our command went in; drop
+            // it from the map (if the sweeper has not already) and go again.
             scopes.TryRemove(new KeyValuePair<Guid, ScopeState>(scopeId, scope));
         }
     }
 
-    // Reclaims scopes with nothing queued and nothing running. Removal happens
-    // BEFORE the channel is closed, so a caller that already holds the scope
-    // is the only one that can race the close — and EnqueueAsync retries when
-    // it does.
+    // Reclaims scopes with nothing queued and nothing running. The idle check
+    // and the close happen together under the scope's Gate, so no command can
+    // be written in between; a caller that already holds the scope finds it
+    // Reclaimed and retries on a fresh one.
     private void MaybePruneScopes(DateTimeOffset now)
     {
         var last = Interlocked.Read(ref lastScopeSweepTicks);
@@ -165,37 +186,53 @@ public sealed class GameCommandQueue : IGameCommandQueue
 
         foreach (var pair in scopes)
         {
-            if (!pair.Value.IsIdle(now, IdleScopeRetention))
+            var scope = pair.Value;
+            lock (scope.Gate)
             {
-                continue;
+                if (scope.Reclaimed || !scope.IsIdle(now, IdleScopeRetention))
+                {
+                    continue;
+                }
+
+                scope.Reclaimed = true;
+                scope.Channel.Writer.TryComplete();
             }
 
-            if (scopes.TryRemove(pair))
-            {
-                pair.Value.Reclaimed = true;
-                pair.Value.Channel.Writer.TryComplete();
-            }
+            scopes.TryRemove(pair);
         }
     }
 
-    private ScopeState StartScope(Guid scopeId)
+    private ScopeState StartScope(Guid scopeId, DateTimeOffset now)
     {
-        var scope = new ScopeState();
+        var scope = new ScopeState(now);
         _ = Task.Run(() => ConsumeAsync(scopeId, scope));
         return scope;
     }
 
-    private static Task<GameActionOutcome> Enqueue(ScopeState scope, GameActionRequest request)
+    // Null when the scope has already been reclaimed: nothing was written, and
+    // the caller must retry on a fresh scope.
+    private static Task<GameActionOutcome>? Enqueue(ScopeState scope, GameActionRequest request)
     {
         var command = new QueuedCommand(
             request,
             new TaskCompletionSource<GameActionOutcome>(TaskCreationOptions.RunContinuationsAsynchronously));
 
-        scope.Entered();
-        if (!scope.Channel.Writer.TryWrite(command))
+        lock (scope.Gate)
         {
-            scope.Left();
-            command.InitialOutcome.TrySetResult(GameActionOutcome.Failure(GameActionError.ActionFailed));
+            if (scope.Reclaimed)
+            {
+                return null;
+            }
+
+            scope.Entered();
+            if (!scope.Channel.Writer.TryWrite(command))
+            {
+                // Unreachable while Reclaimed is the only thing that completes
+                // the writer, but an unbounded channel refusing a write must
+                // still answer the caller rather than hang it.
+                scope.Left();
+                command.InitialOutcome.TrySetResult(GameActionOutcome.Failure(GameActionError.ActionFailed));
+            }
         }
 
         return command.InitialOutcome.Task;

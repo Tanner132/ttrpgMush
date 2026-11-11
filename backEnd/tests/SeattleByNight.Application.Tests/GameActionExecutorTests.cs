@@ -4,6 +4,7 @@ using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Scenes;
 using SeattleByNight.Application.GameEngine.Effects;
 using SeattleByNight.Application.GameEngine.Missions;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Rooms;
 using SeattleByNight.Application.GameEngine.Resolution;
@@ -340,7 +341,13 @@ public sealed class GameActionExecutorTests
 
         Assert.True(outcome.Resolution!.Success);
         Assert.Equal("You slip past Razor unnoticed.", outcome.Message);
-        Assert.Empty(harness.Queue.Enqueued);
+
+        // No alert — only the sneak itself, raised for content (WF-21).
+        var (_, raised) = Assert.Single(harness.Queue.Enqueued);
+        Assert.Equal(DevelopmentGameActions.FireTriggersActionId, raised.ActionId);
+        Assert.Equal(TriggerEventKind.SneakAttempted, raised.TriggerEvent!.Event);
+        Assert.Equal(npc.Id, raised.TriggerEvent.NpcId);
+        Assert.Equal(TriggerOutcome.Success, raised.TriggerEvent.Outcome);
     }
 
     // §24: a failed sneak fires the npc-alert reaction at Depth + 1, enqueued
@@ -358,7 +365,10 @@ public sealed class GameActionExecutorTests
         Assert.False(outcome.Resolution!.Success);
         Assert.Equal("Razor spots you — you've been made.", outcome.Message);
 
-        var (scopeId, reaction) = Assert.Single(harness.Queue.Enqueued);
+        // The sneak is raised for content first (WF-21), then the alert.
+        Assert.Equal(2, harness.Queue.Enqueued.Count);
+        Assert.Equal(TriggerOutcome.Failure, harness.Queue.Enqueued.ToArray()[0].Request.TriggerEvent!.Outcome);
+        var (scopeId, reaction) = harness.Queue.Enqueued.ToArray()[1];
         Assert.Equal(npc.RoomId, scopeId);
         Assert.Equal(DevelopmentGameActions.NpcAlertActionId, reaction.ActionId);
         Assert.Equal(1, reaction.Depth);
@@ -376,7 +386,8 @@ public sealed class GameActionExecutorTests
         var outcome = await harness.RunAsync(SneakPastId, targetId: npc.Id);
 
         Assert.Equal("Razor spots you — you've been made.", outcome.Message);
-        Assert.Empty(harness.Queue.Enqueued);
+        var (_, raised) = Assert.Single(harness.Queue.Enqueued);
+        Assert.Equal(DevelopmentGameActions.FireTriggersActionId, raised.ActionId);
     }
 
     [Fact]
@@ -409,6 +420,25 @@ public sealed class GameActionExecutorTests
         var discovery = Assert.Single(harness.Applier.AllChanges.OfType<RecordDiscoveryChange>());
         Assert.Equal(safe.Id, discovery.SubjectId);
         Assert.Equal(DiscoverySubjectType.Interactable, discovery.SubjectType);
+    }
+
+    // WF-27: a search finds hidden items the same way, by threshold, and
+    // records each find for this character alone.
+    [Fact]
+    public async Task Observe_area_reveals_hidden_items_the_hits_reach()
+    {
+        var harness = new Harness();
+        var keycard = new HiddenItemSnapshot(Guid.NewGuid(), "Scuffed Keycard", 2);
+        harness.RoomContent.HiddenItems.Add((harness.RoomId, keycard));
+        harness.RoomContent.HiddenItems.Add((harness.RoomId, new HiddenItemSnapshot(Guid.NewGuid(), "Taped Envelope", 5)));
+        harness.Roller.Enqueue(6, 5, 5); // 3 hits: reaches 2, not 5
+
+        var outcome = await harness.RunAsync(ObserveAreaId);
+
+        Assert.Equal("You notice: Scuffed Keycard.", outcome.Message);
+        var discovery = Assert.Single(harness.Applier.AllChanges.OfType<RecordDiscoveryChange>());
+        Assert.Equal(keycard.Id, discovery.SubjectId);
+        Assert.Equal(DiscoverySubjectType.Item, discovery.SubjectType);
     }
 
     [Fact]

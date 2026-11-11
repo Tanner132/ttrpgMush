@@ -10,8 +10,7 @@ public sealed class TriggerFire
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid CharacterId { get; set; }
     public Guid MissionInstanceId { get; set; }
-    // The trigger's authored key, unique within its owning encounter or
-    // mission.
-    public string TriggerKey { get; set; } = string.Empty;
+    // WF-27: the listener's id.
+    public Guid TriggerId { get; set; }
     public DateTimeOffset FiredAtUtc { get; set; }
 }

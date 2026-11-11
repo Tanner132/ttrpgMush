@@ -17,7 +17,7 @@ namespace SeattleByNight.Infrastructure.Tests;
 // refusing content the loader would reject.
 public sealed class GameContentPipelineTests : IAsyncLifetime
 {
-    private const string MissionKey = "gang-warehouse-retrieval";
+    private static readonly Guid MissionKey = ShippedContentIds.Missions.GangWarehouseRetrieval;
 
     // Content writes are audited against a real account, so the fixture edits
     // as the seeded dev administrator rather than an invented id.
@@ -99,12 +99,11 @@ public sealed class GameContentPipelineTests : IAsyncLifetime
         Assert.Equal(authored.EntryLinkRoomId, mission.EntryLinkRoomId);
         Assert.Equal(authored.Rewards, mission.Rewards);
         Assert.Equal(
-            authored.Objectives.Select(objective => (objective.Key, objective.Kind, objective.ItemKey)),
-            mission.Objectives.Select(objective => (objective.Key, objective.Kind, objective.ItemKey)));
+            authored.Objectives.Select(objective => (objective.Id, objective.Kind, objective.ItemId)),
+            mission.Objectives.Select(objective => (objective.Id, objective.Kind, objective.ItemId)));
     }
 
-    private static string[] Keys(IEnumerable<string> ids) =>
-        ids.OrderBy(id => id, StringComparer.Ordinal).ToArray();
+    private static Guid[] Keys(IEnumerable<Guid> ids) => ids.Order().ToArray();
 
     [Fact]
     public async Task SavingADraft_LeavesTheRunningGameUntouched()
@@ -158,19 +157,19 @@ public sealed class GameContentPipelineTests : IAsyncLifetime
 
         // Names an encounter nothing declares — the same reference-integrity
         // check the embedded bundle gets at startup.
-        await store.SaveDraftAsync(GameContentKind.Mission, "ghost-job", "Ghost Job", GhostJobJson, Actor);
+        await store.SaveDraftAsync(GameContentKind.Mission, GhostJob, "Ghost Job", GhostJobJson, Actor);
 
-        var result = await publisher.PublishAsync(GameContentKind.Mission, "ghost-job", Actor);
+        var result = await publisher.PublishAsync(GameContentKind.Mission, GhostJob, Actor);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("unknown encounter 'nowhere'", result.Error);
+        Assert.Contains("Job 'Ghost Job' names a job site that does not exist", result.Error);
 
-        var refused = await store.FindAsync(GameContentKind.Mission, "ghost-job");
+        var refused = await store.FindAsync(GameContentKind.Mission, GhostJob);
         Assert.Equal(GameContentStatus.Draft, refused!.Status);
         Assert.Null(refused.PublishedJson);
 
         await content.ReloadAsync();
-        Assert.Null(content.Current.FindMission("ghost-job"));
+        Assert.Null(content.Current.FindMission(GhostJob));
     }
 
     [Fact]
@@ -180,14 +179,15 @@ public sealed class GameContentPipelineTests : IAsyncLifetime
         var store = scope.ServiceProvider.GetRequiredService<IGameContentStore>();
         var publisher = scope.ServiceProvider.GetRequiredService<GameContentPublisher>();
 
+        var dryRunJob = Guid.NewGuid();
         await store.SaveDraftAsync(
-            GameContentKind.Mission, "dry-run-job", "Dry Run Job",
-            RenamedMissionJson("Dry Run Job", "dry-run-job"), Actor);
+            GameContentKind.Mission, dryRunJob, "Dry Run Job",
+            RenamedMissionJson("Dry Run Job", dryRunJob), Actor);
 
-        Assert.True((await publisher.ValidateDraftAsync(GameContentKind.Mission, "dry-run-job")).IsSuccess);
+        Assert.True((await publisher.ValidateDraftAsync(GameContentKind.Mission, dryRunJob)).IsSuccess);
         Assert.Equal(
             GameContentStatus.Draft,
-            (await store.FindAsync(GameContentKind.Mission, "dry-run-job"))!.Status);
+            (await store.FindAsync(GameContentKind.Mission, dryRunJob))!.Status);
         Assert.True((await publisher.ValidatePublishedAsync()).IsSuccess);
     }
 
@@ -197,40 +197,61 @@ public sealed class GameContentPipelineTests : IAsyncLifetime
         await using var scope = _provider.CreateAsyncScope();
         var publisher = scope.ServiceProvider.GetRequiredService<GameContentPublisher>();
 
-        var result = await publisher.PublishAsync(GameContentKind.Mission, "no-such-mission", Actor);
+        var noSuchMission = Guid.NewGuid();
+        var result = await publisher.PublishAsync(GameContentKind.Mission, noSuchMission, Actor);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("no-such-mission", result.Error);
+        Assert.Contains(noSuchMission.ToString(), result.Error);
     }
 
-    private const string GhostJobJson = """
+    private static readonly Guid GhostJob = Guid.NewGuid();
+
+    private static readonly string GhostJobJson = $$"""
         {
-          "id": "ghost-job",
+          "id": "{{GhostJob}}",
           "displayName": "Ghost Job",
           "description": "A job whose site does not exist.",
-          "encounterId": "nowhere",
+          "encounterId": "{{Guid.NewGuid()}}",
           "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
           "repeatability": { "kind": "oneTime" },
           "rewards": { "karma": 1, "nuyen": 100 },
           "objectives": [
-            { "key": "enter", "displayName": "Enter", "kind": "enterEncounter" }
+            { "id": "{{Guid.NewGuid()}}", "displayName": "Enter", "kind": "enterEncounter" }
           ]
         }
         """;
 
     // The warehouse mission with a new display name (and optionally a new id),
     // everything else exactly as authored.
-    private static string RenamedMissionJson(string displayName, string id = MissionKey)
+    private static string RenamedMissionJson(string displayName, Guid? newId = null)
     {
         var authored = GameContentComposer.Split(EmbeddedGameContentProvider.ReadMergedJson())
             .Single(fragment => fragment.Kind == GameContentKind.Mission && fragment.ContentKey == MissionKey);
 
-        return authored.Json
+        var id = newId ?? MissionKey;
+        var renamed = authored.Json
             .Replace($"\"id\":\"{MissionKey}\"", $"\"id\":\"{id}\"", StringComparison.Ordinal)
             .Replace(
                 "\"displayName\":\"Gang Warehouse Retrieval\"",
                 $"\"displayName\":\"{displayName}\"",
                 StringComparison.Ordinal);
+        if (id == MissionKey)
+        {
+            return renamed;
+        }
+
+        // WF-26: a second job on the same site cannot listen to the events
+        // the first already does, so the copy listens to nothing.
+        // WF-27: every record has its own id, so the copy's objectives get
+        // new ones too.
+        var copy = System.Text.Json.Nodes.JsonNode.Parse(renamed)!.AsObject();
+        copy.Remove("triggers");
+        foreach (var objective in copy["objectives"]!.AsArray().OfType<System.Text.Json.Nodes.JsonObject>())
+        {
+            objective["id"] = Guid.NewGuid().ToString();
+        }
+
+        return copy.ToJsonString();
     }
 
     private SeattleByNightDbContext CreateDbContext() =>

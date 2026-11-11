@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Api.Endpoints;
 using SeattleByNight.Application.Auditing;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Api.Tests;
@@ -14,7 +15,7 @@ namespace SeattleByNight.Api.Tests;
 public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
 {
     private const string Password = "Password1!";
-    private const string WarehouseMission = "gang-warehouse-retrieval";
+    private static readonly Guid WarehouseMission = ShippedContentIds.Missions.GangWarehouseRetrieval;
 
     private readonly ApiTestFactory _factory;
 
@@ -71,6 +72,37 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
         Assert.Contains(inventory.Definitions, definition => definition.Kind == GameContentKind.Test);
     }
 
+    // WF-23: one request answers every picker.
+    [Fact]
+    public async Task References_ListWhatThePickersOffer_InOneResponse()
+    {
+        var admin = await _factory.LoginDevAdminAsync();
+
+        var references = await admin.GetFromJsonAsync<ContentReferences>(
+            "/api/admin/content/references", ApiTestFactory.JsonOptions);
+
+        Assert.NotNull(references);
+        var mission = Assert.Single(references.Missions, mission => mission.Id == WarehouseMission);
+        Assert.NotEmpty(mission.Objectives);
+        var site = Assert.Single(references.Encounters, encounter => encounter.Id == mission.EncounterId);
+        Assert.Contains(ShippedContentIds.SiteRooms.LoadingDock, site.RoomIds);
+        Assert.Contains(site.Npcs, npc => npc.Name == "Warehouse Ganger");
+        Assert.Contains(references.Tests, test => test.BuiltIn);
+        Assert.Contains(references.Rooms, room => room.Id == ShippedContentIds.SiteRooms.LoadingDock && room.AccessType == RoomAccessType.Private);
+        Assert.Contains(references.Rooms, room => room.AccessType == RoomAccessType.Public);
+    }
+
+    [Fact]
+    public async Task References_Player_ReturnsForbidden()
+    {
+        var username = $"content-refs-{Guid.NewGuid():N}";
+        var player = await _factory.RegisterAndLoginAsync(username, $"{username}@test.local", Password);
+
+        var response = await player.GetAsync("/api/admin/content/references");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
     [Fact]
     public async Task Palette_ExposesTheEngineOwnedVocabulary()
     {
@@ -103,19 +135,20 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
     {
         var admin = await _factory.LoginDevAdminAsync();
 
+        var payloadKey = Guid.NewGuid();
         var response = await admin.PutAsJsonAsync(
-            "/api/admin/content/Test/some-other-key",
-            new { json = TestJson("payload-key", threshold: 2) });
+            $"/api/admin/content/Test/{Guid.NewGuid()}",
+            new { json = TestJson(payloadKey, threshold: 2) });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains("payload-key", await response.Content.ReadAsStringAsync());
+        Assert.Contains(payloadKey.ToString(), await response.Content.ReadAsStringAsync());
     }
 
     [Fact]
     public async Task SaveDraft_ThenPublish_PutsAuthoredContentIntoPlayAndIsAudited()
     {
         var admin = await _factory.LoginDevAdminAsync();
-        const string key = "builder-authored-test";
+        var key = Guid.NewGuid();
 
         var saved = await admin.PutAsJsonAsync(
             $"/api/admin/content/Test/{key}", new { json = TestJson(key, threshold: 2) });
@@ -156,7 +189,7 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
     public async Task Publish_RefusesADraftTheLoaderRejects_AndLeavesItADraft()
     {
         var admin = await _factory.LoginDevAdminAsync();
-        const string key = "builder-broken-test";
+        var key = Guid.NewGuid();
 
         // A threshold test with no threshold: the loader's own rule, enforced
         // at publish exactly as it is at startup.
@@ -181,26 +214,144 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
     }
 
     [Fact]
-    public async Task Publish_RefusesATestThatShadowsABuiltInOne()
+    public async Task PublishSet_PutsDraftsThatPointAtEachOtherLiveTogether()
     {
         var admin = await _factory.LoginDevAdminAsync();
-        const string key = "sneak-past";
+        var jobId = Guid.NewGuid();
+        var sceneId = Guid.NewGuid();
+        var nodeId = Guid.NewGuid();
 
-        var saved = await admin.PutAsJsonAsync(
-            $"/api/admin/content/Test/{key}", new { json = TestJson(key, threshold: 2) });
-        saved.EnsureSuccessStatusCode();
+        // The job opens the prompt; the prompt's choice asks about the job.
+        // Neither can pass the gate without the other.
+        var job = $$"""
+            {
+              "id": "{{jobId}}",
+              "displayName": "Second Shift",
+              "description": "The warehouse again, for a different client.",
+              "encounterId": "{{ShippedContentIds.Encounters.GangWarehouse}}",
+              "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
+              "repeatability": { "kind": "unlimited" },
+              "rewards": { "karma": 1, "nuyen": 500 },
+              "objectives": [
+                { "id": "{{Guid.NewGuid()}}", "displayName": "Get inside", "kind": "enterEncounter" }
+              ],
+              "triggers": [
+                {
+                  "id": "{{Guid.NewGuid()}}",
+                  "event": "playerEnteredRoom",
+                  "roomId": "{{ShippedContentIds.SiteRooms.LoadingDock}}",
+                  "reactions": [ { "kind": "openScene", "sceneId": "{{sceneId}}" } ]
+                }
+              ]
+            }
+            """;
+        var scene = $$"""
+            {
+              "id": "{{sceneId}}",
+              "displayName": "Second Shift: the dock",
+              "startNodeId": "{{nodeId}}",
+              "nodes": [
+                {
+                  "id": "{{nodeId}}",
+                  "text": "The dock is quieter than last time.",
+                  "choices": [
+                    {
+                      "id": "{{Guid.NewGuid()}}",
+                      "label": "Keep moving",
+                      "conditions": [ { "kind": "missionOpen", "missionId": "{{jobId}}" } ],
+                      "endsScene": true
+                    }
+                  ]
+                }
+              ]
+            }
+            """;
+        (await admin.PutAsJsonAsync($"/api/admin/content/Mission/{jobId}", new { json = job })).EnsureSuccessStatusCode();
+        (await admin.PutAsJsonAsync($"/api/admin/content/Scene/{sceneId}", new { json = scene })).EnsureSuccessStatusCode();
 
-        var result = await PublishAsync(admin, key);
+        // One at a time, each is refused for the other's absence.
+        var jobAlone = await PostForValidationAsync(admin, $"/api/admin/content/Mission/{jobId}/publish", null);
+        Assert.False(jobAlone.IsValid);
+        var sceneAlone = await PostForValidationAsync(admin, $"/api/admin/content/Scene/{sceneId}/publish", null);
+        Assert.False(sceneAlone.IsValid);
+
+        var set = new
+        {
+            items = new object[]
+            {
+                new { kind = "Mission", contentKey = jobId },
+                new { kind = "Scene", contentKey = sceneId },
+            },
+        };
+        var check = await PostForValidationAsync(admin, "/api/admin/content/validate", set);
+        Assert.True(check.IsValid, check.Error);
+        var stillDrafts = await GetInventoryAsync(admin);
+        Assert.All(
+            stillDrafts.Definitions.Where(definition => definition.ContentKey == jobId || definition.ContentKey == sceneId),
+            definition => Assert.Equal(GameContentStatus.Draft, definition.Status));
+
+        var published = await PostForValidationAsync(admin, "/api/admin/content/publish", set);
+        Assert.True(published.IsValid, published.Error);
+
+        var inventory = await GetInventoryAsync(admin);
+        Assert.Null(inventory.CorpusError);
+        Assert.All(
+            inventory.Definitions.Where(definition => definition.ContentKey == jobId || definition.ContentKey == sceneId),
+            definition =>
+            {
+                Assert.Equal(GameContentStatus.Published, definition.Status);
+                Assert.False(definition.HasPendingEdits);
+            });
+    }
+
+    [Fact]
+    public async Task PublishSet_RefusesTheWholeSetWhenOneDraftIsWrong()
+    {
+        var admin = await _factory.LoginDevAdminAsync();
+        var good = Guid.NewGuid();
+        var bad = Guid.NewGuid();
+        (await admin.PutAsJsonAsync($"/api/admin/content/Test/{good}", new { json = TestJson(good, threshold: 2) }))
+            .EnsureSuccessStatusCode();
+        (await admin.PutAsJsonAsync($"/api/admin/content/Test/{bad}", new { json = TestJson(bad, threshold: null) }))
+            .EnsureSuccessStatusCode();
+
+        var result = await PostForValidationAsync(admin, "/api/admin/content/publish", new
+        {
+            items = new object[]
+            {
+                new { kind = "Test", contentKey = good },
+                new { kind = "Test", contentKey = bad },
+            },
+        });
 
         Assert.False(result.IsValid);
-        Assert.Contains("shadows a built-in development test", result.Error);
+        Assert.Contains("must declare a positive threshold", result.Error);
+        var inventory = await GetInventoryAsync(admin);
+        Assert.Equal(
+            GameContentStatus.Draft, inventory.Definitions.Single(definition => definition.ContentKey == good).Status);
+    }
+
+    [Fact]
+    public async Task PublishSet_NamingNothing_IsABadRequest_AndAPlayerIsForbidden()
+    {
+        var admin = await _factory.LoginDevAdminAsync();
+        var empty = await admin.PostAsJsonAsync("/api/admin/content/publish", new { items = Array.Empty<object>() });
+        Assert.Equal(HttpStatusCode.BadRequest, empty.StatusCode);
+
+        var username = $"set-publisher-{Guid.NewGuid():N}";
+        var player = await _factory.RegisterAndLoginAsync(username, $"{username}@test.local", Password);
+        var response = await player.PostAsJsonAsync("/api/admin/content/publish", new
+        {
+            items = new object[] { new { kind = "Mission", contentKey = WarehouseMission } },
+        });
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
     public async Task Retire_TakesContentOutOfPlayAndIsAudited()
     {
         var admin = await _factory.LoginDevAdminAsync();
-        const string key = "builder-retirable-test";
+        var key = Guid.NewGuid();
 
         (await admin.PutAsJsonAsync(
             $"/api/admin/content/Test/{key}", new { json = TestJson(key, threshold: 2) }))
@@ -232,25 +383,25 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
         var admin = await _factory.LoginDevAdminAsync();
 
         var check = await admin.GetFromJsonAsync<GameContentDeletableResponse>(
-            "/api/admin/content/NpcTemplate/street-ganger/deletable", ApiTestFactory.JsonOptions);
+            $"/api/admin/content/NpcTemplate/{ShippedContentIds.NpcTemplates.StreetGanger}/deletable", ApiTestFactory.JsonOptions);
         Assert.False(check!.CanDelete);
-        Assert.Contains("street-ganger", check.Reason);
+        Assert.Contains("uses a stat block that does not exist", check.Reason);
 
-        var response = await admin.DeleteAsync("/api/admin/content/NpcTemplate/street-ganger");
+        var response = await admin.DeleteAsync($"/api/admin/content/NpcTemplate/{ShippedContentIds.NpcTemplates.StreetGanger}");
         response.EnsureSuccessStatusCode();
         var result = (await response.Content.ReadFromJsonAsync<GameContentValidationResponse>(
             ApiTestFactory.JsonOptions))!;
 
         Assert.False(result.IsValid);
         await using var db = _factory.CreateDbContext();
-        Assert.True(await db.GameContentDefinitions.AnyAsync(row => row.ContentKey == "street-ganger"));
+        Assert.True(await db.GameContentDefinitions.AnyAsync(row => row.ContentKey == ShippedContentIds.NpcTemplates.StreetGanger));
     }
 
     [Fact]
     public async Task Delete_RemovesADraftNothingHasEverSeen()
     {
         var admin = await _factory.LoginDevAdminAsync();
-        const string key = "builder-throwaway-test";
+        var key = Guid.NewGuid();
 
         (await admin.PutAsJsonAsync(
             $"/api/admin/content/Test/{key}", new { json = TestJson(key, threshold: 2) }))
@@ -297,7 +448,7 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
         (await client.GetFromJsonAsync<GameContentInventoryResponse>(
             "/api/admin/content", ApiTestFactory.JsonOptions))!;
 
-    private static async Task<GameContentValidationResponse> PublishAsync(HttpClient client, string key)
+    private static async Task<GameContentValidationResponse> PublishAsync(HttpClient client, Guid key)
     {
         var response = await client.PostAsync($"/api/admin/content/Test/{key}/publish", content: null);
         response.EnsureSuccessStatusCode();
@@ -305,7 +456,16 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
             ApiTestFactory.JsonOptions))!;
     }
 
-    private static string TestJson(string id, int? threshold)
+    private static async Task<GameContentValidationResponse> PostForValidationAsync(
+        HttpClient client, string path, object? body)
+    {
+        var response = body is null ? await client.PostAsync(path, content: null) : await client.PostAsJsonAsync(path, body);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<GameContentValidationResponse>(
+            ApiTestFactory.JsonOptions))!;
+    }
+
+    private static string TestJson(Guid id, int? threshold)
     {
         var thresholdLine = threshold is null ? string.Empty : $"\"threshold\": {threshold},";
         return $$"""

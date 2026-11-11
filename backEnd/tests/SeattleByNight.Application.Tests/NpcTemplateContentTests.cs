@@ -34,7 +34,7 @@ public sealed class NpcTemplateContentTests
     public void A_placement_pins_only_what_it_declares_and_inherits_the_rest()
     {
         var content = TestGameContent.Provider.Current;
-        var encounter = content.FindEncounter("gang-warehouse")!;
+        var encounter = content.FindEncounter(ShippedContentIds.Encounters.GangWarehouse)!;
         var enforcer = encounter.Npcs.Single(npc => npc.Name == "Hallway Enforcer");
         var lookout = encounter.Npcs.Single(npc => npc.Name == "Warehouse Ganger");
 
@@ -109,10 +109,10 @@ public sealed class NpcTemplateContentTests
         var inherits = new NpcSnapshot(
             Guid.NewGuid(), NpcTemplateIds.StreetGanger, "Lookout", Guid.NewGuid(),
             0, 0, NpcAwareness.Unaware);
-        var rebound = inherits with { SceneId = "warehouse-hallway-ambush" };
+        var rebound = inherits with { SceneId = ShippedContentIds.Scenes.WarehouseHallwayAmbush };
 
         Assert.Equal(templateBound.Id, content.FindSceneForNpc(inherits)!.Id);
-        Assert.Equal("warehouse-hallway-ambush", content.FindSceneForNpc(rebound)!.Id);
+        Assert.Equal(ShippedContentIds.Scenes.WarehouseHallwayAmbush, content.FindSceneForNpc(rebound)!.Id);
     }
 
     [Fact]

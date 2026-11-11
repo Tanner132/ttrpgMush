@@ -15,8 +15,8 @@ public sealed class SceneSessionConfiguration : IEntityTypeConfiguration<SceneSe
         builder.Property(session => session.CharacterId).HasColumnName("character_id").HasColumnType("uuid").IsRequired();
         builder.Property(session => session.NpcInstanceId).HasColumnName("npc_instance_id").HasColumnType("uuid");
         builder.Property(session => session.RoomId).HasColumnName("room_id").HasColumnType("uuid").IsRequired();
-        builder.Property(session => session.SceneId).HasColumnName("scene_id").HasMaxLength(100).IsRequired();
-        builder.Property(session => session.CurrentNodeId).HasColumnName("current_node_id").HasMaxLength(100).IsRequired();
+        builder.Property(session => session.SceneId).HasColumnName("scene_id").HasColumnType("uuid").IsRequired();
+        builder.Property(session => session.CurrentNodeId).HasColumnName("current_node_id").HasColumnType("uuid").IsRequired();
         builder.Property(session => session.PendingNegotiatedNuyen).HasColumnName("pending_negotiated_nuyen");
         builder.Property(session => session.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
         builder.Property(session => session.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");

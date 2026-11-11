@@ -8,13 +8,18 @@ namespace SeattleByNight.Domain.Entities;
 public sealed class WorldItemInstance
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string ItemKey { get; set; } = string.Empty;
+    // WF-27: the job-site item this instance was made from.
+    public Guid ItemId { get; set; }
     public string DisplayName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public Guid? MissionInstanceId { get; set; }
     public Guid? EncounterInstanceId { get; set; }
     public Guid? RoomId { get; set; }
     public Guid? OwnerCharacterId { get; set; }
+    // Hidden until a character's search finds it (per character, like an
+    // inspectable).
+    public bool IsHidden { get; set; }
+    public int DiscoveryThreshold { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
 }

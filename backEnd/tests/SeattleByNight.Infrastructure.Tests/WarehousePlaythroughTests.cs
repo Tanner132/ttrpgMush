@@ -8,6 +8,7 @@ using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Missions.Content;
+using SeattleByNight.Application.Tests;
 using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.Movement;
@@ -227,12 +228,12 @@ public abstract class PlaythroughHarness : IAsyncLifetime
     // SESSION rather than the NPC, so a trigger-opened scene (which has no
     // NPC) numbers its options the same way. The id has to be read back from
     // the live session, exactly as the affordance list derives it.
-    protected async Task<Guid> ChoiceAsync(string nodeId, string choiceId)
+    protected async Task<Guid> ChoiceAsync(Guid choiceId)
     {
         await using var db = Db();
         var session = await db.SceneSessions.AsNoTracking()
             .SingleAsync(row => row.CharacterId == CharacterId);
-        return Application.GameEngine.Scenes.SceneChoiceIds.Derive(session.Id, nodeId, choiceId);
+        return Application.GameEngine.Scenes.SceneChoiceIds.Derive(session.Id, choiceId);
     }
 
     protected async Task WaitUntilAsync(Func<SeattleByNightDbContext, Task<bool>> condition, string what)
@@ -258,7 +259,7 @@ public abstract class PlaythroughHarness : IAsyncLifetime
     // gate. This is how a playthrough proves something is authorable rather
     // than merely wired.
     protected async Task PublishDefinitionAsync(
-        GameContentKind kind, string contentKey, Action<JsonObject> edit)
+        GameContentKind kind, Guid contentKey, Action<JsonObject> edit)
     {
         await using var scope = Provider.CreateAsyncScope();
         var store = scope.ServiceProvider.GetRequiredService<IGameContentStore>();
@@ -278,6 +279,20 @@ public abstract class PlaythroughHarness : IAsyncLifetime
         Assert.True(published.IsSuccess, published.Error);
     }
 
+    // WF-26: events belong to rooms, and the warehouse job listens to them.
+    // Adds a listener to the published job and publishes it.
+    protected Task PublishJobTriggerAsync(string triggerJson) =>
+        PublishDefinitionAsync(GameContentKind.Mission, ShippedContentIds.Missions.GangWarehouseRetrieval, mission =>
+        {
+            if (mission["triggers"] is not JsonArray triggers)
+            {
+                triggers = [];
+                mission["triggers"] = triggers;
+            }
+
+            triggers.Add(LegacyContentFixtures.ConvertTrigger(triggerJson, "gang-warehouse-retrieval"));
+        });
+
     // The transport seam. Most runs do not care what was said; a run that
     // asserts on ORDER overrides this with a recorder.
     protected virtual IGameMessageBroadcaster CreateBroadcaster() => new NullBroadcaster();
@@ -285,6 +300,9 @@ public abstract class PlaythroughHarness : IAsyncLifetime
     protected sealed class NullBroadcaster : IGameMessageBroadcaster
     {
         public Task BroadcastAsync(RoomMessage message, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
+        public Task SendToUserAsync(Guid userId, RoomMessage message, CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
 
         public Task BroadcastCombatAsync(CombatView view, CancellationToken cancellationToken = default) =>
@@ -335,7 +353,7 @@ public sealed class StealthRoutePlaythroughTests : PlaythroughHarness
         Assert.Contains("1. Ask about the work", talk.Message);
 
         var askJob = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("greeting", "ask-job"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.JohnsonWarehouseJobGreetingAskJob));
         Assert.Equal(GameActionError.None, askJob.Error);
         Assert.Contains("Negotiate the pay", askJob.Message);
 
@@ -345,23 +363,23 @@ public sealed class StealthRoutePlaythroughTests : PlaythroughHarness
         Roller.Enqueue(5, 5, 6, 1, 2, 3, 4);
         Roller.Enqueue(5, 1, 2, 3, 4, 1, 2, 3);
         var negotiate = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("job-offer", "negotiate"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.JohnsonWarehouseJobJobOfferNegotiate));
         Assert.Equal(GameActionError.None, negotiate.Error);
 
         await using (var db = Db())
         {
             var conversation = await db.SceneSessions.AsNoTracking().SingleAsync();
-            Assert.Equal("negotiate-win", conversation.CurrentNodeId);
+            Assert.Equal(ShippedContentIds.SceneNodes.NegotiateWin, conversation.CurrentNodeId);
             Assert.Equal(2400, conversation.PendingNegotiatedNuyen);
         }
 
         var backToOffer = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("negotiate-win", "back-to-offer"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.JohnsonWarehouseJobNegotiateWinBackToOffer));
         Assert.Equal(GameActionError.None, backToOffer.Error);
 
         // ---- Accept the contract ----------------------------------------
         var accept = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("job-offer", "accept"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.JohnsonWarehouseJobJobOfferAccept));
         Assert.Equal(GameActionError.None, accept.Error);
 
         var mission = await MissionRowAsync();
@@ -369,7 +387,7 @@ public sealed class StealthRoutePlaythroughTests : PlaythroughHarness
         Assert.Equal(2400, mission.NegotiatedNuyen);
 
         var leaveJohnson = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("accepted", "leave"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.JohnsonWarehouseJobAcceptedLeave));
         Assert.Equal(GameActionError.None, leaveJohnson.Error);
         await using (var db = Db())
         {
@@ -463,7 +481,7 @@ public sealed class StealthRoutePlaythroughTests : PlaythroughHarness
         Assert.Contains("Hand over the package", talkAgain.Message);
 
         var handOver = await ActAsync(
-            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync("greeting", "hand-over-package"));
+            DevelopmentGameActions.SceneChoiceActionId, await ChoiceAsync(ShippedContentIds.SceneChoices.JohnsonWarehouseJobGreetingHandOverPackage));
         Assert.Equal(GameActionError.None, handOver.Error);
         Assert.Contains("Take your leave", handOver.Message);
 
@@ -525,7 +543,7 @@ public sealed class CombatDefeatPlaythroughTests : PlaythroughHarness
                 .GetRequiredService<Application.GameEngine.Missions.Content.IGameContentProvider>();
             var assignment = scope.ServiceProvider.GetRequiredService<IMissionAssignmentStore>();
             var assigned = await assignment.AssignAsync(
-                CharacterId, content.Current.FindMission("gang-warehouse-retrieval")!, CancellationToken.None);
+                CharacterId, content.Current.FindMission(ShippedContentIds.Missions.GangWarehouseRetrieval)!, CancellationToken.None);
             Assert.True(assigned.IsSuccess);
             missionInstanceId = assigned.Instance!.Id;
         }

@@ -46,16 +46,24 @@ public static class GameContentLoader
         IReadOnlyList<RawMission>? Missions,
         IReadOnlyList<RawScene>? Scenes,
         IReadOnlyList<RawTest>? Tests,
-        IReadOnlyList<RawNpcTemplate>? NpcTemplates);
+        IReadOnlyList<RawNpcTemplate>? NpcTemplates,
+        IReadOnlyList<RawPlace>? Places = null);
+
+    // WF-20/WF-26: a map room's own events. Id is the room's id.
+    private sealed record RawPlace(
+        Guid? Id,
+        string? DisplayName,
+        IReadOnlyList<RawTrigger>? Triggers);
 
     private sealed record RawScene(
-        string? Id,
-        string? NpcTemplateId,
-        string? StartNodeId,
+        Guid? Id,
+        string? DisplayName,
+        Guid? NpcTemplateId,
+        Guid? StartNodeId,
         IReadOnlyList<SceneNodeDefinition>? Nodes);
 
     private sealed record RawNpcTemplate(
-        string? Id,
+        Guid? Id,
         string? DisplayName,
         string? Description,
         // poolId -> dice. The pool ids are the engine's closed palette; the
@@ -71,6 +79,8 @@ public static class GameContentLoader
         bool? Hostile,
         CombatWeapon? Weapon);
 
+    // An authored test's id is a GUID like every authored record; it is held
+    // as text because a test reference may also name a built-in test.
     private sealed record RawTest(
         string? Id,
         string? DisplayName,
@@ -82,33 +92,35 @@ public static class GameContentLoader
         int? Threshold,
         string? OpposedPoolId);
 
+    // WF-25/WF-27: a job site is a set of map rooms, by id, plus the job's
+    // content placed in them. The map owns the rooms' names and exits.
     private sealed record RawEncounter(
-        string? Id,
+        Guid? Id,
         string? DisplayName,
-        string? EntryRoomKey,
-        IReadOnlyList<EncounterRoomDefinition>? Rooms,
-        IReadOnlyList<EncounterExitDefinition>? Exits,
+        Guid? EntryRoomId,
+        IReadOnlyList<Guid>? RoomIds,
         IReadOnlyList<EncounterNpcDefinition>? Npcs,
         IReadOnlyList<EncounterItemDefinition>? Items,
-        IReadOnlyList<EncounterInteractableDefinition>? Interactables,
-        IReadOnlyList<RawTrigger>? Triggers);
+        IReadOnlyList<EncounterInteractableDefinition>? Interactables);
 
     private sealed record RawTrigger(
-        string? Key,
+        Guid? Id,
         TriggerEventKind? Event,
         IReadOnlyList<TriggerReactionDefinition>? Reactions,
-        string? RoomKey,
-        string? ItemKey,
-        string? NpcName,
-        string? InteractableName,
+        Guid? RoomId,
+        Guid? ItemId,
+        Guid? NpcId,
+        Guid? InteractableId,
         IReadOnlyList<SceneCondition>? Conditions,
-        bool Repeatable = false);
+        bool? Repeatable = null,
+        TriggerOutcome? Outcome = null,
+        string? OthersSee = null);
 
     private sealed record RawMission(
-        string? Id,
+        Guid? Id,
         string? DisplayName,
         string? Description,
-        string? EncounterId,
+        Guid? EncounterId,
         Guid? EntryLinkRoomId,
         MissionRepeatability? Repeatability,
         MissionRewards? Rewards,
@@ -119,7 +131,7 @@ public static class GameContentLoader
     // cross-reference checks read as questions about the whole content set
     // rather than about whichever file happened to declare something.
     private sealed record ReferenceSet(
-        IReadOnlySet<string> SceneIds,
+        IReadOnlySet<Guid> SceneIds,
         IReadOnlyList<MissionDefinition> Missions,
         IReadOnlyDictionary<string, SkillTestDefinition> Tests)
     {
@@ -133,12 +145,22 @@ public static class GameContentLoader
         // places, or opened by an encounter's or a mission's own trigger.
         // Effects that need a live encounter (giveItem takes the item FROM
         // one) are only authorable in these.
-        public IReadOnlySet<string> EncounterBoundSceneIds { get; init; } =
-            new HashSet<string>(StringComparer.Ordinal);
+        public IReadOnlySet<Guid> EncounterBoundSceneIds { get; init; } = new HashSet<Guid>();
+
+        // Where each scene can be opened inside an encounter: the encounter,
+        // and the room when the opener pins one down. A scene with no entry
+        // here is only ever played outside an encounter.
+        public IReadOnlyDictionary<Guid, IReadOnlyList<SceneOpener>> SceneOpeners { get; init; } =
+            new Dictionary<Guid, IReadOnlyList<SceneOpener>>();
     }
 
     // Where an effect was authored, which is what decides whether the things
     // it needs at runtime can possibly be there.
+    // One place a scene can be opened from: an NPC placement bound to it, an
+    // NPC whose template speaks it, or a trigger reaction. RoomId is null
+    // when the opener does not settle which room.
+    private sealed record SceneOpener(EncounterDefinition Encounter, Guid? RoomId);
+
     private sealed record EffectSite(
         ReferenceSet References,
         // The encounter that owns a trigger; null for a scene, which no single
@@ -150,9 +172,11 @@ public static class GameContentLoader
         bool SceneHasNpc = false,
         // The scene can only be reached from inside a live encounter.
         bool SceneInsideEncounter = false,
-        // For a trigger whose own filters pin down where it fires, the room
-        // key it fires in. Null when the event can happen anywhere.
-        string? TriggerRoomKey = null)
+        // For a trigger, the room it fires in.
+        Guid? TriggerRoomId = null,
+        // For a scene: every place it can be opened inside an encounter. Empty
+        // when the scene is only ever played outside one.
+        IReadOnlyList<SceneOpener>? SceneOpeners = null)
     {
         public IReadOnlyList<EncounterDefinition> Scope =>
             Encounter is not null ? [Encounter] : AllEncounters;
@@ -183,85 +207,99 @@ public static class GameContentLoader
         // likely thing for an author to get wrong.
         var npcTemplates = (raw.NpcTemplates ?? []).Select(ValidateNpcTemplate).ToArray();
         RequireUnique(npcTemplates.Select(template => template.TemplateId), "NPC template id");
-        var npcTemplateIds = npcTemplates
-            .Select(template => template.TemplateId)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var npcTemplateIds = npcTemplates.Select(template => template.TemplateId).ToHashSet();
 
         var tests = (raw.Tests ?? []).Select(ValidateTest).ToArray();
-        RequireUnique(tests.Select(test => test.TestId), "test id");
-
-        // Authored tests sit alongside the code catalog's development tests;
-        // an authored id that shadows a built-in one would make "which test
-        // ran?" ambiguous in the audit log, so it is refused outright.
-        foreach (var test in tests)
-        {
-            Require(
-                DevelopmentGameTests.Find(test.TestId) is null,
-                $"Test '{test.TestId}' shadows a built-in development test; choose another id.");
-        }
+        RequireUnique(tests.Select(test => test.TestId.ToLowerInvariant()), "test id");
 
         var testIds = tests.Select(test => test.TestId)
             .Concat(DevelopmentGameTests.All.Keys)
-            .ToHashSet(StringComparer.Ordinal);
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // Authored tests first, then the built-in palette — the same
-        // precedence GameContentDocument.FindTest resolves with, so the gate
-        // checks the definition the engine will actually run.
+        // Authored tests and the built-in palette side by side — an authored
+        // id is a GUID, so it can never shadow a built-in name.
         var testsById = DevelopmentGameTests.All
             .Concat(tests.Select(test =>
                 new KeyValuePair<string, SkillTestDefinition>(test.TestId, test)))
-            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);
 
         // Scenes are validated in two passes: the graph itself first (so
         // encounters and missions can reference scene ids), then the parts
         // that point at missions once missions exist.
         var sceneIds = (raw.Scenes ?? [])
-            .Select(scene => scene.Id ?? string.Empty)
-            .ToHashSet(StringComparer.Ordinal);
+            .Select(scene => scene.Id ?? Guid.Empty)
+            .ToHashSet();
 
         var encounters = (raw.Encounters ?? [])
-            .Select(encounter => ValidateEncounter(encounter, sceneIds, testIds, npcTemplateIds))
+            .Select(encounter => ValidateEncounter(encounter, sceneIds, npcTemplateIds))
             .ToArray();
-        RequireUnique(encounters.Select(encounter => encounter.Id), "encounter id");
+        RequireUnique(encounters.Select(encounter => encounter.Id), "job site id");
+        RequireUnique(encounters.SelectMany(Placements), "id of a job site's NPC, item or inspectable");
 
         var missions = (raw.Missions ?? [])
             .Select(mission => ValidateMission(mission, encounters, sceneIds, testIds))
             .ToArray();
-        RequireUnique(missions.Select(mission => mission.Id), "mission id");
+        RequireUnique(missions.Select(mission => mission.Id), "job id");
+        RequireUnique(missions.SelectMany(mission => mission.Objectives.Select(objective => objective.Id)), "objective id");
+        RequireOneJobPerEvent(missions);
+
+        var places = (raw.Places ?? [])
+            .Select(place => ValidatePlace(place, sceneIds, testIds))
+            .ToArray();
+        RequireUnique(places.Select(place => place.Id), "place id");
+        RequireUnique(
+            missions.SelectMany(mission => mission.Triggers).Concat(places.SelectMany(place => place.Triggers))
+                .Select(trigger => trigger.Id),
+            "listener id");
 
         var references = new ReferenceSet(sceneIds, missions, testsById);
         var scenes = (raw.Scenes ?? [])
             .Select(scene => ValidateScene(scene, references, testIds, npcTemplateIds))
             .ToArray();
         RequireUnique(scenes.Select(scene => scene.Id), "scene id");
+        RequireUnique(scenes.SelectMany(scene => scene.Nodes.Select(node => node.Id)), "scene step id");
+        RequireUnique(
+            scenes.SelectMany(scene => scene.Nodes.SelectMany(node => node.Choices.Select(choice => choice.Id))),
+            "scene choice id");
         references = references with
         {
             Scenes = scenes,
-            EncounterBoundSceneIds = EncounterBoundScenes(encounters, missions, scenes),
+            // A scene a public room can open is played outside any run, so it
+            // cannot count on an encounter being live around it.
+            EncounterBoundSceneIds = EncounterBoundScenes(encounters, missions, scenes)
+                .Except(PublicOpenedScenes(places, missions, encounters))
+                .ToHashSet(),
+            SceneOpeners = SceneOpenersFor(encounters, missions, scenes),
         };
 
         // The trigger/effect checks that need missions run after both exist,
-        // so an encounter trigger naming a mission objective is verified
-        // against the real mission rather than skipped.
-        foreach (var encounter in encounters)
+        // so a listener naming a job's objective is verified against the real
+        // job rather than skipped.
+        foreach (var mission in missions)
         {
-            foreach (var trigger in encounter.Triggers)
+            var encounter = encounters.First(candidate => candidate.Id == mission.EncounterId);
+            foreach (var trigger in mission.Triggers)
             {
-                ValidateTriggerReferences(
-                    trigger, references, encounter, encounters,
-                    $"Encounter '{encounter.Id}' trigger '{trigger.Key}'");
+                var where = $"{Owner(mission)} {Describe(trigger)}";
+                if (encounter.HasRoom(trigger.RoomId))
+                {
+                    ValidateTriggerReferences(trigger, references, encounter, encounters, where);
+                }
+                else
+                {
+                    // A public room: no run is live around it, so the same
+                    // rules as the room's own events.
+                    ValidatePlaceTriggerReferences(trigger, references, encounters, where);
+                }
             }
         }
 
-        foreach (var mission in missions)
+        foreach (var place in places)
         {
-            var encounter = encounters.First(candidate =>
-                string.Equals(candidate.Id, mission.EncounterId, StringComparison.Ordinal));
-            foreach (var trigger in mission.Triggers)
+            foreach (var trigger in place.Triggers)
             {
-                ValidateTriggerReferences(
-                    trigger, references, encounter, encounters,
-                    $"Mission '{mission.Id}' trigger '{trigger.Key}'");
+                ValidatePlaceTriggerReferences(
+                    trigger, references, encounters, $"Room events '{place.DisplayName}' {Describe(trigger)}");
             }
         }
 
@@ -271,7 +309,10 @@ public static class GameContentLoader
         }
 
         return new GameContentDocument(
-            raw.ContentId!, raw.Version!, encounters, missions, scenes, tests, npcTemplates);
+            raw.ContentId!, raw.Version!, encounters, missions, scenes, tests, npcTemplates)
+        {
+            Places = places,
+        };
     }
 
     // Milestone 7 section 4: the base stat block as content. Every number here
@@ -280,43 +321,43 @@ public static class GameContentLoader
     // same thing to every engine that reads it.
     private static NpcTemplate ValidateNpcTemplate(RawNpcTemplate raw)
     {
-        Require(!string.IsNullOrWhiteSpace(raw.Id), "Every NPC template must declare an id.");
-        var id = raw.Id!;
-        Require(!string.IsNullOrWhiteSpace(raw.DisplayName), $"NPC template '{id}' must declare a displayName.");
-        Require(!string.IsNullOrWhiteSpace(raw.Description), $"NPC template '{id}' must declare a description.");
+        Require(raw.Id is { } given && given != Guid.Empty, "Every NPC template must declare an id.");
+        Require(!string.IsNullOrWhiteSpace(raw.DisplayName), $"NPC template {raw.Id} must declare a displayName.");
+        var id = $"'{raw.DisplayName}'";
+        Require(!string.IsNullOrWhiteSpace(raw.Description), $"NPC template {id} must declare a description.");
 
         var pools = raw.Pools ?? new Dictionary<string, int>();
         foreach (var poolId in NpcPoolIds.All)
         {
-            Require(pools.ContainsKey(poolId), $"NPC template '{id}' must declare a '{poolId}' pool.");
+            Require(pools.ContainsKey(poolId), $"NPC template {id} must declare a '{poolId}' pool.");
         }
 
         foreach (var (poolId, dice) in pools)
         {
             Require(
                 NpcPoolIds.All.Contains(poolId, StringComparer.OrdinalIgnoreCase),
-                $"NPC template '{id}' declares unknown pool '{poolId}'; the engine's pools are: "
+                $"NPC template {id} declares unknown pool '{poolId}'; the engine's pools are: "
                     + $"{string.Join(", ", NpcPoolIds.All)}.");
-            Require(dice >= 0, $"NPC template '{id}' pool '{poolId}' cannot be negative.");
+            Require(dice >= 0, $"NPC template {id} pool '{poolId}' cannot be negative.");
         }
 
         RequirePositive(raw.PhysicalMonitor, id, "physicalMonitor");
         RequirePositive(raw.StunMonitor, id, "stunMonitor");
-        Require(raw.Armor is >= 0, $"NPC template '{id}' must declare a non-negative armor.");
+        Require(raw.Armor is >= 0, $"NPC template {id} must declare a non-negative armor.");
         RequirePositive(raw.InitiativeBase, id, "initiativeBase");
         RequirePositive(raw.InitiativeDice, id, "initiativeDice");
         RequirePositive(raw.Body, id, "body");
         RequirePositive(raw.Willpower, id, "willpower");
-        Require(raw.Hostile is not null, $"NPC template '{id}' must declare hostile.");
+        Require(raw.Hostile is not null, $"NPC template {id} must declare hostile.");
         // Hand-entered stat lines: the SR5 weapon catalog is where these
         // numbers come from, but an NPC's weapon is authored, not looked up.
-        Require(raw.Weapon is not null, $"NPC template '{id}' must declare a weapon.");
+        Require(raw.Weapon is not null, $"NPC template {id} must declare a weapon.");
         Require(
             raw.Weapon!.Modes.Count > 0,
-            $"NPC template '{id}' weapon '{raw.Weapon.WeaponId}' must declare at least one firing mode.");
+            $"NPC template {id} weapon '{raw.Weapon.WeaponId}' must declare at least one firing mode.");
 
         return new NpcTemplate(
-            id,
+            raw.Id!.Value,
             raw.DisplayName!,
             raw.Description!,
             pools.ToDictionary(
@@ -335,7 +376,7 @@ public static class GameContentLoader
     }
 
     private static void RequirePositive(int? value, string templateId, string field) =>
-        Require(value is > 0, $"NPC template '{templateId}' must declare a positive {field}.");
+        Require(value is > 0, $"NPC template {templateId} must declare a positive {field}.");
 
     // The sparse diff is validated the same way the template's own numbers
     // are — a pinned value the template could never have held is a bug an
@@ -372,9 +413,13 @@ public static class GameContentLoader
 
     private static SkillTestDefinition ValidateTest(RawTest raw)
     {
-        Require(!string.IsNullOrWhiteSpace(raw.Id), "Every test must declare an id.");
-        var id = raw.Id!;
-        Require(!string.IsNullOrWhiteSpace(raw.DisplayName), $"Test '{id}' must declare a displayName.");
+        // WF-27: an authored test is a record like any other, so its id is a
+        // GUID — which also means it can never collide with a built-in name.
+        Require(
+            Guid.TryParse(raw.Id, out var testGuid) && testGuid != Guid.Empty,
+            $"Test '{raw.Id}' must have a GUID id.");
+        var id = testGuid.ToString();
+        Require(!string.IsNullOrWhiteSpace(raw.DisplayName), $"Test {id} must declare a displayName.");
         Require(!string.IsNullOrWhiteSpace(raw.Description), $"Test '{id}' must declare a description.");
         Require(raw.Kind is not null, $"Test '{id}' must declare a kind.");
         Require(
@@ -427,248 +472,273 @@ public static class GameContentLoader
             pool);
     }
 
+    // WF-25/WF-27: a job site is a set of map rooms, by id, with the job's
+    // content placed in them. Whether the ids really are Private map rooms,
+    // and connected, is checked at publish against the map.
     private static EncounterDefinition ValidateEncounter(
         RawEncounter raw,
-        IReadOnlySet<string> sceneIds,
-        IReadOnlySet<string> testIds,
-        IReadOnlySet<string> npcTemplateIds)
+        IReadOnlySet<Guid> sceneIds,
+        IReadOnlySet<Guid> npcTemplateIds)
     {
-        Require(!string.IsNullOrWhiteSpace(raw.Id), "Every encounter must declare an id.");
-        var id = raw.Id!;
-        Require(!string.IsNullOrWhiteSpace(raw.DisplayName), $"Encounter '{id}' must declare a displayName.");
+        Require(raw.Id is { } given && given != Guid.Empty, "Every job site must declare an id.");
+        Require(!string.IsNullOrWhiteSpace(raw.DisplayName), $"Job site {raw.Id} must declare a displayName.");
+        var where = $"Job site '{raw.DisplayName}'";
 
-        var rooms = raw.Rooms ?? [];
-        Require(rooms.Count > 0, $"Encounter '{id}' must declare at least one room.");
-        foreach (var room in rooms)
-        {
-            Require(!string.IsNullOrWhiteSpace(room.Key), $"Encounter '{id}' has a room without a key.");
-            Require(!string.IsNullOrWhiteSpace(room.Name), $"Encounter '{id}' room '{room.Key}' must declare a name.");
-        }
-
-        RequireUnique(rooms.Select(room => room.Key), $"room key in encounter '{id}'");
-        var roomKeys = rooms.Select(room => room.Key).ToHashSet(StringComparer.Ordinal);
-
+        var roomIds = raw.RoomIds ?? [];
+        Require(roomIds.Count > 0, $"{where} must include at least one room.");
+        RequireUnique(roomIds, $"room in {where}");
+        var rooms = roomIds.ToHashSet();
         Require(
-            !string.IsNullOrWhiteSpace(raw.EntryRoomKey) && roomKeys.Contains(raw.EntryRoomKey!),
-            $"Encounter '{id}' entryRoomKey '{raw.EntryRoomKey}' does not name a declared room.");
-
-        var exits = raw.Exits ?? [];
-        foreach (var exit in exits)
-        {
-            Require(
-                roomKeys.Contains(exit.FromRoomKey) && roomKeys.Contains(exit.ToRoomKey),
-                $"Encounter '{id}' exit '{exit.FromRoomKey}' → '{exit.ToRoomKey}' references an undeclared room.");
-            // Matches the room_exits check constraint — an invalid direction
-            // must fail at content load, not at instance creation.
-            Require(
-                ExitDirections.Contains(exit.Direction),
-                $"Encounter '{id}' exit '{exit.FromRoomKey}' → '{exit.ToRoomKey}' direction '{exit.Direction}' "
-                    + $"must be one of: {string.Join(", ", ExitDirections)}.");
-        }
+            raw.EntryRoomId is { } entry && rooms.Contains(entry),
+            $"{where}'s entry room must be one of its rooms.");
 
         var npcs = raw.Npcs ?? [];
         foreach (var npc in npcs)
         {
-            Require(
-                roomKeys.Contains(npc.RoomKey),
-                $"Encounter '{id}' NPC '{npc.Name}' is placed in undeclared room '{npc.RoomKey}'.");
+            Require(npc.Id != Guid.Empty, $"{where} has an NPC without an id.");
+            Require(!string.IsNullOrWhiteSpace(npc.Name), $"{where} has an NPC without a name.");
+            Require(rooms.Contains(npc.RoomId), $"{where} NPC '{npc.Name}' is placed in a room that is not part of the site.");
             Require(
                 npcTemplateIds.Contains(npc.TemplateId),
-                $"Encounter '{id}' NPC '{npc.Name}' uses unknown template '{npc.TemplateId}'.");
-            Require(!string.IsNullOrWhiteSpace(npc.Name), $"Encounter '{id}' has an NPC without a name.");
+                $"{where} NPC '{npc.Name}' uses a stat block that does not exist.");
             // A placement may rebind its scene; an unknown binding would leave
             // a mute NPC nobody could talk to.
             Require(
-                npc.SceneId is null || sceneIds.Contains(npc.SceneId),
-                $"Encounter '{id}' NPC '{npc.Name}' binds unknown scene '{npc.SceneId}'.");
-            ValidateNpcOverrides(npc.Overrides, $"Encounter '{id}' NPC '{npc.Name}'");
+                npc.SceneId is null || sceneIds.Contains(npc.SceneId.Value),
+                $"{where} NPC '{npc.Name}' is given a conversation that does not exist.");
+            ValidateNpcOverrides(npc.Overrides, $"{where} NPC '{npc.Name}'");
         }
-
-        // Placement names are how triggers and effects address a specific
-        // NPC, so two NPCs with the same name would make those references
-        // ambiguous.
-        RequireUnique(npcs.Select(npc => npc.Name), $"NPC name in encounter '{id}'");
 
         var items = raw.Items ?? [];
         foreach (var item in items)
         {
-            Require(!string.IsNullOrWhiteSpace(item.Key), $"Encounter '{id}' has an item without a key.");
+            Require(item.Id != Guid.Empty, $"{where} has an item without an id.");
+            Require(!string.IsNullOrWhiteSpace(item.Name), $"{where} has an item without a name.");
             Require(
-                item.RoomKey is null || roomKeys.Contains(item.RoomKey),
-                $"Encounter '{id}' item '{item.Key}' is placed in undeclared room '{item.RoomKey}'.");
-            Require(!string.IsNullOrWhiteSpace(item.Name), $"Encounter '{id}' item '{item.Key}' must declare a name.");
+                item.RoomId is null || rooms.Contains(item.RoomId.Value),
+                $"{where} item '{item.Name}' is placed in a room that is not part of the site.");
+            Require(
+                item.DiscoveryThreshold is >= 0 and <= 10,
+                $"{where} item '{item.Name}' search difficulty must be 0–10.");
+            Require(
+                !item.IsHidden || item.RoomId is not null,
+                $"{where} item '{item.Name}' is hidden but not placed anywhere to be found.");
         }
-
-        RequireUnique(items.Select(item => item.Key), $"item key in encounter '{id}'");
 
         var interactables = raw.Interactables ?? [];
         foreach (var interactable in interactables)
         {
+            Require(interactable.Id != Guid.Empty, $"{where} has an inspectable without an id.");
             Require(
-                roomKeys.Contains(interactable.RoomKey),
-                $"Encounter '{id}' interactable '{interactable.Name}' is placed in undeclared room '{interactable.RoomKey}'.");
+                !string.IsNullOrWhiteSpace(interactable.Name),
+                $"{where} has an inspectable without a name.");
+            Require(
+                rooms.Contains(interactable.RoomId),
+                $"{where} inspectable '{interactable.Name}' is placed in a room that is not part of the site.");
             Require(
                 interactable.DiscoveryThreshold is >= 0 and <= 10,
-                $"Encounter '{id}' interactable '{interactable.Name}' discoveryThreshold must be 0–10.");
+                $"{where} inspectable '{interactable.Name}' search difficulty must be 0–10.");
         }
 
-        var triggers = (raw.Triggers ?? [])
-            .Select(trigger => ValidateTrigger(
-                trigger, sceneIds, testIds, roomKeys,
-                items.Select(item => item.Key).ToHashSet(StringComparer.Ordinal),
-                npcs.Select(npc => npc.Name).ToHashSet(StringComparer.Ordinal),
-                interactables.Select(interactable => interactable.Name).ToHashSet(StringComparer.Ordinal),
-                $"Encounter '{id}'"))
-            .ToArray();
-        RequireUnique(triggers.Select(trigger => trigger.Key), $"trigger key in encounter '{id}'");
-
         return new EncounterDefinition(
-            id, raw.DisplayName!, raw.EntryRoomKey!, rooms, exits, npcs, items, interactables, triggers);
+            raw.Id!.Value, raw.DisplayName!, raw.EntryRoomId!.Value, roomIds, npcs, items, interactables);
     }
+
+    // Every id a job site's own content carries, so the document can refuse
+    // two records sharing one.
+    private static IEnumerable<Guid> Placements(EncounterDefinition site) =>
+        site.Npcs.Select(npc => npc.Id)
+            .Concat(site.Items.Select(item => item.Id))
+            .Concat(site.Interactables.Select(interactable => interactable.Id));
 
     private static MissionDefinition ValidateMission(
         RawMission raw,
         IReadOnlyList<EncounterDefinition> encounters,
-        IReadOnlySet<string> sceneIds,
+        IReadOnlySet<Guid> sceneIds,
         IReadOnlySet<string> testIds)
     {
-        Require(!string.IsNullOrWhiteSpace(raw.Id), "Every mission must declare an id.");
-        var id = raw.Id!;
-        Require(!string.IsNullOrWhiteSpace(raw.DisplayName), $"Mission '{id}' must declare a displayName.");
-        Require(!string.IsNullOrWhiteSpace(raw.Description), $"Mission '{id}' must declare a description.");
+        Require(raw.Id is { } given && given != Guid.Empty, "Every job must declare an id.");
+        Require(!string.IsNullOrWhiteSpace(raw.DisplayName), $"Job {raw.Id} must declare a displayName.");
+        var where = $"Job '{raw.DisplayName}'";
+        Require(!string.IsNullOrWhiteSpace(raw.Description), $"{where} must declare a description.");
 
-        var encounter = encounters.FirstOrDefault(candidate =>
-            string.Equals(candidate.Id, raw.EncounterId, StringComparison.Ordinal));
-        Require(encounter is not null, $"Mission '{id}' references unknown encounter '{raw.EncounterId}'.");
+        var encounter = encounters.FirstOrDefault(candidate => candidate.Id == raw.EncounterId);
+        Require(encounter is not null, $"{where} names a job site that does not exist.");
 
         Require(
             raw.EntryLinkRoomId is Guid linkRoomId && linkRoomId != Guid.Empty,
-            $"Mission '{id}' must declare an entryLinkRoomId.");
+            $"{where} must declare an entryLinkRoomId.");
 
-        Require(raw.Repeatability is not null, $"Mission '{id}' must declare repeatability.");
+        Require(raw.Repeatability is not null, $"{where} must declare repeatability.");
         if (raw.Repeatability!.Kind == MissionRepeatabilityKind.Cooldown)
         {
             Require(
                 raw.Repeatability.CooldownHours is > 0,
-                $"Mission '{id}' declares cooldown repeatability without a positive cooldownHours.");
+                $"{where} declares cooldown repeatability without a positive cooldownHours.");
         }
 
-        Require(raw.Rewards is not null, $"Mission '{id}' must declare rewards.");
+        Require(raw.Rewards is not null, $"{where} must declare rewards.");
         Require(
             raw.Rewards!.Karma >= 0 && raw.Rewards.Nuyen >= 0,
-            $"Mission '{id}' rewards must not be negative.");
+            $"{where} rewards must not be negative.");
 
         var objectives = raw.Objectives ?? [];
-        Require(objectives.Count > 0, $"Mission '{id}' must declare at least one objective.");
+        Require(objectives.Count > 0, $"{where} must declare at least one objective.");
         foreach (var objective in objectives)
         {
-            Require(!string.IsNullOrWhiteSpace(objective.Key), $"Mission '{id}' has an objective without a key.");
+            Require(objective.Id != Guid.Empty, $"{where} has an objective without an id.");
             Require(
                 !string.IsNullOrWhiteSpace(objective.DisplayName),
-                $"Mission '{id}' objective '{objective.Key}' must declare a displayName.");
+                $"{where} has an objective without a displayName.");
 
             if (objective.Kind is MissionObjectiveKind.PickUpItem or MissionObjectiveKind.DeliverItem)
             {
                 Require(
-                    objective.ItemKey is not null
-                        && encounter!.Items.Any(item => string.Equals(item.Key, objective.ItemKey, StringComparison.Ordinal)),
-                    $"Mission '{id}' objective '{objective.Key}' names item '{objective.ItemKey}' "
-                        + $"which encounter '{encounter!.Id}' does not declare.");
+                    objective.ItemId is { } itemId && encounter!.FindItem(itemId) is not null,
+                    $"{where} objective '{objective.DisplayName}' names an item its job site does not have.");
             }
         }
 
-        RequireUnique(objectives.Select(objective => objective.Key), $"objective key in mission '{id}'");
+        RequireUnique(objectives.Select(objective => objective.Id), $"objective in {where}");
 
-        // Mission triggers watch the shared world, so they may not filter on
-        // an encounter room key — there is no instance to resolve it against.
+        // WF-26: the job's listeners, each on a room.
         var triggers = (raw.Triggers ?? [])
-            .Select(trigger => ValidateTrigger(
-                trigger, sceneIds, testIds,
-                roomKeys: new HashSet<string>(StringComparer.Ordinal),
-                itemKeys: encounter!.Items.Select(item => item.Key).ToHashSet(StringComparer.Ordinal),
-                npcNames: encounter.Npcs.Select(npc => npc.Name).ToHashSet(StringComparer.Ordinal),
-                interactableNames: new HashSet<string>(StringComparer.Ordinal),
-                $"Mission '{id}'"))
+            .Select(trigger => ValidateJobTrigger(trigger, encounter!, sceneIds, testIds, where))
             .ToArray();
-        RequireUnique(triggers.Select(trigger => trigger.Key), $"trigger key in mission '{id}'");
 
         return new MissionDefinition(
-            id, raw.DisplayName!, raw.Description!, raw.EncounterId!, raw.EntryLinkRoomId!.Value,
+            raw.Id!.Value, raw.DisplayName!, raw.Description!, raw.EncounterId!.Value, raw.EntryLinkRoomId!.Value,
             raw.Repeatability, raw.Rewards, objectives, triggers);
     }
 
     // Shape checks a trigger can pass on its own: the event's required
-    // subject filter is present and names something the owner declares, and
-    // every reaction carries the fields its kind needs. References that reach
-    // outside the owner (missions, scenes) are checked in the second pass.
+    // subject filter is present and names something the owner has, and every
+    // reaction carries the fields its kind needs. References that reach
+    // outside the owner (jobs, scenes) are checked in the second pass.
+    //
+    // npcIds is null where the NPCs are the map's (a public room's world
+    // NPCs), checked at publish instead.
     private static TriggerDefinition ValidateTrigger(
         RawTrigger raw,
-        IReadOnlySet<string> sceneIds,
+        IReadOnlySet<Guid> sceneIds,
         IReadOnlySet<string> testIds,
-        IReadOnlySet<string> roomKeys,
-        IReadOnlySet<string> itemKeys,
-        IReadOnlySet<string> npcNames,
-        IReadOnlySet<string> interactableNames,
-        string owner)
+        IReadOnlySet<Guid> roomIds,
+        IReadOnlySet<Guid> itemIds,
+        IReadOnlySet<Guid>? npcIds,
+        IReadOnlySet<Guid> interactableIds,
+        string owner,
+        Guid? placeId = null,
+        bool roomOwned = false)
     {
-        Require(!string.IsNullOrWhiteSpace(raw.Key), $"{owner} has a trigger without a key.");
-        var where = $"{owner} trigger '{raw.Key}'";
-        Require(raw.Event is not null, $"{where} must declare an event.");
+        Require(raw.Id is { } given && given != Guid.Empty, $"{owner} has a listener without an id.");
+        Require(raw.Event is not null, $"{owner} listener {raw.Id} must declare an event.");
+        var where = $"{owner} listener '{Kind(raw.Event!.Value)}' ({Short(raw.Id!.Value)})";
 
         var reactions = raw.Reactions ?? [];
         Require(reactions.Count > 0, $"{where} must declare at least one reaction.");
 
+        // WF-26: every event happens in a room. A room's own events are in
+        // the room itself.
+        var roomId = raw.RoomId ?? placeId;
+        Require(roomId is not null, $"{where} must name the room its event happens in.");
         Require(
-            raw.RoomKey is null || roomKeys.Contains(raw.RoomKey),
-            $"{where} watches undeclared room '{raw.RoomKey}'.");
+            roomIds.Contains(roomId!.Value),
+            placeId is null
+                ? $"{where} listens in a room that is not part of its job site."
+                : $"{where} listens in another room; a room's own events happen in the room itself.");
         Require(
-            raw.ItemKey is null || itemKeys.Contains(raw.ItemKey),
-            $"{where} watches undeclared item '{raw.ItemKey}'.");
+            raw.ItemId is null || itemIds.Contains(raw.ItemId.Value),
+            $"{where} watches an item that does not exist here.");
         Require(
-            raw.NpcName is null || npcNames.Contains(raw.NpcName),
-            $"{where} watches undeclared NPC '{raw.NpcName}'.");
+            raw.NpcId is null || npcIds is null || npcIds.Contains(raw.NpcId.Value),
+            $"{where} watches an NPC that does not exist here.");
         Require(
-            raw.InteractableName is null || interactableNames.Contains(raw.InteractableName),
-            $"{where} watches undeclared interactable '{raw.InteractableName}'.");
+            raw.InteractableId is null || interactableIds.Contains(raw.InteractableId.Value),
+            $"{where} watches an inspectable that does not exist here.");
 
-        // A trigger with no filter for a subject-bearing event would fire on
-        // every room, item, or NPC in the encounter — almost never what was
-        // meant, and impossible to debug from the content.
+        // A listener with no subject for a subject-bearing event would fire
+        // on every item or NPC in the room — almost never what was meant.
         switch (raw.Event!.Value)
         {
-            case TriggerEventKind.PlayerEnteredRoom:
-                Require(raw.RoomKey is not null, $"{where} must name the roomKey it watches.");
-                break;
-            case TriggerEventKind.ItemPickedUp:
-                Require(raw.ItemKey is not null, $"{where} must name the itemKey it watches.");
-                break;
+            case TriggerEventKind.SneakAttempted:
+            case TriggerEventKind.CombatStarted:
             case TriggerEventKind.NpcSpokenTo:
             case TriggerEventKind.NpcDefeated:
             case TriggerEventKind.NpcPacified:
-                Require(raw.NpcName is not null, $"{where} must name the npcName it watches.");
+                Require(raw.NpcId is not null, $"{where} must name the NPC it watches.");
+                break;
+            case TriggerEventKind.ItemPickedUp:
+                Require(raw.ItemId is not null, $"{where} must name the item it watches.");
                 break;
             case TriggerEventKind.InteractableInspected:
-                Require(
-                    raw.InteractableName is not null,
-                    $"{where} must name the interactableName it watches.");
+                Require(raw.InteractableId is not null, $"{where} must name the inspectable it watches.");
                 break;
         }
+
+        // Only a sneak attempt has an outcome to filter on.
+        Require(
+            raw.Outcome is null || raw.Event == TriggerEventKind.SneakAttempted,
+            $"{where} filters on an outcome, but only a sneakAttempted event has one.");
 
         foreach (var reaction in reactions)
         {
-            ValidateReaction(reaction, sceneIds, testIds, npcNames, where);
+            ValidateReaction(reaction, sceneIds, testIds, npcIds, where);
+
+            // The player has already walked out: nobody in the room left
+            // behind can speak to them.
+            Require(
+                raw.Event != TriggerEventKind.PlayerLeftRoom
+                    || reaction.Kind is not (TriggerReactionKind.NpcSpeaks or TriggerReactionKind.NpcEmotes),
+                $"{where} reacts to the player leaving with '{reaction.Kind}', but they are no longer in "
+                    + "the room to hear it. Narrate instead.");
         }
 
+        // A character has one scene session, so a second scene a trigger
+        // opens silently replaces the first before the player ever sees it.
+        // A runTest whose two branches each open a scene counts once: only
+        // one branch runs.
+        var sceneOpeners = reactions.Count(reaction =>
+            reaction.Kind == TriggerReactionKind.OpenScene
+            || (reaction.Kind == TriggerReactionKind.RunTest
+                && (reaction.OnSuccess?.SceneId is not null || reaction.OnFailure?.SceneId is not null)));
+        Require(
+            sceneOpeners <= 1,
+            $"{where} opens a scene from {sceneOpeners} reactions; a character can only be in one scene, "
+                + "so the later one would replace the earlier. Open at most one scene per listener.");
+
+        // A room's own events fire every time (a description on every entry);
+        // a job's fire once per run unless the author says otherwise.
+        Require(
+            !roomOwned || raw.Repeatable is not false,
+            $"{where} is a room's own event, and those fire every time. Put a one-off on the job instead.");
+        Require(
+            !roomOwned || raw.OthersSee is null,
+            $"{where} sets othersSee, which only applies to a job's events.");
+
         return new TriggerDefinition(
-            raw.Key!, raw.Event.Value, reactions, raw.RoomKey, raw.ItemKey, raw.NpcName,
-            raw.InteractableName, raw.Conditions, raw.Repeatable);
+            raw.Id!.Value, raw.Event.Value, reactions, roomId.Value, raw.ItemId,
+            raw.NpcId, raw.InteractableId, raw.Conditions, roomOwned || raw.Repeatable == true, raw.Outcome,
+            raw.OthersSee);
     }
+
+    private static string Kind(TriggerEventKind kind) =>
+        char.ToLowerInvariant(kind.ToString()[0]) + kind.ToString()[1..];
+
+    private static string Short(Guid id) => id.ToString()[..8];
+
+    private static string EffectName(SceneEffectKind kind) =>
+        char.ToLowerInvariant(kind.ToString()[0]) + kind.ToString()[1..];
+
+    private static string Owner(MissionDefinition mission) => $"Job '{mission.DisplayName}'";
+
+    private static string Describe(TriggerDefinition trigger) =>
+        $"listener '{Kind(trigger.Event)}' ({Short(trigger.Id)})";
 
     private static void ValidateReaction(
         TriggerReactionDefinition reaction,
-        IReadOnlySet<string> sceneIds,
+        IReadOnlySet<Guid> sceneIds,
         IReadOnlySet<string> testIds,
-        IReadOnlySet<string> npcNames,
+        IReadOnlySet<Guid>? npcIds,
         string where)
     {
         switch (reaction.Kind)
@@ -685,14 +755,14 @@ public static class GameContentLoader
                     !string.IsNullOrWhiteSpace(reaction.Text),
                     $"{where} reaction '{reaction.Kind}' must declare text.");
                 Require(
-                    reaction.NpcName is not null && npcNames.Contains(reaction.NpcName),
-                    $"{where} reaction '{reaction.Kind}' names undeclared NPC '{reaction.NpcName}'.");
+                    reaction.NpcId is { } speaker && (npcIds is null || npcIds.Contains(speaker)),
+                    $"{where} reaction '{reaction.Kind}' names an NPC that does not exist here.");
                 break;
 
             case TriggerReactionKind.OpenScene:
                 Require(
-                    reaction.SceneId is not null && sceneIds.Contains(reaction.SceneId),
-                    $"{where} reaction 'openScene' names unknown scene '{reaction.SceneId}'.");
+                    reaction.SceneId is { } opened && sceneIds.Contains(opened),
+                    $"{where} reaction 'openScene' names a scene that does not exist.");
                 break;
 
             case TriggerReactionKind.RunTest:
@@ -705,8 +775,8 @@ public static class GameContentLoader
                 foreach (var branch in new[] { reaction.OnSuccess!, reaction.OnFailure! })
                 {
                     Require(
-                        branch.SceneId is null || sceneIds.Contains(branch.SceneId),
-                        $"{where} reaction 'runTest' branches to unknown scene '{branch.SceneId}'.");
+                        branch.SceneId is null || sceneIds.Contains(branch.SceneId.Value),
+                        $"{where} reaction 'runTest' branches to a scene that does not exist.");
                 }
 
                 break;
@@ -719,15 +789,91 @@ public static class GameContentLoader
         }
     }
 
-    // Which scenes only exist inside an encounter. Scenes do not chain into
-    // each other (advanceScene is refused inside a scene, so a conversation
-    // never hands off to a different one), which is why one pass is enough.
-    private static IReadOnlySet<string> EncounterBoundScenes(
+    // WF-7: every place each scene can be opened inside an encounter, so an
+    // NPC effect inside the scene can be checked against the NPCs that will
+    // actually be there when it plays.
+    private static IReadOnlyDictionary<Guid, IReadOnlyList<SceneOpener>> SceneOpenersFor(
         IReadOnlyList<EncounterDefinition> encounters,
         IReadOnlyList<MissionDefinition> missions,
         IReadOnlyList<SceneDefinition> scenes)
     {
-        var bound = new HashSet<string>(StringComparer.Ordinal);
+        var openers = new Dictionary<Guid, List<SceneOpener>>();
+
+        void Add(Guid sceneId, EncounterDefinition encounter, Guid? roomId)
+        {
+            if (!openers.TryGetValue(sceneId, out var list))
+            {
+                list = [];
+                openers[sceneId] = list;
+            }
+
+            list.Add(new SceneOpener(encounter, roomId));
+        }
+
+        void AddTriggers(IReadOnlyList<TriggerDefinition> triggers, EncounterDefinition encounter)
+        {
+            foreach (var trigger in triggers)
+            {
+                var roomId = trigger.RoomId;
+                foreach (var reaction in trigger.Reactions)
+                {
+                    if (reaction.Kind == TriggerReactionKind.OpenScene && reaction.SceneId is { } opened)
+                    {
+                        Add(opened, encounter, roomId);
+                    }
+
+                    foreach (var branch in new[] { reaction.OnSuccess, reaction.OnFailure })
+                    {
+                        if (branch?.SceneId is { } branched)
+                        {
+                            Add(branched, encounter, roomId);
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach (var encounter in encounters)
+        {
+            foreach (var npc in encounter.Npcs)
+            {
+                if (npc.SceneId is { } placementScene)
+                {
+                    Add(placementScene, encounter, npc.RoomId);
+                    continue;
+                }
+
+                foreach (var scene in scenes)
+                {
+                    if (scene.NpcTemplateId == npc.TemplateId)
+                    {
+                        Add(scene.Id, encounter, npc.RoomId);
+                    }
+                }
+            }
+
+        }
+
+        foreach (var mission in missions)
+        {
+            if (encounters.FirstOrDefault(candidate => candidate.Id == mission.EncounterId) is { } encounter)
+            {
+                AddTriggers(mission.Triggers.Where(trigger => encounter.HasRoom(trigger.RoomId)).ToArray(), encounter);
+            }
+        }
+
+        return openers.ToDictionary(pair => pair.Key, pair => (IReadOnlyList<SceneOpener>)pair.Value);
+    }
+
+    // Which scenes only exist inside an encounter. Scenes do not chain into
+    // each other (advanceScene is refused inside a scene, so a conversation
+    // never hands off to a different one), which is why one pass is enough.
+    private static IReadOnlySet<Guid> EncounterBoundScenes(
+        IReadOnlyList<EncounterDefinition> encounters,
+        IReadOnlyList<MissionDefinition> missions,
+        IReadOnlyList<SceneDefinition> scenes)
+    {
+        var bound = new HashSet<Guid>();
 
         foreach (var encounter in encounters)
         {
@@ -743,28 +889,29 @@ public static class GameContentLoader
                 // template speaks.
                 foreach (var scene in scenes)
                 {
-                    if (scene.NpcTemplateId is { } templateId
-                        && string.Equals(templateId, npc.TemplateId, StringComparison.OrdinalIgnoreCase))
+                    if (scene.NpcTemplateId == npc.TemplateId)
                     {
                         bound.Add(scene.Id);
                     }
                 }
             }
 
-            AddTriggerScenes(encounter.Triggers, bound);
         }
 
-        // A mission's triggers fire while its runner is inside the mission's
-        // encounter, so scenes they open are encounter-bound too.
+        // A job's listeners in its own site fire inside the run, so scenes
+        // they open are encounter-bound too.
         foreach (var mission in missions)
         {
-            AddTriggerScenes(mission.Triggers, bound);
+            if (encounters.FirstOrDefault(candidate => candidate.Id == mission.EncounterId) is { } encounter)
+            {
+                AddTriggerScenes(mission.Triggers.Where(trigger => encounter.HasRoom(trigger.RoomId)).ToArray(), bound);
+            }
         }
 
         return bound;
     }
 
-    private static void AddTriggerScenes(IReadOnlyList<TriggerDefinition> triggers, HashSet<string> bound)
+    private static void AddTriggerScenes(IReadOnlyList<TriggerDefinition> triggers, HashSet<Guid> bound)
     {
         foreach (var trigger in triggers)
         {
@@ -802,6 +949,251 @@ public static class GameContentLoader
         }
     }
 
+    // WF-20: the events a room's own content can react to. Items,
+    // inspectables, a job being taken and a site being entered belong to jobs.
+    private static readonly IReadOnlySet<TriggerEventKind> PlaceEvents = new HashSet<TriggerEventKind>
+    {
+        TriggerEventKind.PlayerEnteredRoom,
+        TriggerEventKind.PlayerLeftRoom,
+        TriggerEventKind.NpcSpokenTo,
+        TriggerEventKind.NpcDefeated,
+        TriggerEventKind.NpcPacified,
+        TriggerEventKind.SneakAttempted,
+        TriggerEventKind.CombatStarted,
+        TriggerEventKind.LockedExitTried,
+    };
+
+    // WF-26: a job listens to an event in a room — one of its own site rooms,
+    // or a public room on the map. In its site, everything it names is the
+    // site's and has to be in that room; in a public room, the NPCs are the
+    // world's (checked against the map at publish) and there are no job
+    // items or inspectables to watch.
+    private static TriggerDefinition ValidateJobTrigger(
+        RawTrigger raw,
+        EncounterDefinition site,
+        IReadOnlySet<Guid> sceneIds,
+        IReadOnlySet<string> testIds,
+        string owner)
+    {
+        var where = raw.Event is { } listened && raw.Id is { } listenerId
+            ? $"{owner} listener '{Kind(listened)}' ({Short(listenerId)})"
+            : $"{owner} listener {raw.Id}";
+        Require(raw.RoomId is not null, $"{where} must name the room its event happens in.");
+        var inSite = site.HasRoom(raw.RoomId!.Value);
+        var unplacedItems = site.Items.Where(item => item.RoomId is null).Select(item => item.Id).ToHashSet();
+
+        if (!inSite)
+        {
+            Require(
+                raw.Event is not (TriggerEventKind.EncounterEntered or TriggerEventKind.InteractableInspected),
+                $"{where} watches '{raw.Event}' in a room that is not part of job site '{site.DisplayName}'. "
+                    + "That event only happens inside the site.");
+        }
+
+        var trigger = inSite
+            ? ValidateTrigger(
+                raw, sceneIds, testIds, site.RoomIds.ToHashSet(),
+                site.Items.Select(item => item.Id).ToHashSet(),
+                site.Npcs.Select(npc => npc.Id).ToHashSet(),
+                site.Interactables.Select(interactable => interactable.Id).ToHashSet(),
+                owner)
+            : ValidateTrigger(
+                raw, sceneIds, testIds,
+                roomIds: new HashSet<Guid> { raw.RoomId.Value },
+                itemIds: unplacedItems,
+                npcIds: null,
+                interactableIds: new HashSet<Guid>(),
+                owner);
+
+        if (inSite)
+        {
+            // Picking a room and then an event in it: the subject has to be
+            // in that room.
+            if (trigger.NpcId is { } npcId)
+            {
+                var placed = site.FindNpc(npcId)!;
+                Require(
+                    placed.RoomId == trigger.RoomId,
+                    $"{where} watches '{placed.Name}' in a room they are not standing in.");
+            }
+
+            if (trigger.InteractableId is { } inspectableId)
+            {
+                var placed = site.FindInteractable(inspectableId)!;
+                Require(
+                    placed.RoomId == trigger.RoomId,
+                    $"{where} watches '{placed.Name}' in a room it is not in.");
+            }
+
+            if (trigger.ItemId is { } itemId && site.FindItem(itemId) is { RoomId: { } itemRoom } item)
+            {
+                Require(
+                    itemRoom == trigger.RoomId,
+                    $"{where} watches '{item.Name}' being picked up in a room it does not lie in.");
+            }
+        }
+
+        return trigger;
+    }
+
+    // WF-26: at most one job may listen to a given event in a given room. The
+    // event is its room, kind and subject — each item's pick-up, each NPC,
+    // each inspectable, and a sneak's success and failure are separate events.
+    // Events about a job only reach that job, so they never contend.
+    private static void RequireOneJobPerEvent(IReadOnlyList<MissionDefinition> missions)
+    {
+        var claimed = new Dictionary<(Guid, TriggerEventKind, Guid?, Guid?, Guid?, TriggerOutcome?, Guid?), (MissionDefinition Mission, TriggerDefinition Trigger)>();
+        foreach (var mission in missions)
+        {
+            foreach (var trigger in mission.Triggers)
+            {
+                var outcomes = trigger.Event == TriggerEventKind.SneakAttempted && trigger.Outcome is null
+                    ? new TriggerOutcome?[] { TriggerOutcome.Success, TriggerOutcome.Failure }
+                    : [trigger.Outcome];
+                foreach (var outcome in outcomes)
+                {
+                    var identity = (trigger.RoomId, trigger.Event, trigger.ItemId, trigger.NpcId, trigger.InteractableId,
+                        outcome, trigger.IsAboutTheJob ? mission.Id : (Guid?)null);
+                    if (claimed.TryGetValue(identity, out var holder))
+                    {
+                        Require(
+                            false,
+                            $"{Owner(mission)} {Describe(trigger)} listens to an event that "
+                                + $"{(holder.Mission.Id == mission.Id ? "its own" : Owner(holder.Mission))} "
+                                + $"already listens to with {Describe(holder.Trigger)}. Only one job may listen to an "
+                                + "event; put both reactions on one listener, or pick another event.");
+                    }
+
+                    claimed[identity] = (mission, trigger);
+                }
+            }
+        }
+    }
+
+    private static PlaceDefinition ValidatePlace(
+        RawPlace raw, IReadOnlySet<Guid> sceneIds, IReadOnlySet<string> testIds)
+    {
+        Require(raw.Id is { } given && given != Guid.Empty, "Every room's events must name the room (its id).");
+        var id = raw.Id!.Value;
+        var name = string.IsNullOrWhiteSpace(raw.DisplayName) ? id.ToString() : raw.DisplayName!;
+        var none = new HashSet<Guid>();
+
+        var triggers = (raw.Triggers ?? [])
+            .Select(trigger =>
+            {
+                Require(
+                    trigger.Event is null || PlaceEvents.Contains(trigger.Event.Value),
+                    $"Room events '{name}' listener '{Kind(trigger.Event!.Value)}' ({Short(trigger.Id ?? Guid.Empty)}) "
+                        + "watches an event that belongs to a job, "
+                        + "not to the room. Put it on the job instead.");
+                return ValidateTrigger(
+                    trigger, sceneIds, testIds,
+                    roomIds: new HashSet<Guid> { id },
+                    itemIds: none,
+                    npcIds: null,
+                    interactableIds: none,
+                    $"Room events '{name}'",
+                    placeId: id,
+                    roomOwned: true);
+            })
+            .ToArray();
+
+        return new PlaceDefinition(id, name, triggers);
+    }
+
+    // Scenes opened outside any run: by a room's own events, or by a job
+    // listening in a public room.
+    private static IEnumerable<Guid> PublicOpenedScenes(
+        IReadOnlyList<PlaceDefinition> places,
+        IReadOnlyList<MissionDefinition> missions,
+        IReadOnlyList<EncounterDefinition> encounters)
+    {
+        var opened = new HashSet<Guid>();
+        foreach (var place in places)
+        {
+            AddTriggerScenes(place.Triggers, opened);
+        }
+
+        foreach (var mission in missions)
+        {
+            var site = encounters.FirstOrDefault(candidate => candidate.Id == mission.EncounterId);
+            AddTriggerScenes(
+                mission.Triggers.Where(trigger => site is null || !site.HasRoom(trigger.RoomId)).ToArray(), opened);
+        }
+
+        return opened;
+    }
+
+    // The effects a public room's trigger may run. A place has no live
+    // encounter to hand items out of, and pay is negotiated in a conversation.
+    private static readonly IReadOnlySet<SceneEffectKind> PlaceEffects = new HashSet<SceneEffectKind>
+    {
+        SceneEffectKind.AcceptMission,
+        SceneEffectKind.CompleteObjective,
+        SceneEffectKind.FailObjective,
+        SceneEffectKind.FailMission,
+        SceneEffectKind.DealDamage,
+        SceneEffectKind.StartCombat,
+        SceneEffectKind.AlertNpc,
+        SceneEffectKind.PacifyNpc,
+        SceneEffectKind.TakeItem,
+        SceneEffectKind.AdvanceScene,
+    };
+
+    private static void ValidatePlaceTriggerReferences(
+        TriggerDefinition trigger,
+        ReferenceSet references,
+        IReadOnlyList<EncounterDefinition> allEncounters,
+        string where)
+    {
+        var site = new EffectSite(references, Encounter: null, allEncounters);
+
+        foreach (var condition in trigger.Conditions ?? [])
+        {
+            ValidateCondition(condition, references.Missions, where);
+        }
+
+        foreach (var reaction in trigger.Reactions)
+        {
+            if (reaction.Kind == TriggerReactionKind.RunTest
+                && reaction.TestId is { } testId
+                && references.Tests.TryGetValue(testId, out var test)
+                && test.OpposedPoolId is not null)
+            {
+                Require(
+                    false,
+                    $"{where} runs opposed test '{test.DisplayName}', but a trigger has no NPC to oppose it.");
+            }
+
+            var effects = (reaction.Effects ?? [])
+                .Concat(reaction.OnSuccess?.Effects ?? [])
+                .Concat(reaction.OnFailure?.Effects ?? []);
+            foreach (var effect in effects)
+            {
+                var kind = char.ToLowerInvariant(effect.Kind.ToString()[0]) + effect.Kind.ToString()[1..];
+                Require(
+                    PlaceEffects.Contains(effect.Kind),
+                    $"{where} effect '{kind}' cannot run in a public room.");
+
+                if (effect.Kind is SceneEffectKind.StartCombat or SceneEffectKind.AlertNpc or SceneEffectKind.PacifyNpc)
+                {
+                    // Who stands in the room is checked against the map at
+                    // publish; here the effect only has to name somebody.
+                    Require(
+                        effect.NpcId is not null,
+                        $"{where} effect '{kind}' must name an NPC — a trigger has no scene NPC to fall back to.");
+                    Require(
+                        trigger.Event != TriggerEventKind.PlayerLeftRoom || effect.Kind == SceneEffectKind.AlertNpc,
+                        $"{where} effect '{kind}' runs as the player leaves, when they are no longer face to "
+                            + "face with anyone. Use 'alertNpc'.");
+                    continue;
+                }
+
+                ValidateEffect(effect, site, $"{where} reaction");
+            }
+        }
+    }
+
     // Second pass: everything a trigger points at outside its own owner.
     private static void ValidateTriggerReferences(
         TriggerDefinition trigger,
@@ -810,8 +1202,7 @@ public static class GameContentLoader
         IReadOnlyList<EncounterDefinition> allEncounters,
         string where)
     {
-        var site = new EffectSite(
-            references, encounter, allEncounters, TriggerRoomKey: TriggerRoomKey(trigger, encounter));
+        var site = new EffectSite(references, encounter, allEncounters, TriggerRoomId: trigger.RoomId);
 
         foreach (var condition in trigger.Conditions ?? [])
         {
@@ -831,8 +1222,19 @@ public static class GameContentLoader
             {
                 Require(
                     false,
-                    $"{where} runs opposed test '{testId}', but a trigger has no NPC to oppose it. "
+                    $"{where} runs opposed test '{test.DisplayName}', but a trigger has no NPC to oppose it. "
                         + "Opposed tests belong on a scene choice, where the NPC is the one being tested against.");
+            }
+
+            foreach (var effect in (reaction.Effects ?? [])
+                .Concat(reaction.OnSuccess?.Effects ?? [])
+                .Concat(reaction.OnFailure?.Effects ?? []))
+            {
+                Require(
+                    trigger.Event != TriggerEventKind.PlayerLeftRoom
+                        || effect.Kind is not (SceneEffectKind.StartCombat or SceneEffectKind.PacifyNpc),
+                    $"{where} effect '{EffectName(effect.Kind)}' runs as the player leaves, when they are no longer face "
+                        + "to face with anyone. Use 'alertNpc'.");
             }
 
             foreach (var effect in reaction.Effects ?? [])
@@ -854,51 +1256,46 @@ public static class GameContentLoader
         RawScene raw,
         ReferenceSet references,
         IReadOnlySet<string> testIds,
-        IReadOnlySet<string> npcTemplateIds)
+        IReadOnlySet<Guid> npcTemplateIds)
     {
-        Require(!string.IsNullOrWhiteSpace(raw.Id), "Every scene must declare an id.");
-        var id = raw.Id!;
+        Require(raw.Id is { } given && given != Guid.Empty, "Every scene must declare an id.");
+        var name = string.IsNullOrWhiteSpace(raw.DisplayName) ? raw.Id!.Value.ToString() : raw.DisplayName!;
+        var id = $"'{name}'";
 
         // The NPC binding is what makes a scene a scene; a scene without
         // one is a trigger-opened prompt and binds to nobody.
         Require(
-            raw.NpcTemplateId is null || npcTemplateIds.Contains(raw.NpcTemplateId),
-            $"Scene '{id}' names unknown NPC template '{raw.NpcTemplateId}'.");
+            raw.NpcTemplateId is null || npcTemplateIds.Contains(raw.NpcTemplateId.Value),
+            $"Scene {id} names a stat block that does not exist.");
 
         var nodes = raw.Nodes ?? [];
-        Require(nodes.Count > 0, $"Scene '{id}' must declare at least one node.");
+        Require(nodes.Count > 0, $"Scene {id} must declare at least one step.");
         foreach (var node in nodes)
         {
-            Require(!string.IsNullOrWhiteSpace(node.NodeId), $"Scene '{id}' has a node without a nodeId.");
-            Require(
-                !string.IsNullOrWhiteSpace(node.Text),
-                $"Scene '{id}' node '{node.NodeId}' must declare text.");
+            Require(node.Id != Guid.Empty, $"Scene {id} has a step without an id.");
+            Require(!string.IsNullOrWhiteSpace(node.Text), $"Scene {id} step {Short(node.Id)} must declare text.");
         }
 
-        RequireUnique(nodes.Select(node => node.NodeId), $"node id in scene '{id}'");
-        var nodeIds = nodes.Select(node => node.NodeId).ToHashSet(StringComparer.Ordinal);
+        RequireUnique(nodes.Select(node => node.Id), $"step in scene {id}");
+        var nodeIds = nodes.Select(node => node.Id).ToHashSet();
 
         Require(
-            !string.IsNullOrWhiteSpace(raw.StartNodeId) && nodeIds.Contains(raw.StartNodeId!),
-            $"Scene '{id}' startNodeId '{raw.StartNodeId}' does not name a declared node.");
+            raw.StartNodeId is { } start && nodeIds.Contains(start),
+            $"Scene {id} must start at one of its own steps.");
 
         foreach (var node in nodes)
         {
-            RequireUnique(
-                node.Choices.Select(choice => choice.ChoiceId),
-                $"choice id in scene '{id}' node '{node.NodeId}'");
+            RequireUnique(node.Choices.Select(choice => choice.Id), $"choice in scene {id}");
 
             foreach (var choice in node.Choices)
             {
-                var where = $"Scene '{id}' node '{node.NodeId}' choice '{choice.ChoiceId}'";
-                Require(
-                    !string.IsNullOrWhiteSpace(choice.ChoiceId),
-                    $"Scene '{id}' node '{node.NodeId}' has a choice without a choiceId.");
-                Require(!string.IsNullOrWhiteSpace(choice.Label), $"{where} must declare a label.");
+                Require(choice.Id != Guid.Empty, $"Scene {id} has a choice without an id.");
+                var where = $"Scene {id} choice '{choice.Label}'";
+                Require(!string.IsNullOrWhiteSpace(choice.Label), $"Scene {id} has a choice without a label.");
 
                 if (choice.TestId is not null)
                 {
-                    Require(testIds.Contains(choice.TestId), $"{where} names unknown test '{choice.TestId}'.");
+                    Require(testIds.Contains(choice.TestId), $"{where} names a test that does not exist.");
                     Require(
                         choice.OnSuccess is not null && choice.OnFailure is not null,
                         $"{where} has a test but is missing onSuccess/onFailure.");
@@ -919,11 +1316,11 @@ public static class GameContentLoader
             }
         }
 
-        // Every node must be reachable from the start, or an author has left
+        // Every step must be reachable from the start, or an author has left
         // orphaned text nobody can ever see.
-        RequireReachable(id, raw.StartNodeId!, nodes);
+        RequireReachable(id, raw.StartNodeId!.Value, nodes);
 
-        return new SceneDefinition(id, raw.StartNodeId!, nodes, raw.NpcTemplateId);
+        return new SceneDefinition(raw.Id!.Value, name, raw.StartNodeId.Value, nodes, raw.NpcTemplateId);
     }
 
     // Second pass for scenes: conditions and effects, which need the mission
@@ -940,13 +1337,14 @@ public static class GameContentLoader
             encounters,
             InsideScene: true,
             SceneHasNpc: scene.NpcTemplateId is not null,
-            SceneInsideEncounter: references.EncounterBoundSceneIds.Contains(scene.Id));
+            SceneInsideEncounter: references.EncounterBoundSceneIds.Contains(scene.Id),
+            SceneOpeners: references.SceneOpeners.TryGetValue(scene.Id, out var openers) ? openers : []);
 
         foreach (var node in scene.Nodes)
         {
             foreach (var choice in node.Choices)
             {
-                var where = $"Scene '{scene.Id}' node '{node.NodeId}' choice '{choice.ChoiceId}'";
+                var where = $"Scene '{scene.DisplayName}' choice '{choice.Label}'";
 
                 foreach (var condition in choice.Conditions ?? [])
                 {
@@ -962,8 +1360,8 @@ public static class GameContentLoader
                 {
                     Require(
                         site.SceneHasNpc,
-                        $"{where} uses opposed test '{testId}', but scene '{scene.Id}' binds no NPC "
-                            + "template, so there is nobody to oppose it.");
+                        $"{where} uses opposed test '{test.DisplayName}', but scene '{scene.DisplayName}' binds "
+                            + "no stat block, so there is nobody to oppose it.");
                 }
 
                 var outcomes = choice.TestId is not null
@@ -1002,32 +1400,29 @@ public static class GameContentLoader
                 continue;
             }
 
+            var mission = missions.First(candidate => candidate.Id == effect.MissionId);
             var guarded = (choice.Conditions ?? []).Any(condition =>
-                condition.Kind == SceneConditionKind.MissionReadyToTurnIn
-                && string.Equals(condition.MissionId, effect.MissionId, StringComparison.Ordinal));
+                condition.Kind == SceneConditionKind.MissionReadyToTurnIn && condition.MissionId == effect.MissionId);
             Require(
                 guarded,
                 $"{where} effect 'turnInMission' needs a 'missionReadyToTurnIn' condition for "
-                    + $"'{effect.MissionId}' on the same choice — without it the choice is offered "
+                    + $"'{mission.DisplayName}' on the same choice — without it the choice is offered "
                     + "when the turn-in cannot succeed.");
-
-            var mission = missions.First(candidate =>
-                string.Equals(candidate.Id, effect.MissionId, StringComparison.Ordinal));
             Require(
                 mission.Objectives.Any(objective => objective.Kind == MissionObjectiveKind.DeliverItem),
-                $"{where} effect 'turnInMission' names mission '{mission.Id}', which declares no "
+                $"{where} effect 'turnInMission' names job '{mission.DisplayName}', which declares no "
                     + "deliverItem objective — there is nothing to hand over.");
         }
     }
 
-    private static void ValidateOutcomeFlow(SceneOutcome outcome, IReadOnlySet<string> nodeIds, string where)
+    private static void ValidateOutcomeFlow(SceneOutcome outcome, IReadOnlySet<Guid> nodeIds, string where)
     {
         Require(
-            outcome.NextNodeId is null || nodeIds.Contains(outcome.NextNodeId),
-            $"{where} nextNodeId '{outcome.NextNodeId}' does not name a declared node.");
+            outcome.NextNodeId is null || nodeIds.Contains(outcome.NextNodeId.Value),
+            $"{where} continues to a step that is not in this scene.");
         Require(
             !(outcome.EndsScene && outcome.NextNodeId is not null),
-            $"{where} cannot both end the scene and continue to a node.");
+            $"{where} cannot both end the scene and continue to a step.");
     }
 
     // Every effect that names something must name something that exists.
@@ -1056,11 +1451,9 @@ public static class GameContentLoader
                     ? "completeObjective"
                     : "failObjective";
                 Require(
-                    effect.ObjectiveKey is not null
-                        && mission.Objectives.Any(objective =>
-                            string.Equals(objective.Key, effect.ObjectiveKey, StringComparison.Ordinal)),
-                    $"{where} effect '{kind}' names objective '{effect.ObjectiveKey}' "
-                        + $"which mission '{mission.Id}' does not declare.");
+                    effect.ObjectiveId is { } objectiveId
+                        && mission.Objectives.Any(objective => objective.Id == objectiveId),
+                    $"{where} effect '{kind}' names an objective job '{mission.DisplayName}' does not have.");
                 break;
             }
 
@@ -1073,25 +1466,19 @@ public static class GameContentLoader
                     !site.InsideScene,
                     $"{where} effect 'advanceScene' belongs on a trigger; inside a scene, "
                         + "flow belongs on the choice's nextNodeId.");
-                var scene = references.Scenes.FirstOrDefault(candidate =>
-                    string.Equals(candidate.Id, effect.SceneId, StringComparison.Ordinal));
+                var scene = references.Scenes.FirstOrDefault(candidate => candidate.Id == effect.SceneId);
+                Require(scene is not null, $"{where} effect 'advanceScene' names a scene that does not exist.");
                 Require(
-                    scene is not null,
-                    $"{where} effect 'advanceScene' names unknown scene '{effect.SceneId}'.");
-                Require(
-                    effect.NodeId is not null && scene!.FindNode(effect.NodeId) is not null,
-                    $"{where} effect 'advanceScene' names node '{effect.NodeId}' "
-                        + $"which scene '{effect.SceneId}' does not declare.");
+                    effect.NodeId is { } nodeId && scene!.FindNode(nodeId) is not null,
+                    $"{where} effect 'advanceScene' names a step scene '{scene!.DisplayName}' does not have.");
                 break;
             }
 
             case SceneEffectKind.GiveItem:
             case SceneEffectKind.TakeItem:
                 Require(
-                    effect.ItemKey is not null
-                        && scope.Any(candidate => candidate.Items.Any(item =>
-                            string.Equals(item.Key, effect.ItemKey, StringComparison.Ordinal))),
-                    $"{where} effect '{effect.Kind}' names item '{effect.ItemKey}' which no encounter declares.");
+                    effect.ItemId is { } itemId && scope.Any(candidate => candidate.FindItem(itemId) is not null),
+                    $"{where} effect '{EffectName(effect.Kind)}' names an item no job site has.");
 
                 // giveItem takes the item FROM a live encounter instance, so a
                 // scene the player can be in without being inside one has
@@ -1127,13 +1514,12 @@ public static class GameContentLoader
 
     // Every effect that acts on an NPC resolves the same way: the one it
     // names, or — inside a scene — the one the scene is with. Both halves are
-    // checkable, and neither was, which is how a published alertNpc could name
-    // somebody who does not exist and silently do nothing.
+    // checkable.
     private static void ValidateNpcTarget(SceneEffect effect, EffectSite site, string where)
     {
         var kind = char.ToLowerInvariant(effect.Kind.ToString()[0]) + effect.Kind.ToString()[1..];
 
-        if (effect.NpcName is null)
+        if (effect.NpcId is not { } npcId)
         {
             // "The scene's own NPC" is only a thing inside a scene that binds
             // one. A trigger reaction has no conversation and so no subject.
@@ -1141,72 +1527,73 @@ public static class GameContentLoader
                 site.InsideScene && site.SceneHasNpc,
                 site.InsideScene
                     ? $"{where} effect '{kind}' falls back to the scene's own NPC, but this scene binds "
-                        + "no NPC template. Name the NPC on the effect."
+                        + "no stat block. Name the NPC on the effect."
                     : $"{where} effect '{kind}' must name an NPC — a trigger has no scene NPC to fall "
                         + "back to, so an unnamed one resolves to nobody.");
             return;
         }
 
-        Require(
-            site.Scope.Any(candidate => candidate.Npcs.Any(npc =>
-                string.Equals(npc.Name, effect.NpcName, StringComparison.Ordinal))),
-            $"{where} effect '{kind}' names undeclared NPC '{effect.NpcName}'.");
+        var named = site.Scope.SelectMany(candidate => candidate.Npcs).FirstOrDefault(npc => npc.Id == npcId);
+        Require(named is not null, $"{where} effect '{kind}' names an NPC that does not exist here.");
+
+        if (site.InsideScene)
+        {
+            ValidateSceneNpcTarget(effect, named!, site, kind, where);
+            return;
+        }
 
         // alertNpc carries through the whole encounter; the other two happen
-        // face to face, so the NPC has to be in the room the effect runs in.
-        // When a trigger pins down its own room that is checkable, and this is
-        // exactly the shape of bug it catches: a reaction reaching for someone
-        // two rooms away, publishing fine, and silently doing nothing.
-        if (effect.Kind != SceneEffectKind.AlertNpc
-            && site.Encounter is { } encounter
-            && site.TriggerRoomKey is { } roomKey)
+        // face to face, so the NPC has to be in the room the effect runs in —
+        // a reaction reaching for someone two rooms away would publish fine
+        // and silently do nothing.
+        if (effect.Kind != SceneEffectKind.AlertNpc && site.TriggerRoomId is { } roomId)
         {
-            var placement = encounter.Npcs.First(npc =>
-                string.Equals(npc.Name, effect.NpcName, StringComparison.Ordinal));
             Require(
-                string.Equals(placement.RoomKey, roomKey, StringComparison.Ordinal),
-                $"{where} effect '{kind}' names '{effect.NpcName}', who stands in "
-                    + $"'{placement.RoomKey}' — but this trigger fires in '{roomKey}', and "
-                    + $"'{kind}' only reaches the room the player is in. Use 'alertNpc' to reach "
-                    + "across the encounter.");
+                named!.RoomId == roomId,
+                $"{where} effect '{kind}' names '{named.Name}', who stands in another room — and "
+                    + $"'{kind}' only reaches the room the player is in. Use 'alertNpc' to reach across "
+                    + "the job site.");
         }
     }
 
-    // Where a trigger fires, when its own filters settle it: the room it
-    // watches, or the room holding the interactable or NPC it watches.
-    private static string? TriggerRoomKey(TriggerDefinition trigger, EncounterDefinition encounter)
+    // WF-7: a named NPC in a scene has to be somewhere the scene actually
+    // plays: alertNpc reaches only the job site the player is in, and
+    // pacifyNpc/startCombat only the room.
+    private static void ValidateSceneNpcTarget(
+        SceneEffect effect, EncounterNpcDefinition named, EffectSite site, string kind, string where)
     {
-        if (trigger.RoomKey is { } declared)
-        {
-            return declared;
-        }
+        var openers = site.SceneOpeners ?? [];
+        Require(
+            openers.Count > 0,
+            $"{where} effect '{kind}' names '{named.Name}', but this scene is never opened inside "
+                + "a job site, so that NPC is never anywhere it can reach. Leave the NPC unnamed to "
+                + "target the scene's own NPC, or open the scene from the site that NPC is in.");
 
-        if (trigger.InteractableName is { } interactableName)
+        foreach (var opener in openers)
         {
-            return encounter.Interactables
-                .FirstOrDefault(candidate =>
-                    string.Equals(candidate.Name, interactableName, StringComparison.Ordinal))
-                ?.RoomKey;
-        }
+            Require(
+                opener.Encounter.FindNpc(named.Id) is not null,
+                $"{where} effect '{kind}' names '{named.Name}', but this scene also opens in job site "
+                    + $"'{opener.Encounter.DisplayName}', where they are not — there the effect would do nothing.");
 
-        if (trigger.NpcName is { } npcName)
-        {
-            return encounter.Npcs
-                .FirstOrDefault(candidate => string.Equals(candidate.Name, npcName, StringComparison.Ordinal))
-                ?.RoomKey;
+            // alertNpc carries through the whole site; the other two happen
+            // face to face, in the room the scene opens in.
+            if (effect.Kind != SceneEffectKind.AlertNpc && opener.RoomId is { } roomId)
+            {
+                Require(
+                    named.RoomId == roomId,
+                    $"{where} effect '{kind}' names '{named.Name}', who stands in a different room from "
+                        + $"where this scene opens in job site '{opener.Encounter.DisplayName}', and '{kind}' "
+                        + "only reaches the room the player is in. Use 'alertNpc' to reach across the site.");
+            }
         }
-
-        return null;
     }
 
     private static MissionDefinition RequireMission(
         SceneEffect effect, IReadOnlyList<MissionDefinition> missions, string where)
     {
-        var mission = missions.FirstOrDefault(candidate =>
-            string.Equals(candidate.Id, effect.MissionId, StringComparison.Ordinal));
-        Require(
-            mission is not null,
-            $"{where} effect '{effect.Kind}' references unknown mission '{effect.MissionId}'.");
+        var mission = missions.FirstOrDefault(candidate => candidate.Id == effect.MissionId);
+        Require(mission is not null, $"{where} effect '{EffectName(effect.Kind)}' names a job that does not exist.");
         return mission!;
     }
 
@@ -1219,28 +1606,24 @@ public static class GameContentLoader
             case SceneConditionKind.MissionOpen:
             case SceneConditionKind.MissionReadyToTurnIn:
                 Require(
-                    condition.MissionId is not null
-                        && missions.Any(mission => string.Equals(mission.Id, condition.MissionId, StringComparison.Ordinal)),
-                    $"{where} condition '{condition.Kind}' references unknown mission '{condition.MissionId}'.");
+                    condition.MissionId is { } missionId && missions.Any(mission => mission.Id == missionId),
+                    $"{where} condition '{condition.Kind}' names a job that does not exist.");
                 break;
 
             case SceneConditionKind.CarryingItem:
             case SceneConditionKind.NotCarryingItem:
-                Require(
-                    !string.IsNullOrWhiteSpace(condition.ItemKey),
-                    $"{where} condition '{condition.Kind}' must name an itemKey.");
+                Require(condition.ItemId is not null, $"{where} condition '{condition.Kind}' must name an item.");
                 break;
         }
     }
 
     // §50 scene-graph reachability, now every scene's: walk the graph from
-    // the start node and refuse a set with nodes nothing leads to.
-    private static void RequireReachable(
-        string sceneId, string startNodeId, IReadOnlyList<SceneNodeDefinition> nodes)
+    // the start step and refuse a set with steps nothing leads to.
+    private static void RequireReachable(string scene, Guid startNodeId, IReadOnlyList<SceneNodeDefinition> nodes)
     {
-        var byId = nodes.ToDictionary(node => node.NodeId, StringComparer.Ordinal);
-        var reached = new HashSet<string>(StringComparer.Ordinal) { startNodeId };
-        var pending = new Queue<string>([startNodeId]);
+        var byId = nodes.ToDictionary(node => node.Id);
+        var reached = new HashSet<Guid> { startNodeId };
+        var pending = new Queue<Guid>([startNodeId]);
 
         while (pending.Count > 0)
         {
@@ -1253,19 +1636,22 @@ public static class GameContentLoader
 
                 foreach (var nextId in nextIds)
                 {
-                    if (nextId is not null && reached.Add(nextId))
+                    if (nextId is { } next && reached.Add(next))
                     {
-                        pending.Enqueue(nextId);
+                        pending.Enqueue(next);
                     }
                 }
             }
         }
 
-        var orphan = nodes.FirstOrDefault(node => !reached.Contains(node.NodeId));
+        var orphan = nodes.FirstOrDefault(node => !reached.Contains(node.Id));
         Require(
             orphan is null,
-            $"Scene '{sceneId}' node '{orphan?.NodeId}' is unreachable from start node '{startNodeId}'.");
+            $"Scene {scene} has a step nothing leads to: \"{Excerpt(orphan?.Text)}\".");
     }
+
+    private static string Excerpt(string? text) =>
+        text is null ? string.Empty : text.Length <= 40 ? text : text[..40] + "…";
 
     private static void Require(bool condition, string message)
     {
@@ -1275,11 +1661,10 @@ public static class GameContentLoader
         }
     }
 
-    private static void RequireUnique(IEnumerable<string> values, string what)
+    private static void RequireUnique<T>(IEnumerable<T> values, string what)
+        where T : notnull
     {
-        var duplicate = values
-            .GroupBy(value => value, StringComparer.Ordinal)
-            .FirstOrDefault(group => group.Count() > 1);
+        var duplicate = values.GroupBy(value => value).FirstOrDefault(group => group.Count() > 1);
         if (duplicate is not null)
         {
             throw new GameContentException($"Duplicate {what}: '{duplicate.Key}'.");

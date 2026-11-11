@@ -19,8 +19,8 @@ namespace SeattleByNight.Application.Tests;
 // covered by the infrastructure tests.
 public sealed class SceneEngineTests
 {
-    private const string MissionId = "gang-warehouse-retrieval";
-    private const string JohnsonSceneId = "johnson-warehouse-job";
+    private static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
+    private static readonly Guid JohnsonSceneId = ShippedContentIds.Scenes.JohnsonWarehouseJob;
 
     private sealed class Harness
     {
@@ -64,7 +64,7 @@ public sealed class SceneEngineTests
                 "Case");
         }
 
-        public NpcSnapshot AddNpc(string templateId, string name)
+        public NpcSnapshot AddNpc(Guid templateId, string name)
         {
             var npc = new NpcSnapshot(
                 Guid.NewGuid(), templateId, name, RoomId,
@@ -73,7 +73,7 @@ public sealed class SceneEngineTests
             return npc;
         }
 
-        public void OpenConversation(NpcSnapshot npc, string sceneId, string nodeId, int? pendingPay = null)
+        public void OpenConversation(NpcSnapshot npc, Guid sceneId, Guid nodeId, int? pendingPay = null)
         {
             Scene.Session = new SceneSessionSnapshot(
                 Guid.NewGuid(), CharacterId, npc.Id, RoomId, sceneId, nodeId, pendingPay);
@@ -119,10 +119,10 @@ public sealed class SceneEngineTests
 
         // Milestone 7: choice ids are anchored on the SCENE SESSION, not the
         // NPC — a trigger-opened scene has no NPC to anchor on.
-        public Task<GameActionOutcome> ChooseAsync(NpcSnapshot npc, string nodeId, string choiceId) =>
+        public Task<GameActionOutcome> ChooseAsync(NpcSnapshot npc, Guid choiceId) =>
             RunAsync(
                 DevelopmentGameActions.SceneChoiceActionId,
-                SceneChoiceIds.Derive(Scene.Session!.Id, nodeId, choiceId));
+                SceneChoiceIds.Derive(Scene.Session!.Id, choiceId));
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public sealed class SceneEngineTests
         var begin = Assert.IsType<BeginSceneChange>(Assert.Single(changes));
         Assert.Equal(johnson.Id, begin.NpcInstanceId);
         Assert.Equal(JohnsonSceneId, begin.SceneId);
-        Assert.Equal("greeting", begin.NodeId);
+        Assert.Equal(ShippedContentIds.SceneNodes.Greeting, begin.NodeId);
 
         // The NPC's line is real room speech, spoken by the NPC.
         var spoken = Assert.Single(harness.Broadcaster.Broadcasts, message => message.Type == ChatMessageType.Say);
@@ -156,13 +156,13 @@ public sealed class SceneEngineTests
     {
         var harness = new Harness();
         var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
-        harness.OpenConversation(johnson, JohnsonSceneId, "greeting");
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.Greeting);
 
-        var outcome = await harness.ChooseAsync(johnson, "greeting", "ask-job");
+        var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobGreetingAskJob);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
-        Assert.Equal("job-offer", Assert.IsType<AdvanceSceneChange>(Assert.Single(changes)).NodeId);
+        Assert.Equal(ShippedContentIds.SceneNodes.JobOffer, Assert.IsType<AdvanceSceneChange>(Assert.Single(changes)).NodeId);
 
         var spoken = Assert.Single(harness.Broadcaster.Broadcasts, message => message.Type == ChatMessageType.Say);
         Assert.Contains("Two thousand nuyen", spoken.Content);
@@ -174,11 +174,11 @@ public sealed class SceneEngineTests
     {
         var harness = new Harness();
         var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
-        harness.OpenConversation(johnson, JohnsonSceneId, "greeting");
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.Greeting);
 
         // No ReadyToTurnIn mission and no package → the turn-in choice is
         // not offered, so submitting it trips the affordance gate.
-        var outcome = await harness.ChooseAsync(johnson, "greeting", "hand-over-package");
+        var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobGreetingHandOverPackage);
 
         Assert.Equal(GameActionError.ActionNotAvailable, outcome.Error);
         Assert.Empty(harness.Applier.Applications);
@@ -189,18 +189,18 @@ public sealed class SceneEngineTests
     {
         var harness = new Harness();
         var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
-        harness.OpenConversation(johnson, JohnsonSceneId, "job-offer");
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.JobOffer);
 
         // Charisma 4 + Negotiation 4 = 8 dice: four hits; Johnson's Social 8
         // rolls one hit → 3 net hits → 2000 + 3×200.
         harness.Roller.Enqueue(5, 5, 6, 5, 1, 2, 3, 4);
         harness.Roller.Enqueue(5, 1, 1, 2, 2, 3, 3, 4);
 
-        var outcome = await harness.ChooseAsync(johnson, "job-offer", "negotiate");
+        var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobJobOfferNegotiate);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
-        Assert.Equal("negotiate-win", Assert.IsType<AdvanceSceneChange>(changes[0]).NodeId);
+        Assert.Equal(ShippedContentIds.SceneNodes.NegotiateWin, Assert.IsType<AdvanceSceneChange>(changes[0]).NodeId);
         Assert.Equal(2600, Assert.IsType<SetPendingNegotiatedPayChange>(changes[1]).Nuyen);
         Assert.NotNull(outcome.Resolution);
     }
@@ -210,17 +210,17 @@ public sealed class SceneEngineTests
     {
         var harness = new Harness();
         var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
-        harness.OpenConversation(johnson, JohnsonSceneId, "job-offer");
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.JobOffer);
 
         // One hit versus four: the Johnson wins.
         harness.Roller.Enqueue(5, 1, 1, 2, 2, 3, 3, 4);
         harness.Roller.Enqueue(5, 5, 6, 5, 1, 2, 3, 4);
 
-        var outcome = await harness.ChooseAsync(johnson, "job-offer", "negotiate");
+        var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobJobOfferNegotiate);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
-        Assert.Equal("negotiate-lose", Assert.IsType<AdvanceSceneChange>(Assert.Single(changes)).NodeId);
+        Assert.Equal(ShippedContentIds.SceneNodes.NegotiateLose, Assert.IsType<AdvanceSceneChange>(Assert.Single(changes)).NodeId);
     }
 
     [Fact]
@@ -228,13 +228,13 @@ public sealed class SceneEngineTests
     {
         var harness = new Harness();
         var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
-        harness.OpenConversation(johnson, JohnsonSceneId, "job-offer", pendingPay: 2600);
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.JobOffer, pendingPay: 2600);
 
-        var outcome = await harness.ChooseAsync(johnson, "job-offer", "accept");
+        var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobJobOfferAccept);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
-        Assert.Equal("accepted", Assert.IsType<AdvanceSceneChange>(changes[0]).NodeId);
+        Assert.Equal(ShippedContentIds.SceneNodes.Accepted, Assert.IsType<AdvanceSceneChange>(changes[0]).NodeId);
         var accept = Assert.IsType<AcceptMissionChange>(changes[1]);
         Assert.Equal(MissionId, accept.MissionId);
         Assert.Equal(2600, accept.NegotiatedNuyen);
@@ -245,31 +245,31 @@ public sealed class SceneEngineTests
     {
         var harness = new Harness();
         var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
-        harness.OpenConversation(johnson, JohnsonSceneId, "greeting");
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.Greeting);
 
         var instance = new MissionInstanceSnapshot(
             Guid.NewGuid(), MissionId, harness.CharacterId, MissionInstanceStatus.ReadyToTurnIn,
             new[]
             {
-                new MissionObjectiveState("enter-warehouse", MissionObjectiveStatus.Completed),
-                new MissionObjectiveState("retrieve-package", MissionObjectiveStatus.Completed),
-                new MissionObjectiveState("leave-warehouse", MissionObjectiveStatus.Completed),
-                new MissionObjectiveState("deliver-package", MissionObjectiveStatus.Active),
+                new MissionObjectiveState(ShippedContentIds.Objectives.EnterWarehouse, MissionObjectiveStatus.Completed),
+                new MissionObjectiveState(ShippedContentIds.Objectives.RetrievePackage, MissionObjectiveStatus.Completed),
+                new MissionObjectiveState(ShippedContentIds.Objectives.LeaveWarehouse, MissionObjectiveStatus.Completed),
+                new MissionObjectiveState(ShippedContentIds.Objectives.DeliverPackage, MissionObjectiveStatus.Active),
             },
             NegotiatedNuyen: 2600,
             DateTimeOffset.UtcNow,
             CompletedAtUtc: null);
         harness.Missions.Instances.Add(instance);
         harness.Missions.Items.Add(new WorldItemSnapshot(
-            Guid.NewGuid(), "package", "Sealed Courier Package", "d",
+            Guid.NewGuid(), ShippedContentIds.Items.Package, "Sealed Courier Package", "d",
             instance.Id, Guid.NewGuid(), RoomId: null, OwnerCharacterId: harness.CharacterId));
 
-        var outcome = await harness.ChooseAsync(johnson, "greeting", "hand-over-package");
+        var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobGreetingHandOverPackage);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
-        Assert.Equal("paid", Assert.IsType<AdvanceSceneChange>(changes[0]).NodeId);
-        Assert.Equal("deliver-package", Assert.IsType<CompleteObjectiveChange>(changes[1]).ObjectiveKey);
+        Assert.Equal(ShippedContentIds.SceneNodes.Paid, Assert.IsType<AdvanceSceneChange>(changes[0]).NodeId);
+        Assert.Equal(ShippedContentIds.Objectives.DeliverPackage, Assert.IsType<CompleteObjectiveChange>(changes[1]).ObjectiveId);
         Assert.IsType<RemoveItemChange>(changes[2]);
         var completion = Assert.IsType<CompleteMissionChange>(changes[3]);
         Assert.Equal(2, completion.Karma);
@@ -284,17 +284,17 @@ public sealed class SceneEngineTests
     {
         var harness = new Harness();
         var ganger = harness.AddNpc(NpcTemplateIds.StreetGanger, "Razor");
-        harness.OpenConversation(ganger, "ganger-lookout-talk", "confront");
+        harness.OpenConversation(ganger, ShippedContentIds.Scenes.GangerLookoutTalk, ShippedContentIds.SceneNodes.Confront);
 
         // Con 8 dice: four hits; the ganger's Social 4 rolls none.
         harness.Roller.Enqueue(5, 5, 6, 5, 1, 2, 3, 4);
         harness.Roller.Enqueue(1, 2, 3, 4);
 
-        var outcome = await harness.ChooseAsync(ganger, "confront", "talk-past");
+        var outcome = await harness.ChooseAsync(ganger, ShippedContentIds.SceneChoices.GangerLookoutTalkConfrontTalkPast);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
-        Assert.Equal("talked-past", Assert.IsType<AdvanceSceneChange>(changes[0]).NodeId);
+        Assert.Equal(ShippedContentIds.SceneNodes.TalkedPast, Assert.IsType<AdvanceSceneChange>(changes[0]).NodeId);
         var pacify = Assert.IsType<SetNpcAwarenessChange>(changes[1]);
         Assert.Equal(ganger.Id, pacify.NpcId);
         Assert.Equal(NpcAwareness.Pacified, pacify.Awareness);
@@ -304,7 +304,7 @@ public sealed class SceneEngineTests
         var (_, raised) = Assert.Single(harness.Queue.Enqueued);
         Assert.Equal(DevelopmentGameActions.FireTriggersActionId, raised.ActionId);
         Assert.Equal(TriggerEventKind.NpcPacified, raised.TriggerEvent!.Event);
-        Assert.Equal(ganger.Name, raised.TriggerEvent.NpcName);
+        Assert.Equal(ganger.Id, raised.TriggerEvent.NpcId);
     }
 
     [Fact]
@@ -312,17 +312,17 @@ public sealed class SceneEngineTests
     {
         var harness = new Harness();
         var ganger = harness.AddNpc(NpcTemplateIds.StreetGanger, "Razor");
-        harness.OpenConversation(ganger, "ganger-lookout-talk", "confront");
+        harness.OpenConversation(ganger, ShippedContentIds.Scenes.GangerLookoutTalk, ShippedContentIds.SceneNodes.Confront);
 
         // No hits versus one: made.
         harness.Roller.Enqueue(1, 2, 3, 4, 1, 2, 3, 4);
         harness.Roller.Enqueue(5, 1, 2, 3);
 
-        var outcome = await harness.ChooseAsync(ganger, "confront", "talk-past");
+        var outcome = await harness.ChooseAsync(ganger, ShippedContentIds.SceneChoices.GangerLookoutTalkConfrontTalkPast);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
-        Assert.Equal("made", Assert.IsType<AdvanceSceneChange>(Assert.Single(changes)).NodeId);
+        Assert.Equal(ShippedContentIds.SceneNodes.Made, Assert.IsType<AdvanceSceneChange>(Assert.Single(changes)).NodeId);
 
         // §24 reactive trigger: the alert (which opens combat for a Hostile
         // NPC) is enqueued after commit, exactly like a failed sneak.

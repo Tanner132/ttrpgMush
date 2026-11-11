@@ -1,3 +1,4 @@
+using SeattleByNight.Application.GameEngine.Missions.Content;
 ﻿using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
@@ -16,7 +17,7 @@ namespace SeattleByNight.Application.Tests;
 // the infrastructure tests.
 public sealed class MissionEngineTests
 {
-    private const string MissionId = "gang-warehouse-retrieval";
+    private static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
     private static readonly Guid AlleyId = Guid.Parse("33333333-3333-3333-3333-333333333333");
 
     private sealed class Harness
@@ -87,7 +88,7 @@ public sealed class MissionEngineTests
 
         public MissionInstanceSnapshot AddMissionInstance(params MissionObjectiveStatus[] statuses)
         {
-            var keys = new[] { "enter-warehouse", "retrieve-package", "leave-warehouse", "deliver-package" };
+            var keys = new[] { ShippedContentIds.Objectives.EnterWarehouse, ShippedContentIds.Objectives.RetrievePackage, ShippedContentIds.Objectives.LeaveWarehouse, ShippedContentIds.Objectives.DeliverPackage };
             var instance = new MissionInstanceSnapshot(
                 Guid.NewGuid(),
                 MissionId,
@@ -121,7 +122,7 @@ public sealed class MissionEngineTests
         Assert.Equal(instance.Id, enter.MissionInstanceId);
         Assert.Equal(harness.PlaySessionId, enter.PlaySessionId);
         var objective = Assert.IsType<CompleteObjectiveChange>(changes[1]);
-        Assert.Equal("enter-warehouse", objective.ObjectiveKey);
+        Assert.Equal(ShippedContentIds.Objectives.EnterWarehouse, objective.ObjectiveId);
     }
 
     [Fact]
@@ -146,11 +147,11 @@ public sealed class MissionEngineTests
         var instance = harness.AddMissionInstance(
             MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
         var encounter = new EncounterInstanceSnapshot(
-            Guid.NewGuid(), "gang-warehouse", instance.Id, EncounterInstanceStatus.Active,
+            Guid.NewGuid(), ShippedContentIds.Encounters.GangWarehouse, instance.Id, EncounterInstanceStatus.Active,
             EntryRoomId: roomId, ReturnRoomId: AlleyId);
         harness.Missions.Encounters.Add(encounter);
         var item = new WorldItemSnapshot(
-            Guid.NewGuid(), "package", "Sealed Courier Package", "d",
+            Guid.NewGuid(), ShippedContentIds.Items.Package, "Sealed Courier Package", "d",
             instance.Id, encounter.Id, RoomId: roomId, OwnerCharacterId: null);
         harness.Missions.Items.Add(item);
 
@@ -160,8 +161,37 @@ public sealed class MissionEngineTests
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
         Assert.Equal(item.Id, Assert.IsType<PickUpItemChange>(changes[0]).ItemId);
-        Assert.Equal("retrieve-package", Assert.IsType<CompleteObjectiveChange>(changes[1]).ObjectiveKey);
+        Assert.Equal(ShippedContentIds.Objectives.RetrievePackage, Assert.IsType<CompleteObjectiveChange>(changes[1]).ObjectiveId);
         Assert.Contains("Objective complete", outcome.Message);
+    }
+
+    // WF-27: an item can be hidden like an inspectable. Until this
+    // character's search turns it up, it is not there to take.
+    [Fact]
+    public async Task A_hidden_item_cannot_be_taken_until_it_has_been_found()
+    {
+        var roomId = Guid.NewGuid();
+        var harness = new Harness(roomId);
+        var instance = harness.AddMissionInstance(
+            MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
+        var encounter = new EncounterInstanceSnapshot(
+            Guid.NewGuid(), ShippedContentIds.Encounters.GangWarehouse, instance.Id, EncounterInstanceStatus.Active,
+            EntryRoomId: roomId, ReturnRoomId: AlleyId);
+        harness.Missions.Encounters.Add(encounter);
+        var item = new WorldItemSnapshot(
+            Guid.NewGuid(), ShippedContentIds.Items.Package, "Sealed Courier Package", "d",
+            instance.Id, encounter.Id, RoomId: roomId, OwnerCharacterId: null,
+            IsHidden: true, DiscoveryThreshold: 2);
+        harness.Missions.Items.Add(item);
+
+        var hidden = await harness.RunAsync(DevelopmentGameActions.TakeItemActionId, targetId: item.Id);
+        Assert.NotEqual(GameActionError.None, hidden.Error);
+        Assert.Empty(harness.Applier.Applications);
+
+        harness.RoomContent.DiscoveredItems.Add(item.Id);
+        var found = await harness.RunAsync(DevelopmentGameActions.TakeItemActionId, targetId: item.Id);
+        Assert.Equal(GameActionError.None, found.Error);
+        Assert.Equal(item.Id, Assert.IsType<PickUpItemChange>(Assert.Single(harness.Applier.Applications).Changes[0]).ItemId);
     }
 
     [Fact]
@@ -173,7 +203,7 @@ public sealed class MissionEngineTests
             MissionObjectiveStatus.Completed, MissionObjectiveStatus.Completed,
             MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive);
         var encounter = new EncounterInstanceSnapshot(
-            Guid.NewGuid(), "gang-warehouse", instance.Id, EncounterInstanceStatus.Active,
+            Guid.NewGuid(), ShippedContentIds.Encounters.GangWarehouse, instance.Id, EncounterInstanceStatus.Active,
             EntryRoomId: roomId, ReturnRoomId: AlleyId);
         harness.Missions.Encounters.Add(encounter);
 
@@ -182,7 +212,7 @@ public sealed class MissionEngineTests
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
         Assert.Equal(2, changes.Count);
-        Assert.Equal("leave-warehouse", Assert.IsType<CompleteObjectiveChange>(changes[0]).ObjectiveKey);
+        Assert.Equal(ShippedContentIds.Objectives.LeaveWarehouse, Assert.IsType<CompleteObjectiveChange>(changes[0]).ObjectiveId);
         Assert.Equal(encounter.Id, Assert.IsType<LeaveEncounterChange>(changes[1]).EncounterInstanceId);
         // Milestone 6: completion and rewards moved to the Johnson turn-in.
         Assert.DoesNotContain(changes, change => change is CompleteMissionChange);
@@ -200,7 +230,7 @@ public sealed class MissionEngineTests
         var instance = harness.AddMissionInstance(
             MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
         harness.Missions.Encounters.Add(new EncounterInstanceSnapshot(
-            Guid.NewGuid(), "gang-warehouse", instance.Id, EncounterInstanceStatus.Active,
+            Guid.NewGuid(), ShippedContentIds.Encounters.GangWarehouse, instance.Id, EncounterInstanceStatus.Active,
             EntryRoomId: roomId, ReturnRoomId: AlleyId));
 
         var outcome = await harness.RunAsync(DevelopmentGameActions.LeaveEncounterActionId);

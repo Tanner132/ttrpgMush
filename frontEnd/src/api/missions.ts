@@ -11,7 +11,7 @@ export type MissionInstanceStatus =
 export type MissionObjectiveStatus = 'Inactive' | 'Active' | 'Completed' | 'Failed'
 
 export interface MissionObjectiveSummary {
-  key: string
+  id: string
   displayName: string
   status: MissionObjectiveStatus
 }

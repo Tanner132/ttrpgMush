@@ -12,7 +12,7 @@ public sealed class NpcInstanceConfiguration : IEntityTypeConfiguration<NpcInsta
 
         builder.HasKey(npc => npc.Id);
         builder.Property(npc => npc.Id).HasColumnName("id").HasColumnType("uuid").ValueGeneratedNever();
-        builder.Property(npc => npc.TemplateId).HasColumnName("template_id").HasMaxLength(100).IsRequired();
+        builder.Property(npc => npc.TemplateId).HasColumnName("template_id").HasColumnType("uuid").IsRequired();
         builder.Property(npc => npc.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
         builder.Property(npc => npc.RoomId).HasColumnName("room_id").HasColumnType("uuid").IsRequired();
         builder.Property(npc => npc.PhysicalDamage).HasColumnName("physical_damage").IsRequired();
@@ -22,7 +22,8 @@ public sealed class NpcInstanceConfiguration : IEntityTypeConfiguration<NpcInsta
         // absent means "whatever the template says", which is not the same as
         // an empty override.
         builder.Property(npc => npc.Description).HasColumnName("description").HasMaxLength(2000);
-        builder.Property(npc => npc.SceneId).HasColumnName("scene_id").HasMaxLength(100);
+        builder.Property(npc => npc.SceneId).HasColumnName("scene_id").HasColumnType("uuid");
+        builder.Property(npc => npc.SourceNpcId).HasColumnName("source_npc_id").HasColumnType("uuid");
         builder.Property(npc => npc.OverridesJson).HasColumnName("overrides").HasColumnType("jsonb");
         builder.Property(npc => npc.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
         builder.Property(npc => npc.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");

@@ -59,6 +59,7 @@ public static class DependencyInjection
         // fallback for an Application-only composition.
         services.AddSingleton<IGameContentProvider>(new EmbeddedGameContentProvider());
         services.AddScoped<GameContentPublisher>();
+        services.AddScoped<WorldEditing.WorldNpcPlacement>();
         services.AddScoped<GameContentLifecycle>();
         services.AddScoped<MissionEngine>();
         services.AddScoped<SceneConditionEvaluator>();

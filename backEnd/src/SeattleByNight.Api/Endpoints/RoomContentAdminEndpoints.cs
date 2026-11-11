@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using SeattleByNight.Api.Authorization;
+using SeattleByNight.Application.WorldEditing;
+using SeattleByNight.Infrastructure.Identity;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Application.GameEngine.Rooms;
@@ -7,7 +10,7 @@ using SeattleByNight.Domain.Enums;
 namespace SeattleByNight.Api.Endpoints;
 
 public sealed record NpcTemplateSummary(
-    string TemplateId,
+    Guid TemplateId,
     string DisplayName,
     string Description,
     IReadOnlyList<NpcTemplatePoolSummary> Pools,
@@ -17,16 +20,25 @@ public sealed record NpcTemplateSummary(
 
 public sealed record NpcTemplatePoolSummary(string PoolId, string DisplayName, int Dice);
 
-public sealed record PlaceNpcRequest(string? TemplateId, string? Name);
+// WF-25: a world NPC — a Johnson or another public regular. Only Public map
+// rooms take one; run NPCs are placed on the job.
+public sealed record PlaceNpcRequest(
+    Guid? TemplateId,
+    string? Name,
+    string? Description = null,
+    Guid? SceneId = null,
+    NpcAwareness? Awareness = null);
 
 public sealed record PlacedNpcResponse(
     Guid Id,
-    string TemplateId,
+    Guid TemplateId,
     string Name,
     Guid RoomId,
     int PhysicalDamage,
     int StunDamage,
-    NpcAwareness Awareness);
+    NpcAwareness Awareness,
+    string? Description = null,
+    Guid? SceneId = null);
 
 public sealed record PlaceInteractableRequest(
     string? Name,
@@ -60,8 +72,14 @@ public static class RoomContentAdminEndpoints
         group.MapGet("/npc-templates", ListTemplates);
         group.MapGet("/rooms/{roomId:guid}/npcs", ListNpcsAsync);
         group.MapPost("/rooms/{roomId:guid}/npcs", PlaceNpcAsync).RequireAntiforgery();
+        group.MapPut("/rooms/{roomId:guid}/npcs/{npcId:guid}", UpdateNpcAsync).RequireAntiforgery();
+        group.MapDelete("/rooms/{roomId:guid}/npcs/{npcId:guid}", RemoveNpcAsync).RequireAntiforgery();
         group.MapGet("/rooms/{roomId:guid}/interactables", ListInteractablesAsync);
         group.MapPost("/rooms/{roomId:guid}/interactables", PlaceInteractableAsync).RequireAntiforgery();
+        group.MapPut("/rooms/{roomId:guid}/interactables/{interactableId:guid}", UpdateInteractableAsync)
+            .RequireAntiforgery();
+        group.MapDelete("/rooms/{roomId:guid}/interactables/{interactableId:guid}", RemoveInteractableAsync)
+            .RequireAntiforgery();
         group.MapGet("/rooms/{roomId:guid}/environment", GetEnvironmentModifierAsync);
         group.MapPut("/rooms/{roomId:guid}/environment", SetEnvironmentModifierAsync).RequireAntiforgery();
 
@@ -101,31 +119,71 @@ public static class RoomContentAdminEndpoints
     private static async Task<IResult> PlaceNpcAsync(
         Guid roomId,
         PlaceNpcRequest request,
-        IRoomContentEditor editor,
-        IGameContentProvider gameContent,
+        WorldNpcPlacement placement,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.TemplateId)
-            || gameContent.Current.FindNpcTemplate(request.TemplateId) is not NpcTemplate template)
+        var actor = await userManager.GetUserAsync(httpContext.User);
+        if (actor is null)
         {
-            return Results.Problem(statusCode: StatusCodes.Status400BadRequest,
-                title: "Unknown NPC template.");
+            return Results.Unauthorized();
         }
 
-        var name = string.IsNullOrWhiteSpace(request.Name) ? template.DisplayName : request.Name.Trim();
-        if (name.Length > 200)
-        {
-            return Results.Problem(statusCode: StatusCodes.Status400BadRequest,
-                title: "NPC name is limited to 200 characters.");
-        }
-
-        var placed = await editor.CreateNpcAsync(
-            new NewNpcInstance(template.TemplateId, name, roomId), cancellationToken);
-
-        return placed is null
-            ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Room not found.")
-            : Results.Ok(ToResponse(placed));
+        var result = await placement.PlaceAsync(actor.Id, roomId, ToMutation(request), cancellationToken);
+        return NpcResult(result, npc => Results.Created($"/api/admin/world/rooms/{roomId}/npcs/{npc.Id}", ToResponse(npc)));
     }
+
+    private static async Task<IResult> UpdateNpcAsync(
+        Guid roomId,
+        Guid npcId,
+        PlaceNpcRequest request,
+        WorldNpcPlacement placement,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var actor = await userManager.GetUserAsync(httpContext.User);
+        if (actor is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await placement.UpdateAsync(actor.Id, roomId, npcId, ToMutation(request), cancellationToken);
+        return NpcResult(result, npc => Results.Ok(ToResponse(npc)));
+    }
+
+    private static async Task<IResult> RemoveNpcAsync(
+        Guid roomId,
+        Guid npcId,
+        WorldNpcPlacement placement,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var actor = await userManager.GetUserAsync(httpContext.User);
+        if (actor is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await placement.RemoveAsync(actor.Id, roomId, npcId, cancellationToken);
+        return NpcResult(result, _ => Results.NoContent());
+    }
+
+    private static WorldNpcMutation ToMutation(PlaceNpcRequest request) =>
+        new(request.TemplateId, request.Name, request.Description, request.SceneId, request.Awareness);
+
+    private static IResult NpcResult(WorldNpcResult result, Func<NpcSnapshot, IResult> success) =>
+        result.Error switch
+        {
+            WorldNpcError.None => result.Npc is { } npc ? success(npc) : Results.NoContent(),
+            WorldNpcError.Validation => Results.ValidationProblem(result.ValidationErrors),
+            WorldNpcError.RoomNotFound => Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Room not found."),
+            WorldNpcError.NpcNotFound => Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "NPC not found in this room."),
+            WorldNpcError.InUse => Results.Problem(statusCode: StatusCodes.Status409Conflict, title: result.Reason),
+            _ => Results.Problem(statusCode: StatusCodes.Status500InternalServerError),
+        };
 
     private static async Task<IResult> ListInteractablesAsync(
         Guid roomId,
@@ -144,6 +202,70 @@ public static class RoomContentAdminEndpoints
         IRoomContentEditor editor,
         CancellationToken cancellationToken)
     {
+        if (Validate(roomId, request, out var interactable) is { } refusal)
+        {
+            return refusal;
+        }
+
+        var placed = await editor.CreateInteractableAsync(interactable!, cancellationToken);
+
+        return placed is null
+            ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Room not found.")
+            : Results.Ok(ToResponse(placed));
+    }
+
+    private static async Task<IResult> UpdateInteractableAsync(
+        Guid roomId,
+        Guid interactableId,
+        PlaceInteractableRequest request,
+        IRoomContentEditor editor,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var actor = await userManager.GetUserAsync(httpContext.User);
+        if (actor is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        if (Validate(roomId, request, out var interactable) is { } refusal)
+        {
+            return refusal;
+        }
+
+        var updated = await editor.UpdateInteractableAsync(actor.Id, interactableId, interactable!, cancellationToken);
+
+        return updated is null
+            ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Inspectable not found in this room.")
+            : Results.Ok(ToResponse(updated));
+    }
+
+    private static async Task<IResult> RemoveInteractableAsync(
+        Guid roomId,
+        Guid interactableId,
+        IRoomContentEditor editor,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var actor = await userManager.GetUserAsync(httpContext.User);
+        if (actor is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        return await editor.DeleteInteractableAsync(actor.Id, roomId, interactableId, cancellationToken)
+            ? Results.NoContent()
+            : Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Inspectable not found in this room.");
+    }
+
+    // Null when the request is sound, with the inspectable it describes.
+    private static IResult? Validate(
+        Guid roomId, PlaceInteractableRequest request, out NewRoomInteractable? interactable)
+    {
+        interactable = null;
+
         if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 200)
         {
             return Results.Problem(statusCode: StatusCodes.Status400BadRequest,
@@ -164,13 +286,8 @@ public static class RoomContentAdminEndpoints
                 title: "Discovery threshold must be between 0 and 10.");
         }
 
-        var placed = await editor.CreateInteractableAsync(
-            new NewRoomInteractable(roomId, request.Name.Trim(), description, request.IsHidden, threshold),
-            cancellationToken);
-
-        return placed is null
-            ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Room not found.")
-            : Results.Ok(ToResponse(placed));
+        interactable = new NewRoomInteractable(roomId, request.Name.Trim(), description, request.IsHidden, threshold);
+        return null;
     }
 
     private static async Task<IResult> GetEnvironmentModifierAsync(
@@ -204,7 +321,8 @@ public static class RoomContentAdminEndpoints
     }
 
     private static PlacedNpcResponse ToResponse(NpcSnapshot npc) =>
-        new(npc.Id, npc.TemplateId, npc.Name, npc.RoomId, npc.PhysicalDamage, npc.StunDamage, npc.Awareness);
+        new(npc.Id, npc.TemplateId, npc.Name, npc.RoomId, npc.PhysicalDamage, npc.StunDamage, npc.Awareness,
+            npc.Description, npc.SceneId);
 
     private static PlacedInteractableResponse ToResponse(InteractableSnapshot interactable) =>
         new(

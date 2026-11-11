@@ -12,7 +12,7 @@ public sealed class EncounterInstanceConfiguration : IEntityTypeConfiguration<En
 
         builder.HasKey(instance => instance.Id);
         builder.Property(instance => instance.Id).HasColumnName("id").HasColumnType("uuid").ValueGeneratedNever();
-        builder.Property(instance => instance.EncounterId).HasColumnName("encounter_id").HasMaxLength(100).IsRequired();
+        builder.Property(instance => instance.EncounterId).HasColumnName("encounter_id").HasColumnType("uuid").IsRequired();
         builder.Property(instance => instance.MissionInstanceId).HasColumnName("mission_instance_id").HasColumnType("uuid").IsRequired();
         builder.Property(instance => instance.Status).HasColumnName("status").HasMaxLength(50).IsRequired();
         builder.Property(instance => instance.EntryRoomId).HasColumnName("entry_room_id").HasColumnType("uuid").IsRequired();

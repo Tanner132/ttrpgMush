@@ -9,7 +9,7 @@ v1 is seven workstreams:
 
 | # | Workstream | State |
 | --- | --- | --- |
-| 1 | [World Forge fixes and gaps](#1-world-forge-fixes-and-gaps) | Defined; ready to build |
+| 1 | [World Forge fixes and gaps](#1-world-forge-fixes-and-gaps) | Backend done; redesign phase 1 built, Jobs (phase 2) next |
 | 2 | [Career advancement completion](#2-career-advancement-completion) | Defined; ready to build |
 | 3 | [Group missions](#3-group-missions) | Needs design decisions |
 | 4 | [Magic in play](#4-magic-in-play) | Needs rules contract and design |
@@ -40,46 +40,295 @@ built until those are answered and the answers are recorded (rules in
 ## 1. World Forge fixes and gaps
 
 Carried over from the World Forge implementation review (second pass,
-2026-09-02). These were confirmed or suspected at that date and have not been
-re-verified since; confirm each against the code before fixing.
+2026-09-02). Re-verified against the code on 2026-11-10; the backend items were
+fixed that day (see 1.1). The remaining frontend defects (WF-1, WF-2, WF-9,
+WF-10) were left for the World Forge redesign, which replaced the screens they
+lived in; its first phase (2026-11-11, see 1.3c) rules them out.
 
 ### 1.1 Defects
 
 | ID | Area | Problem | Fix shape |
 | --- | --- | --- | --- |
-| WF-1 | Frontend | **Rename corrupts references through transient key collisions.** `EncounterEditor.renameRoom` and `SceneEditor.renameNode` retarget references by current string value on every keystroke. Renaming `storage` toward `entry-hall` passes through `entry` and then rewrites everything pointing at the real `entry` room. The result passes the publish gate, so the corruption is silent. | Track row identity instead of the current string: rename on blur/commit, or suspend retargeting while the new key duplicates another row's. Add a test with colliding names. |
-| WF-2 | Frontend | **Kind-switch race in `useContentDraft.open`.** An in-flight fetch that resolves after a kind switch lands the old kind's fragment in the controller, so "Save draft" can write an encounter fragment as a Mission. | Capture a request token in `open` and drop stale responses. Add a test that resolves the fetch after the switch. |
-| WF-3 | Backend | **Idle-scope reclaim can break per-scope serialization** in `GameCommandQueue`: between the sweeper's idle read and completing the writer, an enqueue can run on the orphaned consumer while a second consumer starts for the same scope. A brand-new scope is also instantly idle-eligible because `lastActivityTicks` starts at 0. | Re-check `Reclaimed` after a successful write; initialize `lastActivityTicks` at construction. |
-| WF-4 | Backend | **Damage does not stack across a trigger's reactions.** `DamageTally` is created per `ResolveAsync`, and `TriggerEngine` calls that once per reaction against the same snapshot, so a `runTest` branch dealing 3P followed by an `applyEffects` dealing 2P commits +2, not +5. | Hoist the tally to `TriggerEngine.RunAsync` scope. |
-| WF-5 | Backend | **`giveItem` neither raises `ItemPickedUp` nor advances an `AcquireItem` objective.** Content must hand-pair it with `completeObjective`, and no trigger can react to the grant. | **Owner decision:** make `giveItem` behave like a pickup (raise the event, advance the objective), or keep it inert and document the pairing as intended. |
-| WF-6 | Backend | **Stale-event drop loses fire-once triggers** (suspected). Every stamped event is dropped if its subject has left the room, including progression events (`NpcDefeated`, `MissionAccepted`, `ItemPickedUp`). A player who moves in the gap permanently loses that trigger. | **Owner decision:** drop only room-anchored reactions (scenes, narration) rather than whole events, or re-raise subject-agnostic events in the subject's new room. |
-| WF-7 | Backend | **Scene effects validate too leniently** (suspected). A scene's NPC effect validates against all encounters, but at runtime `pacifyNpc`/`startCombat` resolve the current room and `alertNpc` the active encounter, so a Johnson dialogue naming a warehouse ganger publishes and silently does nothing. | **Owner decision:** how tightly the publish gate should scope scene-authored NPC effects. |
-| WF-8 | Backend | A trigger with two scene-opening reactions lets the second silently supersede the first. | Refuse more than one scene-opening reaction per trigger at publish. |
-| WF-9 | Frontend | `NumberField` writes `0` on clear rather than the field minimum; a leading `-` is eaten after a clear. | Use the raw string or `validity.badInput`. |
-| WF-10 | Frontend | The mission-owner trigger picker falls back to the global pool while references load or when `encounterId` dangles; the dashboard inventory row lacks `aria-current`; a refused dashboard delete leaves the confirm state armed; kind/module switches discard unsaved drafts with no dirty check. | Fix each; add a dirty-check prompt. |
-| WF-11 | Tests | The queue's fault logging has no test asserting the log record. | Add one. |
+| WF-1 | Frontend | **Designed out 2026-11-11.** Every reference is a GUID (WF-27) and the redesign mints ids once, so a rename only changes a display name. Original problem: **Rename corrupts references through transient key collisions.** `EncounterEditor.renameRoom` and `SceneEditor.renameNode` retarget references by current string value on every keystroke. Renaming `storage` toward `entry-hall` passes through `entry` and then rewrites everything pointing at the real `entry` room. The result passes the publish gate, so the corruption is silent. | Track row identity instead of the current string: rename on blur/commit, or suspend retargeting while the new key duplicates another row's. Add a test with colliding names. |
+| WF-2 | Frontend | **Designed out 2026-11-11.** The Forge loads through `useLoad`, which drops any answer that arrives after the screen moved on (test in `forge/fields.test.tsx`). Original problem: **Kind-switch race in `useContentDraft.open`.** An in-flight fetch that resolves after a kind switch lands the old kind's fragment in the controller, so "Save draft" can write an encounter fragment as a Mission. | Capture a request token in `open` and drop stale responses. Add a test that resolves the fetch after the switch. |
+| WF-3 | Backend | **Done 2026-11-10.** Idle-scope reclaim could break per-scope serialization in `GameCommandQueue`, and a reclaimed write could even run twice (once on the orphaned consumer, once on the retry). | The idle check + close and the count-in + write now happen under one per-scope lock; a caller that finds the scope reclaimed retries on a fresh one without having written anything. New scopes start "just used". Tests: reclaimed-scope reuse runs each command once. |
+| WF-4 | Backend | **Done 2026-11-10.** Damage did not stack across a trigger's reactions. | `SceneDamageTally` is created once per `TriggerEngine.RunAsync` and threaded through every reaction. Playthrough test (3P branch + 2P applyEffects = +5) fails on the old code. |
+| WF-5 | Backend | **Done 2026-11-10.** `giveItem` neither raised `ItemPickedUp` nor advanced an `AcquireItem` objective. | Already fixed before this pass: `SceneEffectResolver` completes the objective in the same commit and `EventsFor` raises `ItemPickedUp`. |
+| WF-6 | Backend | **Done 2026-11-10.** Stale-event drop lost fire-once triggers. | **Owner decision:** keep progress, drop flavor. A stale `playerEnteredRoom` is still dropped; any other stale event runs its trigger against the room it happened in, applying effects but skipping narration, NPC lines, scene opens, `startCombat`, and `advanceScene`. Playthrough test covers a defeat consumed after the player left. |
+| WF-7 | Backend | **Done 2026-11-10.** Scene NPC effects validated too leniently. | **Owner decision:** match where it can play. A named NPC in a scene effect must exist in every encounter that can open the scene (placement binding, template binding, or trigger); `pacifyNpc`/`startCombat` must also be in the room it opens in when that is known. A scene never opened inside an encounter can only target its own NPC. Loader tests added. |
+| WF-8 | Backend | **Done 2026-11-10.** A trigger with two scene-opening reactions let the second silently replace the first. | Publish refuses more than one scene-opening reaction per trigger (a `runTest` whose two branches each open a scene counts once). Loader tests added. |
+| WF-9 | Frontend | **Designed out 2026-11-11.** The Forge's `NumberInput` keeps the typed text until it is a valid number, says what is wrong when out of range, and lets optional fields clear (tests in `forge/fields.test.tsx`). Original problem: `NumberField` writes `0` on clear rather than the field minimum; a leading `-` is eaten after a clear. | Use the raw string or `validity.badInput`. |
+| WF-10 | Frontend | **Mostly designed out 2026-11-11.** Tabs carry `aria-current`; a refused delete disarms the confirm and shows the reason; leaving unsaved edits asks first. The trigger-picker item moves to the Jobs screen (phase 2), whose pickers come only from the references endpoint. Original problem: The mission-owner trigger picker falls back to the global pool while references load or when `encounterId` dangles; the dashboard inventory row lacks `aria-current`; a refused dashboard delete leaves the confirm state armed; kind/module switches discard unsaved drafts with no dirty check. | Fix each; add a dirty-check prompt. |
+| WF-11 | Tests | **Done 2026-11-10.** The queue's fault logging had no test. | `GameCommandQueueTests` asserts the error record carries the exception, action id, request id, scope and user. |
 
-Suggested order: WF-1 and WF-2 (silent, publishable data corruption), then WF-3,
-then WF-4 and WF-5, then the two decisions (WF-6, WF-7), then the rest.
+Remaining: WF-10's trigger picker, which belongs to the Jobs screen. With 1.2
+and WF-25 done, every non-UI World Forge item is finished.
 
 ### 1.2 Authoring gaps
 
-| ID | Gap | Needs |
+| ID | Gap | Resolution |
 | --- | --- | --- |
-| WF-20 | **World-room triggers cannot be authored.** `playerEnteredRoom` needs a room key, and only encounter rooms have one. Public world rooms are database rows with no content key, so ambience on a shared street is impossible. | **Owner decision:** how public rooms get stable content keys and where world-level triggers live. |
-| WF-21 | **"Object interact" is inspect-only.** `interactableInspected` is the only placement event; sneak-past and other placement interactions raise nothing a trigger can react to. | **Owner decision:** which additional interaction events join the palette. |
-| WF-22 | **Publish and delete are check-then-write**, so a delete's reference check can race a concurrent publish. Harmless with one admin. | Make them atomic. Becomes necessary when group play brings more staff. |
-| WF-23 | The dashboard runs the content loader once per pending-edit definition, and the reference pickers make one request per encounter, mission, and scene. | A cache and a server-side references endpoint. Do when the corpus is large enough to feel it. |
-| WF-24 | Test coverage holes: repeatable triggers, trigger conditions, `NpcDefeated`/`EncounterEntered`/`MissionAccepted`/`ItemPickedUp` end to end, the fire-once concurrent race, and a scene replacing a dialogue. | Tests. |
+| WF-20 | **Done 2026-11-10 (backend).** World-room triggers could not be authored. | **Owner decision:** a new draft/publish content kind, `Place`, keyed by the public room's content key (every map room has one since WF-25). A place's triggers watch the room itself (no room filter), name world NPCs by name (checked against the room at publish), and may use the room events below plus `npcSpokenTo`/`npcDefeated`/`npcPacified`/`missionAccepted`. Effects that need a live run (`giveItem`, pay negotiation, turn-in) are refused. Superseded in part by WF-26: a room's own events fire every time and work in any map room. Publish refuses a place on a missing room or naming an NPC not standing there; a room with published events cannot be deleted. UI: Places screen in the redesign. |
+| WF-21 | **Done 2026-11-10 (backend).** Only `interactableInspected` existed for placements. | **Owner decision:** four new events. `sneakAttempted` (names the NPC; optional `outcome` success/failure filter), `combatStarted` (names the NPC the fight started with, or the room), `lockedExitTried` (the room the door is in), `playerLeftRoom` (the room left; runs where the player arrives, so NPC lines and face-to-face effects are refused). |
+| WF-22 | **Done 2026-11-10.** Publish and delete were check-then-write. | Publish (validate + promote), delete (reference check + delete) and draft saves now run in one transaction under a Postgres advisory lock on the corpus; the cache reloads after commit. Tests: a draft save waits while another storyteller holds the corpus; the lock is re-entrant. |
+| WF-23 | **Done 2026-11-10 (backend).** Pickers made one request per definition. | **Owner decision:** references endpoint only, no dashboard cache. `GET /api/admin/content/references` returns every encounter (rooms, NPCs, items, inspectables), mission (objectives), scene (nodes), test, stat block, place and map room (key, access, NPCs) in one response. The redesign's pickers use it. |
+| WF-24 | **Done 2026-11-10.** Test coverage holes. | Playthroughs added for `encounterEntered`, `itemPickedUp`, `missionAccepted` through the Johnson, a condition holding a trigger back without spending it, a repeatable place trigger, two copies of one event racing on different queues (a job's listener fires once), and a trigger's scene not replacing an open conversation. `npcDefeated` is covered by the offstage playthrough (event raised directly, not from a won fight). |
 
-### 1.3 Acceptance run
+### 1.3 Job sites are map rooms (WF-25)
+
+**Owner decision, 2026-11-10.** A job site is made of ordinary map rooms, not
+rooms that exist only inside an encounter definition. Verified against the code
+the same day: public rooms are database rows with map coordinates and layers
+(the world editor already builds on multiple layers), but job sites are not.
+An encounter definition declares its own rooms (key, name, description,
+environment modifier) with no map position, its exits carry no hidden/locked
+flags, and the only link to the map is the mission's entry room.
+
+The requirement:
+
+- **One kind of room.** Every room is authored on the map in Places, with
+  coordinates and a layer. Adding a room while building a job adds it to the
+  shared map like any other room.
+- **A job's site is a set of map rooms** plus an entry room. The job reuses
+  those room records; it does not keep its own copies of name, description or
+  exits.
+- **Room access.** A room is either *public* (anyone can enter) or *private to
+  the run* (only runners on the associated run can enter). For everyone else a
+  private room's way in behaves as locked.
+- **A private copy per run.** When a run starts, its private rooms are copied
+  for that run (today's instancing): name, description, environment modifier,
+  map position, exits including hidden and locked flags, and the job's NPCs,
+  items, inspectables and events placed in them. Runners on the run who walk
+  into a private room enter their run's copy. Edits to the map room affect new
+  runs only.
+- **Hidden and locked exits work inside sites** exactly as they do on public
+  rooms.
+- **Job content lives in private rooms.** NPCs, items, inspectables and events
+  that belong to a job are placed only in the job's private rooms; public rooms
+  on a job are paths (entry and return), not containers for run content.
+  The one exception is the job's Johnson, who stands in a public room so
+  runners can be offered the job and get paid.
+- **Design for intervention later.** Not required now, but runners should
+  eventually be able to join or intervene in someone else's run. Access checks
+  should therefore ask "may this character enter run X's copy" (today: is a
+  participant) rather than hard-coding participation, and copies stay keyed by
+  run so another character can later be admitted to a specific one.
+- **Room images are out of scope** until there is file storage; the UI keeps a
+  placeholder.
+- **Migration.** The shipped Gang Warehouse encounter is converted to map rooms
+  (positions assigned on an unused part of the map) with its run content
+  attached to those rooms, and the warehouse playthrough tests keep passing.
+
+**Backend done 2026-11-10** (uncommitted, for review): content keys and the
+Private access type on map rooms, the warehouse moved onto the map,
+run copies made from map rooms with their exit flags, walk-in entry for
+runners on the run and locked doors for everyone else, publish-time site
+checks, and a delete guard for site rooms. Also done the same day:
+
+- **Johnsons in public rooms.** World NPCs are placed, edited and removed from
+  Places (`/api/admin/rooms/{roomId}/npcs`), only in Public map rooms, with a
+  stat block, name, description, optional conversation (whose bound stat block
+  must match) and starting awareness. Audited; removal is refused mid-conversation.
+- **Migration verified.** `JobSitesAreMapRooms` is tested against a database
+  with existing rooms (duplicate names, reserved keys). That found and fixed a
+  key collision (a second "Alley" became `alley-2`, the key of "Alley 2"); it
+  now falls back to slug + id fragment. `Down` then `Up` is tested too.
+- **Exit list.** A door into a job site's private room shows as locked to
+  anyone not on that job.
+
+The World Forge redesign (Places / Jobs / Library) is built on this model, so
+WF-25 lands first. The redesign mockups live in the "World Forge Redesign"
+canvas.
+
+### 1.3a Events belong to rooms (WF-26)
+
+**Owner decision, 2026-11-10.** Events are defined in one place: a room. There
+is no such thing as a roomless event — anything that happens, happens in the
+room where the action occurred (a future timed event uses the room its action
+lands in). Today triggers live in three places (the job site, the mission, and
+the public room's place); that collapses to one shape:
+
+- **A listener is room + event (+ subject) + reactions, owned by either the
+  room itself or a job.** World creation comes first: build the rooms, then the
+  job. Authoring a job is the Johnson interaction, then "pick a room, pick an
+  event in it, say what happens".
+- **One job per event.** At most one job may listen to a given event in a given
+  room. The event is identified by its room, kind and subject, so each item's
+  pick-up, each NPC, each inspectable, and a sneak's success and failure are
+  separate events that different jobs may claim. Events about the job itself
+  (accepted, entered the site) only ever reach the job they are about. The room
+  itself does not count: a room and one job can both react to the same event.
+- **Order.** The room's reaction runs first, then the job's.
+- **Room reactions fire every time** (a room description on every entry), not
+  once per character. Job reactions keep their fire-once-per-run default.
+- **Job reactions are private in public rooms.** The player gets the job's
+  lines; everyone else in the room sees a cover line ("Tanner reaches for their
+  commlink and answers a call.", overridable per listener). Inside a run's
+  private copy everyone present is on the run, so nothing is hidden. Later:
+  magic or devices that let someone eavesdrop.
+- **Room narration in a public room goes to the player who caused it** (it is
+  written as "you"); an NPC speaking is heard by the whole room. *(Engineering
+  choice, for review.)*
+- **Matching.** An event in a run's copy reaches that run's job; an event in a
+  public room reaches the player's open jobs. Listeners name the map room; a
+  run's copy records the map room it was made from (by id since WF-27).
+- **Migration.** Existing job-site and mission triggers move onto the job with
+  a room derived from what they watch (the NPC's, item's or inspectable's room;
+  the entry room for site entry; the Johnson's room for acceptance). Stored
+  content is upgraded at startup. The `Place` kind becomes "the room's own
+  events".
+
+**Backend done 2026-11-10** (uncommitted, for review):
+
+- Job sites carry no triggers; a job's listeners live on the mission, each with
+  a required room (one of its site rooms, or a public room; `roomId` since
+  WF-27). The loader
+  checks the subject is in that room (an NPC, inspectable or placed item), and
+  refuses a second job on the same event. A sneak listener with no outcome
+  hears both outcomes, so it collides with either.
+- `Place` is the room's own events: any map room, always repeating (no
+  fire-once record), no `othersSee`.
+- Publish: a job's public-room listener must name a Public map room and only
+  NPCs standing in it; a room's own events need the room and its NPCs. A room
+  a job listens in cannot be deleted (its own events go with it since WF-27);
+  a room a job listens in from outside its site cannot be made Private.
+- Runtime: the room's listeners run first, then the job's. Job listeners in a
+  public room reach only their runner, with the cover line (`othersSee`,
+  default "reaches for their commlink and answers a call.") shown to the room.
+- Admin assignment raises "job accepted" where the character is standing, so
+  the shipped listener (in the coffee shop) only fires if they are there.
+- The shipped bundle is in the new shape. The `PlaceTriggerFires` migration
+  from earlier today is withdrawn (room events need no fire-once record). The
+  startup content upgrade written for this was removed by WF-27, which resets
+  development databases instead.
+- Done 2026-11-11: the old screens that authored triggers on the encounter
+  are deleted; room events are authored on Places (1.3c).
+
+Known follow-up: a retired job still holds its events until deleted. (Renaming
+or removing a world NPC that a listener names was settled by WF-27: renames are
+safe because listeners use the id, and removal is refused while a listener
+names them.)
+
+### 1.3b Every authored record is keyed by a GUID (WF-27)
+
+**Owner decision, 2026-11-10.** No more text keys. Every record a storyteller
+creates has a randomly generated GUID, and every reference to it uses that
+GUID. Names are for display only and can change freely; nothing ever matches
+on them, and there is no key-generation scheme to maintain.
+
+- **In scope:** rooms (their database id), job sites, jobs, objectives,
+  listeners, conversations and their steps and choices, stat blocks, authored
+  tests, a job's NPC placements, items and inspectables, world NPCs (their row
+  id), and a room's own events (keyed by the room's id).
+- **Engine vocabulary stays named:** skills, attributes, dice pools, effect and
+  event kinds, actions, and the built-in tests (`sneak-past`,
+  `negotiate-pay`, …) are code, not content. A test reference is therefore
+  either a built-in test's name or an authored test's GUID.
+- **Run copies point back at what they came from** (room → map room, NPC →
+  placement, item → item, inspectable → inspectable), and events carry the
+  original's id, so a listener matches every run's copy.
+- **Edits flow through automatically**, because nothing points at a name.
+- **Deletes are refused while anything points at the record**, and the refusal
+  names what does (by display name).
+- **Deleting a room deletes everything in it** — its NPCs, items,
+  inspectables, its own events and its exits in both directions — and is only
+  allowed when no job listens to it or uses it as part of a site. Characters
+  standing there are moved, as today.
+- **Items can be hidden** like inspectables: a hidden flag and a search
+  difficulty, found per character by searching the area; a hidden item cannot
+  be taken until found.
+- **Existing data is not migrated.** Development databases are recreated.
+
+**Backend done 2026-11-10** (uncommitted, for review):
+
+- One migration, `GuidContentKeys`, replaces the uncommitted
+  `JobSitesAreMapRooms`: content-key columns become `uuid`, `rooms.content_key`
+  is dropped, run copies gain `source_npc_id` / `source_interactable_id`, items
+  gain `item_id`, `is_hidden` and `discovery_threshold`, and the fire ledger
+  keys on `trigger_id`. The startup upgrade (`GameContentUpgrades`) and the
+  room-key helper (`RoomContentKeys`) are deleted.
+- The shipped bundle is regenerated with fixed GUIDs, exposed to the seeder and
+  tests as `ShippedContentIds`. The development seeder now places the four
+  warehouse rooms on the map itself.
+- The loader validates GUID ids, refuses a duplicate id anywhere it could be
+  confused (site contents, objectives, listeners, steps, choices), and its
+  errors name records by display name (listeners as
+  `listener 'kind' (first 8 of id)`).
+- Room deletion cascades as above; NPC removal is refused while a room's or a
+  job's listener names the NPC. Content-definition deletes still go through
+  the loader-based reference check, now worded with display names.
+- Hidden items: `DiscoverySubjectType.Item`; observe-area reveals items whose
+  difficulty the hits reach; affordances and take-item ignore undiscovered
+  hidden items.
+- Tests: legacy-shaped fixtures in the loader and playthrough tests are
+  rewritten to the GUID shape by `LegacyContentFixtures` (old key → a stable
+  GUID; shipped keys → the shipped GUIDs).
+- Done 2026-11-11: the old screens that authored string keys are deleted; the
+  redesign mints ids with `crypto.randomUUID()` (1.3c).
+
+### 1.3c World Forge redesign (WF-28)
+
+**Owner decision, 2026-11-11.** Build the "World Forge Redesign" canvas in
+phases, replacing the old screens, on the existing API only. Anything the API
+cannot do yet is stubbed in the UI and listed below.
+
+**Phase 1 done 2026-11-11** (front end only, uncommitted, for review):
+
+- One Forge at `/admin/forge` with three tabs: Places, Jobs, Library. The old
+  World editor and World Forge screens, their API modules and stylesheets are
+  deleted; `/admin/world` redirects to Places. Code lives in
+  `frontEnd/src/forge/`, styles in `styles/components/forge.css`.
+- **Places.** A map grid per area and layer (pan, layer up/down, build a room
+  in any empty cell). The selected room shows its name, description and
+  access; exits (add and edit, both ways, locked, hidden, stairs); what is in
+  it — world NPCs and inspectables in a public room, or the job site's NPCs
+  (with stat overrides), items (hidden or handed over by an event) and
+  inspectables in a private room; the room's own events; and which jobs touch
+  it, with delete (relocating anyone standing there).
+- **Events editor** (shared with Jobs later): event, NPC, sneak outcome,
+  conditions, and steps — narrate, NPC says/does, roll (pass and fail
+  branches), effects, open a conversation. Room events always repeat and have
+  no cover line, as the loader requires.
+- **Library.** Stat blocks and dice tests: list, search, new (blank or copy
+  of), edit, save draft, go live, retire, delete. New records get
+  `crypto.randomUUID()` ids. Built-in tests are listed read-only.
+- **Home.** Counts per tab, drafts and records that cannot go live, and recent
+  edits linking to their editors.
+- Shared: a draft bar (status, undo edits, save, go live, retire, delete with
+  confirm); server refusals are shown verbatim, including field-level
+  validation messages (`api/client.ts` now reads `errors`); modals render in a
+  portal so panels no longer clip them; leaving with unsaved edits asks first.
+- WF-1, WF-2, WF-9 and most of WF-10 are designed out (see 1.1).
+- Tests: Places (14), Library and Home (8), fields/hooks (5); full suite, type
+  check, lint and build pass. Checked end to end against the real API on a
+  fresh database, including at phone width.
+- The Forge uses hand-written types in `forge/api.ts` and `forge/model.ts`;
+  `npm run gen:api` was not rerun.
+
+**Phase 2: Jobs.** Today a read-only list. To build: job and objective
+editing, Johnson and pay, job site rooms, the job's listeners (fire-once and
+cover lines allowed here), and conversations (scene nodes, choices, tests an
+NPC rolls against). Close out WF-10's picker item there.
+
+**Backend gaps found by phase 1** (the UI shows each as unavailable):
+
+| Gap | Where it shows |
+| --- | --- |
+| No endpoint to delete an exit. | Exits: "Removing an exit isn't available yet; deleting a room removes its exits both ways." |
+| Inspectables in a public room can be added but not edited or removed. | Places, public room contents. |
+| Items cannot be placed in a public room (only on job sites). | Places, public room contents. |
+| A stat block's "used by" does not count world NPCs placed from it. | Library, stat block usage. |
+| Rooms have no image. | Places, room section. |
+| Conversations (Ask steps) need the Jobs screen. | Phase 2. |
+
+### 1.4 Acceptance run
 
 The original World Forge acceptance scenario has never been executed end to end
 through the UI. v1 requires it:
 
 > In a running game, with no code or database access, a staff member authors a
 > second complete mission — a new Johnson with a negotiation test, a new
-> instanced encounter, a placed NPC from an existing template, a retrievable
+> job site built from map rooms, a placed NPC from an existing template, a retrievable
 > item, objectives, rewards, and at least one trigger-driven scene that exists
 > nowhere in code. They publish it, play it through with a normal character, get
 > paid once, retire it, confirm it is gone from play while the character's
@@ -211,7 +460,7 @@ Known engineering consequences once those are answered:
   semantics must be defined.
 - The defeat path (wake at the entry point, mission fails) must be redefined for
   a partial wipe.
-- WF-22 (atomic publish/delete) should land first.
+- WF-22 (atomic publish/delete) should land first. Done 2026-11-10.
 
 ---
 

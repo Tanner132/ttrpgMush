@@ -50,13 +50,13 @@ function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
     .mockResolvedValue([
       {
         id: 'm1',
-        missionId: 'gang-warehouse-retrieval',
+        missionId: 'c5c1844a-eb16-4278-a8ce-89b90b3ff11d',
         displayName: 'Gang Warehouse Retrieval',
         description: 'Recover the package.',
         status: 'InProgress',
         objectives: [
-          { key: 'enter-warehouse', displayName: 'Enter the warehouse', status: 'Completed' },
-          { key: 'retrieve-package', displayName: 'Retrieve the courier package', status: 'Active' },
+          { id: '23b71c4f-274e-4e16-b0f0-de7aa985ed57', displayName: 'Enter the warehouse', status: 'Completed' },
+          { id: '0609ca43-dd89-440a-8f6b-19583d8ae55c', displayName: 'Retrieve the courier package', status: 'Active' },
         ],
         acceptedAtUtc: new Date().toISOString(),
         completedAtUtc: null,

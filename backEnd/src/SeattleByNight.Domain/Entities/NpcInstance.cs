@@ -9,7 +9,7 @@ namespace SeattleByNight.Domain.Entities;
 public sealed class NpcInstance
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string TemplateId { get; set; } = string.Empty;
+    public Guid TemplateId { get; set; }
     public string Name { get; set; } = string.Empty;
     public Guid RoomId { get; set; }
 
@@ -18,7 +18,10 @@ public sealed class NpcInstance
 
     // Scene binding override; null falls through to whatever scene the
     // template speaks.
-    public string? SceneId { get; set; }
+    public Guid? SceneId { get; set; }
+    // WF-27: the job-site placement a run's NPC was made from; null for a
+    // world NPC, which is its own record.
+    public Guid? SourceNpcId { get; set; }
 
     // The placement's sparse mechanical diff as authored JSON; null means the
     // NPC is exactly its template.

@@ -70,26 +70,26 @@ public sealed class GameContentComposerTests
         var error = Assert.Throws<GameContentException>(() =>
             GameContentComposer.ComposeAndLoad([(mission.Kind, mission.Json)], "broken"));
 
-        Assert.Contains("unknown encounter", error.Message);
+        MessageAssert.Has("names a job site that does not exist", error.Message);
     }
 
     [Fact]
     public void ReadContentKey_ReadsTheAuthoredIdAndDisplayName()
     {
-        const string json = """{"id":"a-mission","displayName":"A Mission"}""";
+        var id = Guid.NewGuid();
+        var json = $$"""{"id":"{{id}}","displayName":"A Mission"}""";
 
-        Assert.Equal("a-mission", GameContentComposer.ReadContentKey(json, GameContentKind.Mission));
+        Assert.Equal(id, GameContentComposer.ReadContentKey(json, GameContentKind.Mission));
         Assert.Equal("A Mission", GameContentComposer.ReadDisplayName(json, GameContentKind.Mission));
     }
 
     [Fact]
     public void ReadDisplayName_FallsBackToTheIdWhenTheKindHasNoName()
     {
-        const string json = """{"id":"johnson-warehouse-offer"}""";
+        var id = Guid.NewGuid();
+        var json = $$"""{"id":"{{id}}"}""";
 
-        Assert.Equal(
-            "johnson-warehouse-offer",
-            GameContentComposer.ReadDisplayName(json, GameContentKind.Scene));
+        Assert.Equal(id.ToString(), GameContentComposer.ReadDisplayName(json, GameContentKind.Scene));
     }
 
     [Fact]
@@ -98,6 +98,6 @@ public sealed class GameContentComposerTests
         var error = Assert.Throws<GameContentException>(() =>
             GameContentComposer.ReadContentKey("""{"displayName":"Nameless"}""", GameContentKind.Mission));
 
-        Assert.Contains("must declare an id", error.Message);
+        MessageAssert.Has("must declare a GUID id", error.Message);
     }
 }

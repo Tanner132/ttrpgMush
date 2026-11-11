@@ -12,6 +12,10 @@ public interface IGameMessageBroadcaster
 {
     Task BroadcastAsync(RoomMessage message, CancellationToken cancellationToken = default);
 
+    // WF-26: a room message only one player receives — a job's lines reaching
+    // its runner in a public room. It arrives exactly like a room message.
+    Task SendToUserAsync(Guid userId, RoomMessage message, CancellationToken cancellationToken = default);
+
     // §38: combat snapshot to everyone in the room after each combat mutation.
     Task BroadcastCombatAsync(CombatView view, CancellationToken cancellationToken = default);
 

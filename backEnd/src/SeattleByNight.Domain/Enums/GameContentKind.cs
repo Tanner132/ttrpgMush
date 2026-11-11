@@ -16,4 +16,8 @@ public enum GameContentKind
     // An NPC base stat block (Milestone 7 §4): authored once, reused by every
     // placement that names it.
     NpcTemplate,
+    // WF-20: the events of one public map room, keyed by the room's content
+    // key. Drafted and published like every other kind, so a half-written
+    // ambience event never fires on the live street.
+    Place,
 }

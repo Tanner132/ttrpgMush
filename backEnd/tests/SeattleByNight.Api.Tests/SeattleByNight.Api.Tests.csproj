@@ -16,4 +16,10 @@
     <ProjectReference Include="..\..\src\SeattleByNight.Api\SeattleByNight.Api.csproj" />
   </ItemGroup>
 
+  <!-- WF-27: content fixtures written with readable keys, rewritten to GUIDs. -->
+  <ItemGroup>
+    <Compile Include="..\SeattleByNight.Application.Tests\LegacyContentFixtures.cs" Link="Shared\LegacyContentFixtures.cs" />
+    <Compile Include="..\SeattleByNight.Application.Tests\MessageAssert.cs" Link="Shared\MessageAssert.cs" />
+  </ItemGroup>
+
 </Project>

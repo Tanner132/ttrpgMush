@@ -705,7 +705,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -1071,6 +1072,27 @@
             "description": "OK"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "exitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/api/admin/world/npc-templates": {
@@ -1139,6 +1161,78 @@
         }
       }
     },
+    "/api/admin/world/rooms/{roomId}/npcs/{npcId}": {
+      "put": {
+        "tags": [
+          "RoomContentAdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "npcId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceNpcRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RoomContentAdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "npcId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/world/rooms/{roomId}/interactables": {
       "get": {
         "tags": [
@@ -1186,6 +1280,78 @@
           },
           "required": true
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/rooms/{roomId}/interactables/{interactableId}": {
+      "put": {
+        "tags": [
+          "RoomContentAdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "interactableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceInteractableRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RoomContentAdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "interactableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1271,6 +1437,62 @@
         }
       }
     },
+    "/api/admin/content/references": {
+      "get": {
+        "tags": [
+          "GameContentEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/content/validate": {
+      "post": {
+        "tags": [
+          "GameContentEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameContentSetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/content/publish": {
+      "post": {
+        "tags": [
+          "GameContentEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameContentSetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/content/{kind}/{contentKey}": {
       "get": {
         "tags": [
@@ -1290,7 +1512,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -1318,7 +1541,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -1356,7 +1580,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -1386,7 +1611,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -1416,7 +1642,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -1446,7 +1673,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -1476,7 +1704,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -2124,6 +2353,49 @@
           }
         }
       },
+      "GameContentKind": {
+        "enum": [
+          "Encounter",
+          "Mission",
+          "Scene",
+          "Test",
+          "NpcTemplate",
+          "Place"
+        ]
+      },
+      "GameContentSetItem": {
+        "required": [
+          "kind",
+          "contentKey"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/GameContentKind"
+          },
+          "contentKey": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "GameContentSetRequest": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/GameContentSetItem"
+            }
+          }
+        }
+      },
       "IdentitySelection": {
         "required": [
           "instanceId",
@@ -2469,6 +2741,17 @@
           }
         }
       },
+      "NpcAwareness": {
+        "enum": [
+          "Unaware",
+          "Suspicious",
+          "Alerted",
+          "Combat",
+          "Fleeing",
+          "Pacified",
+          null
+        ]
+      },
       "PerformGameActionRequest": {
         "required": [
           "requestId",
@@ -2555,12 +2838,36 @@
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "format": "uuid"
           },
           "name": {
             "type": [
               "null",
               "string"
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sceneId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "awareness": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NpcAwareness"
+              }
             ]
           }
         }

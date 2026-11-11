@@ -54,9 +54,16 @@ public sealed class RoomConfiguration : IEntityTypeConfiguration<Room>
         builder.Property(r => r.EncounterInstanceId)
             .HasColumnName("encounter_instance_id")
             .HasColumnType("uuid");
-        builder.Property(r => r.ContentKey)
-            .HasColumnName("content_key")
-            .HasMaxLength(100);
+        builder.Property(r => r.SourceRoomId)
+            .HasColumnName("source_room_id")
+            .HasColumnType("uuid");
+
+        // A copy outlives its source: deleting a map room must not take the
+        // archived copies (and their chat and visit history) with it.
+        builder.HasOne<Room>()
+            .WithMany()
+            .HasForeignKey(r => r.SourceRoomId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(r => r.EncounterInstanceId)
             .HasDatabaseName("ix_rooms_encounter_instance");

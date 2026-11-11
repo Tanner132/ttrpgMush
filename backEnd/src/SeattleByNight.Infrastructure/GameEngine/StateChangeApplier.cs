@@ -339,7 +339,26 @@ public sealed class StateChangeApplier : IStateChangeApplier
             description = $"Re-entered encounter '{encounter.EncounterId}'.";
         }
 
-        await MoveCharacterAsync(characterId, change.PlaySessionId, encounter.EntryRoomId, now, cancellationToken);
+        var arrivalRoomId = encounter.EntryRoomId;
+        if (change.RoomId is { } mapRoomId)
+        {
+            // The copy may have been added to the change tracker this action
+            // (first entry) or already exist (re-entry): look in both.
+            var instanceId = encounter.Id;
+            arrivalRoomId = dbContext.Rooms.Local
+                .Where(room => room.EncounterInstanceId == instanceId && room.SourceRoomId == mapRoomId)
+                .Select(room => (Guid?)room.Id)
+                .FirstOrDefault()
+                ?? await dbContext.Rooms
+                    .Where(room => room.EncounterInstanceId == instanceId && room.SourceRoomId == mapRoomId)
+                    .Select(room => (Guid?)room.Id)
+                    .FirstOrDefaultAsync(cancellationToken)
+                ?? throw new InvalidOperationException(
+                    $"Encounter {encounter.EncounterId} has no copy of room {mapRoomId} to arrive in.");
+            description += $" Arrived in room {mapRoomId}.";
+        }
+
+        await MoveCharacterAsync(characterId, change.PlaySessionId, arrivalRoomId, now, cancellationToken);
 
         return new AppliedStateChange("EnterEncounter", description);
     }
@@ -350,10 +369,10 @@ public sealed class StateChangeApplier : IStateChangeApplier
     {
         var missionDefinition = gameContent.Current.FindMission(mission.MissionId)
             ?? throw new InvalidOperationException(
-                $"Mission definition '{mission.MissionId}' is missing from the game content.");
+                $"Job {mission.MissionId} is missing from the game content.");
         var definition = gameContent.Current.FindEncounter(missionDefinition.EncounterId)
             ?? throw new InvalidOperationException(
-                $"Encounter definition '{missionDefinition.EncounterId}' is missing from the game content.");
+                $"Job site {missionDefinition.EncounterId} is missing from the game content.");
 
         var character = dbContext.Characters.First(row => row.Id == characterId);
 
@@ -369,35 +388,59 @@ public sealed class StateChangeApplier : IStateChangeApplier
         };
         dbContext.EncounterInstances.Add(encounter);
 
-        var roomsByKey = new Dictionary<string, Room>(StringComparer.Ordinal);
-        foreach (var roomDefinition in definition.Rooms)
+        // WF-25/WF-27: a job site is made of map rooms. The run's copy is made
+        // from the map rows — name, description, environment, position, and
+        // the exits between them with their hidden/locked flags — so an edit
+        // in Places reaches every run that starts after it. Each copy records
+        // the map room it came from, which is how content (naming the map
+        // room) finds it.
+        var siteRoomIds = definition.RoomIds.ToList();
+        var mapRooms = dbContext.Rooms
+            .AsNoTracking()
+            .Where(room => room.EncounterInstanceId == null && siteRoomIds.Contains(room.Id))
+            .ToList();
+        if (mapRooms.Count != siteRoomIds.Count)
+        {
+            throw new InvalidOperationException(
+                $"Job site '{definition.DisplayName}' names rooms that are no longer on the map.");
+        }
+
+        var copies = new Dictionary<Guid, Room>();
+        foreach (var source in mapRooms)
         {
             var room = new Room
             {
-                Name = roomDefinition.Name,
-                Description = roomDefinition.Description,
+                Name = source.Name,
+                Description = source.Description,
                 AccessType = RoomAccessType.Instanced,
-                EnvironmentModifier = roomDefinition.EnvironmentModifier,
+                EnvironmentModifier = source.EnvironmentModifier,
+                MapX = source.MapX,
+                MapY = source.MapY,
+                MapLayer = source.MapLayer,
+                SourceRoomId = source.Id,
                 EncounterInstanceId = encounter.Id,
-                // Milestone 7: keep the authored key so room triggers can
-                // recognize the room this row became.
-                ContentKey = roomDefinition.Key,
                 CreatedAtUtc = now,
             };
-            roomsByKey.Add(roomDefinition.Key, room);
+            copies.Add(source.Id, room);
             dbContext.Rooms.Add(room);
         }
 
-        encounter.EntryRoomId = roomsByKey[definition.EntryRoomKey].Id;
+        encounter.EntryRoomId = copies[definition.EntryRoomId].Id;
 
-        foreach (var exitDefinition in definition.Exits)
+        var mapExits = dbContext.RoomExits
+            .AsNoTracking()
+            .Where(exit => siteRoomIds.Contains(exit.SourceRoomId) && siteRoomIds.Contains(exit.DestinationRoomId))
+            .ToList();
+        foreach (var mapExit in mapExits)
         {
             dbContext.RoomExits.Add(new RoomExit
             {
                 Id = Guid.NewGuid(),
-                SourceRoomId = roomsByKey[exitDefinition.FromRoomKey].Id,
-                DestinationRoomId = roomsByKey[exitDefinition.ToRoomKey].Id,
-                Direction = exitDefinition.Direction,
+                SourceRoomId = copies[mapExit.SourceRoomId].Id,
+                DestinationRoomId = copies[mapExit.DestinationRoomId].Id,
+                Direction = mapExit.Direction,
+                IsHidden = mapExit.IsHidden,
+                IsLocked = mapExit.IsLocked,
             });
         }
 
@@ -416,8 +459,9 @@ public sealed class StateChangeApplier : IStateChangeApplier
             dbContext.NpcInstances.Add(new NpcInstance
             {
                 TemplateId = npcDefinition.TemplateId,
+                SourceNpcId = npcDefinition.Id,
                 Name = npcDefinition.Name,
-                RoomId = roomsByKey[npcDefinition.RoomKey].Id,
+                RoomId = copies[npcDefinition.RoomId].Id,
                 Description = npcDefinition.Description,
                 SceneId = npcDefinition.SceneId,
                 OverridesJson = NpcOverrideSerialization.Serialize(npcDefinition.Overrides),
@@ -431,7 +475,8 @@ public sealed class StateChangeApplier : IStateChangeApplier
         {
             dbContext.RoomInteractables.Add(new RoomInteractable
             {
-                RoomId = roomsByKey[interactableDefinition.RoomKey].Id,
+                RoomId = copies[interactableDefinition.RoomId].Id,
+                SourceInteractableId = interactableDefinition.Id,
                 Name = interactableDefinition.Name,
                 Description = interactableDefinition.Description,
                 IsHidden = interactableDefinition.IsHidden,
@@ -441,22 +486,24 @@ public sealed class StateChangeApplier : IStateChangeApplier
 
         foreach (var itemDefinition in definition.Items)
         {
-            // Milestone 7: an item with no roomKey is declared but not placed
-            // — it exists so a GiveItem effect has a name and description to
+            // Milestone 7: an item with no room is declared but not placed —
+            // it exists so a GiveItem effect has a name and description to
             // hand over, and materializes only when that effect fires.
-            if (itemDefinition.RoomKey is null)
+            if (itemDefinition.RoomId is not { } itemRoom)
             {
                 continue;
             }
 
             dbContext.WorldItemInstances.Add(new WorldItemInstance
             {
-                ItemKey = itemDefinition.Key,
+                ItemId = itemDefinition.Id,
                 DisplayName = itemDefinition.Name,
                 Description = itemDefinition.Description,
                 MissionInstanceId = mission.Id,
                 EncounterInstanceId = encounter.Id,
-                RoomId = roomsByKey[itemDefinition.RoomKey].Id,
+                RoomId = copies[itemRoom].Id,
+                IsHidden = itemDefinition.IsHidden,
+                DiscoveryThreshold = itemDefinition.DiscoveryThreshold,
                 CreatedAtUtc = now,
                 UpdatedAtUtc = now,
             });
@@ -539,18 +586,17 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 $"Mission instance '{change.MissionInstanceId}' does not exist.");
 
         var objectives = MissionSerialization.DeserializeObjectives(mission.ObjectivesJson).ToList();
-        var index = objectives.FindIndex(objective =>
-            string.Equals(objective.Key, change.ObjectiveKey, StringComparison.Ordinal));
+        var index = objectives.FindIndex(objective => objective.ObjectiveId == change.ObjectiveId);
         if (index < 0)
         {
             throw new InvalidOperationException(
-                $"Mission instance '{mission.Id}' has no objective '{change.ObjectiveKey}'.");
+                $"Mission instance '{mission.Id}' has no objective '{change.ObjectiveId}'.");
         }
 
         if (objectives[index].Status == MissionObjectiveStatus.Completed)
         {
             return new AppliedStateChange(
-                "CompleteObjective", $"Objective '{change.ObjectiveKey}' was already complete.");
+                "CompleteObjective", $"Objective '{change.ObjectiveId}' was already complete.");
         }
 
         objectives[index] = objectives[index] with { Status = MissionObjectiveStatus.Completed };
@@ -574,7 +620,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
             var remaining = objectives
                 .Where(objective => objective.Status is MissionObjectiveStatus.Active or MissionObjectiveStatus.Inactive)
                 .Select(objective => definition.Objectives.FirstOrDefault(candidate =>
-                    string.Equals(candidate.Key, objective.Key, StringComparison.Ordinal)))
+                    candidate.Id == objective.ObjectiveId))
                 .ToList();
             if (remaining.Count > 0
                 && remaining.All(objective => objective?.Kind == MissionObjectiveKind.DeliverItem))
@@ -585,7 +631,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
 
         mission.UpdatedAtUtc = now;
 
-        return new AppliedStateChange("CompleteObjective", $"Objective complete: {change.ObjectiveKey}.");
+        return new AppliedStateChange("CompleteObjective", $"Objective complete: {change.ObjectiveId}.");
     }
 
     // Milestone 7: the failure half of the objective palette. Marks the named
@@ -603,26 +649,25 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 $"Mission instance '{change.MissionInstanceId}' does not exist.");
 
         var objectives = MissionSerialization.DeserializeObjectives(mission.ObjectivesJson).ToList();
-        var index = objectives.FindIndex(objective =>
-            string.Equals(objective.Key, change.ObjectiveKey, StringComparison.Ordinal));
+        var index = objectives.FindIndex(objective => objective.ObjectiveId == change.ObjectiveId);
         if (index < 0)
         {
             throw new InvalidOperationException(
-                $"Mission instance '{mission.Id}' has no objective '{change.ObjectiveKey}'.");
+                $"Mission instance '{mission.Id}' has no objective '{change.ObjectiveId}'.");
         }
 
         if (objectives[index].Status is MissionObjectiveStatus.Completed or MissionObjectiveStatus.Failed)
         {
             return new AppliedStateChange(
                 "FailObjective",
-                $"Objective '{change.ObjectiveKey}' was already {objectives[index].Status.ToString().ToLowerInvariant()}.");
+                $"Objective '{change.ObjectiveId}' was already {objectives[index].Status.ToString().ToLowerInvariant()}.");
         }
 
         objectives[index] = objectives[index] with { Status = MissionObjectiveStatus.Failed };
         mission.ObjectivesJson = MissionSerialization.SerializeObjectives(objectives);
         mission.UpdatedAtUtc = now;
 
-        return new AppliedStateChange("FailObjective", $"Objective failed: {change.ObjectiveKey}.");
+        return new AppliedStateChange("FailObjective", $"Objective failed: {change.ObjectiveId}.");
     }
 
     // §39: the mission's Completed transition and its reward grant are ONE
@@ -917,7 +962,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
         var alreadyHeld = await dbContext.WorldItemInstances.AnyAsync(
             row => row.OwnerCharacterId == characterId
                 && row.MissionInstanceId == change.MissionInstanceId
-                && row.ItemKey == change.ItemKey,
+                && row.ItemId == change.ItemId,
             cancellationToken);
         if (alreadyHeld)
         {
@@ -927,7 +972,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
 
         dbContext.WorldItemInstances.Add(new WorldItemInstance
         {
-            ItemKey = change.ItemKey,
+            ItemId = change.ItemId,
             DisplayName = change.DisplayName,
             Description = change.Description,
             MissionInstanceId = change.MissionInstanceId,
@@ -952,23 +997,23 @@ public sealed class StateChangeApplier : IStateChangeApplier
         var already = await dbContext.TriggerFires.AnyAsync(
             row => row.CharacterId == characterId
                 && row.MissionInstanceId == change.MissionInstanceId
-                && row.TriggerKey == change.TriggerKey,
+                && row.TriggerId == change.TriggerId,
             cancellationToken);
         if (already)
         {
             return new AppliedStateChange(
-                "RecordTriggerFire", $"Trigger '{change.TriggerKey}' had already fired.");
+                "RecordTriggerFire", $"Trigger '{change.TriggerId}' had already fired.");
         }
 
         dbContext.TriggerFires.Add(new TriggerFire
         {
             CharacterId = characterId,
             MissionInstanceId = change.MissionInstanceId,
-            TriggerKey = change.TriggerKey,
+            TriggerId = change.TriggerId,
             FiredAtUtc = now,
         });
 
-        return new AppliedStateChange("RecordTriggerFire", $"Trigger '{change.TriggerKey}' fired.");
+        return new AppliedStateChange("RecordTriggerFire", $"Trigger '{change.TriggerId}' fired.");
     }
 
     private async Task<SceneSession> RequireSceneSessionAsync(

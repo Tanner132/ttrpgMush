@@ -9,7 +9,7 @@ namespace SeattleByNight.Domain.Entities;
 public sealed class MissionInstance
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string MissionId { get; set; } = string.Empty;
+    public Guid MissionId { get; set; }
     public Guid CharacterId { get; set; }
     public string Status { get; set; } = string.Empty;
     public string ObjectivesJson { get; set; } = "[]";

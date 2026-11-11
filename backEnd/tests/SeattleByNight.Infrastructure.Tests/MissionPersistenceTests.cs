@@ -21,7 +21,7 @@ namespace SeattleByNight.Infrastructure.Tests;
 public sealed class MissionPersistenceTests : IAsyncLifetime
 {
     private static readonly EmbeddedGameContentProvider GameContent = new();
-    private const string MissionId = "gang-warehouse-retrieval";
+    private static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
 
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17").Build();
 
@@ -54,10 +54,10 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         Assert.Equal(MissionInstanceStatus.Accepted, instance.Status);
         Assert.Collection(
             instance.Objectives,
-            objective => Assert.Equal(("enter-warehouse", MissionObjectiveStatus.Active), (objective.Key, objective.Status)),
-            objective => Assert.Equal(("retrieve-package", MissionObjectiveStatus.Inactive), (objective.Key, objective.Status)),
-            objective => Assert.Equal(("leave-warehouse", MissionObjectiveStatus.Inactive), (objective.Key, objective.Status)),
-            objective => Assert.Equal(("deliver-package", MissionObjectiveStatus.Inactive), (objective.Key, objective.Status)));
+            objective => Assert.Equal((ShippedContentIds.Objectives.EnterWarehouse, MissionObjectiveStatus.Active), (objective.ObjectiveId, objective.Status)),
+            objective => Assert.Equal((ShippedContentIds.Objectives.RetrievePackage, MissionObjectiveStatus.Inactive), (objective.ObjectiveId, objective.Status)),
+            objective => Assert.Equal((ShippedContentIds.Objectives.LeaveWarehouse, MissionObjectiveStatus.Inactive), (objective.ObjectiveId, objective.Status)),
+            objective => Assert.Equal((ShippedContentIds.Objectives.DeliverPackage, MissionObjectiveStatus.Inactive), (objective.ObjectiveId, objective.Status)));
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         await ApplyAsync(setup.CharacterId, new StateChange[]
         {
             new EnterEncounterChange(instance.Id, setup.SessionId),
-            new CompleteObjectiveChange(instance.Id, "enter-warehouse"),
+            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.EnterWarehouse),
         });
 
         await using var db = CreateDbContext();
@@ -111,10 +111,10 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         Assert.Equal(4, rooms.Count);
         Assert.All(rooms, room => Assert.Equal(RoomAccessType.Instanced, room.AccessType));
         Assert.Contains(rooms, room => room.Id == encounter.EntryRoomId);
-        // Milestone 7: instantiated rooms keep the authored key, which is how
-        // a room trigger recognizes the room it watches.
-        Assert.All(rooms, room => Assert.False(string.IsNullOrWhiteSpace(room.ContentKey)));
-        Assert.Contains(rooms, room => room.ContentKey == "back-hallway");
+        // WF-27: a run's copy remembers the map room it was made from, which
+        // is how a listener on that room recognizes the copy.
+        Assert.All(rooms, room => Assert.NotNull(room.SourceRoomId));
+        Assert.Contains(rooms, room => room.SourceRoomId == ShippedContentIds.SiteRooms.BackHallway);
 
         var roomIds = rooms.Select(room => room.Id).ToHashSet();
         Assert.Equal(6, await db.RoomExits.CountAsync(exit => roomIds.Contains(exit.SourceRoomId)));
@@ -151,7 +151,7 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         await ApplyAsync(setup.CharacterId, new StateChange[]
         {
             new EnterEncounterChange(instance.Id, setup.SessionId),
-            new CompleteObjectiveChange(instance.Id, "enter-warehouse"),
+            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.EnterWarehouse),
         });
 
         Guid itemId;
@@ -166,7 +166,7 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         await ApplyAsync(setup.CharacterId, new StateChange[]
         {
             new PickUpItemChange(itemId),
-            new CompleteObjectiveChange(instance.Id, "retrieve-package"),
+            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.RetrievePackage),
         });
 
         await using var verify = CreateDbContext();
@@ -188,7 +188,7 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         await ApplyAsync(setup.CharacterId, new StateChange[]
         {
             new EnterEncounterChange(instance.Id, setup.SessionId),
-            new CompleteObjectiveChange(instance.Id, "enter-warehouse"),
+            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.EnterWarehouse),
         });
 
         Guid encounterId;
@@ -202,7 +202,7 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
 
         var completion = new StateChange[]
         {
-            new CompleteObjectiveChange(instance.Id, "leave-warehouse"),
+            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.LeaveWarehouse),
             new CompleteMissionChange(instance.Id, Karma: 2, Nuyen: 2000),
             new LeaveEncounterChange(encounterId, setup.SessionId),
         };
@@ -326,7 +326,7 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         await ApplyAsync(setup.CharacterId, new StateChange[]
         {
             new EnterEncounterChange(instance.Id, setup.SessionId),
-            new CompleteObjectiveChange(instance.Id, "enter-warehouse"),
+            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.EnterWarehouse),
         });
 
         Guid encounterId;

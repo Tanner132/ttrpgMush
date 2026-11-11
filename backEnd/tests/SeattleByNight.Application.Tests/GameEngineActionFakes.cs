@@ -218,7 +218,14 @@ internal sealed class FakeRoomChatStore : IRoomChatStore
 internal sealed class FakeGameMessageBroadcaster : IGameMessageBroadcaster
 {
     public ConcurrentQueue<RoomMessage> Broadcasts { get; } = new();
+    public ConcurrentQueue<(Guid UserId, RoomMessage Message)> Private { get; } = new();
     public ConcurrentQueue<CombatView> CombatViews { get; } = new();
+
+    public Task SendToUserAsync(Guid userId, RoomMessage message, CancellationToken cancellationToken = default)
+    {
+        Private.Enqueue((userId, message));
+        return Task.CompletedTask;
+    }
     public ConcurrentQueue<(Guid UserId, PendingDecisionInfo Decision)> Decisions { get; } = new();
 
     public Task BroadcastAsync(RoomMessage message, CancellationToken cancellationToken = default)
@@ -274,18 +281,44 @@ internal sealed class FakeRoomContentReader : IRoomContentReader
         Task.FromResult<IReadOnlyList<InteractableSnapshot>>(
             Interactables.Where(interactable => interactable.RoomId == roomId).ToArray());
 
+    public HashSet<Guid> DiscoveredItems { get; } = new();
+
     public Task<IReadOnlySet<Guid>> GetDiscoveredSubjectIdsAsync(
         Guid characterId, DiscoverySubjectType subjectType, CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlySet<Guid>>(
-            subjectType == DiscoverySubjectType.Interactable ? DiscoveredInteractables : new HashSet<Guid>());
+        Task.FromResult<IReadOnlySet<Guid>>(subjectType switch
+        {
+            DiscoverySubjectType.Interactable => DiscoveredInteractables,
+            DiscoverySubjectType.Item => DiscoveredItems,
+            _ => new HashSet<Guid>(),
+        });
+
+    public List<(Guid RoomId, HiddenItemSnapshot Item)> HiddenItems { get; } = new();
+
+    public Task<IReadOnlyList<HiddenItemSnapshot>> GetHiddenItemsInRoomAsync(
+        Guid roomId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<HiddenItemSnapshot>>(
+            HiddenItems.Where(entry => entry.RoomId == roomId).Select(entry => entry.Item).ToArray());
 
     public Task<int> GetRoomEnvironmentModifierAsync(Guid roomId, CancellationToken cancellationToken) =>
         Task.FromResult(EnvironmentModifiers.TryGetValue(roomId, out var modifier) ? modifier : 0);
 
-    public Task<string?> GetRoomContentKeyAsync(Guid roomId, CancellationToken cancellationToken) =>
-        Task.FromResult(RoomContentKeys.TryGetValue(roomId, out var key) ? key : null);
+    // WF-27: a run's copy maps to the map room it was made from; any room not
+    // listed here is a map room and stands for itself.
+    public Dictionary<Guid, Guid> MapRooms { get; } = new();
 
-    public Dictionary<Guid, string> RoomContentKeys { get; } = new();
+    public Task<Guid?> GetMapRoomIdAsync(Guid roomId, CancellationToken cancellationToken) =>
+        Task.FromResult<Guid?>(MapRooms.TryGetValue(roomId, out var mapRoomId) ? mapRoomId : roomId);
+
+    public HashSet<Guid> PublicMapRooms { get; } = new();
+
+    public Task<bool> IsPublicMapRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
+        Task.FromResult(PublicMapRooms.Contains(roomId));
+
+    public Dictionary<(Guid EncounterInstanceId, Guid MapRoomId), Guid> RunCopies { get; } = new();
+
+    public Task<Guid?> GetRunCopyIdAsync(
+        Guid encounterInstanceId, Guid mapRoomId, CancellationToken cancellationToken) =>
+        Task.FromResult<Guid?>(RunCopies.TryGetValue((encounterInstanceId, mapRoomId), out var copy) ? copy : null);
 }
 
 // Captures reactions the executor fires instead of running them — the tests
@@ -320,12 +353,12 @@ internal sealed class FakeMissionReader : IMissionReader
         Task.FromResult<IReadOnlyList<MissionInstanceSnapshot>>(
             Instances.Where(instance => instance.CharacterId == characterId).ToList());
 
-    public Task<IReadOnlyDictionary<string, int>> CountOpenInstancesByMissionAsync(
+    public Task<IReadOnlyDictionary<Guid, int>> CountOpenInstancesByMissionAsync(
         CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlyDictionary<string, int>>(
+        Task.FromResult<IReadOnlyDictionary<Guid, int>>(
             Instances
-                .GroupBy(instance => instance.MissionId, StringComparer.Ordinal)
-                .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal));
+                .GroupBy(instance => instance.MissionId)
+                .ToDictionary(group => group.Key, group => group.Count()));
 
     public Task<EncounterInstanceSnapshot?> GetActiveEncounterForCharacterAsync(
         Guid characterId, CancellationToken cancellationToken) =>
@@ -365,7 +398,7 @@ internal sealed class FakeMissionReader : IMissionReader
         CancellationToken cancellationToken) =>
         Task.FromResult(!Instances.Any(instance =>
             instance.CharacterId == characterId
-            && string.Equals(instance.MissionId, definition.Id, StringComparison.Ordinal)
+            && instance.MissionId == definition.Id
             && !instance.IsTerminal));
 }
 
@@ -413,9 +446,9 @@ internal sealed class FakeGameCommandQueue : IGameCommandQueue
 // fire-once trigger always gets its one chance in a fresh harness.
 internal sealed class FakeTriggerFireReader : ITriggerFireReader
 {
-    public HashSet<(Guid CharacterId, Guid MissionInstanceId, string TriggerKey)> Fired { get; } = [];
+    public HashSet<(Guid CharacterId, Guid MissionInstanceId, Guid TriggerId)> Fired { get; } = [];
 
     public Task<bool> HasFiredAsync(
-        Guid characterId, Guid missionInstanceId, string triggerKey, CancellationToken cancellationToken) =>
-        Task.FromResult(Fired.Contains((characterId, missionInstanceId, triggerKey)));
+        Guid characterId, Guid missionInstanceId, Guid triggerId, CancellationToken cancellationToken) =>
+        Task.FromResult(Fired.Contains((characterId, missionInstanceId, triggerId)));
 }

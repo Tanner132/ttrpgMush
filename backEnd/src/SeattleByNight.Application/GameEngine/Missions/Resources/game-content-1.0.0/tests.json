@@ -1,43 +1,70 @@
 {
   "tests": [
     {
-      "id": "dodge-gunfire",
+      "id": "925745d3-f12b-41f6-8c5f-a38a5e6f265b",
       "displayName": "Dodge",
       "description": "Intuition + Reaction [Physical] (2) — read the shot and get out of its way.",
       "kind": "threshold",
       "limit": "physical",
       "threshold": 2,
       "pool": [
-        { "kind": "attribute", "id": "intuition" },
-        { "kind": "attribute", "id": "reaction" }
+        {
+          "kind": "attribute",
+          "id": "intuition"
+        },
+        {
+          "kind": "attribute",
+          "id": "reaction"
+        }
       ],
-      "tags": ["physical", "defense"]
+      "tags": [
+        "physical",
+        "defense"
+      ]
     },
     {
-      "id": "block-attacker",
+      "id": "5ebec4f2-5d44-47cd-9167-13650586c518",
       "displayName": "Block",
       "description": "Strength + Unarmed Combat [Physical] (2) — close inside the barrel and knock it aside.",
       "kind": "threshold",
       "limit": "physical",
       "threshold": 2,
       "pool": [
-        { "kind": "attribute", "id": "strength" },
-        { "kind": "skill", "id": "unarmed-combat" }
+        {
+          "kind": "attribute",
+          "id": "strength"
+        },
+        {
+          "kind": "skill",
+          "id": "unarmed-combat"
+        }
       ],
-      "tags": ["physical", "combat", "melee"]
+      "tags": [
+        "physical",
+        "combat",
+        "melee"
+      ]
     },
     {
-      "id": "read-shipping-records",
+      "id": "017e2a55-843f-4e5e-a7f9-102310427c33",
       "displayName": "Read the Records",
       "description": "Logic + Computer [Mental] (1) — make sense of the gang's shipping log before it locks you out.",
       "kind": "threshold",
       "limit": "mental",
       "threshold": 1,
       "pool": [
-        { "kind": "attribute", "id": "logic" },
-        { "kind": "skill", "id": "computer" }
+        {
+          "kind": "attribute",
+          "id": "logic"
+        },
+        {
+          "kind": "skill",
+          "id": "computer"
+        }
       ],
-      "tags": ["mental"]
+      "tags": [
+        "mental"
+      ]
     }
   ]
 }

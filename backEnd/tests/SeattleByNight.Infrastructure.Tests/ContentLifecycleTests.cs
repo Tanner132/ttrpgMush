@@ -17,25 +17,25 @@ namespace SeattleByNight.Infrastructure.Tests;
 // routine.
 public abstract class ContentLifecycleHarness : PlaythroughHarness
 {
-    protected const string MissionId = "gang-warehouse-retrieval";
+    protected static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
 
     private static Guid Actor => DevelopmentDataSeeder.DevUserId;
 
-    protected async Task<GameContentPublishResult> RetireAsync(GameContentKind kind, string contentKey)
+    protected async Task<GameContentPublishResult> RetireAsync(GameContentKind kind, Guid contentKey)
     {
         await using var scope = Provider.CreateAsyncScope();
         var lifecycle = scope.ServiceProvider.GetRequiredService<GameContentLifecycle>();
         return await lifecycle.RetireAsync(kind, contentKey, Actor);
     }
 
-    protected async Task<GameContentPublishResult> DeleteAsync(GameContentKind kind, string contentKey)
+    protected async Task<GameContentPublishResult> DeleteAsync(GameContentKind kind, Guid contentKey)
     {
         await using var scope = Provider.CreateAsyncScope();
         var lifecycle = scope.ServiceProvider.GetRequiredService<GameContentLifecycle>();
         return await lifecycle.DeleteAsync(kind, contentKey, Actor);
     }
 
-    protected async Task<GameContentDeleteCheck> CanDeleteAsync(GameContentKind kind, string contentKey)
+    protected async Task<GameContentDeleteCheck> CanDeleteAsync(GameContentKind kind, Guid contentKey)
     {
         await using var scope = Provider.CreateAsyncScope();
         var lifecycle = scope.ServiceProvider.GetRequiredService<GameContentLifecycle>();
@@ -124,7 +124,7 @@ public sealed class RetireMissionTests : ContentLifecycleHarness
     [Fact]
     public async Task Retiring_the_encounter_takes_the_missions_that_run_in_it_out_of_play_too()
     {
-        Assert.True((await RetireAsync(GameContentKind.Encounter, "gang-warehouse")).IsSuccess);
+        Assert.True((await RetireAsync(GameContentKind.Encounter, ShippedContentIds.Encounters.GangWarehouse)).IsSuccess);
 
         await using var scope = Provider.CreateAsyncScope();
         var content = scope.ServiceProvider.GetRequiredService<IGameContentProvider>();
@@ -175,7 +175,7 @@ public sealed class RetireNpcAndSceneTests : ContentLifecycleHarness
     [Fact]
     public async Task A_retired_scene_stops_being_offered_but_still_resolves_by_id()
     {
-        const string sceneId = "ganger-lookout-talk";
+        var sceneId = ShippedContentIds.Scenes.GangerLookoutTalk;
         Assert.True((await RetireAsync(GameContentKind.Scene, sceneId)).IsSuccess);
 
         await using var scope = Provider.CreateAsyncScope();
@@ -198,6 +198,9 @@ public sealed class RetireNpcAndSceneTests : ContentLifecycleHarness
 
 public sealed class HardDeleteTests : ContentLifecycleHarness
 {
+    private static readonly Guid NeverPublished = Guid.NewGuid();
+    private static readonly Guid DraftOnly = Guid.NewGuid();
+
     [Fact]
     public async Task A_draft_that_was_never_published_can_be_deleted_outright()
     {
@@ -205,10 +208,10 @@ public sealed class HardDeleteTests : ContentLifecycleHarness
         {
             var store = scope.ServiceProvider.GetRequiredService<IGameContentStore>();
             await store.SaveDraftAsync(
-                GameContentKind.Test, "never-published", "Never Published",
-                """
+                GameContentKind.Test, NeverPublished, "Never Published",
+                $$"""
                 {
-                  "id": "never-published",
+                  "id": "{{NeverPublished}}",
                   "displayName": "Never Published",
                   "description": "d",
                   "kind": "success",
@@ -220,11 +223,11 @@ public sealed class HardDeleteTests : ContentLifecycleHarness
                 DevelopmentDataSeeder.DevUserId);
         }
 
-        Assert.True((await CanDeleteAsync(GameContentKind.Test, "never-published")).CanDelete);
-        Assert.True((await DeleteAsync(GameContentKind.Test, "never-published")).IsSuccess);
+        Assert.True((await CanDeleteAsync(GameContentKind.Test, NeverPublished)).CanDelete);
+        Assert.True((await DeleteAsync(GameContentKind.Test, NeverPublished)).IsSuccess);
 
         await using var db = Db();
-        Assert.False(await db.GameContentDefinitions.AnyAsync(row => row.ContentKey == "never-published"));
+        Assert.False(await db.GameContentDefinitions.AnyAsync(row => row.ContentKey == NeverPublished));
         // The erasure itself is in the record.
         Assert.True(await db.AuditRecords.AnyAsync(
             record => record.Action == AuditActions.GameContentDeleted));
@@ -257,14 +260,14 @@ public sealed class HardDeleteTests : ContentLifecycleHarness
         var check = await CanDeleteAsync(GameContentKind.NpcTemplate, NpcTemplateIds.StreetGanger);
 
         Assert.False(check.CanDelete);
-        Assert.Contains("Other content still points at 'street-ganger'", check.Reason);
-        Assert.Contains("unknown template", check.Reason);
+        Assert.Contains("Other content still points at 'Street Ganger'", check.Reason);
+        Assert.Contains("uses a stat block that does not exist", check.Reason);
     }
 
     [Fact]
     public async Task Retiring_then_deleting_leaves_the_served_corpus_loadable()
     {
-        const string sceneId = "warehouse-hallway-ambush";
+        var sceneId = ShippedContentIds.Scenes.WarehouseHallwayAmbush;
 
         // The ambush scene is opened by a trigger, so the corpus points at it
         // and a delete is refused while that trigger stands.
@@ -287,10 +290,10 @@ public sealed class HardDeleteTests : ContentLifecycleHarness
         {
             var store = scope.ServiceProvider.GetRequiredService<IGameContentStore>();
             await store.SaveDraftAsync(
-                GameContentKind.Test, "draft-only", "Draft Only",
-                """
+                GameContentKind.Test, DraftOnly, "Draft Only",
+                $$"""
                 {
-                  "id": "draft-only", "displayName": "Draft Only", "description": "d",
+                  "id": "{{DraftOnly}}", "displayName": "Draft Only", "description": "d",
                   "kind": "success", "limit": "none",
                   "pool": [{ "kind": "attribute", "id": "logic" }], "tags": ["mental"]
                 }
@@ -298,7 +301,7 @@ public sealed class HardDeleteTests : ContentLifecycleHarness
                 DevelopmentDataSeeder.DevUserId);
         }
 
-        var retired = await RetireAsync(GameContentKind.Test, "draft-only");
+        var retired = await RetireAsync(GameContentKind.Test, DraftOnly);
 
         Assert.False(retired.IsSuccess);
         Assert.Contains("Delete it instead", retired.Error);

@@ -18,7 +18,7 @@ public sealed class GameContentDefinition
     // The definition's authored id ("gang-warehouse-retrieval") — stable
     // across edits and the key every instance, scene, and objective
     // reference is written against.
-    public string ContentKey { get; set; } = string.Empty;
+    public Guid ContentKey { get; set; }
     // Denormalized for the builder's dashboard listing; the payload remains
     // the source of truth.
     public string DisplayName { get; set; } = string.Empty;

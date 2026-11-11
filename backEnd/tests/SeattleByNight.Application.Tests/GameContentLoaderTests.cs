@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Domain.Enums;
 
@@ -14,16 +15,16 @@ public sealed class GameContentLoaderTests
         var content = TestGameContent.Provider.Current;
 
         var encounter = Assert.Single(content.Encounters);
-        Assert.Equal("gang-warehouse", encounter.Id);
-        Assert.Equal(4, encounter.Rooms.Count);
-        Assert.Contains(encounter.Items, item => item.Key == "package");
+        Assert.Equal(ShippedContentIds.Encounters.GangWarehouse, encounter.Id);
+        Assert.Equal(4, encounter.RoomIds.Count);
+        Assert.Contains(encounter.Items, item => item.Id == ShippedContentIds.Items.Package);
         // Milestone 7: the keycard is declared but never placed — it exists
         // for the ambush scene's giveItem effect to hand over.
-        Assert.Contains(encounter.Items, item => item.Key == "enforcer-keycard" && item.RoomKey is null);
+        Assert.Contains(encounter.Items, item => item.Id == ShippedContentIds.Items.EnforcerKeycard && item.RoomId is null);
 
         var mission = Assert.Single(content.Missions);
-        Assert.Equal("gang-warehouse-retrieval", mission.Id);
-        Assert.Equal("gang-warehouse", mission.EncounterId);
+        Assert.Equal(ShippedContentIds.Missions.GangWarehouseRetrieval, mission.Id);
+        Assert.Equal(ShippedContentIds.Encounters.GangWarehouse, mission.EncounterId);
         Assert.Equal(MissionRepeatabilityKind.Cooldown, mission.Repeatability.Kind);
         Assert.Equal(4, mission.Objectives.Count);
         Assert.Equal(MissionObjectiveKind.EnterEncounter, mission.Objectives[0].Kind);
@@ -34,53 +35,44 @@ public sealed class GameContentLoaderTests
         // Milestone 6: the Johnson scene and the gang-lookout talk options.
         // Milestone 7 adds the unbound hallway ambush alongside them.
         Assert.Equal(3, content.Scenes.Count);
-        var johnson = content.FindSceneForNpcTemplate("mr-johnson");
+        var johnson = content.FindSceneForNpcTemplate(ShippedContentIds.NpcTemplates.MrJohnson);
         Assert.NotNull(johnson);
         Assert.True(johnson.IsDialogue);
         Assert.NotNull(johnson.FindNode(johnson.StartNodeId));
-        Assert.NotNull(content.FindSceneForNpcTemplate("street-ganger"));
+        Assert.NotNull(content.FindSceneForNpcTemplate(ShippedContentIds.NpcTemplates.StreetGanger));
 
-        var ambush = content.FindScene("warehouse-hallway-ambush");
+        var ambush = content.FindScene(ShippedContentIds.Scenes.WarehouseHallwayAmbush);
         Assert.NotNull(ambush);
         Assert.False(ambush.IsDialogue);
 
         // Milestone 7: the authored tests, and the triggers that reach them.
         Assert.Equal(3, content.Tests.Count);
-        var dodge = content.FindTest("dodge-gunfire");
+        var dodge = content.FindTest(ShippedContentIds.Tests.DodgeGunfire.ToString());
         Assert.NotNull(dodge);
         Assert.True(dodge.HasAuthoredPool);
         Assert.Equal(
             new[] { "intuition", "reaction" },
             dodge.Pool!.Select(component => component.Id).ToArray());
-        // The code catalog stays reachable through the same lookup.
+        // The code catalog stays reachable through the same lookup, by name.
         Assert.NotNull(content.FindTest("sneak-past"));
 
+        // WF-26: the site's events are the job's, each on its room.
+        Assert.False(encounter.Npcs.Count == 0);
         var ambushTrigger = Assert.Single(
-            encounter.Triggers, trigger => trigger.Key == "hallway-ambush");
+            mission.Triggers, trigger => trigger.Id == ShippedContentIds.Triggers.HallwayAmbush);
         Assert.Equal(TriggerEventKind.PlayerEnteredRoom, ambushTrigger.Event);
-        Assert.Equal("back-hallway", ambushTrigger.RoomKey);
+        Assert.Equal(ShippedContentIds.SiteRooms.BackHallway, ambushTrigger.RoomId);
         Assert.False(ambushTrigger.Repeatable);
         Assert.Contains(
             ambushTrigger.Reactions,
             reaction => reaction.Kind == TriggerReactionKind.OpenScene
-                && reaction.SceneId == "warehouse-hallway-ambush");
+                && reaction.SceneId == ShippedContentIds.Scenes.WarehouseHallwayAmbush);
 
-        Assert.Single(mission.Triggers, trigger => trigger.Event == TriggerEventKind.MissionAccepted);
-    }
-
-    [Fact]
-    public void An_exit_to_an_undeclared_room_fails_with_a_clear_error()
-    {
-        var json = Document(encounters: """
-            [{
-              "id": "e1", "displayName": "E1", "entryRoomKey": "a",
-              "rooms": [{ "key": "a", "name": "A", "description": "d" }],
-              "exits": [{ "fromRoomKey": "a", "toRoomKey": "missing", "direction": "north" }]
-            }]
-            """);
-
-        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("undeclared room", error.Message);
+        var advance = Assert.Single(mission.Triggers, trigger => trigger.Event == TriggerEventKind.MissionAccepted);
+        Assert.Equal(Id("room", "coffee-shop"), advance.RoomId);
+        Assert.Equal(
+            ShippedContentIds.SiteRooms.StorageRoom,
+            Assert.Single(mission.Triggers, trigger => trigger.Id == ShippedContentIds.Triggers.LedgerTerminalRecords).RoomId);
     }
 
     [Fact]
@@ -98,7 +90,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("unknown encounter", error.Message);
+        MessageAssert.Has("names a job site that does not exist", error.Message);
     }
 
     [Fact]
@@ -124,7 +116,7 @@ public sealed class GameContentLoaderTests
                 """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("does not declare", error.Message);
+        MessageAssert.Has("names an item its job site does not have", error.Message);
     }
 
     [Fact]
@@ -150,7 +142,7 @@ public sealed class GameContentLoaderTests
                 """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("cooldownHours", error.Message);
+        MessageAssert.Has("cooldownHours", error.Message);
     }
 
     [Fact]
@@ -166,7 +158,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("unknown template", error.Message);
+        MessageAssert.Has("uses a stat block that does not exist", error.Message);
     }
 
     [Fact]
@@ -203,8 +195,15 @@ public sealed class GameContentLoaderTests
                 }]
                 """);
 
-        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("watches undeclared room 'nowhere'", error.Message);
+        // WF-26: a room outside the job's site is a public room, which only
+        // the map can vouch for — the publish gate refuses it there.
+        var content = GameContentLoader.Load(json);
+        Assert.Equal(Id("room", "nowhere"), Assert.Single(Assert.Single(content.Missions).Triggers).RoomId);
+        var map = new JobSiteMap(
+            new Dictionary<Guid, JobSiteMapRoom> { [Id("room", "a")] = new(Id("room", "a"), "A", RoomAccessType.Private) },
+            []);
+        var error = Assert.Throws<GameContentException>(() => JobSiteMapValidator.Validate(content, map));
+        MessageAssert.Has("listens in a room that is not on the map", error.Message);
     }
 
     [Fact]
@@ -224,7 +223,7 @@ public sealed class GameContentLoaderTests
                 """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("must name the roomKey it watches", error.Message);
+        MessageAssert.Has("must name the room its event happens in", error.Message);
     }
 
     [Fact]
@@ -244,7 +243,7 @@ public sealed class GameContentLoaderTests
                 """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("unknown scene 'nope'", error.Message);
+        MessageAssert.Has("reaction 'openScene' names a scene that does not exist", error.Message);
     }
 
     [Fact]
@@ -267,7 +266,7 @@ public sealed class GameContentLoaderTests
                 """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("must declare both onSuccess and onFailure", error.Message);
+        MessageAssert.Has("must declare both onSuccess and onFailure", error.Message);
     }
 
     [Fact]
@@ -290,7 +289,7 @@ public sealed class GameContentLoaderTests
                 """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("names item 'ghost-item' which no encounter declares", error.Message);
+        MessageAssert.Has("effect 'giveItem' names an item no job site has", error.Message);
     }
 
     [Fact]
@@ -310,7 +309,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("unknown test 'no-such-test'", error.Message);
+        MessageAssert.Has("names a test that does not exist", error.Message);
     }
 
     [Fact]
@@ -330,23 +329,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("node 'orphan' is unreachable", error.Message);
-    }
-
-    [Fact]
-    public void An_authored_test_may_not_shadow_a_built_in_one()
-    {
-        var json = Document(tests: """
-            [{
-              "id": "sneak-past", "displayName": "Sneak", "description": "d",
-              "kind": "success",
-              "pool": [{ "kind": "attribute", "id": "agility" }],
-              "tags": ["physical"]
-            }]
-            """);
-
-        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("shadows a built-in development test", error.Message);
+        MessageAssert.Has("has a step nothing leads to", error.Message);
     }
 
     [Fact]
@@ -362,7 +345,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("must declare an opposedPoolId", error.Message);
+        MessageAssert.Has("must declare an opposedPoolId", error.Message);
     }
 
     [Fact]
@@ -376,7 +359,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("at least one pool component", error.Message);
+        MessageAssert.Has("at least one pool component", error.Message);
     }
 
     [Fact]
@@ -395,7 +378,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("Duplicate NPC name", error.Message);
+        MessageAssert.Has("Duplicate id of a job site's NPC", error.Message);
     }
 
     [Fact]
@@ -410,7 +393,7 @@ public sealed class GameContentLoaderTests
                   "npcs": [{ "roomKey": "a", "templateId": "street-ganger", "name": "Goon" }],
                   "items": [{ "key": "i1", "name": "Thing", "description": "d" }],
                   "triggers": [{
-                    "key": "t1", "event": "itemPickedUp", "itemKey": "i1", "repeatable": true,
+                    "key": "t1", "event": "itemPickedUp", "itemKey": "i1", "roomKey": "a", "repeatable": true,
                     "reactions": [
                       { "kind": "npcSpeaks", "npcName": "Goon", "text": "Hey!" },
                       { "kind": "applyEffects", "effects": [{ "kind": "startCombat", "npcName": "Goon" }] }
@@ -421,9 +404,9 @@ public sealed class GameContentLoaderTests
 
         var content = GameContentLoader.Load(json);
 
-        var trigger = Assert.Single(Assert.Single(content.Encounters).Triggers);
+        var trigger = Assert.Single(Assert.Single(content.Missions).Triggers);
         Assert.True(trigger.Repeatable);
-        Assert.Equal("i1", trigger.ItemKey);
+        Assert.Equal(Id("item", "i1"), trigger.ItemId);
         Assert.Equal(2, trigger.Reactions.Count);
     }
 
@@ -437,7 +420,7 @@ public sealed class GameContentLoaderTests
                 { "kind": "failObjective", "missionId": "m1", "objectiveKey": "no-such-step" }
                 """)));
 
-        Assert.Contains("effect 'failObjective' names objective 'no-such-step'", error.Message);
+        MessageAssert.Has("effect 'failObjective' names an objective job 'M1' does not have", error.Message);
     }
 
     [Fact]
@@ -448,7 +431,7 @@ public sealed class GameContentLoaderTests
                 { "kind": "advanceScene", "sceneId": "s1", "nodeId": "nowhere" }
                 """)));
 
-        Assert.Contains("names node 'nowhere' which scene 's1' does not declare", error.Message);
+        MessageAssert.Has("names a step scene 's1' does not have", error.Message);
     }
 
     [Fact]
@@ -459,7 +442,7 @@ public sealed class GameContentLoaderTests
                 { "kind": "advanceScene", "sceneId": "no-such-scene", "nodeId": "n1" }
                 """)));
 
-        Assert.Contains("effect 'advanceScene' names unknown scene 'no-such-scene'", error.Message);
+        MessageAssert.Has("effect 'advanceScene' names a scene that does not exist", error.Message);
     }
 
     [Fact]
@@ -481,7 +464,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("belongs on a trigger", error.Message);
+        MessageAssert.Has("belongs on a trigger", error.Message);
     }
 
     [Fact]
@@ -492,11 +475,11 @@ public sealed class GameContentLoaderTests
             { "kind": "advanceScene", "sceneId": "s1", "nodeId": "n1" }
             """));
 
-        var trigger = Assert.Single(Assert.Single(content.Encounters).Triggers);
+        var trigger = Assert.Single(Assert.Single(content.Missions).Triggers);
         var effects = Assert.Single(trigger.Reactions).Effects!;
         Assert.Equal(SceneEffectKind.FailObjective, effects[0].Kind);
         Assert.Equal(SceneEffectKind.AdvanceScene, effects[1].Kind);
-        Assert.Equal("n1", effects[1].NodeId);
+        Assert.Equal(Id("node", "s1/n1"), effects[1].NodeId);
     }
 
     // An encounter whose one trigger applies the given effects, with a mission
@@ -552,7 +535,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("must declare a 'social' pool", error.Message);
+        MessageAssert.Has("must declare a 'social' pool", error.Message);
     }
 
     [Fact]
@@ -577,7 +560,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("declares unknown pool 'hacking'", error.Message);
+        MessageAssert.Has("declares unknown pool 'hacking'", error.Message);
     }
 
     [Fact]
@@ -593,7 +576,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("uses unknown template 'ghost-template'", error.Message);
+        MessageAssert.Has("uses a stat block that does not exist", error.Message);
     }
 
     [Fact]
@@ -612,7 +595,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("binds unknown scene 'no-such-scene'", error.Message);
+        MessageAssert.Has("is given a conversation that does not exist", error.Message);
     }
 
     [Fact]
@@ -631,7 +614,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("overrides unknown pool 'hacking'", error.Message);
+        MessageAssert.Has("overrides unknown pool 'hacking'", error.Message);
     }
 
     [Fact]
@@ -655,7 +638,7 @@ public sealed class GameContentLoaderTests
         Assert.Equal("Sparks", npc.Name);
         Assert.Equal(NpcAwareness.Alerted, npc.StartingAwareness);
 
-        var effective = content.FindNpcTemplate("street-ganger")!.WithOverrides(npc.Overrides);
+        var effective = content.FindNpcTemplate(ShippedContentIds.NpcTemplates.StreetGanger)!.WithOverrides(npc.Overrides);
         Assert.Equal(12, effective.Armor);
         Assert.Equal(9, effective.Pools["defense"].Dice);
         Assert.Equal(8, effective.Pools["attack"].Dice);
@@ -684,7 +667,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("names undeclared NPC 'Nobody'", error.Message);
+        MessageAssert.Has("effect 'alertNpc' names an NPC that does not exist here", error.Message);
     }
 
     [Fact]
@@ -707,7 +690,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("must name an NPC", error.Message);
+        MessageAssert.Has("must name an NPC", error.Message);
     }
 
     [Fact]
@@ -739,8 +722,8 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(startCombat));
-        Assert.Contains("stands in 'b'", error.Message);
-        Assert.Contains("fires in 'a'", error.Message);
+        MessageAssert.Has("names 'Goon', who stands in another room", error.Message);
+        MessageAssert.Has("only reaches the room the player is in", error.Message);
 
         // An alarm carries through the building, so the same shape is fine.
         var alert = Document(encounters: $$"""
@@ -777,7 +760,7 @@ public sealed class GameContentLoaderTests
             """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("binds no NPC template", error.Message);
+        MessageAssert.Has("binds no stat block", error.Message);
     }
 
     [Fact]
@@ -809,7 +792,7 @@ public sealed class GameContentLoaderTests
                 """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("has no NPC to oppose it", error.Message);
+        MessageAssert.Has("has no NPC to oppose it", error.Message);
     }
 
     [Fact]
@@ -839,7 +822,7 @@ public sealed class GameContentLoaderTests
                 """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("binds no NPC template, so there is nobody to oppose it", error.Message);
+        MessageAssert.Has("binds no stat block, so there is nobody to oppose it", error.Message);
     }
 
     [Fact]
@@ -881,7 +864,7 @@ public sealed class GameContentLoaderTests
                 """);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("needs a 'missionReadyToTurnIn' condition", error.Message);
+        MessageAssert.Has("needs a 'missionReadyToTurnIn' condition", error.Message);
     }
 
     [Fact]
@@ -914,7 +897,7 @@ public sealed class GameContentLoaderTests
             npcTemplates: JohnsonTemplate);
 
         var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
-        Assert.Contains("needs a live encounter to take the item from", error.Message);
+        MessageAssert.Has("needs a live encounter to take the item from", error.Message);
     }
 
     [Fact]
@@ -946,6 +929,139 @@ public sealed class GameContentLoaderTests
                   }]
                 }]
                 """));
+
+        Assert.Single(content.Scenes);
+    }
+
+    private const string TwoPlainScenes = """
+        [
+          { "id": "s1", "startNodeId": "n1",
+            "nodes": [{ "nodeId": "n1", "text": "t", "choices": [{ "choiceId": "c1", "label": "ok", "endsScene": true }] }] },
+          { "id": "s2", "startNodeId": "n1",
+            "nodes": [{ "nodeId": "n1", "text": "t", "choices": [{ "choiceId": "c1", "label": "ok", "endsScene": true }] }] }
+        ]
+        """;
+
+    // WF-8: a character holds one scene session, so the second scene a trigger
+    // opens would replace the first before the player ever saw it.
+    [Fact]
+    public void A_trigger_opening_a_scene_from_two_reactions_fails()
+    {
+        var json = Document(
+            encounters: """
+                [{
+                  "id": "e1", "displayName": "E1", "entryRoomKey": "a",
+                  "rooms": [{ "key": "a", "name": "A", "description": "d" }],
+                  "exits": [],
+                  "triggers": [{
+                    "key": "t1", "event": "playerEnteredRoom", "roomKey": "a",
+                    "reactions": [
+                      { "kind": "openScene", "sceneId": "s1" },
+                      {
+                        "kind": "runTest", "testId": "observe-area",
+                        "onSuccess": { "text": "ok", "sceneId": "s2" },
+                        "onFailure": { "text": "no" }
+                      }
+                    ]
+                  }]
+                }]
+                """,
+            scenes: TwoPlainScenes);
+
+        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
+        MessageAssert.Has("opens a scene from 2 reactions", error.Message);
+    }
+
+    [Fact]
+    public void A_run_test_whose_two_branches_each_open_a_scene_counts_as_one_opener()
+    {
+        // Only one branch ever runs, so this can never stack two scenes.
+        var content = GameContentLoader.Load(Document(
+            encounters: """
+                [{
+                  "id": "e1", "displayName": "E1", "entryRoomKey": "a",
+                  "rooms": [{ "key": "a", "name": "A", "description": "d" }],
+                  "exits": [],
+                  "triggers": [{
+                    "key": "t1", "event": "playerEnteredRoom", "roomKey": "a",
+                    "reactions": [{
+                      "kind": "runTest", "testId": "observe-area",
+                      "onSuccess": { "text": "ok", "sceneId": "s1" },
+                      "onFailure": { "text": "no", "sceneId": "s2" }
+                    }]
+                  }]
+                }]
+                """,
+            scenes: TwoPlainScenes));
+
+        Assert.Equal(2, content.Scenes.Count);
+    }
+
+    // Two rooms, a goon in the back one, and a trigger that opens scene s1 in
+    // the front one. {{effect}} is the NPC effect s1's only choice applies.
+    private static string SceneNpcEffectDocument(string effect, bool openFromEncounter = true) =>
+        Document(
+            encounters: $$"""
+                [{
+                  "id": "e1", "displayName": "E1", "entryRoomKey": "a",
+                  "rooms": [
+                    { "key": "a", "name": "A", "description": "d" },
+                    { "key": "b", "name": "B", "description": "d" }
+                  ],
+                  "exits": [
+                    { "fromRoomKey": "a", "toRoomKey": "b", "direction": "north" },
+                    { "fromRoomKey": "b", "toRoomKey": "a", "direction": "south" }
+                  ],
+                  "npcs": [{ "roomKey": "b", "templateId": "street-ganger", "name": "Goon" }],
+                  "triggers": [{{(openFromEncounter ? """
+                    {
+                      "key": "t1", "event": "playerEnteredRoom", "roomKey": "a",
+                      "reactions": [{ "kind": "openScene", "sceneId": "s1" }]
+                    }
+                    """ : "")}}]
+                }]
+                """,
+            scenes: $$"""
+                [{
+                  "id": "s1", "startNodeId": "n1",
+                  "nodes": [{
+                    "nodeId": "n1", "text": "t",
+                    "choices": [{
+                      "choiceId": "c1", "label": "Go",
+                      "effects": [{{effect}}],
+                      "endsScene": true
+                    }]
+                  }]
+                }]
+                """);
+
+    // WF-7: a scene that never plays inside an encounter cannot reach a named
+    // encounter NPC, so naming one used to publish and silently do nothing.
+    [Fact]
+    public void A_scene_never_opened_in_an_encounter_naming_an_encounter_npc_fails()
+    {
+        var json = SceneNpcEffectDocument(
+            """{ "kind": "alertNpc", "npcName": "Goon" }""", openFromEncounter: false);
+
+        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
+        MessageAssert.Has("never opened inside a job site", error.Message);
+    }
+
+    [Fact]
+    public void A_scene_pacifying_an_npc_in_a_different_room_from_where_it_opens_fails()
+    {
+        var json = SceneNpcEffectDocument("""{ "kind": "pacifyNpc", "npcName": "Goon" }""");
+
+        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
+        MessageAssert.Has("only reaches the room the player is in", error.Message);
+    }
+
+    [Fact]
+    public void A_scene_alerting_an_npc_elsewhere_in_the_encounter_it_opens_in_loads()
+    {
+        // An alarm carries through the building, so another room is fine.
+        var content = GameContentLoader.Load(
+            SceneNpcEffectDocument("""{ "kind": "alertNpc", "npcName": "Goon" }"""));
 
         Assert.Single(content.Scenes);
     }
@@ -988,21 +1104,275 @@ public sealed class GameContentLoaderTests
         }]
         """;
 
+    // ---- WF-20 places and WF-21 events --------------------------------------
+
+    private static string PlaceDocument(string triggers) =>
+        Document(places: $$"""[{ "id": "the-alley", "displayName": "The Alley", "triggers": {{triggers}} }]""");
+
+    [Fact]
+    public void A_place_loads_with_its_room_implied_and_its_npcs_left_to_the_map()
+    {
+        var content = GameContentLoader.Load(PlaceDocument("""
+            [
+              { "key": "greet", "event": "playerEnteredRoom",
+                "reactions": [{ "kind": "npcSpeaks", "npcName": "Ms. Marchetti", "text": "Hoi." }] },
+              { "key": "caught", "event": "sneakAttempted", "npcName": "Ms. Marchetti", "outcome": "failure",
+                "reactions": [{ "kind": "applyEffects", "effects": [{ "kind": "alertNpc", "npcName": "Ms. Marchetti" }] }] }
+            ]
+            """));
+
+        var place = Assert.Single(content.Places);
+        Assert.Equal(Id("room", "the-alley"), place.Id);
+        Assert.Equal(Id("room", "the-alley"), place.Triggers[0].RoomId);
+        Assert.True(place.Triggers[0].Repeatable);
+        Assert.Equal(TriggerOutcome.Failure, place.Triggers[1].Outcome);
+        Assert.Same(place, content.FindPlace(Id("room", "the-alley")));
+    }
+
+    [Theory]
+    [InlineData("""[{ "key": "k", "event": "itemPickedUp", "itemKey": "x", "reactions": [{ "kind": "narrate", "text": "t" }] }]""", "belongs to a job")]
+    [InlineData("""[{ "key": "k", "event": "playerEnteredRoom", "roomKey": "elsewhere", "reactions": [{ "kind": "narrate", "text": "t" }] }]""", "listens in another room; a room's own events happen in the room itself")]
+    [InlineData("""[{ "key": "k", "event": "playerEnteredRoom", "reactions": [{ "kind": "applyEffects", "effects": [{ "kind": "giveItem", "itemKey": "x" }] }] }]""", "cannot run in a public room")]
+    [InlineData("""[{ "key": "k", "event": "playerEnteredRoom", "reactions": [{ "kind": "applyEffects", "effects": [{ "kind": "startCombat" }] }] }]""", "must name an NPC")]
+    [InlineData("""[{ "key": "k", "event": "playerLeftRoom", "reactions": [{ "kind": "npcSpeaks", "npcName": "A", "text": "t" }] }]""", "no longer in")]
+    [InlineData("""[{ "key": "k", "event": "playerLeftRoom", "reactions": [{ "kind": "applyEffects", "effects": [{ "kind": "startCombat", "npcName": "A" }] }] }]""", "Use 'alertNpc'")]
+    [InlineData("""[{ "key": "k", "event": "sneakAttempted", "reactions": [{ "kind": "narrate", "text": "t" }] }]""", "must name the NPC it watches")]
+    [InlineData("""[{ "key": "k", "event": "npcSpokenTo", "npcName": "A", "outcome": "success", "reactions": [{ "kind": "narrate", "text": "t" }] }]""", "only a sneakAttempted")]
+    public void A_place_trigger_outside_what_a_public_room_can_do_fails(string triggers, string expected)
+    {
+        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(PlaceDocument(triggers)));
+        MessageAssert.Has(expected, error.Message);
+    }
+
+    [Fact]
+    public void Every_job_event_must_name_its_room()
+    {
+        foreach (var eventName in new[] { "lockedExitTried", "playerLeftRoom", "playerEnteredRoom" })
+        {
+            string Job(string room) => RawDocument(
+                encounters: """
+                    [{ "id": "e1", "displayName": "E1", "entryRoomKey": "a",
+                       "rooms": [{ "key": "a", "name": "A", "description": "d" }], "exits": [] }]
+                    """,
+                missions: $$"""
+                    [{ "id": "m1", "displayName": "M1", "description": "d", "encounterId": "e1",
+                       "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
+                       "repeatability": { "kind": "unlimited" }, "rewards": { "karma": 1, "nuyen": 1 },
+                       "objectives": [{ "key": "o1", "displayName": "O1", "kind": "enterEncounter" }],
+                       "triggers": [{ "key": "t1", "event": "{{eventName}}"{{room}},
+                                      "reactions": [{ "kind": "narrate", "text": "t" }] }] }]
+                    """);
+
+            var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(Job("")));
+            MessageAssert.Has("must name the room its event happens in", error.Message);
+            Assert.Equal(Id("room", "a"), GameContentLoader.Load(Job(", \"roomKey\": \"a\"")).Missions[0].Triggers[0].RoomId);
+        }
+    }
+
+    [Fact]
+    public void A_job_site_declaring_its_own_triggers_is_refused()
+    {
+        var json = RawDocument(encounters: """
+            [{ "id": "e1", "displayName": "E1", "entryRoomKey": "a",
+               "rooms": [{ "key": "a", "name": "A", "description": "d" }], "exits": [],
+               "triggers": [{ "key": "t1", "event": "playerEnteredRoom", "roomKey": "a",
+                              "reactions": [{ "kind": "narrate", "text": "t" }] }] }]
+            """);
+
+        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
+        MessageAssert.Has("'triggers' could not be mapped", error.Message);
+    }
+
+    // WF-26: one job per event — the event being its room, kind and subject.
+    private static string TwoJobs(string first, string second) => RawDocument(
+        encounters: """
+            [{ "id": "e1", "displayName": "E1", "entryRoomKey": "a",
+               "rooms": [{ "key": "a", "name": "A", "description": "d" }], "exits": [],
+               "npcs": [{ "roomKey": "a", "templateId": "street-ganger", "name": "Goon" }],
+               "items": [{ "key": "i1", "name": "One", "description": "d", "roomKey": "a" },
+                         { "key": "i2", "name": "Two", "description": "d", "roomKey": "a" }] }]
+            """,
+        missions: $$"""
+            [
+              { "id": "m1", "displayName": "M1", "description": "d", "encounterId": "e1",
+                "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
+                "repeatability": { "kind": "unlimited" }, "rewards": { "karma": 1, "nuyen": 1 },
+                "objectives": [{ "key": "o1", "displayName": "O1", "kind": "enterEncounter" }],
+                "triggers": [{{first}}] },
+              { "id": "m2", "displayName": "M2", "description": "d", "encounterId": "e1",
+                "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
+                "repeatability": { "kind": "unlimited" }, "rewards": { "karma": 1, "nuyen": 1 },
+                "objectives": [{ "key": "o1", "displayName": "O1", "kind": "enterEncounter" }],
+                "triggers": [{{second}}] }
+            ]
+            """);
+
+    private static string Listener(string key, string body) =>
+        $$"""{ "key": "{{key}}", "roomKey": "a", {{body}}, "reactions": [{ "kind": "narrate", "text": "t" }] }""";
+
+    [Fact]
+    public void Two_jobs_may_not_listen_to_the_same_event_in_a_room()
+    {
+        var json = TwoJobs(
+            Listener("enter", "\"event\": \"playerEnteredRoom\""),
+            Listener("enter-too", "\"event\": \"playerEnteredRoom\""));
+
+        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
+        MessageAssert.Has("Job 'M1' already listens to with listener 'playerEnteredRoom'", error.Message);
+    }
+
+    [Fact]
+    public void Each_item_npc_and_sneak_outcome_is_its_own_event_for_different_jobs()
+    {
+        var json = TwoJobs(
+            Listener("one", "\"event\": \"itemPickedUp\", \"itemKey\": \"i1\"") + ","
+                + Listener("slipped", "\"event\": \"sneakAttempted\", \"npcName\": \"Goon\", \"outcome\": \"success\""),
+            Listener("two", "\"event\": \"itemPickedUp\", \"itemKey\": \"i2\"") + ","
+                + Listener("made", "\"event\": \"sneakAttempted\", \"npcName\": \"Goon\", \"outcome\": \"failure\""));
+
+        var content = GameContentLoader.Load(json);
+        Assert.Equal(4, content.Missions.Sum(mission => mission.Triggers.Count));
+
+        // A sneak listener with no outcome hears both, so it collides with either.
+        var overlapping = TwoJobs(
+            Listener("any", "\"event\": \"sneakAttempted\", \"npcName\": \"Goon\""),
+            Listener("made", "\"event\": \"sneakAttempted\", \"npcName\": \"Goon\", \"outcome\": \"failure\""));
+        Assert.Throws<GameContentException>(() => GameContentLoader.Load(overlapping));
+    }
+
+    [Fact]
+    public void Events_about_a_job_only_reach_that_job_so_they_never_collide()
+    {
+        var json = TwoJobs(
+            Listener("accepted", "\"event\": \"missionAccepted\""),
+            Listener("accepted", "\"event\": \"missionAccepted\""));
+
+        Assert.Equal(2, GameContentLoader.Load(json).Missions.Sum(mission => mission.Triggers.Count));
+    }
+
+    [Fact]
+    public void A_job_listener_in_its_site_must_find_its_subject_in_that_room()
+    {
+        var json = RawDocument(
+            encounters: """
+                [{ "id": "e1", "displayName": "E1", "entryRoomKey": "a",
+                   "rooms": [{ "key": "a", "name": "A", "description": "d" }, { "key": "b", "name": "B", "description": "d" }],
+                   "exits": [{ "fromRoomKey": "a", "toRoomKey": "b", "direction": "north" }],
+                   "npcs": [{ "roomKey": "b", "templateId": "street-ganger", "name": "Goon" }] }]
+                """,
+            missions: """
+                [{ "id": "m1", "displayName": "M1", "description": "d", "encounterId": "e1",
+                   "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
+                   "repeatability": { "kind": "unlimited" }, "rewards": { "karma": 1, "nuyen": 1 },
+                   "objectives": [{ "key": "o1", "displayName": "O1", "kind": "enterEncounter" }],
+                   "triggers": [{ "key": "t1", "event": "npcSpokenTo", "npcName": "Goon", "roomKey": "a",
+                                  "reactions": [{ "kind": "narrate", "text": "t" }] }] }]
+                """);
+
+        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(json));
+        MessageAssert.Has("watches 'Goon' in a room they are not standing in", error.Message);
+    }
+
+    [Fact]
+    public void A_rooms_own_event_always_repeats_and_has_no_cover_line()
+    {
+        var once = Assert.Throws<GameContentException>(() => GameContentLoader.Load(PlaceDocument("""
+            [{ "key": "k", "event": "playerEnteredRoom", "repeatable": false, "reactions": [{ "kind": "narrate", "text": "t" }] }]
+            """)));
+        MessageAssert.Has("fire every time", once.Message);
+
+        var cover = Assert.Throws<GameContentException>(() => GameContentLoader.Load(PlaceDocument("""
+            [{ "key": "k", "event": "playerEnteredRoom", "othersSee": "x", "reactions": [{ "kind": "narrate", "text": "t" }] }]
+            """)));
+        MessageAssert.Has("only applies to a job's events", cover.Message);
+    }
+
+    // WF-26: a job site holds no events; its job does. Most fixtures here
+    // were written with triggers on the encounter, which is still the
+    // clearest way to say "this event in this site", so the helper moves them
+    // onto the job that uses the site (or a minimal job of its own), naming
+    // the room a subject stands in the way an author picking a room would.
+    // RawDocument() is the unadapted shape.
     private static string Document(
         string encounters = "[]",
         string missions = "[]",
         string scenes = "[]",
         string tests = "[]",
-        string? npcTemplates = null) =>
-        $$"""
+        string? npcTemplates = null,
+        string places = "[]")
+    {
+        var encounterArray = JsonNode.Parse(encounters)!.AsArray();
+        var missionArray = JsonNode.Parse(missions)!.AsArray();
+        foreach (var encounter in encounterArray.OfType<JsonObject>())
+        {
+            if (encounter["triggers"] is not JsonArray triggers)
+            {
+                continue;
+            }
+
+            encounter.Remove("triggers");
+            var id = (string)encounter["id"]!;
+            var job = missionArray.OfType<JsonObject>().FirstOrDefault(m => (string?)m["encounterId"] == id);
+            if (job is null)
+            {
+                job = JsonNode.Parse($$"""
+                    {
+                      "id": "{{id}}-job", "displayName": "Job", "description": "d", "encounterId": "{{id}}",
+                      "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
+                      "repeatability": { "kind": "unlimited" }, "rewards": { "karma": 1, "nuyen": 1 },
+                      "objectives": [{ "key": "enter", "displayName": "Enter", "kind": "enterEncounter" }]
+                    }
+                    """)!.AsObject();
+                missionArray.Add(job);
+            }
+
+            var jobTriggers = job["triggers"] as JsonArray ?? [];
+            job["triggers"] = jobTriggers;
+            foreach (var trigger in triggers.OfType<JsonObject>().ToArray())
+            {
+                triggers.Remove(trigger);
+                trigger["roomKey"] ??= SubjectRoom(encounter, trigger);
+                jobTriggers.Add(trigger);
+            }
+        }
+
+        return RawDocument(
+            encounterArray.ToJsonString(), missionArray.ToJsonString(), scenes, tests, npcTemplates, places);
+    }
+
+    private static string? SubjectRoom(JsonObject encounter, JsonObject trigger)
+    {
+        string? PlacedIn(string collection, string field, string? name) =>
+            name is null
+                ? null
+                : (encounter[collection] as JsonArray)?.OfType<JsonObject>()
+                    .FirstOrDefault(entry => (string?)entry[field] == name)?["roomKey"]?.GetValue<string>();
+
+        return PlacedIn("interactables", "name", (string?)trigger["interactableName"])
+            ?? PlacedIn("npcs", "name", (string?)trigger["npcName"])
+            ?? PlacedIn("items", "key", (string?)trigger["itemKey"])
+            ?? ((string?)trigger["event"] == "encounterEntered" ? (string?)encounter["entryRoomKey"] : null);
+    }
+
+    private static string RawDocument(
+        string encounters = "[]",
+        string missions = "[]",
+        string scenes = "[]",
+        string tests = "[]",
+        string? npcTemplates = null,
+        string places = "[]") =>
+        LegacyContentFixtures.Convert($$"""
         {
           "contentId": "test-content",
           "version": "1.0.0",
+          "places": {{places}},
           "encounters": {{encounters}},
           "missions": {{missions}},
           "scenes": {{scenes}},
           "tests": {{tests}},
           "npcTemplates": {{npcTemplates ?? DefaultNpcTemplates}}
         }
-        """;
+        """);
+
+    private static Guid Id(string kind, string key) => LegacyContentFixtures.Id(kind, key);
 }
