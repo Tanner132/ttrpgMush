@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { getDefinition, type ContentRef, type ContentSummary, type Guid } from '../api.ts'
 import { useForgeData } from '../forgeContext.ts'
 import { useLoad } from '../hooks.ts'
@@ -33,7 +33,8 @@ export interface Job {
   openPrompt: (id: Guid | null) => void
   /** Every conversation draft as last read, for pickers and for finding the pitch. */
   scenes: Scene[]
-  scenesLoaded: boolean
+  /** True once the job, its site and its conversations have all been read. */
+  ready: boolean
   johnsons: Johnson[]
   dirty: boolean
   busy: boolean
@@ -69,7 +70,11 @@ export function useJob(id: Guid): Job {
     },
     [sceneIds.join(',')],
   )
-  const scenes = useMemo(() => loadedScenes.data ?? [], [loadedScenes.data])
+  // While the list is being read again (a prompt was just made), the last
+  // one read stays in use, so pickers and open editors do not blink empty.
+  const lastScenes = useRef<Scene[]>([])
+  if (loadedScenes.data !== null) lastScenes.current = loadedScenes.data
+  const scenes = loadedScenes.data ?? lastScenes.current
 
   // The Johnson's conversation is the one that hands out this job. Once found
   // it stays the pitch for this visit, even while its replies are rewritten.
@@ -93,6 +98,20 @@ export function useJob(id: Guid): Job {
           ),
     [references.rooms, pitchId],
   )
+
+  // Ready once every record the steps read has arrived. Latched: a later
+  // re-read must not take the screen away from under an open dialog.
+  const arrived = (draft: ContentDraft<unknown>, id: Guid | null) => id === null || draft.value !== null || draft.loadError !== null
+  const [ready, setReady] = useState(false)
+  if (
+    !ready &&
+    mission.value !== null &&
+    arrived(site as ContentDraft<unknown>, siteId) &&
+    (loadedScenes.data !== null || loadedScenes.error !== null) &&
+    arrived(pitch as ContentDraft<unknown>, pitchId)
+  ) {
+    setReady(true)
+  }
 
   const drafts = [mission, site, pitch, prompt]
   const dirty = drafts.some((draft) => draft.dirty)
@@ -140,7 +159,7 @@ export function useJob(id: Guid): Job {
     promptId,
     openPrompt: setPromptId,
     scenes,
-    scenesLoaded: loadedScenes.data !== null,
+    ready,
     johnsons,
     dirty,
     busy,

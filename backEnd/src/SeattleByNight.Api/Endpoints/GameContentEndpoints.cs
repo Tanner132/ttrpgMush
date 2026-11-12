@@ -132,6 +132,7 @@ public static class GameContentEndpoints
         group.MapGet("/references", GetReferencesAsync);
         group.MapPost("/validate", ValidateSetAsync).RequireAntiforgery();
         group.MapPost("/publish", PublishSetAsync).RequireAntiforgery();
+        group.MapPost("/delete", DeleteSetAsync).RequireAntiforgery();
         group.MapGet("/{kind}/{contentKey:guid}", GetDefinitionAsync);
         group.MapPut("/{kind}/{contentKey:guid}", SaveDraftAsync).RequireAntiforgery();
         group.MapPost("/{kind}/{contentKey:guid}/validate", ValidateDraftAsync).RequireAntiforgery();
@@ -411,6 +412,30 @@ public static class GameContentEndpoints
 
         // As with a single publish, a refusal is the gate doing its job.
         var result = await publisher.PublishSetAsync(items, actor.Id, cancellationToken);
+        return Results.Ok(new GameContentValidationResponse(result.IsSuccess, result.Error));
+    }
+
+    // A job and the conversation that offers it, deleted together: each is
+    // the only thing still pointing at the other.
+    private static async Task<IResult> DeleteSetAsync(
+        GameContentSetRequest request,
+        GameContentLifecycle lifecycle,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        if (!TryReadSet(request, out var items, out var problem))
+        {
+            return problem;
+        }
+
+        var actor = await userManager.GetUserAsync(httpContext.User);
+        if (actor is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await lifecycle.DeleteSetAsync(items, actor.Id, cancellationToken);
         return Results.Ok(new GameContentValidationResponse(result.IsSuccess, result.Error));
     }
 

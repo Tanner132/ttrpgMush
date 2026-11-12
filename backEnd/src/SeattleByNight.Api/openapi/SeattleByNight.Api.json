@@ -1493,6 +1493,28 @@
         }
       }
     },
+    "/api/admin/content/delete": {
+      "post": {
+        "tags": [
+          "GameContentEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameContentSetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/content/{kind}/{contentKey}": {
       "get": {
         "tags": [

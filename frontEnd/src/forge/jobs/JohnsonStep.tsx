@@ -190,11 +190,7 @@ export function JohnsonStep({ job, mission }: { job: Job; mission: Mission }) {
         </Section>
 
         <Section title="Johnson">
-          {!job.scenesLoaded ? (
-            <p className="forge__hint" role="status">
-              Looking for the job's conversation…
-            </p>
-          ) : job.pitchId === null ? (
+          {job.pitchId === null ? (
             <div className="forge__stack">
               <Empty>No conversation offers this job yet, so there is nothing for a Johnson to say.</Empty>
               {start.error && (

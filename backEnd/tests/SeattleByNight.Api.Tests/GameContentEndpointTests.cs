@@ -302,6 +302,37 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
                 Assert.Equal(GameContentStatus.Published, definition.Status);
                 Assert.False(definition.HasPendingEdits);
             });
+
+        // Leaving is the same circle: each is the only thing still pointing at
+        // the other, so neither can be deleted alone, and both can together.
+        var jobGone = await admin.DeleteAsync($"/api/admin/content/Mission/{jobId}");
+        Assert.False((await jobGone.Content.ReadFromJsonAsync<GameContentValidationResponse>(ApiTestFactory.JsonOptions))!.IsValid);
+        var sceneGone = await admin.DeleteAsync($"/api/admin/content/Scene/{sceneId}");
+        Assert.False((await sceneGone.Content.ReadFromJsonAsync<GameContentValidationResponse>(ApiTestFactory.JsonOptions))!.IsValid);
+
+        var deleted = await PostForValidationAsync(admin, "/api/admin/content/delete", set);
+        Assert.True(deleted.IsValid, deleted.Error);
+        var after = await GetInventoryAsync(admin);
+        Assert.Null(after.CorpusError);
+        Assert.DoesNotContain(after.Definitions, definition => definition.ContentKey == jobId || definition.ContentKey == sceneId);
+    }
+
+    [Fact]
+    public async Task DeleteSet_IsRefusedWhileSomethingOutsideTheSetStillPointsIn()
+    {
+        var admin = await _factory.LoginDevAdminAsync();
+
+        // The shipped job goes with its Johnson's conversation, but its site
+        // is not in the set and the job is not the only thing naming it...
+        // here the job itself is left out, and it still names the site.
+        var result = await PostForValidationAsync(admin, "/api/admin/content/delete", new
+        {
+            items = new object[] { new { kind = "Encounter", contentKey = ShippedContentIds.Encounters.GangWarehouse } },
+        });
+
+        Assert.False(result.IsValid);
+        var inventory = await GetInventoryAsync(admin);
+        Assert.Contains(inventory.Definitions, definition => definition.ContentKey == ShippedContentIds.Encounters.GangWarehouse);
     }
 
     [Fact]

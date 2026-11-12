@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '../../components/ui/Button.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
-import { deleteDefinition, getDeletable, publishSet, retireDefinition, validateSet } from '../api.ts'
+import { deleteSet, publishSet, retireDefinition, validateSet } from '../api.ts'
 import { Chip, Section } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { useAction, useLoad } from '../hooks.ts'
@@ -16,7 +16,7 @@ import type { Job } from './useJob.ts'
  * drafts exactly as a publish would and has the last word.
  */
 export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission: Mission; checks: JobCheck[]; onStep: (step: StepId) => void }) {
-  const { summary, refreshContent } = useForgeData()
+  const { summary, references, refreshContent } = useForgeData()
   const navigate = useForgeNavigate()
   const listed = summary('Mission', job.id)
   const records = job.publishSet()
@@ -63,17 +63,18 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
 
   async function remove() {
     const done = await lifecycle.run(async () => {
-      const check = await getDeletable('Mission', job.id)
-      if (!check.canDelete) throw new Error(check.reason ?? 'This job cannot be deleted.')
-      const result = await deleteDefinition('Mission', job.id)
+      // The job goes with the conversation that offers it — each is the only
+      // thing pointing at the other — and with its site, unless another job
+      // is built on that. Prompts stay: another job's events may open them.
+      const shared = references.missions.some((other) => other.id !== job.id && other.encounterId === mission.encounterId)
+      const going = records.filter(
+        (record) =>
+          record.kind === 'Mission' ||
+          (record.kind === 'Scene' && record.contentKey === job.pitchId) ||
+          (record.kind === 'Encounter' && !shared),
+      )
+      const result = await deleteSet(going)
       if (!result.isValid) throw new Error(result.error ?? 'The server refused to delete the job.')
-      // Its site and conversation go too when they were never live. Anything
-      // that has been stays, for whatever else points at it.
-      for (const record of records) {
-        if (record.kind !== 'Mission' && summary(record.kind, record.contentKey)?.status === 'Draft') {
-          await deleteDefinition(record.kind, record.contentKey)
-        }
-      }
       await refreshContent()
       return true
     })

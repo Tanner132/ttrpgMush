@@ -4,7 +4,7 @@ Product and engineering context for anyone (human or agent) working in this
 repository. Setup and operator instructions live in [`README.md`](README.md);
 remaining work lives in [`roadmap/V1_ROADMAP.md`](roadmap/V1_ROADMAP.md).
 
-Last reconciled against the code: 2026-11-10.
+Last reconciled against the code: 2026-11-12.
 
 ## Product
 
@@ -101,8 +101,8 @@ StateChanges, Tests).
   room ID.
 - A public room can be deleted only through a referential check (exits, mission
   links, occupants with a relocation target); its chat and visit history go with
-  it in the same transaction and the counts are audited. There is no exit
-  deletion.
+  it in the same transaction and the counts are audited. A single exit can be
+  deleted unless that would cut a live job site's room off from its entry.
 - Rooms and exits carry opaque version tokens; a stale update returns `409`.
 - The `New Character Room` is required world data created by migration.
   Development seeding adds sample rooms, `devuser`, and `Dev Runner`.
@@ -276,7 +276,9 @@ built follows it; these are the load-bearing rules.
   then the job. In a public room, narration goes to the player who caused it
   and a job's lines reach only its runner while the room sees a cover line
   (`othersSee`). Johnsons are world NPCs placed in Public rooms
-  (`WorldNpcPlacement`). Room events beyond entry (WF-21): `sneakAttempted`
+  (`WorldNpcPlacement`), and may be bound to a conversation that is still a
+  draft: they are placed while the job is written and have nothing to say
+  until it is live. Room events beyond entry (WF-21): `sneakAttempted`
   (with outcome), `combatStarted`, `lockedExitTried`, `playerLeftRoom`.
 - **Deleting (WF-27).** Deleting a room deletes its NPCs, items, inspectables,
   its own events and its exits both ways; it is refused while a job listens to
@@ -287,6 +289,12 @@ built follows it; these are the load-bearing rules.
   (`DiscoverySubjectType.Item`), and an undiscovered item cannot be taken.
 - **Content writes are serialized (WF-22).** Publish, delete and draft saves
   run under one advisory lock (`IGameContentStore.RunExclusiveAsync`).
+- **A job goes live, and leaves, as a set (WF-28).** A job names its site and
+  the conversations its events open, and its Johnson's conversation names the
+  job, so those definitions cannot pass the publish gate — or the delete gate
+  — one at a time. `GameContentPublisher.PublishSetAsync` and
+  `GameContentLifecycle.DeleteSetAsync` check the set as one candidate corpus
+  and promote or delete all of it, or none.
 - **Rewards.** Karma and nuyen are granted through the career ledger, keyed by
   mission instance, exactly once.
 - The action and test catalogs are still partly code-defined
@@ -341,7 +349,8 @@ content with no historical references.
 - Routes: `/login`, `/characters`, `/characters/create`,
   `/characters/create/:characterId`, `/characters/:characterId/sheet`, `/play`,
   `/admin/users`, `/admin/audit`, `/admin/forge` (Places, Jobs, Library;
-  `/admin/world` redirects to Places). Guards redirect by authentication, active
+  `/admin/world` redirects to Places). A job is edited at
+  `/admin/forge/jobs/:id/:step`. Guards redirect by authentication, active
   session, and role; the server remains authoritative.
 - Creator and administration routes are separate production chunks.
 - The command composer parses commands on the client. Local-only commands never

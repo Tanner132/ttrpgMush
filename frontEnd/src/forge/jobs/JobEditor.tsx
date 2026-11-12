@@ -70,7 +70,7 @@ function JobEditor({ id }: { id: string }) {
       </div>
     )
   }
-  if (!mission || !context) {
+  if (!mission || !context || !job.ready) {
     return (
       <div className="forge__page">
         <p className="forge__hint" role="status">

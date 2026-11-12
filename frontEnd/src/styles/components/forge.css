@@ -880,12 +880,6 @@
   color: var(--sb-text);
 }
 
-.forge-map__room--site.forge-map__room--current {
-  background: var(--sb-info);
-  color: #00161c;
-  box-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
-}
-
 .forge-map__entry {
   font-size: 0.58rem;
   font-weight: 700;
@@ -901,6 +895,12 @@
 .forge-map__room--private.forge-map__room--current {
   background: var(--sb-warning);
   color: #1a1100;
+}
+
+.forge-map__room--site.forge-map__room--current {
+  background: var(--sb-info);
+  color: #00161c;
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
 }
 
 .forge-map__stairs {

@@ -110,6 +110,96 @@ public sealed class GameContentLifecycle(
         return GameContentPublishResult.Success();
     }
 
+    // WF-28: a job and the Johnson's conversation that offers it point at each
+    // other, so once both have been live neither can be deleted alone — each
+    // is "still pointed at" by the other. A set is checked as one: nothing
+    // historical names any of them, and the corpus loads with all of them
+    // gone. Anything outside the set that still points in refuses the lot.
+    public async Task<GameContentDeleteCheck> CanDeleteSetAsync(
+        IReadOnlyList<GameContentRef> items, CancellationToken cancellationToken = default)
+    {
+        var definitions = new List<GameContentDefinitionRecord>(items.Count);
+        foreach (var item in items.Distinct())
+        {
+            var definition = await store.FindAsync(item.Kind, item.ContentKey, cancellationToken);
+            if (definition is null)
+            {
+                return GameContentDeleteCheck.Refused(
+                    $"No {item.Kind.ToString().ToLowerInvariant()} with id '{item.ContentKey}' exists.");
+            }
+
+            definitions.Add(definition);
+        }
+
+        if (definitions.Count == 0)
+        {
+            return GameContentDeleteCheck.Refused("Nothing was named to delete.");
+        }
+
+        // Drafts have never been live: nothing references them and they are
+        // not in the corpus. Only what has been live needs the two checks.
+        var served = definitions.Where(definition => definition.Status != GameContentStatus.Draft).ToList();
+        foreach (var definition in served)
+        {
+            var referenced = await usage.CountHistoricalReferencesAsync(
+                definition.Kind, definition.ContentKey, cancellationToken);
+            if (referenced.Count > 0)
+            {
+                return GameContentDeleteCheck.Refused(
+                    $"'{definition.DisplayName}' is referenced by {referenced.Count} {referenced.Description}. "
+                        + "Retire it instead — that takes it out of play and leaves the record intact.");
+            }
+        }
+
+        if (served.Count == 0)
+        {
+            return GameContentDeleteCheck.Allowed();
+        }
+
+        var removed = served.Select(definition => definition.Id).ToHashSet();
+        var withoutThem = (await store.ListServedAsync(cancellationToken))
+            .Where(record => !removed.Contains(record.Id))
+            .Select(record => (record.Kind, record.PublishedJson!));
+
+        var validation = GameContentPublisher.ValidateCorpus(withoutThem);
+        return validation.IsSuccess
+            ? GameContentDeleteCheck.Allowed()
+            : GameContentDeleteCheck.Refused(
+                $"Other content still points at what would be deleted: {validation.Error} "
+                    + "Retire instead, or remove the references first.");
+    }
+
+    public async Task<GameContentPublishResult> DeleteSetAsync(
+        IReadOnlyList<GameContentRef> items,
+        Guid actorUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await store.RunExclusiveAsync(
+            async ct =>
+            {
+                var check = await CanDeleteSetAsync(items, ct);
+                if (!check.CanDelete)
+                {
+                    return GameContentPublishResult.Failure(check.Reason!);
+                }
+
+                foreach (var item in items.Distinct())
+                {
+                    await store.DeleteAsync(item.Kind, item.ContentKey, actorUserId, ct);
+                }
+
+                return GameContentPublishResult.Success();
+            },
+            cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            await content.ReloadAsync(cancellationToken);
+        }
+
+        return result;
+    }
+
     public async Task<GameContentPublishResult> DeleteAsync(
         GameContentKind kind,
         Guid contentKey,

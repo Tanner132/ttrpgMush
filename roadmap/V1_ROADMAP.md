@@ -9,7 +9,7 @@ v1 is seven workstreams:
 
 | # | Workstream | State |
 | --- | --- | --- |
-| 1 | [World Forge fixes and gaps](#1-world-forge-fixes-and-gaps) | Backend done; redesign phase 1 built, Jobs (phase 2) next |
+| 1 | [World Forge fixes and gaps](#1-world-forge-fixes-and-gaps) | Built (Places, Jobs, Library); acceptance run (1.4) and two gaps remain |
 | 2 | [Career advancement completion](#2-career-advancement-completion) | Defined; ready to build |
 | 3 | [Group missions](#3-group-missions) | Needs design decisions |
 | 4 | [Magic in play](#4-magic-in-play) | Needs rules contract and design |
@@ -43,7 +43,8 @@ Carried over from the World Forge implementation review (second pass,
 2026-09-02). Re-verified against the code on 2026-11-10; the backend items were
 fixed that day (see 1.1). The remaining frontend defects (WF-1, WF-2, WF-9,
 WF-10) were left for the World Forge redesign, which replaced the screens they
-lived in; its first phase (2026-11-11, see 1.3c) rules them out.
+lived in; its first phase (2026-11-11, see 1.3c) rules them out, and its second
+(2026-11-12) closes WF-10.
 
 ### 1.1 Defects
 
@@ -58,11 +59,10 @@ lived in; its first phase (2026-11-11, see 1.3c) rules them out.
 | WF-7 | Backend | **Done 2026-11-10.** Scene NPC effects validated too leniently. | **Owner decision:** match where it can play. A named NPC in a scene effect must exist in every encounter that can open the scene (placement binding, template binding, or trigger); `pacifyNpc`/`startCombat` must also be in the room it opens in when that is known. A scene never opened inside an encounter can only target its own NPC. Loader tests added. |
 | WF-8 | Backend | **Done 2026-11-10.** A trigger with two scene-opening reactions let the second silently replace the first. | Publish refuses more than one scene-opening reaction per trigger (a `runTest` whose two branches each open a scene counts once). Loader tests added. |
 | WF-9 | Frontend | **Designed out 2026-11-11.** The Forge's `NumberInput` keeps the typed text until it is a valid number, says what is wrong when out of range, and lets optional fields clear (tests in `forge/fields.test.tsx`). Original problem: `NumberField` writes `0` on clear rather than the field minimum; a leading `-` is eaten after a clear. | Use the raw string or `validity.badInput`. |
-| WF-10 | Frontend | **Mostly designed out 2026-11-11.** Tabs carry `aria-current`; a refused delete disarms the confirm and shows the reason; leaving unsaved edits asks first. The trigger-picker item moves to the Jobs screen (phase 2), whose pickers come only from the references endpoint. Original problem: The mission-owner trigger picker falls back to the global pool while references load or when `encounterId` dangles; the dashboard inventory row lacks `aria-current`; a refused dashboard delete leaves the confirm state armed; kind/module switches discard unsaved drafts with no dirty check. | Fix each; add a dirty-check prompt. |
+| WF-10 | Frontend | **Designed out 2026-11-12.** Tabs carry `aria-current`; a refused delete disarms the confirm and shows the reason; leaving unsaved edits asks first. The Jobs screen's pickers are built only from data that has loaded (the job's own drafts plus the references endpoint), and the job editor shows nothing until all of it has. Original problem: The mission-owner trigger picker falls back to the global pool while references load or when `encounterId` dangles; the dashboard inventory row lacks `aria-current`; a refused dashboard delete leaves the confirm state armed; kind/module switches discard unsaved drafts with no dirty check. | Fix each; add a dirty-check prompt. |
 | WF-11 | Tests | **Done 2026-11-10.** The queue's fault logging had no test. | `GameCommandQueueTests` asserts the error record carries the exception, action id, request id, scope and user. |
 
-Remaining: WF-10's trigger picker, which belongs to the Jobs screen. With 1.2
-and WF-25 done, every non-UI World Forge item is finished.
+Nothing in this table remains open.
 
 ### 1.2 Authoring gaps
 
@@ -305,21 +305,73 @@ cannot do yet is stubbed in the UI and listed below.
 - The Forge uses hand-written types in `forge/api.ts` and `forge/model.ts`;
   `npm run gen:api` was not rerun.
 
-**Phase 2: Jobs.** Today a read-only list. To build: job and objective
-editing, Johnson and pay, job site rooms, the job's listeners (fire-once and
-cover lines allowed here), and conversations (scene nodes, choices, tests an
-NPC rolls against). Close out WF-10's picker item there.
+**Phase 2 done 2026-11-12** (front end and API, for review):
 
-**Backend gaps found by phase 1** (the UI shows each as unavailable):
+- **Jobs builder** at `/admin/forge/jobs/:id/:step`. A new job is saved at
+  once as three drafts — the job, its site, and the Johnson's conversation —
+  and edited in six steps that share those drafts, so moving between steps
+  keeps unsaved edits and one Save writes them all:
+  1. *Johnson* — job name, summary, repeat; place a new world NPC or give the
+     job to one already standing in a public room.
+  2. *Pitch* — the Johnson's conversation as a script of parts and replies
+     (conditions, an optional roll with pass/fail branches, effects, where it
+     goes next).
+  3. *Site* — pick Private map rooms on the map (or build them), the entry
+     room and the public way in; reachability and doors are shown.
+  4. *Events* — the job's listeners, each in a site room or a public room
+     (fire-once and cover lines here), and the prompts they open.
+  5. *Objectives · Pay* — ordered objectives, karma and nuyen, and the job's
+     items.
+  6. *Go live* — the builder's own checks with one-click fixes (an offer not
+     limited to "while available"; a deliver objective with no hand-over
+     reply), then the server's check, then publish, retire and delete.
+  The mockup has five steps; *Events* is added because it had nowhere to write
+  a job's listeners. Replies have no separate "answer" line (the content model
+  has none: a reply leads to a part whose text is the answer). Playtest and
+  the graph view are inert buttons; the mockup's "Editors" presence panel is
+  left out rather than shown with invented data.
+- **Which conversation is a job's pitch** is not stored: it is the one with an
+  `acceptMission` effect naming the job. Its Johnson is any world NPC bound to
+  that conversation.
+- **API added.**
+  - `POST /api/admin/content/validate`, `/publish` and `/delete` take a set of
+    definitions. A job, its site and its Johnson's conversation point at each
+    other, so none can pass the publish gate — or, once live, the delete gate
+    — alone. A set is checked as one candidate corpus and promoted or deleted
+    together, under the corpus lock.
+  - `DELETE /api/admin/world/exits/{id}`, audited (`RoomExitDeleted`). Refused
+    when it would leave a live job site failing the map check.
+  - `PUT` / `DELETE /api/admin/world/rooms/{roomId}/interactables/{id}`,
+    audited; removing one also removes who had discovered it.
+  - The references endpoint lists each world NPC's stat block and
+    conversation, which is how the Library counts world NPCs under "Used by"
+    and how Jobs finds a job's Johnson.
+  - A world NPC may be bound to a conversation that exists only as a draft
+    (a Johnson is placed while their job is still being written). They have
+    nothing to say until it is live.
+- **Fixed from phase 1:** building a room beside another failed with a 409.
+  The server already joins a new room to its same-layer neighbours both ways,
+  and the screen then created those exits again. `forge/places/exits.ts` now
+  reads the map after the build and corrects it to what was asked (flags, or
+  removing the way back for a one-way door).
+- Tests: backend 970 (set publish/delete, exit delete and its site guard,
+  inspectable edit/remove, draft-conversation binding); front end 492, of
+  which Jobs 14, exits 4, map content and library usage 5.
+- Checked end to end against the real API: a job created, a Johnson placed,
+  a site built from two new rooms, an item and four objectives added, the
+  missing hand-over reply caught and fixed, the job put live as one set,
+  retired, and deleted with its conversation and site; an exit and the rooms
+  then removed from Places.
 
-| Gap | Where it shows |
+**Still not offered** (the UI says so where it matters):
+
+| Gap | Why |
 | --- | --- |
-| No endpoint to delete an exit. | Exits: "Removing an exit isn't available yet; deleting a room removes its exits both ways." |
-| Inspectables in a public room can be added but not edited or removed. | Places, public room contents. |
-| Items cannot be placed in a public room (only on job sites). | Places, public room contents. |
-| A stat block's "used by" does not count world NPCs placed from it. | Library, stat block usage. |
-| Rooms have no image. | Places, room section. |
-| Conversations (Ask steps) need the Jobs screen. | Phase 2. |
+| Items cannot be placed in a public room (only on job sites). | Needs an owner decision first: a shared room's item is taken by the first runner, so whether it returns, and for whom, has to be settled before there is anything to build. |
+| Rooms have no image. | No file storage yet (see 1.3). |
+| Playtesting a conversation or a job; the conversation graph view. | Not built; shown as disabled buttons. |
+| A Johnson cannot be moved or edited from Jobs. | Edited where they stand, in Places; moving is remove and place again. |
+| Deleting a job leaves its prompts and its Johnson. | Prompts may be opened by other jobs; a Johnson is a map row. Both are removed by hand. |
 
 ### 1.4 Acceptance run
 

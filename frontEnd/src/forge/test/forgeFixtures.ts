@@ -280,6 +280,10 @@ export function useFakeServer(store: ContentStore, graph: WorldGraph = world(), 
     }
     return { isValid: true, error: null }
   })
+  vi.mocked(api.deleteSet).mockImplementation(async (items) => {
+    for (const item of items) store.records.delete(`${item.kind}:${item.contentKey}`)
+    return { isValid: true, error: null }
+  })
   vi.mocked(api.placeRoomNpc).mockImplementation(async (roomId, input) => {
     const npc = {
       id: 'dddddddd-dddd-dddd-dddd-000000000001',

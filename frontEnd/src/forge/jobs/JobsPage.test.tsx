@@ -173,7 +173,7 @@ describe('Jobs · pitch', () => {
     await openJob('pitch')
 
     await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
-    const dialog = screen.getByRole('dialog', { name: 'Reply 3' })
+    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' })
     await user.type(within(dialog).getByLabelText('Runner says'), 'I want more money.')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
     // With a stat block behind the conversation, an opposed test is on offer.
@@ -329,14 +329,32 @@ describe('Jobs · go live', () => {
 
   it('shows why a delete was refused and leaves the confirm disarmed', async () => {
     const user = userEvent.setup()
-    vi.mocked(api.getDeletable).mockResolvedValue({ canDelete: false, reason: "'Gang Warehouse Retrieval' is referenced by 2 mission instances. Retire it instead." })
+    vi.mocked(api.deleteSet).mockResolvedValue({ isValid: false, error: "'Gang Warehouse Retrieval' is referenced by 2 mission instances. Retire it instead." })
     await openJob('review')
 
     await user.click(await screen.findByRole('button', { name: 'Delete job' }))
     await user.click(screen.getByRole('button', { name: 'Confirm delete job' }))
 
     expect(await screen.findByText(/referenced by 2 mission instances/)).toBeInTheDocument()
-    expect(api.deleteDefinition).not.toHaveBeenCalled()
     expect(screen.queryByRole('button', { name: 'Confirm delete job' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('location')).toHaveTextContent(`/admin/forge/jobs/${Ids.job}/review`)
+  })
+
+  it('deletes the job together with its conversation and its site, and goes back to the list', async () => {
+    const user = userEvent.setup()
+    await openJob('review')
+
+    await user.click(await screen.findByRole('button', { name: 'Delete job' }))
+    await user.click(screen.getByRole('button', { name: 'Confirm delete job' }))
+
+    // One request: the job and its conversation each point at the other.
+    await waitFor(() =>
+      expect(api.deleteSet).toHaveBeenCalledWith([
+        { kind: 'Encounter', contentKey: Ids.site },
+        { kind: 'Scene', contentKey: Pitch.id },
+        { kind: 'Mission', contentKey: Ids.job },
+      ]),
+    )
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(/^\/admin\/forge\/jobs$/))
   })
 })

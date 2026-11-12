@@ -208,6 +208,15 @@ export function validateSet(items: ContentRef[]): Promise<ContentValidation> {
   return apiPost<ContentValidation>(`${content}/validate`, { items })
 }
 
+/**
+ * Deletes the set together, or none of it. A job and the conversation that
+ * offers it each count as "still pointed at" by the other, so once they have
+ * been live they can only go as a pair.
+ */
+export function deleteSet(items: ContentRef[]): Promise<ContentValidation> {
+  return apiPost<ContentValidation>(`${content}/delete`, { items })
+}
+
 /** Puts every draft in the set live together, or none of them. */
 export function publishSet(items: ContentRef[]): Promise<ContentValidation> {
   return apiPost<ContentValidation>(`${content}/publish`, { items })

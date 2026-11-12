@@ -16,7 +16,7 @@ export function PitchStep({ job, context }: { job: Job; context: JobContext }) {
   if (job.pitchId === null) {
     return (
       <Section title="Conversation">
-        <Empty>{job.scenesLoaded ? 'No conversation offers this job yet. Start the pitch on the Johnson step.' : 'Looking for the job’s conversation…'}</Empty>
+        <Empty>No conversation offers this job yet. Start the pitch on the Johnson step.</Empty>
       </Section>
     )
   }
