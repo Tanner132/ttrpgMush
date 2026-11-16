@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ExitStateValues, returnStates } from '../../api/exitStates.ts'
 import { Button } from '../../components/ui/Button.tsx'
 import { Modal } from '../../components/ui/Modal.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
@@ -11,6 +12,7 @@ import {
   OppositeDirection,
   updateExit,
   type ExitDirection,
+  type ExitState,
   type WorldExit,
   type WorldRoom,
 } from '../api.ts'
@@ -22,12 +24,22 @@ import { joinRooms } from './exits.ts'
 
 type Editing = { exit: WorldExit } | { direction: ExitDirection }
 
+const StateLabels: Record<ExitState, { label: string; hint: string; tone: 'info' | 'draft' | 'error' }> = {
+  locked: { label: 'Locked', hint: 'Shown, and nobody gets through.', tone: 'draft' },
+  hidden: { label: 'Hidden', hint: 'Not shown or usable until found.', tone: 'info' },
+  restricted: { label: 'Restricted', hint: 'Nobody gets in this way; anyone inside can still leave. Set it on the doors into a room.', tone: 'error' },
+  private: { label: 'Private', hint: "A player's own room. Nobody can go in until player homes exist.", tone: 'draft' },
+}
+
 function ExitFlags({ exit }: { exit: WorldExit }) {
-  if (!exit.isHidden && !exit.isLocked) return <Chip>Open</Chip>
+  if (exit.states.length === 0) return <Chip>Open</Chip>
   return (
     <>
-      {exit.isHidden && <Chip tone="info">Hidden</Chip>}
-      {exit.isLocked && <Chip tone="draft">Locked</Chip>}
+      {ExitStateValues.filter((state) => exit.states.includes(state)).map((state) => (
+        <Chip key={state} tone={StateLabels[state].tone}>
+          {StateLabels[state].label}
+        </Chip>
+      ))}
     </>
   )
 }
@@ -46,8 +58,9 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [bothWays, setBothWays] = useState(true)
-  const [isLocked, setLocked] = useState(existing?.isLocked ?? false)
-  const [isHidden, setHidden] = useState(existing?.isHidden ?? false)
+  const [states, setStates] = useState<ExitState[]>(existing?.states ?? [])
+  const toggle = (state: ExitState, on: boolean) =>
+    setStates((current) => ExitStateValues.filter((candidate) => (candidate === state ? on : current.includes(candidate))))
   const action = useAction()
 
   const offset = DirectionOffset[direction]
@@ -65,8 +78,7 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
           sourceRoomId: room.id,
           destinationRoomId: destinationId,
           direction,
-          isHidden,
-          isLocked,
+          states,
           version: existing.version,
         })
       } else {
@@ -83,19 +95,18 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
           // The server has already joined the new room to its neighbours;
           // this makes that join what was asked for here.
           await joinRooms(
-            { sourceRoomId: room.id, destinationRoomId: created.id, direction, isHidden, isLocked },
-            bothWays ? { sourceRoomId: created.id, destinationRoomId: room.id, direction: OppositeDirection[direction], isHidden, isLocked } : null,
+            { sourceRoomId: room.id, destinationRoomId: created.id, direction, states },
+            bothWays ? { sourceRoomId: created.id, destinationRoomId: room.id, direction: OppositeDirection[direction], states: returnStates(states) } : null,
           )
         } else {
-          await createExit({ sourceRoomId: room.id, destinationRoomId: destinationId, direction, isHidden, isLocked })
+          await createExit({ sourceRoomId: room.id, destinationRoomId: destinationId, direction, states })
           const reverseExists = world.exits.some((exit) => exit.sourceRoomId === destinationId && exit.destinationRoomId === room.id)
           if (bothWays && !reverseExists) {
             await createExit({
               sourceRoomId: destinationId,
               destinationRoomId: room.id,
               direction: OppositeDirection[direction],
-              isHidden,
-              isLocked,
+              states: returnStates(states),
             })
           }
         }
@@ -169,9 +180,20 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
 
         <div className="forge__checks">
           {!existing && <Check label="Both ways" checked={bothWays} onChange={setBothWays} />}
-          <Check label="Locked" checked={isLocked} onChange={setLocked} />
-          <Check label="Hidden" checked={isHidden} onChange={setHidden} />
+          {ExitStateValues.map((state) => (
+            <Check key={state} label={StateLabels[state].label} checked={states.includes(state)} onChange={(on) => toggle(state, on)} />
+          ))}
         </div>
+        <p className="forge__hint">
+          {states.length === 0
+            ? 'An open door.'
+            : ExitStateValues.filter((state) => states.includes(state))
+                .map((state) => `${StateLabels[state].label}: ${StateLabels[state].hint}`)
+                .join(' ')}
+        </p>
+        {!existing && bothWays && returnStates(states).length !== states.length && (
+          <p className="forge__hint">Restricted and Private go on this direction only; the way back is left free to leave by.</p>
+        )}
         {existing && <p className="forge__hint">Only this direction changes; the way back, if there is one, is its own exit.</p>}
 
         {action.error && (

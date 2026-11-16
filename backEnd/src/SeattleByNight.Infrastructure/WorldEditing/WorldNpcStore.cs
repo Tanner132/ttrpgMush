@@ -95,6 +95,36 @@ public sealed class WorldNpcStore(
         return WorldNpcResult.Success(null);
     }
 
+    public async Task<WorldNpcResult> MoveAsync(
+        Guid actorUserId, Guid roomId, Guid npcId, Guid toRoomId, CancellationToken cancellationToken)
+    {
+        var row = await db.NpcInstances.FirstOrDefaultAsync(
+            candidate => candidate.Id == npcId && candidate.RoomId == roomId, cancellationToken);
+        if (row is null)
+        {
+            return WorldNpcResult.Failure(WorldNpcError.NpcNotFound);
+        }
+
+        // A conversation is held in the room it started in.
+        var talking = await db.SceneSessions.CountAsync(
+            session => session.NpcInstanceId == npcId, cancellationToken);
+        if (talking > 0)
+        {
+            return WorldNpcResult.Failure(
+                WorldNpcError.InUse,
+                $"{talking} runner(s) are in a conversation with {row.Name}. Try again once they are done.");
+        }
+
+        row.RoomId = toRoomId;
+        row.UpdatedAtUtc = timeProvider.GetUtcNow();
+
+        var details = Details(row);
+        details["fromRoomId"] = roomId.ToString();
+        auditWriter.Append(actorUserId, AuditActions.WorldNpcMoved, AuditTargetTypes.Npc, row.Id, details);
+        await db.SaveChangesAsync(cancellationToken);
+        return WorldNpcResult.Success(ToSnapshot(row));
+    }
+
     private static Dictionary<string, string> Details(NpcInstance row) => new()
     {
         ["roomId"] = row.RoomId.ToString(),

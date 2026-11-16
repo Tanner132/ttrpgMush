@@ -1,3 +1,4 @@
+using SeattleByNight.Domain;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.Movement;
@@ -68,7 +69,7 @@ public sealed class RoomSessionReader : IRoomSessionReader
 
         var exitRows = await _dbContext.RoomExits
             .AsNoTracking()
-            .Where(e => e.SourceRoomId == character.CurrentRoomId && !e.IsHidden)
+            .Where(e => e.SourceRoomId == character.CurrentRoomId && !e.States.Contains(ExitStates.Hidden))
             .OrderBy(e => e.Direction)
             .Join(
                 _dbContext.Rooms.AsNoTracking(),
@@ -80,7 +81,7 @@ public sealed class RoomSessionReader : IRoomSessionReader
                     e.Direction,
                     e.DestinationRoomId,
                     r.Name,
-                    e.IsLocked,
+                    e.States,
                     r.AccessType,
                     r.EncounterInstanceId,
                 })
@@ -92,10 +93,11 @@ public sealed class RoomSessionReader : IRoomSessionReader
         var exits = new List<RoomExitSummary>(exitRows.Count);
         foreach (var e in exitRows)
         {
-            var locked = e.IsLocked
-                || (e is { AccessType: RoomAccessType.Private, EncounterInstanceId: null }
-                    && await _runAccess.FindEnterableRunAsync(character.Id, e.DestinationRoomId, cancellationToken) is null);
-            exits.Add(new RoomExitSummary(e.Id, e.Direction, e.DestinationRoomId, e.Name, locked));
+            var runDoorShut = !e.States.Contains(ExitStates.Locked)
+                && e is { AccessType: RoomAccessType.Private, EncounterInstanceId: null }
+                && await _runAccess.FindEnterableRunAsync(character.Id, e.DestinationRoomId, cancellationToken) is null;
+            var states = runDoorShut ? ExitStates.Normalize([.. e.States, ExitStates.Locked]) : e.States;
+            exits.Add(new RoomExitSummary(e.Id, e.Direction, e.DestinationRoomId, e.Name, states));
         }
 
         var occupants = await _dbContext.Characters

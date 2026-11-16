@@ -70,7 +70,8 @@ public sealed class GameContentLifecycle(
             .Where(record => record.Id != definition.Id)
             .Select(record => (record.Kind, record.PublishedJson!));
 
-        var validation = GameContentPublisher.ValidateCorpus(withoutIt);
+        var validation = GameContentPublisher.ValidateCorpus(
+            withoutIt, GameContentComposer.RetiredIds(await store.ListRetiredKeysAsync(cancellationToken)));
         return validation.IsSuccess
             ? GameContentDeleteCheck.Allowed()
             : GameContentDeleteCheck.Refused(
@@ -161,7 +162,8 @@ public sealed class GameContentLifecycle(
             .Where(record => !removed.Contains(record.Id))
             .Select(record => (record.Kind, record.PublishedJson!));
 
-        var validation = GameContentPublisher.ValidateCorpus(withoutThem);
+        var validation = GameContentPublisher.ValidateCorpus(
+            withoutThem, GameContentComposer.RetiredIds(await store.ListRetiredKeysAsync(cancellationToken)));
         return validation.IsSuccess
             ? GameContentDeleteCheck.Allowed()
             : GameContentDeleteCheck.Refused(

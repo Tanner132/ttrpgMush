@@ -164,8 +164,8 @@ const emptySession: RoomSession = {
   character: { id: 'char-1', name: 'Dev Runner' },
   room: { id: 'room-1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
   exits: [
-    { id: 'exit-1', direction: 'north', destinationRoomId: 'room-2', destinationRoomName: 'Coffee Shop', isLocked: false },
-    { id: 'exit-2', direction: 'east', destinationRoomId: 'room-3', destinationRoomName: 'Alley', isLocked: false },
+    { id: 'exit-1', direction: 'north', destinationRoomId: 'room-2', destinationRoomName: 'Coffee Shop', states: [] },
+    { id: 'exit-2', direction: 'east', destinationRoomId: 'room-3', destinationRoomName: 'Alley', states: [] },
   ],
   occupants: [],
   npcs: [],
@@ -380,7 +380,7 @@ describe('room movement', () => {
     const lockedSession: RoomSession = {
       ...emptySession,
       exits: [
-        { id: 'exit-3', direction: 'west', destinationRoomId: 'room-4', destinationRoomName: 'Alley', isLocked: true },
+        { id: 'exit-3', direction: 'west', destinationRoomId: 'room-4', destinationRoomName: 'Alley', states: ['locked'] },
       ],
     }
 
@@ -411,8 +411,8 @@ describe('room movement', () => {
       ...emptySession,
       exits: [
         ...emptySession.exits,
-        { id: 'exit-up', direction: 'up', destinationRoomId: 'room-up', destinationRoomName: 'Rooftop', isLocked: false },
-        { id: 'exit-down', direction: 'down', destinationRoomId: 'room-down', destinationRoomName: 'Basement', isLocked: false },
+        { id: 'exit-up', direction: 'up', destinationRoomId: 'room-up', destinationRoomName: 'Rooftop', states: [] },
+        { id: 'exit-down', direction: 'down', destinationRoomId: 'room-down', destinationRoomName: 'Basement', states: [] },
       ],
     }
 

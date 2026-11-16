@@ -56,8 +56,7 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 exit.DestinationRoomId,
                 destination.Name,
                 exit.Direction,
-                exit.IsHidden,
-                exit.IsLocked,
+                exit.States,
                 exit.CreatedAtUtc,
                 exit.Version))
             .Take(MaxExits + 1)
@@ -102,8 +101,7 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 exit.DestinationRoomId,
                 destination.Name,
                 exit.Direction,
-                exit.IsHidden,
-                exit.IsLocked,
+                exit.States,
                 exit.CreatedAtUtc,
                 exit.Version))
             .ToListAsync(cancellationToken);
@@ -120,8 +118,7 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 exit.DestinationRoomId,
                 destination.Name,
                 exit.Direction,
-                exit.IsHidden,
-                exit.IsLocked,
+                exit.States,
                 exit.CreatedAtUtc,
                 exit.Version))
             .ToListAsync(cancellationToken);

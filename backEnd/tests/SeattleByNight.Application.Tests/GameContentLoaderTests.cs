@@ -1222,6 +1222,25 @@ public sealed class GameContentLoaderTests
     }
 
     [Fact]
+    public void A_retired_job_holds_no_events()
+    {
+        var json = TwoJobs(
+            Listener("enter", "\"event\": \"playerEnteredRoom\""),
+            Listener("enter-too", "\"event\": \"playerEnteredRoom\""));
+
+        // Retiring either job lets the other have the event; the retired
+        // job's listener stays in the document for runs already under way.
+        var content = GameContentLoader.Load(json, new HashSet<Guid> { LegacyContentFixtures.Id("mission", "m1") });
+        Assert.Equal(2, content.Missions.Sum(mission => mission.Triggers.Count));
+
+        // So does retiring its site, which retires every job run in it.
+        GameContentLoader.Load(json, new HashSet<Guid> { LegacyContentFixtures.Id("encounter", "e1") });
+
+        // Retiring something unrelated changes nothing.
+        Assert.Throws<GameContentException>(() => GameContentLoader.Load(json, new HashSet<Guid> { Guid.NewGuid() }));
+    }
+
+    [Fact]
     public void Each_item_npc_and_sneak_outcome_is_its_own_event_for_different_jobs()
     {
         var json = TwoJobs(

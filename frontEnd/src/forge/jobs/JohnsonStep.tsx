@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
-import { listRoomNpcs, placeRoomNpc, saveDraft, updateRoomNpc } from '../api.ts'
+import { listRoomNpcs, placeRoomNpc, saveDraft, updateRoomNpc, type WorldNpc } from '../api.ts'
 import { Chip, Empty, NumberInput, Section, Segmented, Select, TextBox, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { useAction } from '../hooks.ts'
 import { newPitch, toJson, type Mission, type RepeatKind } from '../model.ts'
 import { useGuardedClick } from '../navigation.ts'
-import type { Job } from './useJob.ts'
+import { WorldNpcDialog } from '../places/WorldNpcDialog.tsx'
+import type { Job, Johnson } from './useJob.ts'
 
 const RepeatOptions: { id: RepeatKind; displayName: string }[] = [
   { id: 'cooldown', displayName: 'Again after a cooldown' },
@@ -138,11 +139,39 @@ function JohnsonForm({ job, pitchId }: { job: Job; pitchId: string }) {
 }
 
 export function JohnsonStep({ job, mission }: { job: Job; mission: Mission }) {
-  const { refreshContent } = useForgeData()
+  const { refreshContent, refreshWorld } = useForgeData()
   const guard = useGuardedClick()
   const start = useAction()
+  const opening = useAction()
+  const [editing, setEditing] = useState<{ johnson: Johnson; npc: WorldNpc } | null>(null)
   const set = (change: Partial<Mission>) => job.mission.setValue((current) => ({ ...current, ...change }))
   const johnson = job.johnsons[0]
+
+  // The map's list is a summary; the dialog edits the full record.
+  async function edit(johnson: Johnson) {
+    const npc = await opening.run(async () => {
+      const record = (await listRoomNpcs(johnson.roomId)).find((candidate) => candidate.id === johnson.id)
+      if (!record) throw new Error(`${johnson.name} is no longer in ${johnson.roomName}.`)
+      return record
+    })
+    if (npc) setEditing({ johnson, npc })
+  }
+
+  // The conversation is written for its Johnson's stat block, as when they
+  // were first given the job. It is rewritten before the Johnson is saved:
+  // the server takes a stat block the live conversation was not written for
+  // only once the draft has been.
+  async function rewritePitchFor(templateId: string) {
+    const pitch = job.pitch.value
+    if (pitch && pitch.npcTemplateId !== templateId && !(await job.pitch.saveValue({ ...pitch, npcTemplateId: templateId }))) {
+      throw new Error('The conversation could not be rewritten for that stat block, so the Johnson was not changed. Save the draft and try again.')
+    }
+  }
+
+  async function edited() {
+    setEditing(null)
+    await refreshWorld()
+  }
 
   async function startPitch() {
     await start.run(async () => {
@@ -214,12 +243,28 @@ export function JohnsonStep({ job, mission }: { job: Job; mission: Mission }) {
                     <Link to={`/admin/forge/places?room=${npc.roomId}`} onClick={guard}>
                       {npc.roomName}
                     </Link>
+                    <Button busy={opening.busy} aria-label={`Edit ${npc.name}`} onClick={() => void edit(npc)}>
+                      Edit
+                    </Button>
                   </li>
                 ))}
               </ul>
-              <p className="forge__hint">
-                Their name, description and stat block are edited where they stand, in Places. To move them, remove them there and place them again here.
-              </p>
+              {opening.error && (
+                <StatusBanner tone="danger" role="alert">
+                  {opening.error}
+                </StatusBanner>
+              )}
+              <p className="forge__hint">Edits and moves save to the map at once. Removing a Johnson is done where they stand, in Places.</p>
+              {editing && job.pitchId && (
+                <WorldNpcDialog
+                  room={{ id: editing.johnson.roomId, name: editing.johnson.roomName }}
+                  npc={editing.npc}
+                  sceneId={job.pitchId}
+                  prepare={rewritePitchFor}
+                  onClose={() => setEditing(null)}
+                  onSaved={() => void edited()}
+                />
+              )}
             </div>
           ) : (
             <JohnsonForm job={job} pitchId={job.pitchId} />

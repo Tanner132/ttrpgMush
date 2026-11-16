@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import type { RoomExitSummary } from '../api/roomSession.ts'
 import { resolveExit } from './resolveExit.ts'
 
-function exit(id: string, direction: string, isLocked = false): RoomExitSummary {
-  return { id, direction, destinationRoomId: 'room-9', destinationRoomName: 'Elsewhere', isLocked }
+function exit(id: string, direction: string, locked = false): RoomExitSummary {
+  return { id, direction, destinationRoomId: 'room-9', destinationRoomName: 'Elsewhere', states: locked ? ['locked'] : [] }
 }
 
 const exits: RoomExitSummary[] = [

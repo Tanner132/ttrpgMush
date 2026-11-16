@@ -29,6 +29,8 @@ public sealed record PlaceNpcRequest(
     Guid? SceneId = null,
     NpcAwareness? Awareness = null);
 
+public sealed record MoveNpcRequest(Guid ToRoomId);
+
 public sealed record PlacedNpcResponse(
     Guid Id,
     Guid TemplateId,
@@ -74,6 +76,7 @@ public static class RoomContentAdminEndpoints
         group.MapPost("/rooms/{roomId:guid}/npcs", PlaceNpcAsync).RequireAntiforgery();
         group.MapPut("/rooms/{roomId:guid}/npcs/{npcId:guid}", UpdateNpcAsync).RequireAntiforgery();
         group.MapDelete("/rooms/{roomId:guid}/npcs/{npcId:guid}", RemoveNpcAsync).RequireAntiforgery();
+        group.MapPost("/rooms/{roomId:guid}/npcs/{npcId:guid}/move", MoveNpcAsync).RequireAntiforgery();
         group.MapGet("/rooms/{roomId:guid}/interactables", ListInteractablesAsync);
         group.MapPost("/rooms/{roomId:guid}/interactables", PlaceInteractableAsync).RequireAntiforgery();
         group.MapPut("/rooms/{roomId:guid}/interactables/{interactableId:guid}", UpdateInteractableAsync)
@@ -169,6 +172,25 @@ public static class RoomContentAdminEndpoints
 
         var result = await placement.RemoveAsync(actor.Id, roomId, npcId, cancellationToken);
         return NpcResult(result, _ => Results.NoContent());
+    }
+
+    private static async Task<IResult> MoveNpcAsync(
+        Guid roomId,
+        Guid npcId,
+        MoveNpcRequest request,
+        WorldNpcPlacement placement,
+        UserManager<ApplicationUser> userManager,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
+    {
+        var actor = await userManager.GetUserAsync(httpContext.User);
+        if (actor is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await placement.MoveAsync(actor.Id, roomId, npcId, request.ToRoomId, cancellationToken);
+        return NpcResult(result, npc => Results.Ok(ToResponse(npc)));
     }
 
     private static WorldNpcMutation ToMutation(PlaceNpcRequest request) =>

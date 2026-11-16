@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Button } from '../../components/ui/Button.tsx'
 import { Modal } from '../../components/ui/Modal.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
@@ -73,6 +73,8 @@ function NewJobDialog({ onClose }: { onClose: () => void }) {
 export default function JobsPage() {
   const { definitions, references } = useForgeData()
   const [creating, setCreating] = useState(false)
+  // Left by a job's delete when something after it (its Johnson) did not go through.
+  const notice = (useLocation().state as { notice?: string } | null)?.notice
   const jobs = [...definitions('Mission')].sort((a, b) => a.displayName.localeCompare(b.displayName))
   const siteName = (jobId: string) => {
     const job = references.missions.find((mission) => mission.id === jobId)
@@ -92,6 +94,11 @@ export default function JobsPage() {
           </Button>
         </div>
       </div>
+      {notice && (
+        <StatusBanner tone="warning" role="alert">
+          {notice}
+        </StatusBanner>
+      )}
       <Section title="All jobs">
         {jobs.length === 0 ? (
           <Empty>No jobs yet. A job is a Johnson, a pitch, a site and what counts as done.</Empty>

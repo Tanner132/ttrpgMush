@@ -19,7 +19,9 @@ public sealed record RoomExitSummary(
     string Direction,
     Guid DestinationRoomId,
     string DestinationRoomName,
-    bool IsLocked);
+    // Workstream 8: what a player can see of the door — locked, restricted,
+    // private. Hidden doors are not listed at all until found.
+    IReadOnlyList<string> States);
 
 public sealed record RoomMessage(
     Guid Id,

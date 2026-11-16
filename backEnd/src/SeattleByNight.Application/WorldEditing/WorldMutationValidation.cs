@@ -79,6 +79,15 @@ public static class WorldMutationValidation
             errors["direction"] = [$"Direction must be one of: {string.Join(',', RoomDirections.All)}."];
         }
 
+        var unknown = (mutation.States ?? []).Where(state => !ExitStates.IsValid(state)).ToArray();
+        if (unknown.Length > 0)
+        {
+            errors["states"] =
+            [
+                $"Unknown door state: {string.Join(", ", unknown)}. A door is any of: {string.Join(", ", ExitStates.All)}.",
+            ];
+        }
+
         if (requiresVersion && version == Guid.Empty)
         {
             errors["version"] = ["Version is required."];

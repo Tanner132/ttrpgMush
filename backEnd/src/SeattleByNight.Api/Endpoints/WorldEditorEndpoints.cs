@@ -24,15 +24,13 @@ public sealed record CreateWorldExitRequest(
     Guid SourceRoomId,
     Guid DestinationRoomId,
     string? Direction,
-    bool IsHidden,
-    bool IsLocked);
+    string[]? States);
 
 public sealed record UpdateWorldExitRequest(
     Guid SourceRoomId,
     Guid DestinationRoomId,
     string? Direction,
-    bool IsHidden,
-    bool IsLocked,
+    string[]? States,
     Guid Version);
 
 public static class WorldEditorEndpoints
@@ -164,7 +162,7 @@ public static class WorldEditorEndpoints
         }
 
         var mutation = ToMutation(request.SourceRoomId, request.DestinationRoomId,
-            request.Direction, request.IsHidden, request.IsLocked);
+            request.Direction, request.States);
         var result = await mediator.Send(new CreateRoomExitCommand(actor.Id, mutation));
 
         return MutationResult(result,
@@ -186,7 +184,7 @@ public static class WorldEditorEndpoints
         }
 
         var mutation = ToMutation(request.SourceRoomId, request.DestinationRoomId,
-            request.Direction, request.IsHidden, request.IsLocked);
+            request.Direction, request.States);
         var result = await mediator.Send(new UpdateRoomExitCommand(actor.Id, exitId, request.Version, mutation));
 
         return MutationResult(result, Results.Ok);
@@ -214,9 +212,8 @@ public static class WorldEditorEndpoints
         Guid sourceRoomId,
         Guid destinationRoomId,
         string? direction,
-        bool isHidden,
-        bool isLocked) =>
-        new(sourceRoomId, destinationRoomId, direction ?? string.Empty, isHidden, isLocked);
+        string[]? states) =>
+        new(sourceRoomId, destinationRoomId, direction ?? string.Empty, states);
 
     private static IResult MutationResult<T>(WorldMutationResult<T> result, Func<T, IResult> success)
         where T : class => result.Error switch

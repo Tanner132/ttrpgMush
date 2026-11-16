@@ -1,3 +1,4 @@
+using SeattleByNight.Domain;
 using System.Net;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -117,6 +118,49 @@ public sealed class MovementTests : IClassFixture<ApiTestFactory>
         Assert.Equal(DevelopmentDataSeeder.DowntownStreetId, character.CurrentRoomId);
     }
 
+    // Workstream 8: restricted stops entry and never stops leaving. It sits on
+    // the doors INTO a room, so the way back out stays open.
+    [Fact]
+    public async Task Move_RestrictedExit_RefusesEntry_ButTheWayOutStaysOpen()
+    {
+        var user = await CreateUserInRoomAsync(DevelopmentDataSeeder.CoffeeShopId);
+        var into = await AddExitWithStatesAsync(
+            DevelopmentDataSeeder.CoffeeShopId, DevelopmentDataSeeder.AlleyId, "northeast", ExitStates.Restricted);
+        var outOf = await AddExitWithStatesAsync(
+            DevelopmentDataSeeder.AlleyId, DevelopmentDataSeeder.CoffeeShopId, "southwest");
+
+        var (_, view) = await _factory.GetCurrentAsync(user.Client);
+        Assert.Equal([ExitStates.Restricted], view!.Exits.Single(exit => exit.Id == into).States);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+        var refused = await mediator.Send(new MoveCharacterCommand(user.UserId, into));
+        Assert.Equal(MoveCharacterError.ExitRestricted, refused.Error);
+
+        await _factory.RelocateCharacterAsync(user.Character.Id, DevelopmentDataSeeder.AlleyId);
+        var left = await mediator.Send(new MoveCharacterCommand(user.UserId, outOf));
+        Assert.True(left.IsSuccess, left.Error.ToString());
+    }
+
+    [Fact]
+    public async Task Move_PrivateExit_Fails_UntilPlayerHomesExist()
+    {
+        var user = await CreateUserInRoomAsync(DevelopmentDataSeeder.CoffeeShopId);
+        var exitId = await AddExitWithStatesAsync(
+            DevelopmentDataSeeder.CoffeeShopId, DevelopmentDataSeeder.AlleyId, "northwest", ExitStates.Private);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+        var result = await mediator.Send(new MoveCharacterCommand(user.UserId, exitId));
+
+        Assert.Equal(MoveCharacterError.ExitPrivate, result.Error);
+        await using var db = _factory.CreateDbContext();
+        var character = await db.Characters.AsNoTracking().SingleAsync(c => c.Id == user.Character.Id);
+        Assert.Equal(DevelopmentDataSeeder.CoffeeShopId, character.CurrentRoomId);
+    }
+
     [Fact]
     public async Task Move_MissingExit_Fails()
     {
@@ -228,13 +272,29 @@ public sealed class MovementTests : IClassFixture<ApiTestFactory>
             SourceRoomId = sourceRoomId,
             DestinationRoomId = destinationRoomId,
             Direction = direction,
-            IsHidden = isHidden,
-            IsLocked = isLocked
+            States = ExitStates.Of(isHidden, isLocked)
         };
 
         db.RoomExits.Add(exit);
         await db.SaveChangesAsync();
 
+        return exit.Id;
+    }
+
+    private async Task<Guid> AddExitWithStatesAsync(
+        Guid sourceRoomId, Guid destinationRoomId, string direction, params string[] states)
+    {
+        await using var db = _factory.CreateDbContext();
+        var exit = new RoomExit
+        {
+            Id = Guid.NewGuid(),
+            SourceRoomId = sourceRoomId,
+            DestinationRoomId = destinationRoomId,
+            Direction = direction,
+            States = states,
+        };
+        db.RoomExits.Add(exit);
+        await db.SaveChangesAsync();
         return exit.Id;
     }
 

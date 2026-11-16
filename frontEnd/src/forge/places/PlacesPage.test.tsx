@@ -84,8 +84,8 @@ describe('Places · the map', () => {
       mapY: -1,
       mapLayer: 0,
     })
-    expect(api.createExit).toHaveBeenNthCalledWith(1, { sourceRoomId: Ids.downtown, destinationRoomId: 'new-room', direction: 'south', isHidden: false, isLocked: false })
-    expect(api.createExit).toHaveBeenNthCalledWith(2, { sourceRoomId: 'new-room', destinationRoomId: Ids.downtown, direction: 'north', isHidden: false, isLocked: false })
+    expect(api.createExit).toHaveBeenNthCalledWith(1, { sourceRoomId: Ids.downtown, destinationRoomId: 'new-room', direction: 'south', states: [] })
+    expect(api.createExit).toHaveBeenNthCalledWith(2, { sourceRoomId: 'new-room', destinationRoomId: Ids.downtown, direction: 'north', states: [] })
   })
 
   it('saves the room with the version it was loaded at', async () => {
@@ -144,8 +144,44 @@ describe('Places · exits', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Add exit' }))
 
     await waitFor(() => expect(api.createExit).toHaveBeenCalledTimes(2))
-    expect(api.createExit).toHaveBeenNthCalledWith(1, { sourceRoomId: Ids.downtown, destinationRoomId: Ids.dock, direction: 'southwest', isHidden: false, isLocked: true })
-    expect(api.createExit).toHaveBeenNthCalledWith(2, { sourceRoomId: Ids.dock, destinationRoomId: Ids.downtown, direction: 'northeast', isHidden: false, isLocked: true })
+    expect(api.createExit).toHaveBeenNthCalledWith(1, { sourceRoomId: Ids.downtown, destinationRoomId: Ids.dock, direction: 'southwest', states: ['locked'] })
+    expect(api.createExit).toHaveBeenNthCalledWith(2, { sourceRoomId: Ids.dock, destinationRoomId: Ids.downtown, direction: 'northeast', states: ['locked'] })
+  })
+
+  it('leaves the way back out of a restricted door open when adding it both ways', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.createExit).mockImplementation(async (input) => ({ ...input, id: 'x', sourceRoomName: '', destinationRoomName: '', createdAtUtc: '', version: 'v' }))
+    await openPlaces()
+
+    await user.click(within(screen.getByRole('region', { name: 'Exits' })).getByRole('button', { name: '+ Exit' }))
+    const dialog = screen.getByRole('dialog', { name: 'Add exit' })
+    await user.click(within(dialog).getByRole('button', { name: 'Southwest' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Existing room' }))
+    await user.selectOptions(within(dialog).getByLabelText('Destination room'), 'Layer 0 › Loading Dock')
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Locked' }))
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Restricted' }))
+    expect(within(dialog).getByText(/the way back is left free to leave by/)).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Add exit' }))
+
+    await waitFor(() => expect(api.createExit).toHaveBeenCalledTimes(2))
+    expect(api.createExit).toHaveBeenNthCalledWith(1, { sourceRoomId: Ids.downtown, destinationRoomId: Ids.dock, direction: 'southwest', states: ['locked', 'restricted'] })
+    expect(api.createExit).toHaveBeenNthCalledWith(2, { sourceRoomId: Ids.dock, destinationRoomId: Ids.downtown, direction: 'northeast', states: ['locked'] })
+  })
+
+  it('restricts the way into a room, one direction only, and says what that means', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.updateExit).mockImplementation(async (id, input) => ({ ...input, id, sourceRoomName: '', destinationRoomName: '', createdAtUtc: '', version: 'v2' }))
+    await openPlaces()
+
+    const exits = within(screen.getByRole('region', { name: 'Exits' }))
+    await user.click(exits.getAllByRole('button', { name: /^Edit/ })[0])
+    const dialog = screen.getByRole('dialog', { name: 'Edit exit' })
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Restricted' }))
+    expect(within(dialog).getByText(/anyone inside can still leave/)).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Save exit' }))
+
+    await waitFor(() => expect(api.updateExit).toHaveBeenCalledTimes(1))
+    expect(vi.mocked(api.updateExit).mock.calls[0][1].states).toEqual(['restricted'])
   })
 })
 
@@ -239,6 +275,34 @@ describe('Places · what is here', () => {
     await waitFor(() =>
       expect(api.placeRoomNpc).toHaveBeenCalledWith(Ids.downtown, { templateId: Ids.ganger, name: 'Razor', description: null, sceneId: null, awareness: 'Suspicious' }),
     )
+  })
+
+  it('moves a world NPC to another public room, and shows a refused move in the server\'s words', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.updateRoomNpc).mockImplementation(async (roomId, npcId, input) => ({
+      id: npcId, roomId, templateId: input.templateId, name: input.name, description: input.description ?? null,
+      awareness: input.awareness ?? 'Unaware', sceneId: input.sceneId ?? null, physicalDamage: 0, stunDamage: 0,
+    }))
+    vi.mocked(api.moveRoomNpc).mockRejectedValueOnce(new Error("Events name this NPC where they stand: room events 'Coffee Shop'. Remove those listeners first."))
+    await openPlaces(Ids.coffee)
+
+    const here = screen.getByRole('region', { name: 'Here' })
+    await user.click(await within(here).findByRole('button', { name: 'Edit Mr. Johnson' }))
+    const dialog = screen.getByRole('dialog', { name: 'Edit Mr. Johnson' })
+    // Only public rooms can take a world NPC.
+    expect(within(within(dialog).getByLabelText('Location')).queryByRole('option', { name: 'Loading Dock' })).not.toBeInTheDocument()
+    await user.selectOptions(within(dialog).getByLabelText('Location'), 'Alley')
+    await user.click(within(dialog).getByRole('button', { name: 'Save NPC' }))
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent("Events name this NPC where they stand: room events 'Coffee Shop'.")
+    expect(api.moveRoomNpc).toHaveBeenCalledWith(Ids.coffee, Ids.johnson, Ids.alley)
+
+    // The edit went through before the move was refused, so giving up on the
+    // move still reloads who stands here.
+    const loads = vi.mocked(api.listRoomNpcs).mock.calls.length
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(vi.mocked(api.listRoomNpcs).mock.calls.length).toBeGreaterThan(loads))
   })
 
   it('says why a world NPC cannot be removed', async () => {

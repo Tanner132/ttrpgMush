@@ -149,6 +149,81 @@ public sealed class RetireMissionTests : ContentLifecycleHarness
     }
 }
 
+// WF-26 follow-up: a retired job holds no events. Another job may take an
+// event over once the job listening to it is retired, and the retired job
+// cannot then come back to it.
+public sealed class RetiredJobEventTests : ContentLifecycleHarness
+{
+    private static readonly Guid RivalId = Guid.NewGuid();
+
+    // A second job on the warehouse site, listening where the warehouse job
+    // listens for the runner walking in.
+    private async Task SaveRivalDraftAsync()
+    {
+        await using var scope = Provider.CreateAsyncScope();
+        var store = scope.ServiceProvider.GetRequiredService<IGameContentStore>();
+        var warehouse = await store.FindAsync(GameContentKind.Mission, MissionId);
+        var rival = System.Text.Json.Nodes.JsonNode.Parse(warehouse!.PublishedJson!)!.AsObject();
+        rival["id"] = RivalId.ToString();
+        rival["displayName"] = "Rival job";
+        foreach (var objective in rival["objectives"]!.AsArray())
+        {
+            objective!["id"] = Guid.NewGuid().ToString();
+        }
+
+        var entered = rival["triggers"]!.AsArray()
+            .First(trigger => trigger!["event"]!.GetValue<string>() == "playerEnteredRoom")!;
+        rival["triggers"] = new System.Text.Json.Nodes.JsonArray(
+            new System.Text.Json.Nodes.JsonObject
+            {
+                ["id"] = Guid.NewGuid().ToString(),
+                ["event"] = "playerEnteredRoom",
+                ["roomId"] = entered["roomId"]!.GetValue<string>(),
+                ["reactions"] = new System.Text.Json.Nodes.JsonArray(
+                    new System.Text.Json.Nodes.JsonObject { ["kind"] = "narrate", ["text"] = "Someone got here first." }),
+            });
+
+        await store.SaveDraftAsync(
+            GameContentKind.Mission, RivalId, "Rival job", rival.ToJsonString(), DevelopmentDataSeeder.DevUserId);
+    }
+
+    private async Task<GameContentPublishResult> PublishAsync(Guid missionId)
+    {
+        await using var scope = Provider.CreateAsyncScope();
+        var publisher = scope.ServiceProvider.GetRequiredService<GameContentPublisher>();
+        return await publisher.PublishAsync(GameContentKind.Mission, missionId, DevelopmentDataSeeder.DevUserId);
+    }
+
+    [Fact]
+    public async Task Retiring_a_job_frees_its_events_for_another_and_bars_it_from_returning_to_them()
+    {
+        await SaveRivalDraftAsync();
+
+        var blocked = await PublishAsync(RivalId);
+        Assert.False(blocked.IsSuccess);
+        Assert.Contains("Only one job may listen to an event", blocked.Error);
+
+        Assert.True((await RetireAsync(GameContentKind.Mission, MissionId)).IsSuccess);
+        var taken = await PublishAsync(RivalId);
+        Assert.True(taken.IsSuccess, taken.Error);
+
+        // The served document keeps both: the retired job's listener still
+        // reaches runs already under way.
+        await using (var scope = Provider.CreateAsyncScope())
+        {
+            var content = scope.ServiceProvider.GetRequiredService<IGameContentProvider>();
+            Assert.True(content.Current.FindMission(MissionId)!.IsRetired);
+            Assert.False(content.Current.FindMission(RivalId)!.IsRetired);
+            var publisher = scope.ServiceProvider.GetRequiredService<GameContentPublisher>();
+            Assert.True((await publisher.ValidatePublishedAsync()).IsSuccess);
+        }
+
+        var back = await PublishAsync(MissionId);
+        Assert.False(back.IsSuccess);
+        Assert.Contains("Only one job may listen to an event", back.Error);
+    }
+}
+
 public sealed class RetireNpcAndSceneTests : ContentLifecycleHarness
 {
     [Fact]

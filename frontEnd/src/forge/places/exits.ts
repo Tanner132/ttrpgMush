@@ -1,3 +1,4 @@
+import { sameStates } from '../../api/exitStates.ts'
 import { createExit, deleteExit, getWorld, updateExit, type ExitInput, type Guid } from '../api.ts'
 
 /*
@@ -16,7 +17,7 @@ async function ensureExit(input: ExitInput): Promise<void> {
     await createExit(input)
     return
   }
-  if (existing.destinationRoomId !== input.destinationRoomId || existing.isHidden !== input.isHidden || existing.isLocked !== input.isLocked) {
+  if (existing.destinationRoomId !== input.destinationRoomId || !sameStates(existing.states, input.states)) {
     await updateExit(existing.id, { ...input, version: existing.version })
   }
 }

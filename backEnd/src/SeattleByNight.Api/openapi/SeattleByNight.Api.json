@@ -1233,6 +1233,48 @@
         }
       }
     },
+    "/api/admin/world/rooms/{roomId}/npcs/{npcId}/move": {
+      "post": {
+        "tags": [
+          "RoomContentAdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "npcId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveNpcRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/world/rooms/{roomId}/interactables": {
       "get": {
         "tags": [
@@ -2290,8 +2332,7 @@
           "sourceRoomId",
           "destinationRoomId",
           "direction",
-          "isHidden",
-          "isLocked"
+          "states"
         ],
         "type": "object",
         "properties": {
@@ -2309,11 +2350,14 @@
               "string"
             ]
           },
-          "isHidden": {
-            "type": "boolean"
-          },
-          "isLocked": {
-            "type": "boolean"
+          "states": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -2760,6 +2804,18 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "MoveNpcRequest": {
+        "required": [
+          "toRoomId"
+        ],
+        "type": "object",
+        "properties": {
+          "toRoomId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -3362,8 +3418,7 @@
           "sourceRoomId",
           "destinationRoomId",
           "direction",
-          "isHidden",
-          "isLocked",
+          "states",
           "version"
         ],
         "type": "object",
@@ -3382,11 +3437,14 @@
               "string"
             ]
           },
-          "isHidden": {
-            "type": "boolean"
-          },
-          "isLocked": {
-            "type": "boolean"
+          "states": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           },
           "version": {
             "type": "string",

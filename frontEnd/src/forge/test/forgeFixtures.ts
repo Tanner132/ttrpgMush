@@ -48,8 +48,7 @@ export function exit(from: WorldRoom, to: WorldRoom, direction: WorldExit['direc
     destinationRoomId: to.id,
     destinationRoomName: to.name,
     direction,
-    isHidden: false,
-    isLocked: false,
+    states: [],
     createdAtUtc: '2026-11-01T00:00:00Z',
     version: `${from.id}-${direction}-v1`,
     ...flags,
@@ -70,7 +69,7 @@ export function world(): WorldGraph {
       exit(Rooms.downtown, Rooms.coffee, 'east'),
       exit(Rooms.coffee, Rooms.downtown, 'west'),
       exit(Rooms.downtown, Rooms.alley, 'north'),
-      exit(Rooms.alley, Rooms.downtown, 'south', { isHidden: true }),
+      exit(Rooms.alley, Rooms.downtown, 'south', { states: ['hidden'] }),
     ],
   }
 }

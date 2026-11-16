@@ -12,9 +12,10 @@ const session: RoomSession = {
   character: { id: 'c1', name: 'Ace' },
   room: { id: 'r1', name: 'Downtown Street', description: 'A rain-slicked street.', accessType: 'Public', mapX: 0, mapY: 0, mapLayer: 0 },
   exits: [
-    { id: 'e1', direction: 'north', destinationRoomId: 'r2', destinationRoomName: 'Coffee Shop', isLocked: false },
-    { id: 'e2', direction: 'northeast', destinationRoomId: 'r3', destinationRoomName: 'Alley', isLocked: false },
-    { id: 'e3', direction: 'west', destinationRoomId: 'r4', destinationRoomName: 'Vault', isLocked: true },
+    { id: 'e1', direction: 'north', destinationRoomId: 'r2', destinationRoomName: 'Coffee Shop', states: [] },
+    { id: 'e2', direction: 'northeast', destinationRoomId: 'r3', destinationRoomName: 'Alley', states: [] },
+    { id: 'e3', direction: 'west', destinationRoomId: 'r4', destinationRoomName: 'Vault', states: ['locked'] },
+    { id: 'e4', direction: 'south', destinationRoomId: 'r5', destinationRoomName: 'Arena', states: ['restricted'] },
   ],
   occupants: [],
   npcs: [],
@@ -351,6 +352,19 @@ describe('useGameplayCommands', () => {
     expect(ok).toBe(false)
     expect(moveThroughExit).not.toHaveBeenCalled()
     expect(appendLocal).toHaveBeenCalledWith('error', 'That exit is locked.')
+  })
+
+  it("rejects a restricted /go exit locally, in the server's words", async () => {
+    const { result, moveThroughExit, appendLocal } = createHarness()
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/go south')
+    })
+
+    expect(ok).toBe(false)
+    expect(moveThroughExit).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith('error', "You can't get in that way right now.")
   })
 
   it('rejects an ambiguous /go selector with candidate guidance', async () => {

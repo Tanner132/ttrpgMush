@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import * as api from '../api.ts'
-import type { Encounter, Mission, Scene } from '../model.ts'
+import { newPrompt, type Encounter, type Mission, type Place, type Scene } from '../model.ts'
 import { ContentStore, Ids, references, useFakeServer } from '../test/forgeFixtures.ts'
 import { renderForge } from '../test/renderForge.tsx'
 
@@ -129,6 +129,56 @@ describe('Jobs · Johnson', () => {
     const johnson = screen.getByRole('region', { name: 'Johnson' })
     expect(await within(johnson).findByText('Mr. Johnson')).toBeInTheDocument()
     expect(within(johnson).getByRole('link', { name: 'Coffee Shop' })).toHaveAttribute('href', `/admin/forge/places?room=${Ids.coffee}`)
+  })
+
+  it('edits and moves the Johnson from the job, keeping the job’s conversation', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.updateRoomNpc).mockImplementation(async (roomId, npcId, input) => ({
+      id: npcId, roomId, templateId: input.templateId, name: input.name, description: input.description ?? null,
+      awareness: input.awareness ?? 'Unaware', sceneId: input.sceneId ?? null, physicalDamage: 0, stunDamage: 0,
+    }))
+    vi.mocked(api.moveRoomNpc).mockImplementation(async (_roomId, npcId, toRoomId) => ({
+      id: npcId, roomId: toRoomId, templateId: Ids.johnsonBlock, name: 'Mr. Johnson Sr.', description: null,
+      awareness: 'Unaware', sceneId: Pitch.id, physicalDamage: 0, stunDamage: 0,
+    }))
+    await openJob('johnson')
+
+    await user.click(await screen.findByRole('button', { name: 'Edit Mr. Johnson' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Mr. Johnson' })
+    // The conversation is the job's pitch; it is not offered for change here.
+    expect(within(dialog).queryByLabelText('Conversation')).not.toBeInTheDocument()
+    await user.clear(within(dialog).getByLabelText('Name'))
+    await user.type(within(dialog).getByLabelText('Name'), 'Mr. Johnson Sr.')
+    await user.selectOptions(within(dialog).getByLabelText('Location'), 'Downtown')
+    await user.click(within(dialog).getByRole('button', { name: 'Save NPC' }))
+
+    // Saved where they stand, then moved: a refused move leaves the edit in place.
+    await waitFor(() => expect(api.moveRoomNpc).toHaveBeenCalledWith(Ids.coffee, Ids.johnson, Ids.downtown))
+    expect(api.updateRoomNpc).toHaveBeenCalledWith(Ids.coffee, Ids.johnson, {
+      templateId: Ids.johnsonBlock, name: 'Mr. Johnson Sr.', description: null, sceneId: Pitch.id, awareness: 'Unaware',
+    })
+    expect(vi.mocked(api.updateRoomNpc).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(api.moveRoomNpc).mock.invocationCallOrder[0])
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('rewrites the conversation for a new stat block before the Johnson is saved with it', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.updateRoomNpc).mockImplementation(async (roomId, npcId, input) => ({
+      id: npcId, roomId, templateId: input.templateId, name: input.name, description: input.description ?? null,
+      awareness: input.awareness ?? 'Unaware', sceneId: input.sceneId ?? null, physicalDamage: 0, stunDamage: 0,
+    }))
+    await openJob('johnson')
+
+    await user.click(await screen.findByRole('button', { name: 'Edit Mr. Johnson' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Mr. Johnson' })
+    await user.selectOptions(within(dialog).getByLabelText('Stat block'), 'Street Ganger')
+    await user.click(within(dialog).getByRole('button', { name: 'Save NPC' }))
+
+    // The server takes the new block only once the draft is written for it.
+    await waitFor(() => expect(api.updateRoomNpc).toHaveBeenCalledWith(Ids.coffee, Ids.johnson, expect.objectContaining({ templateId: Ids.ganger, sceneId: Pitch.id })))
+    expect(store.draft<Scene>('Scene', Pitch.id).npcTemplateId).toBe(Ids.ganger)
+    const rewrite = vi.mocked(api.saveDraft).mock.invocationCallOrder.at(-1)!
+    expect(rewrite).toBeLessThan(vi.mocked(api.updateRoomNpc).mock.invocationCallOrder[0])
   })
 
   it('places a new Johnson holding the job’s conversation, and writes the conversation for their stat block', async () => {
@@ -356,5 +406,83 @@ describe('Jobs · go live', () => {
       ]),
     )
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(/^\/admin\/forge\/jobs$/))
+  })
+
+  it('takes the prompts only this job opens and removes its Johnson; a prompt used elsewhere stays', async () => {
+    const user = userEvent.setup()
+    const only = { ...newPrompt('Ambush prompt'), id: 'aaaaaaaa-aaaa-aaaa-aaaa-000000000030' }
+    const shared = { ...newPrompt('Shared prompt'), id: 'aaaaaaaa-aaaa-aaaa-aaaa-000000000031' }
+    store.put('Scene', only.id, only)
+    store.put('Scene', shared.id, shared)
+    store.put('Mission', Ids.job, {
+      ...job(),
+      triggers: [
+        { id: Ambush, event: 'npcDefeated', roomId: Ids.dock, npcId: Ids.siteNpc, reactions: [{ kind: 'openScene', sceneId: only.id }, { kind: 'openScene', sceneId: shared.id }] },
+      ],
+    })
+    store.put<Place>('Place', Ids.coffee, {
+      id: Ids.coffee,
+      displayName: 'Coffee Shop',
+      triggers: [{ id: 'aaaaaaaa-aaaa-aaaa-aaaa-000000000032', event: 'playerEnteredRoom', reactions: [{ kind: 'openScene', sceneId: shared.id }] }],
+    })
+    await openJob('review')
+
+    await user.click(await screen.findByRole('button', { name: 'Delete job' }))
+    expect(await screen.findByRole('checkbox', { name: 'Delete Ambush prompt' })).toBeChecked()
+    expect(screen.getByText(/Shared prompt stays: also used by room events 'Coffee Shop'/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Confirm delete job' }))
+
+    await waitFor(() =>
+      expect(api.deleteSet).toHaveBeenCalledWith([
+        { kind: 'Encounter', contentKey: Ids.site },
+        { kind: 'Scene', contentKey: Pitch.id },
+        { kind: 'Scene', contentKey: only.id },
+        { kind: 'Mission', contentKey: Ids.job },
+      ]),
+    )
+    await waitFor(() => expect(api.removeRoomNpc).toHaveBeenCalledWith(Ids.coffee, Ids.johnson))
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(/^\/admin\/forge\/jobs$/))
+  })
+
+  it('can keep a prompt and leave the Johnson standing with nothing to say', async () => {
+    const user = userEvent.setup()
+    const only = { ...newPrompt('Ambush prompt'), id: 'aaaaaaaa-aaaa-aaaa-aaaa-000000000030' }
+    store.put('Scene', only.id, only)
+    store.put('Mission', Ids.job, {
+      ...job(),
+      triggers: [{ id: Ambush, event: 'npcDefeated', roomId: Ids.dock, npcId: Ids.siteNpc, reactions: [{ kind: 'openScene', sceneId: only.id }] }],
+    })
+    await openJob('review')
+
+    await user.click(await screen.findByRole('button', { name: 'Delete job' }))
+    await user.click(await screen.findByRole('checkbox', { name: 'Delete Ambush prompt' }))
+    await user.click(screen.getByRole('button', { name: 'Leave standing, nothing to say' }))
+    await user.click(screen.getByRole('button', { name: 'Confirm delete job' }))
+
+    await waitFor(() =>
+      expect(api.deleteSet).toHaveBeenCalledWith([
+        { kind: 'Encounter', contentKey: Ids.site },
+        { kind: 'Scene', contentKey: Pitch.id },
+        { kind: 'Mission', contentKey: Ids.job },
+      ]),
+    )
+    await waitFor(() =>
+      expect(api.updateRoomNpc).toHaveBeenCalledWith(Ids.coffee, Ids.johnson, {
+        templateId: Ids.johnsonBlock, name: 'Mr. Johnson', description: null, awareness: 'Unaware', sceneId: null,
+      }),
+    )
+    expect(api.removeRoomNpc).not.toHaveBeenCalled()
+  })
+
+  it('reports on the list when the job is gone but its Johnson could not be removed', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.removeRoomNpc).mockRejectedValue(new Error('1 runner(s) are in a conversation with Mr. Johnson.'))
+    await openJob('review')
+
+    await user.click(await screen.findByRole('button', { name: 'Delete job' }))
+    await user.click(screen.getByRole('button', { name: 'Confirm delete job' }))
+
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(/^\/admin\/forge\/jobs$/))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/deleted, but its Johnson could not be removed: Mr\. Johnson \(Coffee Shop\): 1 runner/)
   })
 })

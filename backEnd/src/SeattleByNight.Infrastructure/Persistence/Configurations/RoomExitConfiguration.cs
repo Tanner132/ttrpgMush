@@ -8,9 +8,15 @@ public sealed class RoomExitConfiguration : IEntityTypeConfiguration<RoomExit>
 {
     public void Configure(EntityTypeBuilder<RoomExit> builder)
     {
-        builder.ToTable("room_exits", table => table.HasCheckConstraint(
-            "ck_room_exits_direction",
-            "direction IN ('north','northeast','east','southeast','south','southwest','west','northwest','up','down')"));
+        builder.ToTable("room_exits", table =>
+        {
+            table.HasCheckConstraint(
+                "ck_room_exits_direction",
+                "direction IN ('north','northeast','east','southeast','south','southwest','west','northwest','up','down')");
+            table.HasCheckConstraint(
+                "ck_room_exits_states",
+                "states <@ ARRAY['locked','hidden','private','restricted']::text[]");
+        });
 
         builder.HasKey(e => e.Id);
 
@@ -34,11 +40,11 @@ public sealed class RoomExitConfiguration : IEntityTypeConfiguration<RoomExit>
             .HasMaxLength(9)
             .IsRequired();
 
-        builder.Property(e => e.IsHidden)
-            .HasColumnName("is_hidden");
-
-        builder.Property(e => e.IsLocked)
-            .HasColumnName("is_locked");
+        builder.Property(e => e.States)
+            .HasColumnName("states")
+            .HasColumnType("text[]")
+            .HasDefaultValueSql("'{}'::text[]")
+            .IsRequired();
 
         builder.Property(e => e.CreatedAtUtc)
             .HasColumnName("created_at_utc")

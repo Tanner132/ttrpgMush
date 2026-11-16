@@ -50,8 +50,19 @@ public sealed class RoomExitTests
     {
         var exit = new RoomExit();
 
-        Assert.False(exit.IsHidden);
-        Assert.False(exit.IsLocked);
+        Assert.Empty(exit.States);
+    }
+
+    [Fact]
+    public void States_are_stored_known_once_and_in_order()
+    {
+        Assert.Equal(
+            [ExitStates.Locked, ExitStates.Hidden, ExitStates.Restricted],
+            ExitStates.Normalize([ExitStates.Restricted, "open", ExitStates.Hidden, ExitStates.Locked, ExitStates.Hidden]));
+        Assert.Empty(ExitStates.Normalize(null));
+        Assert.Equal([ExitStates.Locked, ExitStates.Hidden], ExitStates.Of(hidden: true, locked: true));
+        Assert.False(ExitStates.IsValid("Locked"));
+        Assert.True(ExitStates.IsValid(ExitStates.Private));
     }
 }
 

@@ -8,9 +8,11 @@ public sealed record MovementExit(
     Guid Id,
     Guid SourceRoomId,
     Guid DestinationRoomId,
-    bool IsHidden,
-    bool IsLocked,
-    bool DestinationIsAccessible);
+    IReadOnlyList<string> States,
+    bool DestinationIsAccessible)
+{
+    public bool Has(string state) => States.Contains(state, StringComparer.Ordinal);
+}
 
 public sealed record MovementStoreResult(
     MoveCharacterError Error,
@@ -34,6 +36,11 @@ public sealed record MovementStoreResult(
     // room is carried so content can react to the attempt.
     public static MovementStoreResult Locked(Guid playSessionId, Guid roomId) =>
         new(MoveCharacterError.ExitLocked, playSessionId, roomId, Guid.Empty);
+
+    // Workstream 8: a restricted door stops entry and never stops leaving.
+    // Like a locked door it is tried from where the character stands.
+    public static MovementStoreResult Restricted(Guid playSessionId, Guid roomId) =>
+        new(MoveCharacterError.ExitRestricted, playSessionId, roomId, Guid.Empty);
 
     public static MovementStoreResult Failure(MoveCharacterError error) =>
         new(error, Guid.Empty, Guid.Empty, Guid.Empty);

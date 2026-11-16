@@ -149,11 +149,11 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
             new CreateRoomMutation("Destination", "Room", "Public", 900, 900, 61))).Value!;
 
         var down = await store.CreateExitAsync(DevelopmentDataSeeder.DevUserId,
-            new RoomExitMutation(source.Id, destination.Id, RoomDirections.Down, false, false));
+            new RoomExitMutation(source.Id, destination.Id, RoomDirections.Down, null));
         var up = await store.CreateExitAsync(DevelopmentDataSeeder.DevUserId,
-            new RoomExitMutation(destination.Id, source.Id, RoomDirections.Up, false, false));
+            new RoomExitMutation(destination.Id, source.Id, RoomDirections.Up, null));
         var duplicate = await store.CreateExitAsync(DevelopmentDataSeeder.DevUserId,
-            new RoomExitMutation(source.Id, source.Id, RoomDirections.Down, false, false));
+            new RoomExitMutation(source.Id, source.Id, RoomDirections.Down, null));
 
         Assert.Equal(WorldMutationError.None, down.Error);
         Assert.Equal(WorldMutationError.None, up.Error);

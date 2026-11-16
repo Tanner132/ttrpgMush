@@ -439,8 +439,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 SourceRoomId = copies[mapExit.SourceRoomId].Id,
                 DestinationRoomId = copies[mapExit.DestinationRoomId].Id,
                 Direction = mapExit.Direction,
-                IsHidden = mapExit.IsHidden,
-                IsLocked = mapExit.IsLocked,
+                States = mapExit.States,
             });
         }
 

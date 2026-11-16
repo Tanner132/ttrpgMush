@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react'
+import { exitBlockedReason } from '../api/exitStates.ts'
 import { MessageType } from '../api/roomSession.ts'
 import type { CharacterSummary, RoomSession } from '../api/roomSession.ts'
 import { toErrorMessage } from '../api/client.ts'
@@ -216,8 +217,9 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
 
           switch (resolution.kind) {
             case 'resolved': {
-              if (resolution.exit.isLocked) {
-                appendLocal('error', 'That exit is locked.')
+              const blocked = exitBlockedReason(resolution.exit)
+              if (blocked) {
+                appendLocal('error', blocked)
                 return false
               }
               return moveThroughExit(resolution.exit.id)

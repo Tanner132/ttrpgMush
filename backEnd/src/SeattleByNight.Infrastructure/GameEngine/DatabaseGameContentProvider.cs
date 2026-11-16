@@ -50,7 +50,8 @@ public sealed class DatabaseGameContentProvider(IServiceScopeFactory scopes) : I
 
         var document = GameContentComposer.ComposeAndLoad(
             served.Select(definition => (definition.Kind, definition.PublishedJson!)),
-            StampVersion(served));
+            StampVersion(served),
+            GameContentComposer.RetiredIds(retired));
 
         return StampRetirement(document, retired);
     }

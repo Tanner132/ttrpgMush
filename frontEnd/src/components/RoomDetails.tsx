@@ -1,4 +1,5 @@
 import type { RoomExitSummary, RoomSummary } from '../api/roomSession.ts'
+import { exitBlockedWord } from '../api/exitStates.ts'
 import { useClock } from '../hooks/useClock.ts'
 import { Button } from './ui/Button.tsx'
 
@@ -81,7 +82,7 @@ export function RoomDetails({ room, exits, disabled, moveError, onMove }: RoomDe
                   y2={pos.y}
                   strokeWidth={0.6}
                   vectorEffect="non-scaling-stroke"
-                  style={{ stroke: exit.isLocked ? 'var(--sb-danger)' : 'var(--sb-border-strong)' }}
+                  style={{ stroke: exitBlockedWord(exit) ? 'var(--sb-danger)' : 'var(--sb-border-strong)' }}
                 />
               )
             })}
@@ -93,11 +94,11 @@ export function RoomDetails({ room, exits, disabled, moveError, onMove }: RoomDe
               <button
                 type="button"
                 key={exit.id}
-                className={`sector-graph__node${exit.isLocked ? ' sector-graph__node--locked' : ''}`}
+                className={`sector-graph__node${exitBlockedWord(exit) ? ' sector-graph__node--locked' : ''}`}
                 style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                disabled={disabled || exit.isLocked}
-                aria-label={exit.isLocked ? `${exit.direction} (locked)` : exit.direction}
-                title={`${exit.destinationRoomName}${exit.isLocked ? ' (locked)' : ''}`}
+                disabled={disabled || exitBlockedWord(exit) !== null}
+                aria-label={exitBlockedWord(exit) ? `${exit.direction} (${exitBlockedWord(exit)})` : exit.direction}
+                title={`${exit.destinationRoomName}${exitBlockedWord(exit) ? ` (${exitBlockedWord(exit)})` : ''}`}
                 onClick={() => onMove(exit.id)}
               >
                 <span className="sector-graph__node-mark" aria-hidden="true">
@@ -122,9 +123,9 @@ export function RoomDetails({ room, exits, disabled, moveError, onMove }: RoomDe
               <Button
                 className="sector-panel__vertical-button"
                 key={exit.id}
-                disabled={disabled || exit.isLocked}
-                aria-label={exit.isLocked ? `${exit.direction} (locked)` : exit.direction}
-                title={`${exit.destinationRoomName}${exit.isLocked ? ' (locked)' : ''}`}
+                disabled={disabled || exitBlockedWord(exit) !== null}
+                aria-label={exitBlockedWord(exit) ? `${exit.direction} (${exitBlockedWord(exit)})` : exit.direction}
+                title={`${exit.destinationRoomName}${exitBlockedWord(exit) ? ` (${exitBlockedWord(exit)})` : ''}`}
                 onClick={() => onMove(exit.id)}
               >
                 <span aria-hidden="true">{exit.direction === 'up' ? '^' : 'v'}</span>

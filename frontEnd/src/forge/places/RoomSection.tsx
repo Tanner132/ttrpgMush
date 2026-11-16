@@ -122,9 +122,9 @@ export function BuildRoomForm({
       if (spot.from) {
         const { room: from, direction } = spot.from
         await joinRooms(
-          { sourceRoomId: from.id, destinationRoomId: created.id, direction, isHidden: false, isLocked: false },
+          { sourceRoomId: from.id, destinationRoomId: created.id, direction, states: [] },
           bothWays
-            ? { sourceRoomId: created.id, destinationRoomId: from.id, direction: OppositeDirection[direction], isHidden: false, isLocked: false }
+            ? { sourceRoomId: created.id, destinationRoomId: from.id, direction: OppositeDirection[direction], states: [] }
             : null,
         )
       }

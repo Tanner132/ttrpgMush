@@ -6,8 +6,8 @@ public sealed class RoomExit
     public Guid SourceRoomId { get; set; }
     public Guid DestinationRoomId { get; set; }
     public string Direction { get; set; } = string.Empty;
-    public bool IsHidden { get; set; }
-    public bool IsLocked { get; set; }
+    // Workstream 8: values from ExitStates; empty means an open door.
+    public string[] States { get; set; } = [];
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public Guid Version { get; set; } = Guid.NewGuid();
 }

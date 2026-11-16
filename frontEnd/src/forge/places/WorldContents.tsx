@@ -5,102 +5,18 @@ import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
 import {
   listRoomInspectables,
   listRoomNpcs,
-  NpcAwarenessValues,
   placeRoomInspectable,
-  placeRoomNpc,
   removeRoomInspectable,
   removeRoomNpc,
   updateRoomInspectable,
-  updateRoomNpc,
-  type NpcAwareness,
   type WorldInspectable,
   type WorldNpc,
   type WorldRoom,
 } from '../api.ts'
-import { Chip, Empty, NumberInput, Segmented, Select, TextBox, TextInput } from '../fields.tsx'
+import { Chip, Empty, NumberInput, Segmented, TextBox, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { useAction, useLoad } from '../hooks.ts'
-
-function WorldNpcDialog({ room, npc, onClose, onSaved }: { room: WorldRoom; npc: WorldNpc | null; onClose: () => void; onSaved: () => void }) {
-  const { references } = useForgeData()
-  const templates = references.npcTemplates.filter((template) => !template.isRetired || template.id === npc?.templateId)
-  const [templateId, setTemplateId] = useState(npc?.templateId ?? templates[0]?.id ?? '')
-  const [name, setName] = useState(npc?.name ?? '')
-  const [description, setDescription] = useState(npc?.description ?? '')
-  const [sceneId, setSceneId] = useState(npc?.sceneId ?? '')
-  const [awareness, setAwareness] = useState<NpcAwareness>(npc?.awareness ?? 'Unaware')
-  const action = useAction()
-
-  // A conversation written for a stat block uses that block's dice, so only
-  // those — and conversations bound to none — fit this NPC.
-  const scenes = references.scenes
-    .filter((scene) => (!scene.isRetired || scene.id === npc?.sceneId) && (scene.npcTemplateId === null || scene.npcTemplateId === templateId))
-    .map((scene) => ({ id: scene.id, displayName: scene.displayName }))
-
-  async function save() {
-    const input = {
-      templateId,
-      name: name.trim(),
-      description: description.trim() || null,
-      sceneId: sceneId || null,
-      awareness,
-    }
-    const done = await action.run(() => (npc ? updateRoomNpc(room.id, npc.id, input) : placeRoomNpc(room.id, input)))
-    if (done) onSaved()
-  }
-
-  return (
-    <Modal title={npc ? `Edit ${npc.name}` : 'Add NPC'} onClose={() => !action.busy && onClose()}>
-      <form
-        className="forge__dialog"
-        onSubmit={(event) => {
-          event.preventDefault()
-          void save()
-        }}
-      >
-        <p className="forge__eyebrow">{room.name} · public room</p>
-        <Select
-          label="Stat block"
-          value={templateId}
-          options={templates.map((template) => ({ id: template.id, displayName: template.displayName }))}
-          placeholder={templates.length === 0 ? 'No live stat block — make one in the Library' : 'Choose a stat block'}
-          onChange={setTemplateId}
-        />
-        <TextInput label="Name" value={name} maxLength={200} placeholder="Defaults to the stat block's name" onChange={setName} />
-        <TextBox label="Description" value={description} rows={3} placeholder="Defaults to the stat block's description" onChange={setDescription} />
-        <div className="forge__grid forge__grid--2">
-          <Select
-            label="Conversation"
-            value={sceneId}
-            options={scenes}
-            placeholder="None"
-            hint="Johnsons get their conversation when their job is written."
-            onChange={setSceneId}
-          />
-          <Select
-            label="Starts"
-            value={awareness}
-            options={NpcAwarenessValues.map((value) => ({ id: value, displayName: value }))}
-            onChange={(value) => setAwareness(value as NpcAwareness)}
-          />
-        </div>
-        {action.error && (
-          <StatusBanner tone="danger" role="alert">
-            {action.error}
-          </StatusBanner>
-        )}
-        <div className="forge__dialog-actions">
-          <Button onClick={onClose} disabled={action.busy}>
-            Cancel
-          </Button>
-          <Button type="submit" intent="primary" busy={action.busy} disabled={!templateId}>
-            {npc ? 'Save NPC' : 'Add NPC'}
-          </Button>
-        </div>
-      </form>
-    </Modal>
-  )
-}
+import { WorldNpcDialog } from './WorldNpcDialog.tsx'
 
 function InspectableDialog({
   room,

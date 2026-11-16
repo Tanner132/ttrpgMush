@@ -64,6 +64,33 @@ public sealed class WorldNpcPlacementTests : PlaythroughHarness
         Assert.Contains("sceneId", result.ValidationErrors.Keys);
     }
 
+    // WF-28: changing a Johnson's stat block from their job rewrites the
+    // conversation's draft for the new block first; the live copy still names
+    // the old one until the job is published again.
+    [Fact]
+    public async Task A_johnson_takes_a_stat_block_their_conversations_draft_is_rewritten_for()
+    {
+        await using var scope = Provider.CreateAsyncScope();
+        var placement = scope.ServiceProvider.GetRequiredService<WorldNpcPlacement>();
+        var drafts = scope.ServiceProvider.GetRequiredService<IGameContentStore>();
+        var placed = (await placement.PlaceAsync(UserId, DevelopmentDataSeeder.CoffeeShopId, Marchetti())).Npc!;
+        var ganger = Marchetti(template: ShippedContentIds.NpcTemplates.StreetGanger);
+
+        var before = await placement.UpdateAsync(UserId, DevelopmentDataSeeder.CoffeeShopId, placed.Id, ganger);
+        Assert.Equal(WorldNpcError.Validation, before.Error);
+
+        var pitch = await drafts.FindAsync(GameContentKind.Scene, ShippedContentIds.Scenes.JohnsonWarehouseJob);
+        var rewritten = System.Text.Json.Nodes.JsonNode.Parse(pitch!.PublishedJson!)!.AsObject();
+        rewritten["npcTemplateId"] = ShippedContentIds.NpcTemplates.StreetGanger.ToString();
+        await drafts.SaveDraftAsync(
+            GameContentKind.Scene, ShippedContentIds.Scenes.JohnsonWarehouseJob, "Johnson pitch",
+            rewritten.ToJsonString(), UserId);
+
+        var after = await placement.UpdateAsync(UserId, DevelopmentDataSeeder.CoffeeShopId, placed.Id, ganger);
+        Assert.True(after.IsSuccess, string.Join("; ", after.ValidationErrors.SelectMany(error => error.Value)));
+        Assert.Equal(ShippedContentIds.NpcTemplates.StreetGanger, after.Npc!.TemplateId);
+    }
+
     [Fact]
     public async Task A_johnson_can_hold_a_conversation_that_is_still_a_draft_but_not_one_that_does_not_exist()
     {
@@ -172,5 +199,88 @@ public sealed class WorldNpcPlacementTests : PlaythroughHarness
         Assert.True((await publisher.PublishAsync(GameContentKind.Place, coffeeShop, UserId)).IsSuccess);
 
         Assert.True((await placement.RemoveAsync(UserId, coffeeShop, placed.Id)).IsSuccess);
+    }
+
+    // WF-28: a Johnson moves from one public room to another as the same NPC.
+    [Fact]
+    public async Task A_johnson_moves_between_public_rooms_keeping_who_they_are()
+    {
+        await using var scope = Provider.CreateAsyncScope();
+        var placement = scope.ServiceProvider.GetRequiredService<WorldNpcPlacement>();
+        var placed = (await placement.PlaceAsync(UserId, DevelopmentDataSeeder.CoffeeShopId, Marchetti())).Npc!;
+
+        var moved = await placement.MoveAsync(
+            UserId, DevelopmentDataSeeder.CoffeeShopId, placed.Id, DevelopmentDataSeeder.DowntownStreetId);
+
+        Assert.True(moved.IsSuccess, moved.Reason);
+        Assert.Equal(placed.Id, moved.Npc!.Id);
+        Assert.Equal(DevelopmentDataSeeder.DowntownStreetId, moved.Npc.RoomId);
+        Assert.Equal(ShippedContentIds.Scenes.JohnsonWarehouseJob, moved.Npc.SceneId);
+        await using var db = Db();
+        Assert.Equal(
+            DevelopmentDataSeeder.DowntownStreetId,
+            (await db.NpcInstances.AsNoTracking().SingleAsync(npc => npc.Id == placed.Id)).RoomId);
+        Assert.True(await db.AuditRecords.AnyAsync(audit =>
+            audit.Action == AuditActions.WorldNpcMoved && audit.TargetId == placed.Id));
+
+        // Asked of the room they no longer stand in, there is nobody to move.
+        var gone = await placement.MoveAsync(
+            UserId, DevelopmentDataSeeder.CoffeeShopId, placed.Id, DevelopmentDataSeeder.AlleyId);
+        Assert.Equal(WorldNpcError.NpcNotFound, gone.Error);
+    }
+
+    [Fact]
+    public async Task A_world_npc_is_not_moved_into_a_job_site_or_mid_conversation()
+    {
+        await using var scope = Provider.CreateAsyncScope();
+        var placement = scope.ServiceProvider.GetRequiredService<WorldNpcPlacement>();
+        var placed = (await placement.PlaceAsync(UserId, DevelopmentDataSeeder.CoffeeShopId, Marchetti())).Npc!;
+
+        var intoSite = await placement.MoveAsync(
+            UserId, DevelopmentDataSeeder.CoffeeShopId, placed.Id, WarehouseLoadingDockMapRoomId);
+        Assert.Equal(WorldNpcError.Validation, intoSite.Error);
+        Assert.Contains("toRoomId", intoSite.ValidationErrors.Keys);
+
+        await using (var db = Db())
+        {
+            db.SceneSessions.Add(new SceneSession
+            {
+                CharacterId = CharacterId,
+                SceneId = ShippedContentIds.Scenes.JohnsonWarehouseJob,
+                CurrentNodeId = ShippedContentIds.SceneNodes.Greeting,
+                RoomId = DevelopmentDataSeeder.CoffeeShopId,
+                NpcInstanceId = placed.Id,
+                CreatedAtUtc = DateTimeOffset.UtcNow,
+                UpdatedAtUtc = DateTimeOffset.UtcNow,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var talking = await placement.MoveAsync(
+            UserId, DevelopmentDataSeeder.CoffeeShopId, placed.Id, DevelopmentDataSeeder.DowntownStreetId);
+        Assert.Equal(WorldNpcError.InUse, talking.Error);
+    }
+
+    [Fact]
+    public async Task An_npc_a_listener_names_is_not_moved()
+    {
+        await using var scope = Provider.CreateAsyncScope();
+        var placement = scope.ServiceProvider.GetRequiredService<WorldNpcPlacement>();
+        var placed = (await placement.PlaceAsync(UserId, DevelopmentDataSeeder.CoffeeShopId, Marchetti())).Npc!;
+
+        var store = scope.ServiceProvider.GetRequiredService<IGameContentStore>();
+        var publisher = scope.ServiceProvider.GetRequiredService<GameContentPublisher>();
+        var coffeeShop = DevelopmentDataSeeder.CoffeeShopId;
+        var events = $$"""
+            { "id": "{{coffeeShop}}", "displayName": "Coffee Shop", "triggers": [
+              { "id": "{{Guid.NewGuid()}}", "event": "playerEnteredRoom",
+                "reactions": [{ "kind": "npcSpeaks", "npcId": "{{placed.Id}}", "text": "Sit." }] }] }
+            """;
+        await store.SaveDraftAsync(GameContentKind.Place, coffeeShop, "Coffee Shop", events, UserId);
+        Assert.True((await publisher.PublishAsync(GameContentKind.Place, coffeeShop, UserId)).IsSuccess);
+
+        var refused = await placement.MoveAsync(UserId, coffeeShop, placed.Id, DevelopmentDataSeeder.DowntownStreetId);
+        Assert.Equal(WorldNpcError.InUse, refused.Error);
+        Assert.Contains("room events 'Coffee Shop'", refused.Reason);
     }
 }

@@ -1,3 +1,4 @@
+using SeattleByNight.Domain;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.Movement;
@@ -96,8 +97,7 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
                     exit.SourceRoomId,
                     exit.DestinationRoomId,
                     exit.Direction,
-                    exit.IsHidden,
-                    true));
+                    [.. exit.States, ExitStates.Locked]));
 
             Assert.Equal(WorldMutationError.None, update.Error);
         }

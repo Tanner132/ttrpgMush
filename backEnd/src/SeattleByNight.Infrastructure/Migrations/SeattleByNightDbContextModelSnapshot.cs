@@ -1316,17 +1316,16 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("character varying(9)")
                         .HasColumnName("direction");
 
-                    b.Property<bool>("IsHidden")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_hidden");
-
-                    b.Property<bool>("IsLocked")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_locked");
-
                     b.Property<Guid>("SourceRoomId")
                         .HasColumnType("uuid")
                         .HasColumnName("source_room_id");
+
+                    b.PrimitiveCollection<string[]>("States")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasColumnName("states")
+                        .HasDefaultValueSql("'{}'::text[]");
 
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
@@ -1345,6 +1344,8 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.ToTable("room_exits", null, t =>
                         {
                             t.HasCheckConstraint("ck_room_exits_direction", "direction IN ('north','northeast','east','southeast','south','southwest','west','northwest','up','down')");
+
+                            t.HasCheckConstraint("ck_room_exits_states", "states <@ ARRAY['locked','hidden','private','restricted']::text[]");
                         });
                 });
 

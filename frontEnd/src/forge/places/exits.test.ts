@@ -11,8 +11,8 @@ vi.mock('../api.ts', async (importOriginal) => {
   return mocked
 })
 
-const out = { sourceRoomId: Rooms.downtown.id, destinationRoomId: Rooms.coffee.id, direction: 'east' as const, isHidden: false, isLocked: false }
-const back = { sourceRoomId: Rooms.coffee.id, destinationRoomId: Rooms.downtown.id, direction: 'west' as const, isHidden: false, isLocked: false }
+const out = { sourceRoomId: Rooms.downtown.id, destinationRoomId: Rooms.coffee.id, direction: 'east' as const, states: [] }
+const back = { sourceRoomId: Rooms.coffee.id, destinationRoomId: Rooms.downtown.id, direction: 'west' as const, states: [] }
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -37,9 +37,9 @@ describe('joining a newly built room', () => {
   it('corrects the exit already there when it should be locked or hidden', async () => {
     vi.mocked(api.getWorld).mockResolvedValue(world())
 
-    await joinRooms({ ...out, isLocked: true }, back)
+    await joinRooms({ ...out, states: ['locked'] }, back)
 
-    expect(api.updateExit).toHaveBeenCalledWith(`${Rooms.downtown.id}-east`, { ...out, isLocked: true, version: `${Rooms.downtown.id}-east-v1` })
+    expect(api.updateExit).toHaveBeenCalledWith(`${Rooms.downtown.id}-east`, { ...out, states: ['locked'], version: `${Rooms.downtown.id}-east-v1` })
     expect(api.createExit).not.toHaveBeenCalled()
   })
 

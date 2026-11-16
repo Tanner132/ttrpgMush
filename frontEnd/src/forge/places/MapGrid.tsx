@@ -27,7 +27,11 @@ function linkBetween(exits: WorldExit[], a: WorldRoom | undefined, b: WorldRoom 
       (exit.sourceRoomId === b.id && exit.destinationRoomId === a.id),
   )
   if (joining.length === 0) return null
-  return { hidden: joining.some((exit) => exit.isHidden), locked: joining.some((exit) => exit.isLocked) }
+  // Anything that shuts a door (locked, restricted, private) draws it as locked.
+  return {
+    hidden: joining.some((exit) => exit.states.includes('hidden')),
+    locked: joining.some((exit) => exit.states.some((state) => state !== 'hidden')),
+  }
 }
 
 function linkClass(base: string, link: Link) {

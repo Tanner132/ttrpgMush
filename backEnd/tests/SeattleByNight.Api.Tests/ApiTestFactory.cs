@@ -1,3 +1,4 @@
+using SeattleByNight.Domain;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -272,8 +273,7 @@ public sealed class ApiTestFactory : IAsyncLifetime
             SourceRoomId = sourceRoomId,
             DestinationRoomId = destinationRoomId,
             Direction = direction,
-            IsHidden = isHidden,
-            IsLocked = isLocked
+            States = ExitStates.Of(isHidden, isLocked)
         };
 
         db.RoomExits.Add(exit);

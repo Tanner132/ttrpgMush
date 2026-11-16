@@ -198,8 +198,7 @@ public sealed class WorldEditorStore : IWorldEditorStore
             SourceRoomId = mutation.SourceRoomId,
             DestinationRoomId = mutation.DestinationRoomId,
             Direction = mutation.Direction,
-            IsHidden = mutation.IsHidden,
-            IsLocked = mutation.IsLocked,
+            States = ExitStates.Normalize(mutation.States),
             CreatedAtUtc = GetDatabaseTimestamp(),
             Version = Guid.NewGuid()
         };
@@ -251,8 +250,7 @@ public sealed class WorldEditorStore : IWorldEditorStore
         exit.SourceRoomId = mutation.SourceRoomId;
         exit.DestinationRoomId = mutation.DestinationRoomId;
         exit.Direction = mutation.Direction;
-        exit.IsHidden = mutation.IsHidden;
-        exit.IsLocked = mutation.IsLocked;
+        exit.States = ExitStates.Normalize(mutation.States);
         exit.Version = Guid.NewGuid();
 
         _auditWriter.Append(actorUserId, AuditActions.RoomExitUpdated, AuditTargetTypes.RoomExit, exit.Id,
@@ -607,8 +605,7 @@ public sealed class WorldEditorStore : IWorldEditorStore
         exit.DestinationRoomId,
         destination.Name,
         exit.Direction,
-        exit.IsHidden,
-        exit.IsLocked,
+        exit.States,
         exit.CreatedAtUtc,
         exit.Version);
 
@@ -629,8 +626,7 @@ public sealed class WorldEditorStore : IWorldEditorStore
             ["sourceRoomId"] = exit.SourceRoomId.ToString(),
             ["destinationRoomId"] = exit.DestinationRoomId.ToString(),
             ["direction"] = exit.Direction,
-            ["isHidden"] = exit.IsHidden.ToString(),
-            ["isLocked"] = exit.IsLocked.ToString(),
+            ["states"] = string.Join(',', exit.States),
             ["version"] = exit.Version.ToString()
         };
 

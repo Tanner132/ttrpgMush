@@ -1,4 +1,5 @@
 import { ApiError, apiDelete, apiGet, apiPost, apiPut } from '../api/client.ts'
+import type { ExitState } from '../api/exitStates.ts'
 
 /*
  * The World Forge's server surface. Since WF-27 every authored record is keyed
@@ -268,6 +269,8 @@ export const DirectionOffset: Record<ExitDirection, { dx: number; dy: number; dz
   down: { dx: 0, dy: 0, dz: -1 },
 }
 
+export type { ExitState } from '../api/exitStates.ts'
+
 export interface WorldExit {
   id: Guid
   sourceRoomId: Guid
@@ -275,8 +278,7 @@ export interface WorldExit {
   destinationRoomId: Guid
   destinationRoomName: string
   direction: ExitDirection
-  isHidden: boolean
-  isLocked: boolean
+  states: ExitState[]
   createdAtUtc: string
   version: string
 }
@@ -296,8 +298,7 @@ export interface ExitInput {
   sourceRoomId: Guid
   destinationRoomId: Guid
   direction: ExitDirection
-  isHidden: boolean
-  isLocked: boolean
+  states: ExitState[]
 }
 
 export interface RoomDeletionCheck {
@@ -408,6 +409,11 @@ export function placeRoomNpc(roomId: Guid, input: WorldNpcInput): Promise<WorldN
 
 export function updateRoomNpc(roomId: Guid, npcId: Guid, input: WorldNpcInput): Promise<WorldNpc> {
   return apiPut<WorldNpc>(`${world}/rooms/${roomId}/npcs/${npcId}`, input)
+}
+
+/** Moves a world NPC to another public room, as the same NPC. */
+export function moveRoomNpc(roomId: Guid, npcId: Guid, toRoomId: Guid): Promise<WorldNpc> {
+  return apiPost<WorldNpc>(`${world}/rooms/${roomId}/npcs/${npcId}/move`, { toRoomId })
 }
 
 export function removeRoomNpc(roomId: Guid, npcId: Guid): Promise<void> {

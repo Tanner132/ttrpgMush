@@ -49,8 +49,9 @@ public sealed class GameContentPublisher(
         CancellationToken cancellationToken = default)
     {
         var served = await store.ListServedAsync(cancellationToken);
+        var retired = GameContentComposer.RetiredIds(await store.ListRetiredKeysAsync(cancellationToken));
         return await ValidateWithMapAsync(
-            served.Select(record => (record.Kind, record.PublishedJson!)), cancellationToken);
+            served.Select(record => (record.Kind, record.PublishedJson!)), retired, cancellationToken);
     }
 
     public async Task<GameContentPublishResult> PublishAsync(
@@ -179,18 +180,26 @@ public sealed class GameContentPublisher(
             .Select(record => (record.Kind, record.PublishedJson!))
             .Concat(candidates.Select(candidate => (candidate.Kind, candidate.DraftJson)));
 
-        return await ValidateWithMapAsync(corpus, cancellationToken);
+        // Publishing brings a retired definition back, so a candidate counts
+        // as live whatever it was before.
+        var retired = GameContentComposer.RetiredIds(await store.ListRetiredKeysAsync(cancellationToken))
+            .Where(id => !candidates.Any(candidate => candidate.ContentKey == id))
+            .ToHashSet();
+
+        return await ValidateWithMapAsync(corpus, retired, cancellationToken);
     }
 
     // WF-25: the loader's checks, then the job-site checks only the map can
     // answer (are the site's rooms Private map rooms, and connected).
     private async Task<GameContentPublishResult> ValidateWithMapAsync(
-        IEnumerable<(GameContentKind Kind, string Json)> corpus, CancellationToken cancellationToken)
+        IEnumerable<(GameContentKind Kind, string Json)> corpus,
+        IReadOnlySet<Guid> retired,
+        CancellationToken cancellationToken)
     {
         GameContentDocument document;
         try
         {
-            document = GameContentComposer.ComposeAndLoad(corpus, "validation");
+            document = GameContentComposer.ComposeAndLoad(corpus, "validation", retired);
         }
         catch (GameContentException exception)
         {
@@ -211,13 +220,14 @@ public sealed class GameContentPublisher(
     // Public because the retire/delete lifecycle asks the same question of a
     // corpus with a definition removed: would what is left still load?
     public static GameContentPublishResult ValidateCorpus(
-        IEnumerable<(GameContentKind Kind, string Json)> corpus)
+        IEnumerable<(GameContentKind Kind, string Json)> corpus,
+        IReadOnlySet<Guid>? retired = null)
     {
         try
         {
             // The version stamp is cosmetic during validation; the real one is
             // stamped when the provider composes the live document.
-            GameContentComposer.ComposeAndLoad(corpus, "validation");
+            GameContentComposer.ComposeAndLoad(corpus, "validation", retired);
             return GameContentPublishResult.Success();
         }
         catch (GameContentException exception)

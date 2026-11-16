@@ -133,6 +133,8 @@ public sealed class RoomChatHub : Hub<IRoomChatClient>
                 MoveCharacterError.ExitNotFromCurrentRoom => "That exit is not available from your current room.",
                 MoveCharacterError.ExitHidden => "Exit not found.",
                 MoveCharacterError.ExitLocked => "That exit is locked.",
+                MoveCharacterError.ExitRestricted => "You can't get in that way right now.",
+                MoveCharacterError.ExitPrivate => "That's private. You can't go in.",
                 MoveCharacterError.DestinationUnavailable => "Destination is unavailable.",
                 MoveCharacterError.StaleRoom => "Your location changed. Reconnect to resynchronize.",
                 _ => "Could not move."

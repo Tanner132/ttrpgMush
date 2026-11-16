@@ -164,8 +164,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
             sourceRoomId = room.Id,
             destinationRoomId = Guid.NewGuid(),
             direction = "east",
-            isHidden = false,
-            isLocked = false
+            states = Array.Empty<string>()
         });
         Assert.Equal(HttpStatusCode.NotFound, missingResponse.StatusCode);
 
@@ -174,8 +173,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
             sourceRoomId = room.Id,
             destinationRoomId = room.Id,
             direction = "up",
-            isHidden = true,
-            isLocked = false,
+            states = new[] { "hidden" },
             id = Guid.NewGuid(),
             version = Guid.NewGuid()
         });
@@ -190,18 +188,36 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
             sourceRoomId = room.Id,
             destinationRoomId = room.Id,
             direction = "down",
-            isHidden = false,
-            isLocked = true,
+            states = new[] { "restricted", "locked" },
             version = created.Version
         };
         var updateResponse = await admin.PutAsJsonAsync($"/api/admin/world/exits/{created.Id}", update);
         updateResponse.EnsureSuccessStatusCode();
         var updated = (await updateResponse.Content.ReadFromJsonAsync<WorldExitDto>())!;
-        Assert.True(updated.IsLocked);
+        Assert.Equal(["locked", "restricted"], updated.States);
         Assert.NotEqual(created.Version, updated.Version);
 
         var staleResponse = await admin.PutAsJsonAsync($"/api/admin/world/exits/{created.Id}", update);
         Assert.Equal(HttpStatusCode.Conflict, staleResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task ExitCreate_RefusesAnUnknownDoorState()
+    {
+        var admin = await _factory.LoginDevAdminAsync();
+        var room = (await (await admin.PostAsJsonAsync("/api/admin/world/rooms", ValidRoom()))
+            .Content.ReadFromJsonAsync<WorldRoomDto>())!;
+
+        var response = await admin.PostAsJsonAsync("/api/admin/world/exits", new
+        {
+            sourceRoomId = room.Id,
+            destinationRoomId = room.Id,
+            direction = "up",
+            states = new[] { "unlocked" },
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("Unknown door state: unlocked", await response.Content.ReadAsStringAsync());
     }
 
     [Theory]
@@ -220,8 +236,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
             sourceRoomId = room.Id,
             destinationRoomId = room.Id,
             direction,
-            isHidden = false,
-            isLocked = false
+            states = Array.Empty<string>()
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -238,8 +253,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
             sourceRoomId = room.Id,
             destinationRoomId = room.Id,
             direction = "up",
-            isHidden = false,
-            isLocked = false
+            states = Array.Empty<string>()
         })).Content.ReadFromJsonAsync<WorldExitDto>())!;
 
         var response = await admin.DeleteAsync($"/api/admin/world/exits/{created.Id}");
@@ -420,8 +434,7 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
         Guid DestinationRoomId,
         string DestinationRoomName,
         string Direction,
-        bool IsHidden,
-        bool IsLocked,
+        IReadOnlyList<string> States,
         DateTimeOffset CreatedAtUtc,
         Guid Version);
 }

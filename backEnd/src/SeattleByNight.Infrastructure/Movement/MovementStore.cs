@@ -1,3 +1,4 @@
+using SeattleByNight.Domain;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Domain.Entities;
@@ -71,8 +72,7 @@ public sealed class MovementStore : IMovementStore
                 e.Id,
                 e.SourceRoomId,
                 e.DestinationRoomId,
-                e.IsHidden,
-                e.IsLocked,
+                e.States,
                 _dbContext.Rooms.Any(r => r.Id == e.DestinationRoomId
                     && (r.AccessType == RoomAccessType.Public
                         || (r.EncounterInstanceId != null
@@ -86,18 +86,35 @@ public sealed class MovementStore : IMovementStore
             return MovementStoreResult.Failure(MoveCharacterError.ExitNotFound);
         }
 
-        if (exit.IsHidden)
+        if (exit.Has(ExitStates.Hidden))
         {
             await transaction.RollbackAsync(cancellationToken);
             return MovementStoreResult.Failure(MoveCharacterError.ExitHidden);
         }
 
-        if (exit.IsLocked)
+        if (exit.Has(ExitStates.Locked))
         {
             await transaction.RollbackAsync(cancellationToken);
             return exit.SourceRoomId == character.CurrentRoomId
                 ? MovementStoreResult.Locked(session.Id, exit.SourceRoomId)
                 : MovementStoreResult.Failure(MoveCharacterError.ExitLocked);
+        }
+
+        // Workstream 8: restricted stops entry only. Exits are one-way rows,
+        // so it sits on the doors INTO a room and never on the way out.
+        if (exit.Has(ExitStates.Restricted))
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return exit.SourceRoomId == character.CurrentRoomId
+                ? MovementStoreResult.Restricted(session.Id, exit.SourceRoomId)
+                : MovementStoreResult.Failure(MoveCharacterError.ExitRestricted);
+        }
+
+        // A player's own room (workstream 7). Nobody can be let in yet.
+        if (exit.Has(ExitStates.Private))
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return MovementStoreResult.Failure(MoveCharacterError.ExitPrivate);
         }
 
         if (exit.SourceRoomId != character.CurrentRoomId)

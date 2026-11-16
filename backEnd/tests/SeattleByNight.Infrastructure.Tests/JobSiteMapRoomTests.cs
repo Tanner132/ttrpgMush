@@ -1,3 +1,4 @@
+using SeattleByNight.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,10 +69,10 @@ public sealed class JobSiteMapRoomTests : PlaythroughHarness
         {
             var floorToStorage = await db.RoomExits.SingleAsync(exit =>
                 exit.SourceRoomId == WarehouseFloorMapRoomId && exit.DestinationRoomId == StorageRoomMapRoomId);
-            floorToStorage.IsLocked = true;
+            floorToStorage.States = [ExitStates.Locked];
             var dockToFloor = await db.RoomExits.SingleAsync(exit =>
                 exit.SourceRoomId == LoadingDockMapRoomId && exit.DestinationRoomId == WarehouseFloorMapRoomId);
-            dockToFloor.IsHidden = true;
+            dockToFloor.States = [ExitStates.Hidden];
             await db.SaveChangesAsync();
         }
 
@@ -87,7 +88,7 @@ public sealed class JobSiteMapRoomTests : PlaythroughHarness
             where source.EncounterInstanceId != null
                 && source.SourceRoomId == ShippedContentIds.SiteRooms.WarehouseFloor
                 && destination.SourceRoomId == ShippedContentIds.SiteRooms.StorageRoom
-            select exit.IsLocked).SingleAsync();
+            select exit.States.Contains(ExitStates.Locked)).SingleAsync();
         Assert.True(copiedLock);
     }
 
@@ -143,7 +144,7 @@ public sealed class JobSiteMapRoomTests : PlaythroughHarness
         await using var scope = Provider.CreateAsyncScope();
         var reader = scope.ServiceProvider.GetRequiredService<IRoomSessionReader>();
         var session = await reader.GetByPlaySessionIdAsync(PlaySessionId, null);
-        return Assert.Single(session!.Exits, exit => exit.Id == doorId).IsLocked;
+        return Assert.Single(session!.Exits, exit => exit.Id == doorId).States.Contains(ExitStates.Locked);
     }
 
     [Fact]

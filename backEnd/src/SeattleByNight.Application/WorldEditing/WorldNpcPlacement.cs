@@ -1,3 +1,5 @@
+using System.Text.Json;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Npcs;
 using SeattleByNight.Domain.Enums;
@@ -59,6 +61,11 @@ public interface IWorldNpcStore
         Guid actorUserId, Guid roomId, Guid npcId, ValidWorldNpc npc, CancellationToken cancellationToken);
 
     Task<WorldNpcResult> RemoveAsync(Guid actorUserId, Guid roomId, Guid npcId, CancellationToken cancellationToken);
+
+    // Moves the NPC to another room, keeping everything else about them
+    // (damage, awareness, conversation). Refused mid-conversation.
+    Task<WorldNpcResult> MoveAsync(
+        Guid actorUserId, Guid roomId, Guid npcId, Guid toRoomId, CancellationToken cancellationToken);
 }
 
 public sealed record ValidWorldNpc(
@@ -69,7 +76,7 @@ public sealed record ValidWorldNpc(
     NpcAwareness Awareness);
 
 public sealed class WorldNpcPlacement(
-    IWorldNpcStore store, IGameContentProvider content, IGameContentStore drafts)
+    IWorldNpcStore store, IGameContentProvider content, IGameContentStore drafts, ICombatTracker combat)
 {
     public const int MaxNameLength = 200;
     public const int MaxDescriptionLength = 2000;
@@ -131,6 +138,56 @@ public sealed class WorldNpcPlacement(
         }
 
         return await store.RemoveAsync(actorUserId, roomId, npcId, cancellationToken);
+    }
+
+    // WF-28: a Johnson is moved from Jobs (or Places) without losing who they
+    // are. Content names an NPC by id together with the room it stands in, so
+    // a move a live listener depends on is refused the way a removal is.
+    public async Task<WorldNpcResult> MoveAsync(
+        Guid actorUserId, Guid roomId, Guid npcId, Guid toRoomId, CancellationToken cancellationToken = default)
+    {
+        var room = await CheckRoomAsync(roomId, cancellationToken);
+        if (room is not null)
+        {
+            return room;
+        }
+
+        if (toRoomId == roomId)
+        {
+            return WorldNpcResult.Invalid(new Dictionary<string, string[]>
+            {
+                ["toRoomId"] = ["They already stand here."],
+            });
+        }
+
+        var destination = await CheckRoomAsync(toRoomId, cancellationToken);
+        if (destination is not null)
+        {
+            return destination.Error == WorldNpcError.Validation
+                ? WorldNpcResult.Invalid(new Dictionary<string, string[]>
+                {
+                    ["toRoomId"] = destination.ValidationErrors["roomId"],
+                })
+                : destination;
+        }
+
+        var listeners = ListenersNaming(npcId).ToArray();
+        if (listeners.Length > 0)
+        {
+            return WorldNpcResult.Failure(
+                WorldNpcError.InUse,
+                $"Events name this NPC where they stand: {string.Join(", ", listeners)}. Remove those listeners first.");
+        }
+
+        // A fight holds its NPCs in memory by room; moving one out from under
+        // it would leave the fight with someone who is no longer there.
+        if (combat.Get(roomId) is not null)
+        {
+            return WorldNpcResult.Failure(
+                WorldNpcError.InUse, "There is a fight in this room. Try again once it is over.");
+        }
+
+        return await store.MoveAsync(actorUserId, roomId, npcId, toRoomId, cancellationToken);
     }
 
     private IEnumerable<string> ListenersNaming(Guid npcId)
@@ -232,7 +289,8 @@ public sealed class WorldNpcPlacement(
             }
             else if (scene.NpcTemplateId is { } boundTemplate
                 && template is not null
-                && boundTemplate != template.TemplateId)
+                && boundTemplate != template.TemplateId
+                && !await DraftIsWrittenForAsync(boundSceneId, template.TemplateId, cancellationToken))
             {
                 // The conversation's rolls (an opposed negotiation, say) are
                 // written against its own stat block's pools.
@@ -253,5 +311,33 @@ public sealed class WorldNpcPlacement(
         return errors.Count == 0
             ? (new ValidWorldNpc(template!.TemplateId, name!, description, sceneId, awareness), errors)
             : (null, errors);
+    }
+
+    // WF-28: a Johnson's stat block is changed from their job, which rewrites
+    // the conversation for the new block first. Until that goes live the
+    // served conversation still names the old one, so the saved draft is what
+    // says the change is under way.
+    private async Task<bool> DraftIsWrittenForAsync(
+        Guid sceneId, Guid templateId, CancellationToken cancellationToken)
+    {
+        var draft = await drafts.FindAsync(GameContentKind.Scene, sceneId, cancellationToken);
+        if (draft is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            using var json = JsonDocument.Parse(draft.DraftJson);
+            return json.RootElement.ValueKind == JsonValueKind.Object
+                && json.RootElement.TryGetProperty("npcTemplateId", out var bound)
+                && bound.ValueKind == JsonValueKind.String
+                && bound.TryGetGuid(out var draftTemplate)
+                && draftTemplate == templateId;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 }

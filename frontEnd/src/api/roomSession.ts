@@ -35,8 +35,10 @@ export interface RoomExitSummary {
   direction: string
   destinationRoomId: string
   destinationRoomName: string
-  isLocked: boolean
+  /** What the player can see of the door: locked, restricted, private. Empty: open. Hidden doors are not listed. */
+  states: string[]
 }
+
 
 export interface RoomMessage {
   id: string

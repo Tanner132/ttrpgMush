@@ -1,3 +1,4 @@
+using SeattleByNight.Domain;
 using System.Text.Json.Nodes;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -144,7 +145,7 @@ public sealed class PlaceEventPlaythroughTests : PlaythroughHarness
         await using (var db = Db())
         {
             var exit = await db.RoomExits.SingleAsync(row => row.Id == DevelopmentDataSeeder.AlleyToDowntownExitId);
-            exit.IsLocked = true;
+            exit.States = [ExitStates.Locked];
             await db.SaveChangesAsync();
         }
 

@@ -46,7 +46,7 @@ architectural change.
 | Layer | Stack |
 | --- | --- |
 | Backend | C# / ASP.NET Core on .NET 10, EF Core 10 + Npgsql, PostgreSQL 17, ASP.NET Core Identity, MediatR, SignalR, OpenAPI |
-| Frontend | React 19, TypeScript (strict), Vite 8, React Router 7, `@microsoft/signalr`, Oxlint, Vitest. No component framework or global state library. API types are generated from the committed OpenAPI document (`npm run gen:api`). |
+| Frontend | React 19, TypeScript (strict), Vite 8, React Router 7, `@microsoft/signalr`, Oxlint, Vitest. No component framework or global state library. API types are written by hand; `npm run gen:api` generates `src/api/generated/schema.d.ts` from the committed OpenAPI document, and the Forge's request types are checked against it at compile time (`forge/api.contract.ts`). The document declares request bodies only. |
 | Tests | xUnit; Testcontainers.PostgreSql for Infrastructure and Api tests (never EF's in-memory provider) |
 | Delivery | Docker Compose; GitHub Actions CI with a self-hosted deploy runner |
 
@@ -88,10 +88,15 @@ StateChanges, Tests).
 ## World model
 
 - **Room** — name, description, access type, and required immutable coordinates
-  `(x, y, layer)` unique within a layer. `RoomAccessType` contains only `Public`.
+  `(x, y, layer)` unique within a layer. `RoomAccessType` is `Public`, `Private` (a job site's room) or `Instanced`
+  (a run's copy of one); see "Job sites are map rooms" below.
 - **RoomExit** — a directed edge with one of ten directions (eight compass
-  points, `up`, `down`) and hidden/locked flags. At most one exit per direction
-  per source room. Exits have no names.
+  points, `up`, `down`) and a `states` array (`ExitStates`: `locked`, `hidden`,
+  `restricted`, `private`; empty is an open door, workstream 8). Hidden,
+  locked and restricted refuse entry; restricted sits on the doors into a room,
+  so leaving is never refused; private refuses entry until player homes exist.
+  Door state is shared world state. At most one exit per direction per source
+  room. Exits have no names.
 - Coordinates place a room in the editor and seed default adjacency only.
   Creating a room creates both directed exits to each occupied same-layer
   neighbor; after that, persisted exits are authoritative and may diverge from
@@ -272,13 +277,19 @@ built follows it; these are the load-bearing rules.
   A room's own reactions are a `Place` definition keyed by the room's id; they
   fire every time. A job's listeners live on the mission, each naming a room
   (its site, or a public room); only one job may listen to a given event
-  (room + kind + subject), and they fire once per run. The room reacts first,
+  (room + kind + subject), and they fire once per run. A retired job holds no
+  events: another job may take one over, and the retired job's listeners
+  still reach runs already under way (the loader is given the store's retired
+  ids). Publishing the retired job again is refused if its event has been
+  taken. The room reacts first,
   then the job. In a public room, narration goes to the player who caused it
   and a job's lines reach only its runner while the room sees a cover line
   (`othersSee`). Johnsons are world NPCs placed in Public rooms
   (`WorldNpcPlacement`), and may be bound to a conversation that is still a
   draft: they are placed while the job is written and have nothing to say
-  until it is live. Room events beyond entry (WF-21): `sneakAttempted`
+  until it is live. A world NPC can be moved between Public rooms as the same
+  row (`WorldNpcPlacement.MoveAsync`), except mid-conversation, during a fight
+  in their room, or while a live listener names them. Room events beyond entry (WF-21): `sneakAttempted`
   (with outcome), `combatStarted`, `lockedExitTried`, `playerLeftRoom`.
 - **Deleting (WF-27).** Deleting a room deletes its NPCs, items, inspectables,
   its own events and its exits both ways; it is refused while a job listens to
@@ -294,7 +305,10 @@ built follows it; these are the load-bearing rules.
   job, so those definitions cannot pass the publish gate — or the delete gate
   — one at a time. `GameContentPublisher.PublishSetAsync` and
   `GameContentLifecycle.DeleteSetAsync` check the set as one candidate corpus
-  and promote or delete all of it, or none.
+  and promote or delete all of it, or none. Deleting a job from the Forge also
+  deletes the prompts its events open that nothing else uses (the author can
+  keep any), and removes its Johnson or leaves them standing with no
+  conversation.
 - **Rewards.** Karma and nuyen are granted through the career ledger, keyed by
   mission instance, exactly once.
 - The action and test catalogs are still partly code-defined

@@ -68,8 +68,14 @@ public static class GameContentComposer
     // Composes and validates in one step — the publish gate, and the same
     // call the provider makes when it reloads.
     public static GameContentDocument ComposeAndLoad(
-        IEnumerable<(GameContentKind Kind, string Json)> definitions, string version) =>
-        GameContentLoader.Load(Compose(definitions, version));
+        IEnumerable<(GameContentKind Kind, string Json)> definitions,
+        string version,
+        IReadOnlySet<Guid>? retired = null) =>
+        GameContentLoader.Load(Compose(definitions, version), retired);
+
+    // The store lists retired keys per kind; the loader only needs the ids.
+    public static IReadOnlySet<Guid> RetiredIds(IReadOnlyDictionary<GameContentKind, IReadOnlySet<Guid>> retired) =>
+        retired.Values.SelectMany(keys => keys).ToHashSet();
 
     // Splits a merged document (the embedded bundle, at import) into one
     // fragment per definition, keeping each payload's authored JSON verbatim

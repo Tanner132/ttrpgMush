@@ -1,14 +1,18 @@
 import { useState } from 'react'
+import { toErrorMessage } from '../../api/client.ts'
 import { Button } from '../../components/ui/Button.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
-import { deleteSet, publishSet, retireDefinition, validateSet } from '../api.ts'
-import { Chip, Section } from '../fields.tsx'
+import { deleteSet, listRoomNpcs, publishSet, removeRoomNpc, retireDefinition, updateRoomNpc, validateSet, type Guid } from '../api.ts'
+import { Check, Chip, Section, Segmented } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { useAction, useLoad } from '../hooks.ts'
-import type { Mission } from '../model.ts'
+import { openedSceneIds, type Mission } from '../model.ts'
 import { useForgeNavigate } from '../navigation.ts'
 import { Steps, type JobCheck, type StepId } from './checks.ts'
+import { findPromptUses } from './deletion.ts'
 import type { Job } from './useJob.ts'
+
+type JohnsonFate = 'remove' | 'keep'
 
 /**
  * Going live. The checks the builder can make itself come first, each pointing
@@ -16,7 +20,7 @@ import type { Job } from './useJob.ts'
  * drafts exactly as a publish would and has the last word.
  */
 export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission: Mission; checks: JobCheck[]; onStep: (step: StepId) => void }) {
-  const { summary, references, refreshContent } = useForgeData()
+  const { summary, definitions, references, refreshContent, refreshWorld } = useForgeData()
   const navigate = useForgeNavigate()
   const listed = summary('Mission', job.id)
   const records = job.publishSet()
@@ -25,6 +29,21 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
   const lifecycle = useAction()
   const [notice, setNotice] = useState<string | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [johnsonFate, setJohnsonFate] = useState<JohnsonFate>('remove')
+  // Prompts the author chose to keep; the rest that nothing else uses go with the job.
+  const [keptPrompts, setKeptPrompts] = useState<Set<Guid>>(new Set())
+
+  // The site goes with the job unless another job is built on it.
+  const siteShared = references.missions.some((other) => other.id !== job.id && other.encounterId === mission.encounterId)
+  const promptIds = openedSceneIds(mission).filter((id) => id !== job.pitchId && summary('Scene', id) !== undefined)
+  const promptUses = useLoad(
+    async (signal) =>
+      confirmingDelete
+        ? await findPromptUses(promptIds, job.scenes, { jobId: job.id, siteGoing: siteShared ? null : mission.encounterId, definitions, references }, signal)
+        : null,
+    [confirmingDelete, promptIds.join(',')],
+  )
+  const promptsGoing = (promptUses.data ?? []).filter((use) => use.usedBy.length === 0 && !keptPrompts.has(use.id)).map((use) => use.id)
 
   // Asked again whenever what is saved changes; never about unsaved edits,
   // which the server has not seen.
@@ -64,14 +83,14 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
   async function remove() {
     const done = await lifecycle.run(async () => {
       // The job goes with the conversation that offers it — each is the only
-      // thing pointing at the other — and with its site, unless another job
-      // is built on that. Prompts stay: another job's events may open them.
-      const shared = references.missions.some((other) => other.id !== job.id && other.encounterId === mission.encounterId)
+      // thing pointing at the other — with its site, unless another job is
+      // built on that, and with the prompts its events open that nothing
+      // else uses (unless the author keeps them).
       const going = records.filter(
         (record) =>
           record.kind === 'Mission' ||
-          (record.kind === 'Scene' && record.contentKey === job.pitchId) ||
-          (record.kind === 'Encounter' && !shared),
+          (record.kind === 'Scene' && (record.contentKey === job.pitchId || promptsGoing.includes(record.contentKey))) ||
+          (record.kind === 'Encounter' && !siteShared),
       )
       const result = await deleteSet(going)
       if (!result.isValid) throw new Error(result.error ?? 'The server refused to delete the job.')
@@ -80,7 +99,39 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
     })
     // A refusal stays on screen with the confirm put away (WF-10).
     setConfirmingDelete(false)
-    if (done) navigate('/admin/forge/jobs')
+    if (!done) return
+
+    // The Johnson is a map row, not content, so they are dealt with once the
+    // job is gone: until then the job's own events may still name them. The
+    // job is deleted either way, so a problem here is reported on the list.
+    const problems: string[] = []
+    for (const johnson of job.johnsons) {
+      try {
+        if (johnsonFate === 'remove') {
+          await removeRoomNpc(johnson.roomId, johnson.id)
+        } else {
+          const record = (await listRoomNpcs(johnson.roomId)).find((npc) => npc.id === johnson.id)
+          if (record) {
+            await updateRoomNpc(johnson.roomId, johnson.id, {
+              templateId: record.templateId,
+              name: record.name,
+              description: record.description,
+              awareness: record.awareness,
+              sceneId: null,
+            })
+          }
+        }
+      } catch (caught) {
+        problems.push(`${johnson.name} (${johnson.roomName}): ${toErrorMessage(caught)}`)
+      }
+    }
+    if (job.johnsons.length > 0) await refreshWorld()
+    navigate(
+      '/admin/forge/jobs',
+      problems.length > 0
+        ? { state: { notice: `${mission.displayName || 'The job'} is deleted, but its Johnson could not be ${johnsonFate === 'remove' ? 'removed' : 'cleared'}: ${problems.join('; ')}` } }
+        : undefined,
+    )
   }
 
   const stepLabel = (id: StepId) => Steps.find((step) => step.id === id)?.label ?? id
@@ -169,22 +220,13 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
             <Button disabled={listed?.status !== 'Published' || lifecycle.busy} onClick={() => void retire()}>
               Retire
             </Button>
-            {confirmingDelete ? (
-              <>
-                <span className="forge__hint">Delete for good? This cannot be undone.</span>
-                <Button intent="danger" busy={lifecycle.busy} aria-label="Confirm delete job" onClick={() => void remove()}>
-                  Yes, delete
-                </Button>
-                <Button disabled={lifecycle.busy} onClick={() => setConfirmingDelete(false)}>
-                  Keep it
-                </Button>
-              </>
-            ) : (
+            {!confirmingDelete && (
               <Button
                 intent="danger"
                 disabled={lifecycle.busy}
                 onClick={() => {
                   lifecycle.setError(null)
+                  setKeptPrompts(new Set())
                   setConfirmingDelete(true)
                 }}
               >
@@ -192,12 +234,79 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
               </Button>
             )}
           </div>
+          {confirmingDelete && (
+            <div className="forge__stack" role="group" aria-label="Delete the job">
+              <p className="forge__hint">
+                Deletes the job, its pitch{siteShared ? '' : ' and its site'}. {siteShared ? 'The site stays: another job is built on it.' : ''}
+              </p>
+              {job.johnsons.length > 0 && (
+                <Segmented
+                  label={job.johnsons.length === 1 ? `Johnson: ${job.johnsons[0].name}` : 'Johnsons'}
+                  value={johnsonFate}
+                  options={[
+                    { id: 'remove', displayName: 'Remove from the map' },
+                    { id: 'keep', displayName: 'Leave standing, nothing to say' },
+                  ]}
+                  onChange={setJohnsonFate}
+                />
+              )}
+              {promptIds.length > 0 && (
+                <div className="forge__subsection">
+                  <h3 className="forge__subsection-title">Prompts its events open</h3>
+                  {promptUses.error && <StatusBanner tone="danger">{promptUses.error}</StatusBanner>}
+                  {promptUses.data === null && !promptUses.error && (
+                    <p className="forge__hint" role="status">
+                      Checking what else uses them…
+                    </p>
+                  )}
+                  <ul className="forge__rows">
+                    {(promptUses.data ?? []).map((use) => (
+                      <li key={use.id} className="forge__row">
+                        {use.usedBy.length === 0 ? (
+                          <Check
+                            label={`Delete ${use.name}`}
+                            checked={!keptPrompts.has(use.id)}
+                            onChange={(going) =>
+                              setKeptPrompts((current) => {
+                                const next = new Set(current)
+                                if (going) next.delete(use.id)
+                                else next.add(use.id)
+                                return next
+                              })
+                            }
+                          />
+                        ) : (
+                          <span className="forge__muted">
+                            {use.name} stays: also used by {use.usedBy.join(', ')}.
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="forge__actions">
+                <span className="forge__hint">Delete for good? This cannot be undone.</span>
+                <Button
+                  intent="danger"
+                  busy={lifecycle.busy}
+                  disabled={promptIds.length > 0 && promptUses.data === null && !promptUses.error}
+                  aria-label="Confirm delete job"
+                  onClick={() => void remove()}
+                >
+                  Yes, delete
+                </Button>
+                <Button disabled={lifecycle.busy} onClick={() => setConfirmingDelete(false)}>
+                  Keep it
+                </Button>
+              </div>
+            </div>
+          )}
           {lifecycle.error && (
             <StatusBanner tone="danger" role="alert">
               {lifecycle.error}
             </StatusBanner>
           )}
-          <p className="forge__hint">A Johnson is part of the map: deleting the job leaves them standing. Remove them from their room in Places.</p>
         </Section>
       </div>
     </div>

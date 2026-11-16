@@ -1,3 +1,4 @@
+using SeattleByNight.Domain;
 using System.Net;
 using System.Net.Http.Json;
 using SeattleByNight.Domain.Entities;
@@ -79,13 +80,11 @@ public sealed class WorldGraphEndpointTests : IClassFixture<ApiTestFactory>
         Assert.Contains(testExits, exit =>
             exit.SourceRoomId == graph.SourceId &&
             exit.DestinationRoomId == graph.OneWayId &&
-            exit.IsHidden &&
-            !exit.IsLocked);
+            exit.States.SequenceEqual([ExitStates.Hidden]));
         Assert.Contains(testExits, exit =>
             exit.SourceRoomId == graph.SourceId &&
             exit.DestinationRoomId == graph.BranchId &&
-            !exit.IsHidden &&
-            exit.IsLocked);
+            exit.States.SequenceEqual([ExitStates.Locked]));
         Assert.Contains(testExits, exit =>
             exit.SourceRoomId == graph.LoopId && exit.DestinationRoomId == graph.LoopId);
         Assert.DoesNotContain(testExits, exit =>
@@ -160,8 +159,7 @@ public sealed class WorldGraphEndpointTests : IClassFixture<ApiTestFactory>
             SourceRoomId = source.Id,
             DestinationRoomId = destination.Id,
             Direction = direction,
-            IsHidden = isHidden,
-            IsLocked = isLocked
+            States = ExitStates.Of(isHidden, isLocked)
         };
 
     private sealed record TestGraph(
@@ -190,8 +188,7 @@ public sealed class WorldGraphEndpointTests : IClassFixture<ApiTestFactory>
         Guid DestinationRoomId,
         string DestinationRoomName,
         string Direction,
-        bool IsHidden,
-        bool IsLocked,
+        IReadOnlyList<string> States,
         DateTimeOffset CreatedAtUtc,
         Guid Version);
 

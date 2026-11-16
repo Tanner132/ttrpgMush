@@ -44,8 +44,8 @@ public sealed record RoomExitMutation(
     Guid SourceRoomId,
     Guid DestinationRoomId,
     string Direction,
-    bool IsHidden,
-    bool IsLocked);
+    // Workstream 8: values from ExitStates; null or empty is an open door.
+    IReadOnlyList<string>? States);
 
 public interface IWorldEditorStore
 {

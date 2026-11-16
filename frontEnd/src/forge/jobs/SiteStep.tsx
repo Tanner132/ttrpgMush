@@ -65,7 +65,7 @@ export function SiteStep({ job, mission }: { job: Job; mission: Mission }) {
     const b = world.rooms.find((room) => room.id === exit.destinationRoomId)
     if (!a || !b) continue
     const existing = doors.get(key)
-    doors.set(key, { a: existing?.a ?? a, b: existing?.b ?? b, locked: (existing?.locked ?? false) || exit.isLocked, hidden: (existing?.hidden ?? false) || exit.isHidden })
+    doors.set(key, { a: existing?.a ?? a, b: existing?.b ?? b, locked: (existing?.locked ?? false) || exit.states.includes('locked'), hidden: (existing?.hidden ?? false) || exit.states.includes('hidden') })
   }
 
   function addRoom(room: WorldRoom) {

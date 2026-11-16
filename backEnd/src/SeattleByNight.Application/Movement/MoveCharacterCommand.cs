@@ -17,6 +17,12 @@ public enum MoveCharacterError
     ExitNotFromCurrentRoom,
     ExitHidden,
     ExitLocked,
+    // Workstream 8: the room beyond is closed to entry (an admin, or later a
+    // fight inside); leaving it is never refused.
+    ExitRestricted,
+    // Workstream 8: the room beyond belongs to a player. Not enterable until
+    // player homes exist (workstream 7).
+    ExitPrivate,
     DestinationUnavailable,
     StaleRoom
 }

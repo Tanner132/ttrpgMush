@@ -182,7 +182,13 @@ public static class GameContentLoader
             Encounter is not null ? [Encounter] : AllEncounters;
     }
 
-    public static GameContentDocument Load(string json)
+    public static GameContentDocument Load(string json) => Load(json, retired: null);
+
+    // retired: ids of definitions retired in the store. Retirement is store
+    // metadata the document does not carry, so callers that know it pass it
+    // in. It matters to one rule only: a retired job no longer holds the
+    // events it listens to (WF-26 follow-up), so a live job may claim them.
+    public static GameContentDocument Load(string json, IReadOnlySet<Guid>? retired)
     {
         RawDocument? raw;
         try
@@ -241,7 +247,7 @@ public static class GameContentLoader
             .ToArray();
         RequireUnique(missions.Select(mission => mission.Id), "job id");
         RequireUnique(missions.SelectMany(mission => mission.Objectives.Select(objective => objective.Id)), "objective id");
-        RequireOneJobPerEvent(missions);
+        RequireOneJobPerEvent(missions, retired);
 
         var places = (raw.Places ?? [])
             .Select(place => ValidatePlace(place, sceneIds, testIds))
@@ -1040,11 +1046,22 @@ public static class GameContentLoader
     // event is its room, kind and subject — each item's pick-up, each NPC,
     // each inspectable, and a sneak's success and failure are separate events.
     // Events about a job only reach that job, so they never contend.
-    private static void RequireOneJobPerEvent(IReadOnlyList<MissionDefinition> missions)
+    //
+    // A retired job holds no events: nobody new is offered it, so its
+    // listeners only ever reach runs already under way, and another job may
+    // take the event over. Publishing the retired job again brings its claim
+    // back, and is refused then if the event has been taken. A job is retired
+    // when it is, or when its site is.
+    private static void RequireOneJobPerEvent(IReadOnlyList<MissionDefinition> missions, IReadOnlySet<Guid>? retired)
     {
         var claimed = new Dictionary<(Guid, TriggerEventKind, Guid?, Guid?, Guid?, TriggerOutcome?, Guid?), (MissionDefinition Mission, TriggerDefinition Trigger)>();
         foreach (var mission in missions)
         {
+            if (retired is not null && (retired.Contains(mission.Id) || retired.Contains(mission.EncounterId)))
+            {
+                continue;
+            }
+
             foreach (var trigger in mission.Triggers)
             {
                 var outcomes = trigger.Event == TriggerEventKind.SneakAttempted && trigger.Outcome is null

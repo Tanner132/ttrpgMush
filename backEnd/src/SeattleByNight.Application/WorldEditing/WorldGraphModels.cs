@@ -20,8 +20,7 @@ public sealed record WorldExit(
     Guid DestinationRoomId,
     string DestinationRoomName,
     string Direction,
-    bool IsHidden,
-    bool IsLocked,
+    IReadOnlyList<string> States,
     DateTimeOffset CreatedAtUtc,
     Guid Version);
 

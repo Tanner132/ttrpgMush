@@ -20,6 +20,7 @@ public static class AuditActions
     public const string WorldNpcPlaced = "WorldNpcPlaced";
     public const string WorldNpcUpdated = "WorldNpcUpdated";
     public const string WorldNpcRemoved = "WorldNpcRemoved";
+    public const string WorldNpcMoved = "WorldNpcMoved";
     // WF-28: inspectables placed on the map (a public room's, not a job's).
     public const string RoomInspectableUpdated = "RoomInspectableUpdated";
     public const string RoomInspectableRemoved = "RoomInspectableRemoved";

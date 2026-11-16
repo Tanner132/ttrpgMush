@@ -1,3 +1,4 @@
+using SeattleByNight.Domain;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Infrastructure.Persistence;
@@ -31,7 +32,8 @@ public sealed class JobSiteMapReader(SeattleByNightDbContext db) : IJobSiteMapRe
             join destination in db.Rooms.AsNoTracking() on exit.DestinationRoomId equals destination.Id
             where source.EncounterInstanceId == null && destination.EncounterInstanceId == null
             select new JobSiteMapExit(
-                source.Id, destination.Id, exit.Direction, exit.IsHidden, exit.IsLocked))
+                source.Id, destination.Id, exit.Direction,
+                exit.States.Contains(ExitStates.Hidden), exit.States.Contains(ExitStates.Locked)))
             .ToListAsync(cancellationToken);
 
         return new JobSiteMap(rooms, exits);

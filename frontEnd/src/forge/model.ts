@@ -422,9 +422,9 @@ export function sceneEffects(scene: Scene): Effect[] {
   return scene.nodes.flatMap((node) => node.choices.flatMap((choice) => choiceOutcomes(choice).flatMap((outcome) => outcome.effects ?? [])))
 }
 
-/** The conversations a job's events open. */
-export function openedSceneIds(mission: Mission): Guid[] {
-  const ids = mission.triggers.flatMap((listener) =>
+/** The conversations a job's — or a room's — listeners open. */
+export function openedSceneIds(owner: { triggers: Listener[] }): Guid[] {
+  const ids = owner.triggers.flatMap((listener) =>
     listener.reactions.flatMap((reaction) => [reaction.sceneId, reaction.onSuccess?.sceneId, reaction.onFailure?.sceneId]),
   )
   return [...new Set(ids.filter((id): id is Guid => id !== undefined))]
