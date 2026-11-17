@@ -28,7 +28,6 @@ public static class GameContentComposer
     // entry here plus the loader's own support for it.
     public static string ArrayNameFor(GameContentKind kind) => kind switch
     {
-        GameContentKind.Encounter => "encounters",
         GameContentKind.Mission => "missions",
         GameContentKind.Scene => "scenes",
         GameContentKind.Test => "tests",

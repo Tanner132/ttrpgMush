@@ -66,7 +66,7 @@ public sealed class GameActionExecutorTests
                 RoomContent, TestGameContent.Provider, Missions, Queue, scopeResolver, options,
                 TimeProvider.System);
             var missionEngine = new MissionEngine(
-                Missions, TestGameContent.Provider, Applier, Audit, Chat, Broadcaster, Travel,
+                Missions, TestGameContent.Provider, Applier, Audit, Chat, Broadcaster,
                 RoomContent, Queue, scopeResolver, options);
             var sceneConditions = new SceneConditionEvaluator(Missions, TestGameContent.Provider);
             var sceneEffects = new SceneEffectResolver(

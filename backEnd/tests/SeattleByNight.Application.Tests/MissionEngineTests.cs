@@ -31,7 +31,6 @@ public sealed class MissionEngineTests
         public FakeStateChangeApplier Applier { get; } = new();
         public FakeGameTestAuditStore Audit { get; } = new();
         public FakeMissionReader Missions { get; } = new();
-        public FakeTravelNotifier Travel { get; } = new();
         public FakeRoomContentReader RoomContent { get; } = new();
 
         public Harness(Guid currentRoomId)
@@ -44,7 +43,7 @@ public sealed class MissionEngineTests
                 "Case");
         }
 
-        public Task<GameActionOutcome> RunAsync(string actionId, Guid? targetId = null)
+        public Task<GameActionOutcome> RunAsync(string actionId, Guid? targetId = null, int depth = 0)
         {
             var roller = new ScriptedDiceRoller();
             var resolver = new TestResolver(roller);
@@ -59,7 +58,7 @@ public sealed class MissionEngineTests
                 chat, broadcaster, RoomContent, TestGameContent.Provider, Missions, queue, scopeResolver,
                 options, TimeProvider.System);
             var missionEngine = new MissionEngine(
-                Missions, TestGameContent.Provider, Applier, Audit, chat, broadcaster, Travel, RoomContent, queue, scopeResolver, options);
+                Missions, TestGameContent.Provider, Applier, Audit, chat, broadcaster, RoomContent, queue, scopeResolver, options);
             var sceneSessions = new FakeSceneSessionReader();
             var sceneConditions = new SceneConditionEvaluator(Missions, TestGameContent.Provider);
             var sceneEffects = new SceneEffectResolver(
@@ -83,7 +82,7 @@ public sealed class MissionEngineTests
                 combatEngine, missionEngine, sceneEngine, triggerEngine, scopeResolver, options, TimeProvider.System);
 
             return executor.ExecuteAsync(new GameActionRequest(
-                Guid.NewGuid(), UserId, actionId, TargetId: targetId));
+                Guid.NewGuid(), UserId, actionId, Depth: depth, TargetId: targetId));
         }
 
         public MissionInstanceSnapshot AddMissionInstance(params MissionObjectiveStatus[] statuses)
@@ -105,58 +104,69 @@ public sealed class MissionEngineTests
         }
     }
 
+    private static readonly Guid LoadingDock = ShippedContentIds.SiteRooms.LoadingDock;
+
+    private static WorldItemSnapshot Package(Guid roomId, bool hidden = false) =>
+        new(
+            Guid.NewGuid(), ShippedContentIds.Items.Package, MissionId, "Sealed Courier Package", "d",
+            RoomId: roomId, OwnerCharacterId: null, IsHidden: hidden, DiscoveryThreshold: hidden ? 2 : 0);
+
+    // Workstream 8: movement raises mission-reach-room on the arrival room's
+    // queue; walking into the room an active objective names completes it.
     [Fact]
-    public async Task Entering_travels_and_completes_the_enter_objective_in_one_change_list()
+    public async Task Reaching_the_loading_dock_completes_the_enter_objective()
     {
-        var harness = new Harness(AlleyId);
+        var harness = new Harness(LoadingDock);
         var instance = harness.AddMissionInstance(
             MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
 
-        var outcome = await harness.RunAsync(
-            DevelopmentGameActions.EnterEncounterActionId, targetId: instance.Id);
+        var outcome = await harness.RunAsync(DevelopmentGameActions.ReachRoomActionId, depth: 1);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (characterId, changes) = Assert.Single(harness.Applier.Applications);
         Assert.Equal(harness.CharacterId, characterId);
-        var enter = Assert.IsType<EnterEncounterChange>(changes[0]);
-        Assert.Equal(instance.Id, enter.MissionInstanceId);
-        Assert.Equal(harness.PlaySessionId, enter.PlaySessionId);
-        var objective = Assert.IsType<CompleteObjectiveChange>(changes[1]);
+        var objective = Assert.IsType<CompleteObjectiveChange>(Assert.Single(changes));
+        Assert.Equal(instance.Id, objective.MissionInstanceId);
         Assert.Equal(ShippedContentIds.Objectives.EnterWarehouse, objective.ObjectiveId);
     }
 
     [Fact]
-    public async Task Entering_from_the_wrong_room_is_not_offered()
+    public async Task Reaching_a_room_no_active_objective_names_changes_nothing()
     {
-        var harness = new Harness(Guid.NewGuid());
-        var instance = harness.AddMissionInstance(
+        var harness = new Harness(AlleyId);
+        harness.AddMissionInstance(
             MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
 
-        var outcome = await harness.RunAsync(
-            DevelopmentGameActions.EnterEncounterActionId, targetId: instance.Id);
+        var outcome = await harness.RunAsync(DevelopmentGameActions.ReachRoomActionId, depth: 1);
 
-        Assert.Equal(GameActionError.ActionNotAvailable, outcome.Error);
+        Assert.Equal(GameActionError.None, outcome.Error);
+        Assert.Empty(harness.Applier.Applications);
+    }
+
+    [Fact]
+    public async Task A_player_cannot_raise_reach_room_themselves()
+    {
+        var harness = new Harness(LoadingDock);
+        harness.AddMissionInstance(
+            MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
+
+        var outcome = await harness.RunAsync(DevelopmentGameActions.ReachRoomActionId);
+
+        Assert.NotEqual(GameActionError.None, outcome.Error);
         Assert.Empty(harness.Applier.Applications);
     }
 
     [Fact]
     public async Task Taking_the_package_completes_its_objective_in_the_same_change_list()
     {
-        var roomId = Guid.NewGuid();
+        var roomId = ShippedContentIds.SiteRooms.StorageRoom;
         var harness = new Harness(roomId);
-        var instance = harness.AddMissionInstance(
+        harness.AddMissionInstance(
             MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
-        var encounter = new EncounterInstanceSnapshot(
-            Guid.NewGuid(), ShippedContentIds.Encounters.GangWarehouse, instance.Id, EncounterInstanceStatus.Active,
-            EntryRoomId: roomId, ReturnRoomId: AlleyId);
-        harness.Missions.Encounters.Add(encounter);
-        var item = new WorldItemSnapshot(
-            Guid.NewGuid(), ShippedContentIds.Items.Package, "Sealed Courier Package", "d",
-            instance.Id, encounter.Id, RoomId: roomId, OwnerCharacterId: null);
+        var item = Package(roomId);
         harness.Missions.Items.Add(item);
 
-        var outcome = await harness.RunAsync(
-            DevelopmentGameActions.TakeItemActionId, targetId: item.Id);
+        var outcome = await harness.RunAsync(DevelopmentGameActions.TakeItemActionId, targetId: item.Id);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
@@ -165,23 +175,33 @@ public sealed class MissionEngineTests
         Assert.Contains("Objective complete", outcome.Message);
     }
 
+    // Workstream 8: the item is one object in the shared world. Anyone can
+    // pick it up; only a runner on the job has an objective it completes.
+    [Fact]
+    public async Task Anyone_can_take_the_package_but_only_a_runner_completes_an_objective()
+    {
+        var roomId = ShippedContentIds.SiteRooms.StorageRoom;
+        var harness = new Harness(roomId);
+        var item = Package(roomId);
+        harness.Missions.Items.Add(item);
+
+        var outcome = await harness.RunAsync(DevelopmentGameActions.TakeItemActionId, targetId: item.Id);
+
+        Assert.Equal(GameActionError.None, outcome.Error);
+        var change = Assert.Single(Assert.Single(harness.Applier.Applications).Changes);
+        Assert.IsType<PickUpItemChange>(change);
+    }
+
     // WF-27: an item can be hidden like an inspectable. Until this
     // character's search turns it up, it is not there to take.
     [Fact]
     public async Task A_hidden_item_cannot_be_taken_until_it_has_been_found()
     {
-        var roomId = Guid.NewGuid();
+        var roomId = ShippedContentIds.SiteRooms.StorageRoom;
         var harness = new Harness(roomId);
-        var instance = harness.AddMissionInstance(
+        harness.AddMissionInstance(
             MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
-        var encounter = new EncounterInstanceSnapshot(
-            Guid.NewGuid(), ShippedContentIds.Encounters.GangWarehouse, instance.Id, EncounterInstanceStatus.Active,
-            EntryRoomId: roomId, ReturnRoomId: AlleyId);
-        harness.Missions.Encounters.Add(encounter);
-        var item = new WorldItemSnapshot(
-            Guid.NewGuid(), ShippedContentIds.Items.Package, "Sealed Courier Package", "d",
-            instance.Id, encounter.Id, RoomId: roomId, OwnerCharacterId: null,
-            IsHidden: true, DiscoveryThreshold: 2);
+        var item = Package(roomId, hidden: true);
         harness.Missions.Items.Add(item);
 
         var hidden = await harness.RunAsync(DevelopmentGameActions.TakeItemActionId, targetId: item.Id);
@@ -195,50 +215,19 @@ public sealed class MissionEngineTests
     }
 
     [Fact]
-    public async Task Leaving_with_the_package_completes_the_exit_objective_but_not_the_mission()
+    public async Task Getting_back_to_the_alley_completes_the_leave_objective_but_not_the_mission()
     {
-        var roomId = Guid.NewGuid();
-        var harness = new Harness(roomId);
-        var instance = harness.AddMissionInstance(
+        var harness = new Harness(AlleyId);
+        harness.AddMissionInstance(
             MissionObjectiveStatus.Completed, MissionObjectiveStatus.Completed,
             MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive);
-        var encounter = new EncounterInstanceSnapshot(
-            Guid.NewGuid(), ShippedContentIds.Encounters.GangWarehouse, instance.Id, EncounterInstanceStatus.Active,
-            EntryRoomId: roomId, ReturnRoomId: AlleyId);
-        harness.Missions.Encounters.Add(encounter);
 
-        var outcome = await harness.RunAsync(DevelopmentGameActions.LeaveEncounterActionId);
+        var outcome = await harness.RunAsync(DevelopmentGameActions.ReachRoomActionId, depth: 1);
 
         Assert.Equal(GameActionError.None, outcome.Error);
         var (_, changes) = Assert.Single(harness.Applier.Applications);
-        Assert.Equal(2, changes.Count);
-        Assert.Equal(ShippedContentIds.Objectives.LeaveWarehouse, Assert.IsType<CompleteObjectiveChange>(changes[0]).ObjectiveId);
-        Assert.Equal(encounter.Id, Assert.IsType<LeaveEncounterChange>(changes[1]).EncounterInstanceId);
-        // Milestone 6: completion and rewards moved to the Johnson turn-in.
+        Assert.Equal(ShippedContentIds.Objectives.LeaveWarehouse, Assert.IsType<CompleteObjectiveChange>(Assert.Single(changes)).ObjectiveId);
+        // Milestone 6: completion and rewards are the Johnson's turn-in.
         Assert.DoesNotContain(changes, change => change is CompleteMissionChange);
-
-        var move = Assert.Single(harness.Travel.Moves);
-        Assert.Equal((harness.PlaySessionId, roomId, AlleyId), move);
-        Assert.Contains("Johnson", outcome.Message);
-    }
-
-    [Fact]
-    public async Task Leaving_early_only_moves_the_character_out()
-    {
-        var roomId = Guid.NewGuid();
-        var harness = new Harness(roomId);
-        var instance = harness.AddMissionInstance(
-            MissionObjectiveStatus.Completed, MissionObjectiveStatus.Active, MissionObjectiveStatus.Inactive, MissionObjectiveStatus.Inactive);
-        harness.Missions.Encounters.Add(new EncounterInstanceSnapshot(
-            Guid.NewGuid(), ShippedContentIds.Encounters.GangWarehouse, instance.Id, EncounterInstanceStatus.Active,
-            EntryRoomId: roomId, ReturnRoomId: AlleyId));
-
-        var outcome = await harness.RunAsync(DevelopmentGameActions.LeaveEncounterActionId);
-
-        Assert.Equal(GameActionError.None, outcome.Error);
-        var (_, changes) = Assert.Single(harness.Applier.Applications);
-        var change = Assert.Single(changes);
-        Assert.IsType<LeaveEncounterChange>(change);
-        Assert.Contains("isn't done", outcome.Message);
     }
 }

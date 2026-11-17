@@ -148,7 +148,7 @@ public static class GameContentEndpoints
     // map in one go.
     private static async Task<IResult> GetReferencesAsync(
         IGameContentProvider content,
-        IJobSiteMapReader map,
+        IWorldMapReader map,
         CancellationToken cancellationToken) =>
         Results.Ok(ContentReferences.Build(content.Current, await map.ReadAsync(cancellationToken)));
 
@@ -544,15 +544,11 @@ public static class GameContentEndpoints
                 ? count
                 : 0;
 
+    // Workstream 8: content no longer places NPCs — every NPC is a map row —
+    // so no definition has placements inside other content. The Forge counts a
+    // stat block's world NPCs from the references endpoint instead.
     private static IReadOnlyList<GameContentDependent> DependentsFor(
-        GameContentDefinitionRecord definition, GameContentDocument content) =>
-        definition.Kind != GameContentKind.NpcTemplate
-            ? []
-            : content.Encounters
-                .SelectMany(encounter => encounter.Npcs
-                    .Where(npc => npc.TemplateId == definition.ContentKey)
-                    .Select(npc => new GameContentDependent(encounter.Id, encounter.DisplayName, npc.RoomId, npc.Name)))
-                .ToArray();
+        GameContentDefinitionRecord definition, GameContentDocument content) => [];
 
     private static GameContentSummary ToSummary(
         GameContentDefinitionRecord definition,

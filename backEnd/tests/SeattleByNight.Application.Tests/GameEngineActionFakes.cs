@@ -336,9 +336,7 @@ internal static class TestGameContent
 internal sealed class FakeMissionReader : IMissionReader
 {
     public List<MissionInstanceSnapshot> Instances { get; } = [];
-    public List<EncounterInstanceSnapshot> Encounters { get; } = [];
     public List<WorldItemSnapshot> Items { get; } = [];
-    public Dictionary<Guid, Guid> ParticipantsByCharacter { get; } = [];
 
     public Task<MissionInstanceSnapshot?> GetInstanceAsync(Guid missionInstanceId, CancellationToken cancellationToken) =>
         Task.FromResult(Instances.FirstOrDefault(instance => instance.Id == missionInstanceId));
@@ -360,26 +358,11 @@ internal sealed class FakeMissionReader : IMissionReader
                 .GroupBy(instance => instance.MissionId)
                 .ToDictionary(group => group.Key, group => group.Count()));
 
-    public Task<EncounterInstanceSnapshot?> GetActiveEncounterForCharacterAsync(
-        Guid characterId, CancellationToken cancellationToken) =>
-        Task.FromResult(ParticipantsByCharacter.TryGetValue(characterId, out var encounterId)
-            ? Encounters.FirstOrDefault(encounter =>
-                encounter.Id == encounterId && encounter.Status == EncounterInstanceStatus.Active)
-            : null);
-
-    public Task<EncounterInstanceSnapshot?> GetActiveEncounterByRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
-        // The fake has no room table; tests register encounters by entry room.
-        Task.FromResult(Encounters.FirstOrDefault(encounter =>
-            encounter.EntryRoomId == roomId && encounter.Status == EncounterInstanceStatus.Active));
-
-    public Task<EncounterInstanceSnapshot?> GetActiveEncounterForMissionAsync(
-        Guid missionInstanceId, CancellationToken cancellationToken) =>
-        Task.FromResult(Encounters.FirstOrDefault(encounter =>
-            encounter.MissionInstanceId == missionInstanceId
-            && encounter.Status == EncounterInstanceStatus.Active));
-
     public Task<WorldItemSnapshot?> GetItemAsync(Guid itemId, CancellationToken cancellationToken) =>
         Task.FromResult(Items.FirstOrDefault(item => item.Id == itemId));
+
+    public Task<WorldItemSnapshot?> GetJobItemAsync(Guid itemId, CancellationToken cancellationToken) =>
+        Task.FromResult(Items.FirstOrDefault(item => item.ItemId == itemId));
 
     public Task<IReadOnlyList<WorldItemSnapshot>> GetItemsInRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<WorldItemSnapshot>>(

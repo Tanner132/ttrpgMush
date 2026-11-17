@@ -20,11 +20,7 @@ public sealed record GameActionRequest(
     // Milestone 7: the content event a fire-triggers reaction is carrying.
     // Engine-only — player submissions never set it, and the HTTP surface
     // does not map it.
-    TriggerEventPayload? TriggerEvent = null,
-    // WF-25: on a mission-enter raised by movement, the job-site map room
-    // the runner walked into. Engine-only, like TriggerEvent: the movement
-    // store has already checked the exit and the runner's place on the run.
-    Guid? EntryRoomId = null);
+    TriggerEventPayload? TriggerEvent = null);
 
 // Which of the engine's internal events (§24) fired, and against what. The
 // subject fields identify the thing the event happened to, in the same

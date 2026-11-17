@@ -93,11 +93,10 @@ public sealed class RetireMissionTests : ContentLifecycleHarness
             .SingleAsync(row => row.Id == missionInstanceId);
         Assert.Equal(MissionInstanceStatus.Accepted.ToString(), instance.Status);
 
-        // And the character can still travel into it: entering the encounter
-        // reads the same definition.
-        await MoveAsync(DevelopmentDataSeeder.DowntownToAlleyExitId);
-        var entered = await ActAsync(DevelopmentGameActions.EnterEncounterActionId, missionInstanceId);
-        Assert.Equal(GameActionError.None, entered.Error);
+        // And the run goes on: walking onto the dock completes its first
+        // objective against the same, retired, definition.
+        await WalkIntoWarehouseAsync();
+        await WaitForMissionStatusAsync(MissionInstanceStatus.InProgress);
     }
 
     [Fact]
@@ -119,23 +118,6 @@ public sealed class RetireMissionTests : ContentLifecycleHarness
 
         var assigned = await TryAssignAsync();
         Assert.True(assigned.IsSuccess);
-    }
-
-    [Fact]
-    public async Task Retiring_the_encounter_takes_the_missions_that_run_in_it_out_of_play_too()
-    {
-        Assert.True((await RetireAsync(GameContentKind.Encounter, ShippedContentIds.Encounters.GangWarehouse)).IsSuccess);
-
-        await using var scope = Provider.CreateAsyncScope();
-        var content = scope.ServiceProvider.GetRequiredService<IGameContentProvider>();
-
-        // The mission's own row is untouched — it is the site that is gone.
-        var mission = content.Current.FindMission(MissionId);
-        Assert.NotNull(mission);
-        Assert.True(mission.IsRetired);
-
-        var assigned = await TryAssignAsync();
-        Assert.Equal(MissionAssignError.Retired, assigned.Error);
     }
 
     [Fact]
@@ -166,10 +148,18 @@ public sealed class RetiredJobEventTests : ContentLifecycleHarness
         var rival = System.Text.Json.Nodes.JsonNode.Parse(warehouse!.PublishedJson!)!.AsObject();
         rival["id"] = RivalId.ToString();
         rival["displayName"] = "Rival job";
-        foreach (var objective in rival["objectives"]!.AsArray())
-        {
-            objective!["id"] = Guid.NewGuid().ToString();
-        }
+        // Workstream 8: a job's item is one object in the world, so the rival
+        // has none of the warehouse's, and only the objectives needing none.
+        rival["items"] = new System.Text.Json.Nodes.JsonArray();
+        rival["objectives"] = new System.Text.Json.Nodes.JsonArray(rival["objectives"]!.AsArray()
+            .Where(objective => objective!["kind"]!.GetValue<string>() == "reachRoom")
+            .Select(objective =>
+            {
+                var fresh = objective!.DeepClone();
+                fresh["id"] = Guid.NewGuid().ToString();
+                return (System.Text.Json.Nodes.JsonNode?)fresh;
+            })
+            .ToArray());
 
         var entered = rival["triggers"]!.AsArray()
             .First(trigger => trigger!["event"]!.GetValue<string>() == "playerEnteredRoom")!;
@@ -226,27 +216,6 @@ public sealed class RetiredJobEventTests : ContentLifecycleHarness
 
 public sealed class RetireNpcAndSceneTests : ContentLifecycleHarness
 {
-    [Fact]
-    public async Task A_retired_npc_template_stops_being_placed_when_an_encounter_instantiates()
-    {
-        Assert.True((await RetireAsync(GameContentKind.NpcTemplate, NpcTemplateIds.StreetGanger)).IsSuccess);
-
-        var missionInstanceId = await AcceptTheWarehouseJobAsync();
-        await MoveAsync(DevelopmentDataSeeder.DowntownToAlleyExitId);
-        Assert.Equal(
-            GameActionError.None,
-            (await ActAsync(DevelopmentGameActions.EnterEncounterActionId, missionInstanceId)).Error);
-
-        await using var db = Db();
-        // Both warehouse NPCs are street gangers; the encounter instantiated
-        // without them, and its rooms are still there.
-        Assert.Empty(await db.NpcInstances
-            .Where(npc => npc.TemplateId == NpcTemplateIds.StreetGanger)
-            .Where(npc => npc.Name == "Warehouse Ganger" || npc.Name == "Hallway Enforcer")
-            .ToListAsync());
-        Assert.NotEmpty(await db.Rooms.Where(room => room.EncounterInstanceId != null).ToListAsync());
-    }
-
     [Fact]
     public async Task A_retired_scene_stops_being_offered_but_still_resolves_by_id()
     {
@@ -329,14 +298,12 @@ public sealed class HardDeleteTests : ContentLifecycleHarness
     [Fact]
     public async Task Deleting_content_the_rest_of_the_corpus_still_points_at_is_refused()
     {
-        // Nothing has ever been placed from it in this fixture, so history is
-        // clear — but the warehouse encounter still declares placements built
-        // on it, and a corpus missing the template would not load.
+        // Workstream 8: the warehouse's ganger and enforcer are world NPCs
+        // built on the template, so it cannot go while they stand.
         var check = await CanDeleteAsync(GameContentKind.NpcTemplate, NpcTemplateIds.StreetGanger);
 
         Assert.False(check.CanDelete);
-        Assert.Contains("Other content still points at 'Street Ganger'", check.Reason);
-        Assert.Contains("uses a stat block that does not exist", check.Reason);
+        Assert.Contains("'Street Ganger' is referenced by 2 placed NPCs", check.Reason);
     }
 
     [Fact]

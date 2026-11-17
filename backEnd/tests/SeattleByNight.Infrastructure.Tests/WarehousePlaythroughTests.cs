@@ -91,6 +91,14 @@ public abstract class PlaythroughHarness : IAsyncLifetime
         services.AddSingleton<ITravelNotifier, NullTravelNotifier>();
         Provider = services.BuildServiceProvider();
 
+        // Workstream 8: the shipped job's items are rows in the world, made
+        // from the content the way start-up makes them.
+        await using (var scope = Provider.CreateAsyncScope())
+        {
+            var content = scope.ServiceProvider.GetRequiredService<IGameContentProvider>();
+            await scope.ServiceProvider.GetRequiredService<IJobItemStore>().SyncAsync(content.Current);
+        }
+
         // A live play session for the dev runner, who starts Downtown.
         PlaySessionId = Guid.NewGuid();
         await using (var db = Db())
@@ -214,6 +222,32 @@ public abstract class PlaythroughHarness : IAsyncLifetime
             .Select(character => character.CurrentRoomId)
             .SingleAsync();
     }
+
+    // Workstream 8: the warehouse is ordinary rooms off the alley. The runner
+    // starts Downtown.
+    protected async Task WalkIntoWarehouseAsync()
+    {
+        await MoveAsync(DevelopmentDataSeeder.DowntownToAlleyExitId);
+        await MoveAsync(await FindExitAsync(DevelopmentDataSeeder.AlleyId, "east"));
+    }
+
+    // Workstream 8: the one row of a job's item, by the item's content id.
+    protected async Task<Guid> JobItemRowAsync(Guid itemId)
+    {
+        await using var db = Db();
+        return await db.WorldItemInstances
+            .Where(item => item.ItemId == itemId)
+            .Select(item => item.Id)
+            .SingleAsync();
+    }
+
+    // A reachRoom objective completes on the arrival room's queue, after the
+    // move has returned.
+    protected Task WaitForMissionStatusAsync(MissionInstanceStatus status) =>
+        WaitUntilAsync(
+            async db => await db.MissionInstances.AnyAsync(instance =>
+                instance.CharacterId == CharacterId && instance.Status == status.ToString()),
+            $"the mission to be {status}");
 
     protected async Task<MissionInstance> MissionRowAsync()
     {
@@ -394,41 +428,20 @@ public sealed class StealthRoutePlaythroughTests : PlaythroughHarness
             Assert.Equal(0, await db.SceneSessions.CountAsync());
         }
 
-        // ---- Travel to the warehouse ------------------------------------
+        // ---- Walk to the warehouse --------------------------------------
+        // Workstream 8: the warehouse is ordinary rooms, through a door off
+        // the alley. Walking onto the loading dock completes the first
+        // objective.
         await MoveAsync(DevelopmentDataSeeder.CoffeeToDowntownExitId);
         await MoveAsync(DevelopmentDataSeeder.DowntownToAlleyExitId);
+        await MoveAsync(await FindExitAsync(DevelopmentDataSeeder.AlleyId, "east"));
 
-        var enter = await ActAsync(DevelopmentGameActions.EnterEncounterActionId, mission.Id);
-        Assert.Equal(GameActionError.None, enter.Error);
-
-        Guid dockId;
-        Guid gangerId;
-        Guid packageId;
-        await using (var db = Db())
-        {
-            var encounter = await db.EncounterInstances.AsNoTracking()
-                .SingleAsync(row => row.MissionInstanceId == mission.Id);
-            dockId = encounter.EntryRoomId;
-            var roomIds = await db.Rooms
-                .Where(room => room.EncounterInstanceId == encounter.Id)
-                .Select(room => room.Id)
-                .ToListAsync();
-            // The warehouse has two placed gangers since Milestone 7 (the
-            // hallway enforcer guards the ambush); this run wants the one on
-            // the floor.
-            gangerId = await db.NpcInstances
-                .Where(npc => roomIds.Contains(npc.RoomId) && npc.Name == "Warehouse Ganger")
-                .Select(npc => npc.Id)
-                .SingleAsync();
-            packageId = await db.WorldItemInstances
-                .Where(item => item.EncounterInstanceId == encounter.Id)
-                .Select(item => item.Id)
-                .SingleAsync();
-        }
+        var dockId = ShippedContentIds.SiteRooms.LoadingDock;
+        var gangerId = ShippedContentIds.SiteNpcs.WarehouseGanger;
+        var packageId = await JobItemRowAsync(ShippedContentIds.Items.Package);
 
         Assert.Equal(dockId, await CurrentRoomAsync());
-        mission = await MissionRowAsync();
-        Assert.Equal(MissionInstanceStatus.InProgress.ToString(), mission.Status);
+        await WaitForMissionStatusAsync(MissionInstanceStatus.InProgress);
 
         // ---- Sneak past the lookout: 3 hits vs 0 ------------------------
         var floorExit = await FindExitAsync(dockId, "north");
@@ -454,23 +467,14 @@ public sealed class StealthRoutePlaythroughTests : PlaythroughHarness
         Assert.Equal(GameActionError.None, take.Error);
         Assert.Contains("Objective complete", take.Message);
 
-        // ---- Leave the warehouse ----------------------------------------
+        // ---- Back out to the alley --------------------------------------
         var storageId = await CurrentRoomAsync();
         await MoveAsync(await FindExitAsync(storageId, "west"));
         await MoveAsync(await FindExitAsync(floorId, "south"));
-
-        var exit = await ActAsync(DevelopmentGameActions.LeaveEncounterActionId);
-        Assert.Equal(GameActionError.None, exit.Error);
+        await MoveAsync(await FindExitAsync(dockId, "west"));
         Assert.Equal(DevelopmentDataSeeder.AlleyId, await CurrentRoomAsync());
 
-        mission = await MissionRowAsync();
-        Assert.Equal(MissionInstanceStatus.ReadyToTurnIn.ToString(), mission.Status);
-        await using (var db = Db())
-        {
-            var encounter = await db.EncounterInstances.AsNoTracking()
-                .SingleAsync(row => row.MissionInstanceId == mission.Id);
-            Assert.Equal(EncounterInstanceStatus.Completed.ToString(), encounter.Status);
-        }
+        await WaitForMissionStatusAsync(MissionInstanceStatus.ReadyToTurnIn);
 
         // ---- Deliver to the Johnson -------------------------------------
         await MoveAsync(DevelopmentDataSeeder.AlleyToDowntownExitId);
@@ -492,7 +496,11 @@ public sealed class StealthRoutePlaythroughTests : PlaythroughHarness
 
         await using (var verify = Db())
         {
-            Assert.Equal(0, await verify.WorldItemInstances.CountAsync(item => item.Id == packageId));
+            // Workstream 8: handed in, the package is out of play — in no
+            // room, carried by nobody — until the job resets.
+            var package = await verify.WorldItemInstances.AsNoTracking().SingleAsync(item => item.Id == packageId);
+            Assert.Null(package.RoomId);
+            Assert.Null(package.OwnerCharacterId);
 
             var career = await verify.CharacterCareerStates.AsNoTracking()
                 .SingleAsync(state => state.CharacterId == CharacterId);
@@ -514,10 +522,9 @@ public sealed class StealthRoutePlaythroughTests : PlaythroughHarness
             {
                 DevelopmentGameActions.TalkNpcActionId,
                 DevelopmentGameActions.SceneChoiceActionId,
-                DevelopmentGameActions.EnterEncounterActionId,
+                DevelopmentGameActions.ReachRoomActionId,
                 SeattleByNight.Application.GameEngine.Tests.DevelopmentGameTests.SneakPastId,
                 DevelopmentGameActions.TakeItemActionId,
-                DevelopmentGameActions.LeaveEncounterActionId,
             })
             {
                 Assert.Contains(expected, auditedActions);
@@ -526,21 +533,19 @@ public sealed class StealthRoutePlaythroughTests : PlaythroughHarness
     }
 }
 
-// The combat route down its defined defeat path: the runner picks a fight
-// with the warehouse crew, goes down, the mission fails, and they wake at
-// the entry point with their damage intact (dev decision combat.no-pc-death).
+// The combat route, workstream 8: the runner picks a fight with the warehouse
+// crew and goes down. In the shared world that no longer blows the job — they
+// stay where they fell, their damage stands, and the run goes on (owner,
+// 2026-11-12). Incapacitation and its rules are the combat milestone.
 public sealed class CombatDefeatPlaythroughTests : PlaythroughHarness
 {
     [Fact]
-    public async Task Going_down_in_the_warehouse_blows_the_job()
+    public async Task Going_down_in_the_warehouse_leaves_the_runner_down_and_the_job_open()
     {
-        // Admin-assigned mission (the scene path is the stealth run's
-        // business); straight to the site.
         Guid missionInstanceId;
         await using (var scope = Provider.CreateAsyncScope())
         {
-            var content = scope.ServiceProvider
-                .GetRequiredService<Application.GameEngine.Missions.Content.IGameContentProvider>();
+            var content = scope.ServiceProvider.GetRequiredService<IGameContentProvider>();
             var assignment = scope.ServiceProvider.GetRequiredService<IMissionAssignmentStore>();
             var assigned = await assignment.AssignAsync(
                 CharacterId, content.Current.FindMission(ShippedContentIds.Missions.GangWarehouseRetrieval)!, CancellationToken.None);
@@ -549,27 +554,9 @@ public sealed class CombatDefeatPlaythroughTests : PlaythroughHarness
         }
 
         await MoveAsync(DevelopmentDataSeeder.DowntownToAlleyExitId);
-        var enter = await ActAsync(DevelopmentGameActions.EnterEncounterActionId, missionInstanceId);
-        Assert.Equal(GameActionError.None, enter.Error);
-
-        Guid gangerId;
-        var dockId = await CurrentRoomAsync();
-        await using (var db = Db())
-        {
-            var roomIds = await db.Rooms
-                .Where(room => room.EncounterInstanceId != null)
-                .Select(room => room.Id)
-                .ToListAsync();
-            // The warehouse has two placed gangers since Milestone 7 (the
-            // hallway enforcer guards the ambush); this run wants the one on
-            // the floor.
-            gangerId = await db.NpcInstances
-                .Where(npc => roomIds.Contains(npc.RoomId) && npc.Name == "Warehouse Ganger")
-                .Select(npc => npc.Id)
-                .SingleAsync();
-        }
-
-        await MoveAsync(await FindExitAsync(dockId, "north"));
+        await MoveAsync(await FindExitAsync(DevelopmentDataSeeder.AlleyId, "east"));
+        await MoveAsync(await FindExitAsync(ShippedContentIds.SiteRooms.LoadingDock, "north"));
+        var gangerId = ShippedContentIds.SiteNpcs.WarehouseGanger;
 
         // ---- Pick the fight and lose it ---------------------------------
         // Initiative: runner (base 5) rolls 2 → 7; ganger (base 7) rolls 6 →
@@ -589,32 +576,15 @@ public sealed class CombatDefeatPlaythroughTests : PlaythroughHarness
         var npcTurn = await ActAsync(DevelopmentGameActions.NpcCombatTurnActionId, depth: 1);
         Assert.Equal(GameActionError.None, npcTurn.Error);
 
-        // The defeat reaction (§24) fires after combat's own commits.
-        await WaitUntilAsync(
-            async db => await db.MissionInstances.AnyAsync(instance =>
-                instance.Id == missionInstanceId
-                && instance.Status == MissionInstanceStatus.Failed.ToString()),
-            "the mission to fail after the knockout");
+        Assert.Equal(ShippedContentIds.SiteRooms.WarehouseFloor, await CurrentRoomAsync());
 
-        Assert.Equal(DevelopmentDataSeeder.AlleyId, await CurrentRoomAsync());
+        await using var verify = Db();
+        var mission = await verify.MissionInstances.AsNoTracking().SingleAsync(row => row.Id == missionInstanceId);
+        Assert.NotEqual(MissionInstanceStatus.Failed.ToString(), mission.Status);
 
-        await using (var verify = Db())
-        {
-            var encounter = await verify.EncounterInstances.AsNoTracking()
-                .SingleAsync(row => row.MissionInstanceId == missionInstanceId);
-            Assert.Equal(EncounterInstanceStatus.Abandoned.ToString(), encounter.Status);
-
-            // §3: the damage taken stands — defeat is not a reset.
-            var runtime = await verify.CharacterRuntimeStates.AsNoTracking()
-                .SingleAsync(state => state.CharacterId == CharacterId);
-            Assert.True(runtime.PhysicalDamage > 0);
-
-            // No rewards for a blown job (ResultJson is jsonb — filter
-            // client-side).
-            var receipts = await verify.CharacterActionReceipts.AsNoTracking()
-                .Where(receipt => receipt.CharacterId == CharacterId)
-                .ToListAsync();
-            Assert.DoesNotContain(receipts, receipt => receipt.ResultJson.Contains("mission-reward"));
-        }
+        // §3: the damage taken stands.
+        var runtime = await verify.CharacterRuntimeStates.AsNoTracking()
+            .SingleAsync(state => state.CharacterId == CharacterId);
+        Assert.True(runtime.PhysicalDamage > 0);
     }
 }

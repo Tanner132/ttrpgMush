@@ -1,4 +1,5 @@
-﻿using SeattleByNight.Application.GameEngine.Actions;
+using SeattleByNight.Application.GameEngine.Tests;
+using SeattleByNight.Application.GameEngine.Actions;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Combat;
@@ -38,6 +39,7 @@ public sealed class SceneEngineTests
         public FakeRoomContentReader RoomContent { get; } = new();
         public FakeGameCommandQueue Queue { get; } = new();
         public ScriptedDiceRoller Roller { get; } = new();
+        public IGameContentProvider Content { get; set; } = TestGameContent.Provider;
         public FakeGameMessageBroadcaster Broadcaster { get; } = new();
 
         public Harness()
@@ -81,6 +83,7 @@ public sealed class SceneEngineTests
 
         public Task<GameActionOutcome> RunAsync(string actionId, Guid? targetId = null)
         {
+            var content = Content;
             var resolver = new TestResolver(Roller);
             var options = new PlaySessionOptions();
             var combat = new InMemoryCombatTracker();
@@ -89,27 +92,27 @@ public sealed class SceneEngineTests
             var scopeResolver = new FakeGameScopeResolver();
             var combatEngine = new CombatEngine(
                 combat, resolver, Roller, new FixedSeedSource(), Applier, Audit,
-                chat, broadcaster, RoomContent, TestGameContent.Provider, Missions, Queue, scopeResolver,
+                chat, broadcaster, RoomContent, content, Missions, Queue, scopeResolver,
                 options, TimeProvider.System);
             var missionEngine = new MissionEngine(
-                Missions, TestGameContent.Provider, Applier, Audit, chat, broadcaster, Travel, RoomContent, Queue, scopeResolver, options);
-            var sceneConditions = new SceneConditionEvaluator(Missions, TestGameContent.Provider);
+                Missions, content, Applier, Audit, chat, broadcaster, RoomContent, Queue, scopeResolver, options);
+            var sceneConditions = new SceneConditionEvaluator(Missions, content);
             var sceneEffects = new SceneEffectResolver(
-                TestGameContent.Provider, Missions, RoomContent, Scene);
+                content, Missions, RoomContent, Scene);
             var sceneEngine = new SceneEngine(
-                Scene, TestGameContent.Provider, sceneConditions, sceneEffects, RoomContent,
+                Scene, content, sceneConditions, sceneEffects, RoomContent,
                 resolver, Roller, new FixedSeedSource(), Applier, Audit, chat, broadcaster,
                 Queue, scopeResolver, options, TimeProvider.System);
             var triggerEngine = new TriggerEngine(
-                TestGameContent.Provider, Missions, new FakeTriggerFireReader(), Scene, RoomContent,
+                content, Missions, new FakeTriggerFireReader(), Scene, RoomContent,
                 sceneConditions, sceneEffects, sceneEngine, resolver, new FixedSeedSource(), Applier, Audit,
                 broadcaster, Queue, scopeResolver, TimeProvider.System);
             var executor = new GameActionExecutor(
                 Sessions, Sheets, new FakeRuntimeStateStore(), new FakeActiveEffectReader(),
                 new FixedSeedSource(), resolver, Roller, new FakeDecisionBroker(), Applier, Audit,
-                chat, broadcaster, RoomContent, TestGameContent.Provider,
+                chat, broadcaster, RoomContent, content,
                 new AffordanceService(
-                    RoomContent, combat, Missions, TestGameContent.Provider, Scene, sceneConditions),
+                    RoomContent, combat, Missions, content, Scene, sceneConditions),
                 Queue,
                 combatEngine, missionEngine, sceneEngine, triggerEngine, scopeResolver, options, TimeProvider.System);
 
@@ -205,6 +208,64 @@ public sealed class SceneEngineTests
         Assert.NotNull(outcome.Resolution);
     }
 
+    private sealed class SwappedContent(GameContentDocument document) : IGameContentProvider
+    {
+        public GameContentDocument Current => document;
+
+        public Task ReloadAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    // The negotiation, rewritten as a roll built on the reply: Charisma + Con
+    // against the Johnson's Social + Willpower.
+    private static IGameContentProvider NegotiationAsReplyRoll()
+    {
+        var current = TestGameContent.Provider.Current;
+        var negotiate = ShippedContentIds.SceneChoices.JohnsonWarehouseJobJobOfferNegotiate;
+        var roll = new ChoiceRoll(
+            [new TestPoolComponent(TestPoolComponentKind.Attribute, "charisma"), new TestPoolComponent(TestPoolComponentKind.Skill, "con")],
+            LimitKind.Social,
+            OpposedPools: [NpcPoolIds.Social, NpcPoolIds.Willpower]);
+        var scenes = current.Scenes
+            .Select(scene => scene.Id != JohnsonSceneId ? scene : scene with
+            {
+                Nodes = scene.Nodes
+                    .Select(node => node with
+                    {
+                        Choices = node.Choices
+                            .Select(choice => choice.Id == negotiate ? choice with { TestId = null, Roll = roll } : choice)
+                            .ToList(),
+                    })
+                    .ToList(),
+            })
+            .ToList();
+        return new SwappedContent(current with { Scenes = scenes });
+    }
+
+    [Fact]
+    public async Task A_reply_roll_reads_the_runner_sheet_and_the_johnson_stat_block()
+    {
+        var harness = new Harness { Content = NegotiationAsReplyRoll() };
+        var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.JobOffer);
+
+        harness.Roller.Enqueue(5, 5, 6, 5, 1, 2, 3, 4);
+        harness.Roller.Enqueue(5, 1, 1, 2, 2, 3, 3, 4);
+
+        var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobJobOfferNegotiate);
+
+        Assert.Equal(GameActionError.None, outcome.Error);
+        var resolution = outcome.Resolution!;
+        Assert.Equal(TestKind.Opposed, resolution.Kind);
+        // Charisma 4 + Con 4 off the sheet.
+        Assert.Equal([4, 4], resolution.BaseComponents.Select(component => component.Value));
+        // Social 8 + Willpower 5 off the Johnson's stat block.
+        Assert.Equal(13, resolution.Opposition!.Value);
+        Assert.Equal("Mr. Johnson — Social + Willpower", resolution.Opposition.Source);
+        Assert.True(resolution.Success);
+        var (_, changes) = Assert.Single(harness.Applier.Applications);
+        Assert.Equal(ShippedContentIds.SceneNodes.NegotiateWin, Assert.IsType<AdvanceSceneChange>(changes[0]).NodeId);
+    }
+
     [Fact]
     public async Task Losing_the_negotiation_changes_nothing_but_the_conversation()
     {
@@ -261,8 +322,8 @@ public sealed class SceneEngineTests
             CompletedAtUtc: null);
         harness.Missions.Instances.Add(instance);
         harness.Missions.Items.Add(new WorldItemSnapshot(
-            Guid.NewGuid(), ShippedContentIds.Items.Package, "Sealed Courier Package", "d",
-            instance.Id, Guid.NewGuid(), RoomId: null, OwnerCharacterId: harness.CharacterId));
+            Guid.NewGuid(), ShippedContentIds.Items.Package, MissionId, "Sealed Courier Package", "d",
+            RoomId: null, OwnerCharacterId: harness.CharacterId));
 
         var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobGreetingHandOverPackage);
 

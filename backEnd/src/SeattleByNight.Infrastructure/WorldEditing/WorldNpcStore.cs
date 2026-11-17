@@ -13,16 +13,8 @@ public sealed class WorldNpcStore(
     IAuditWriter auditWriter,
     TimeProvider timeProvider) : IWorldNpcStore
 {
-    public async Task<(RoomAccessType AccessType, bool IsMapRoom)?> GetRoomAsync(
-        Guid roomId, CancellationToken cancellationToken)
-    {
-        var room = await db.Rooms.AsNoTracking()
-            .Where(candidate => candidate.Id == roomId)
-            .Select(candidate => new { candidate.AccessType, candidate.EncounterInstanceId })
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return room is null ? null : (room.AccessType, room.EncounterInstanceId is null);
-    }
+    public Task<bool> RoomExistsAsync(Guid roomId, CancellationToken cancellationToken) =>
+        db.Rooms.AsNoTracking().AnyAsync(candidate => candidate.Id == roomId, cancellationToken);
 
     public async Task<NpcSnapshot> PlaceAsync(
         Guid actorUserId, Guid roomId, ValidWorldNpc npc, CancellationToken cancellationToken)

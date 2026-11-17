@@ -28,7 +28,6 @@ public sealed record MissionDefinitionSummary(
     Guid Id,
     string DisplayName,
     string Description,
-    Guid EncounterId,
     int RewardKarma,
     int RewardNuyen);
 
@@ -93,7 +92,6 @@ public static class MissionEndpoints
                 mission.Id,
                 mission.DisplayName,
                 mission.Description,
-                mission.EncounterId,
                 mission.Rewards.Karma,
                 mission.Rewards.Nuyen))
             .ToList();
@@ -145,9 +143,6 @@ public static class MissionEndpoints
                 ToSummary(result.Instance!, content.Current)),
             MissionAssignError.CharacterNotFound => Results.Problem(
                 statusCode: StatusCodes.Status404NotFound, title: "Character not found."),
-            MissionAssignError.EntryRoomMissing => Results.Problem(
-                statusCode: StatusCodes.Status409Conflict,
-                title: "The mission's entry-link room does not exist in this world."),
             MissionAssignError.AlreadyActive => Results.Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: "The character already has this mission in progress."),

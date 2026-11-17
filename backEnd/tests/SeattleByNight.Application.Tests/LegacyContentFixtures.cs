@@ -22,7 +22,6 @@ internal static class LegacyContentFixtures
         ["test:dodge-gunfire"] = ShippedContentIds.Tests.DodgeGunfire,
         ["test:block-attacker"] = ShippedContentIds.Tests.BlockAttacker,
         ["test:read-shipping-records"] = ShippedContentIds.Tests.ReadShippingRecords,
-        ["encounter:gang-warehouse"] = ShippedContentIds.Encounters.GangWarehouse,
         ["mission:gang-warehouse-retrieval"] = ShippedContentIds.Missions.GangWarehouseRetrieval,
         ["scene:johnson-warehouse-job"] = ShippedContentIds.Scenes.JohnsonWarehouseJob,
         ["scene:ganger-lookout-talk"] = ShippedContentIds.Scenes.GangerLookoutTalk,
@@ -177,7 +176,56 @@ internal static class LegacyContentFixtures
             converter.Scene(scene);
         }
 
+        FoldSitesIntoJobs(root);
         return root.ToJsonString();
+    }
+
+    // Workstream 8: a job owns no site. A fixture written with one has the
+    // site's rooms, NPCs and items folded into the job that named it, and its
+    // enter/leave objectives become reachRoom (the entry room, and the job's
+    // old entry link). The site's NPCs and inspectables are map rows now, so
+    // only their ids survive (as the job's npcIds).
+    private static void FoldSitesIntoJobs(JsonObject root)
+    {
+        var sites = Items(root["encounters"]).ToDictionary(site => Text(site, "id") ?? string.Empty);
+        foreach (var mission in Items(root["missions"]))
+        {
+            var linkRoom = Text(mission, "entryLinkRoomId");
+            mission.Remove("entryLinkRoomId");
+            if (Text(mission, "encounterId") is not { } siteId)
+            {
+                continue;
+            }
+
+            mission.Remove("encounterId");
+            if (!sites.TryGetValue(siteId, out var site))
+            {
+                continue;
+            }
+
+            mission["roomIds"] = site["roomIds"]?.DeepClone() ?? new JsonArray();
+            mission["npcIds"] = new JsonArray(Items(site["npcs"])
+                .Select(npc => (JsonNode?)JsonValue.Create(Text(npc, "id")))
+                .ToArray());
+            mission["items"] = site["items"]?.DeepClone() ?? new JsonArray();
+
+            foreach (var objective in Items(mission["objectives"]))
+            {
+                var kind = Text(objective, "kind");
+                if (kind == "enterEncounter")
+                {
+                    objective["kind"] = "reachRoom";
+                    objective["roomId"] = Text(site, "entryRoomId");
+                }
+                else if (kind == "exitEncounter")
+                {
+                    objective["kind"] = "reachRoom";
+                    objective["roomId"] = linkRoom ?? Text(site, "entryRoomId");
+                }
+            }
+        }
+
+        root.Remove("encounters");
     }
 
     private static IEnumerable<JsonObject> Items(JsonNode? node) =>
@@ -283,6 +331,13 @@ internal static class LegacyContentFixtures
 
         public void Trigger(JsonObject trigger, string? owner = null)
         {
+            // Workstream 8: there is no site to enter; walking into its room is
+            // the same moment.
+            if (Text(trigger, "event") == "encounterEntered")
+            {
+                trigger["event"] = "playerEnteredRoom";
+            }
+
             Rekey(trigger, "key", "trigger", "id", owner);
             Rekey(trigger, "roomKey", "room", "roomId");
             Rekey(trigger, "interactableName", "interactable", "interactableId");

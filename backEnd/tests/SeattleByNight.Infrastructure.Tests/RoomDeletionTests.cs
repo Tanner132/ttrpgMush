@@ -117,51 +117,21 @@ public sealed class RoomDeletionTests : IAsyncLifetime
         Assert.False(await verify.GameContentDefinitions.AnyAsync(definition => definition.ContentKey == roomId));
     }
 
-    // WF-26/27: a job listening in a room needs the room; the refusal names
-    // the job so the builder knows where to go.
-    [Fact]
-    public async Task A_room_a_job_listens_in_is_refused_by_name()
+    // Workstream 8: a room a job uses in any way — happens in, listens in,
+    // puts an item in, sends runners to, or uses an NPC standing in — is
+    // refused, naming the job.
+    [Theory]
+    [InlineData("22222222-2222-2222-2222-222222222222")] // the coffee shop: the job listens for acceptance there
+    [InlineData("e0e0e0e0-0000-4000-8000-000000000004")] // the back hallway: one of the job's rooms
+    [InlineData("33333333-3333-3333-3333-333333333333")] // the alley: a reachRoom objective
+    public async Task A_room_a_job_uses_is_refused_by_the_jobs_name(string room)
     {
         await using var db = Db();
-        var check = await Store(db).CheckRoomDeletionAsync(DevelopmentDataSeeder.CoffeeShopId);
+        var check = await Store(db).CheckRoomDeletionAsync(Guid.Parse(room));
 
         Assert.False(check!.CanDelete);
-        Assert.Contains("Gang Warehouse Retrieval", check.ListeningJobs!);
-        Assert.Contains("Jobs listen to events in this room: Gang Warehouse Retrieval", check.Reason);
-    }
-
-    // A job site's room cannot go while the site is built from it.
-    [Fact]
-    public async Task A_job_site_room_is_refused_by_the_sites_name()
-    {
-        await using var db = Db();
-        var check = await Store(db).CheckRoomDeletionAsync(ShippedContentIds.SiteRooms.BackHallway);
-
-        Assert.False(check!.CanDelete);
-        Assert.Contains("Gang Warehouse", check.JobSites!);
-    }
-
-    [Fact]
-    public async Task A_room_a_mission_links_into_is_refused_by_name()
-    {
-        // The warehouse job's entry link is the alley, and the alley's exits
-        // are removed first so the mission link is the reason left standing.
-        await using (var setup = Db())
-        {
-            var exits = await setup.RoomExits
-                .Where(exit => exit.SourceRoomId == DevelopmentDataSeeder.AlleyId
-                    || exit.DestinationRoomId == DevelopmentDataSeeder.AlleyId)
-                .ToListAsync();
-            setup.RoomExits.RemoveRange(exits);
-            await setup.SaveChangesAsync();
-        }
-
-        await using var db = Db();
-        var check = await Store(db).CheckRoomDeletionAsync(DevelopmentDataSeeder.AlleyId);
-
-        Assert.False(check!.CanDelete);
-        Assert.Contains("Gang Warehouse Retrieval", check.MissionEntryLinks);
-        Assert.Contains("Job entry links point here", check.Reason);
+        Assert.Contains("Gang Warehouse Retrieval", check.Jobs!);
+        Assert.Contains("Jobs use this room: Gang Warehouse Retrieval", check.Reason);
     }
 
     [Fact]

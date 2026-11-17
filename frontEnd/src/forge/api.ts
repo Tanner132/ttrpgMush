@@ -7,7 +7,7 @@ import type { ExitState } from '../api/exitStates.ts'
  * reference, which may also name a built-in test such as `sneak-past`.
  *
  * Only endpoints the API serves today are here. What the Forge would like but
- * the API does not offer yet (items in public rooms, room images) is listed
+ * the API does not offer yet (room images) is listed
  * in the roadmap, and the screens say so instead of offering a button that
  * fails.
  */
@@ -16,12 +16,11 @@ export type Guid = string
 
 // ------------------------------------------------------------------ content
 
-export type ContentKind = 'Encounter' | 'Mission' | 'NpcTemplate' | 'Scene' | 'Test' | 'Place'
+export type ContentKind = 'Mission' | 'NpcTemplate' | 'Scene' | 'Test' | 'Place'
 export type ContentStatus = 'Draft' | 'Published' | 'Retired'
 
+/** Workstream 8: content no longer places anything inside other content, so this is always empty. */
 export interface ContentDependent {
-  encounterId: Guid
-  encounterName: string
   roomId: Guid
   name: string
 }
@@ -103,7 +102,8 @@ export interface PlacedReference {
   roomId: Guid | null
 }
 
-export type RoomAccessType = 'Public' | 'Private'
+/** Workstream 8: every room is public until player-owned rooms (workstream 7). */
+export type RoomAccessType = 'Public'
 
 /*
  * What the game is serving, read off the published document and the map. The
@@ -111,28 +111,23 @@ export type RoomAccessType = 'Public' | 'Private'
  * question a publish is checked against.
  */
 export interface ContentReferences {
-  encounters: {
-    id: Guid
-    displayName: string
-    isRetired: boolean
-    entryRoomId: Guid
-    roomIds: Guid[]
-    npcs: PlacedReference[]
-    items: PlacedReference[]
-    interactables: PlacedReference[]
-  }[]
   missions: {
     id: Guid
     displayName: string
     isRetired: boolean
-    encounterId: Guid
+    /** Workstream 8: the map rooms the job happens in. */
+    roomIds: Guid[]
+    /** The world NPCs the job uses. */
+    npcIds: Guid[]
+    items: PlacedReference[]
     objectives: { id: Guid; displayName: string; kind: string }[]
   }[]
   scenes: { id: Guid; displayName: string; isRetired: boolean; npcTemplateId: Guid | null; nodeIds: Guid[] }[]
   tests: { id: string; displayName: string; builtIn: boolean; opposed: boolean }[]
   npcTemplates: { id: Guid; displayName: string; isRetired: boolean; hostile: boolean }[]
   places: { id: Guid; displayName: string; isRetired: boolean }[]
-  rooms: { id: Guid; name: string; accessType: RoomAccessType; npcs: MapNpcReference[] }[]
+  /** Every room on the map, with who stands in it and what can be inspected there. */
+  rooms: { id: Guid; name: string; npcs: MapNpcReference[]; inspectables: { id: Guid; name: string }[] }[]
 }
 
 /** A world NPC as the map lists them: who, on which stat block, holding which conversation. */
@@ -305,16 +300,13 @@ export interface RoomDeletionCheck {
   canDelete: boolean
   incomingExits: number
   outgoingExits: number
-  missionEntryLinks: string[]
-  activeReturnLinks: number
   charactersPresent: number
   chatMessages: number
   roomVisits: number
-  isEncounterRoom: boolean
   isStartingRoom: boolean
   reason: string | null
-  jobSites: string[] | null
-  listeningJobs: string[] | null
+  /** Jobs that use the room in any way, by name. */
+  jobs: string[] | null
   npcsRemoved: number
   itemsRemoved: number
   inspectablesRemoved: number

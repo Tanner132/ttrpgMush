@@ -9,26 +9,18 @@ public sealed record RoomDeletionCheck(
     bool CanDelete,
     int IncomingExits,
     int OutgoingExits,
-    // Jobs whose entry link names this room, by name.
-    IReadOnlyList<string> MissionEntryLinks,
-    // Runs in flight that would return the character here.
-    int ActiveReturnLinks,
     int CharactersPresent,
     // Room-scoped history that goes with the room. Neither is a ledger, a
     // receipt, or a dice audit — the three things a builder click must never
     // break — but an admin should see what they are erasing before they click.
     int ChatMessages,
     int RoomVisits,
-    // Encounter rooms belong to their encounter definition; deleting the
-    // encounter is what removes them.
-    bool IsEncounterRoom,
     bool IsStartingRoom,
     string? Reason,
-    // WF-25: job sites built from this map room, by name. A run's copy is
-    // made from the map room, so the site would lose a room.
-    IReadOnlyList<string>? JobSites = null,
-    // WF-27: jobs listening to this room's events from outside it, by name.
-    IReadOnlyList<string>? ListeningJobs = null,
+    // Workstream 8: jobs that use this room — happen in it, listen in it, put
+    // an item in it, send runners to it, or use an NPC standing in it — by
+    // name.
+    IReadOnlyList<string>? Jobs = null,
     // WF-27: what goes with the room. Deleting a room deletes everything in
     // it — its NPCs, items, inspectables and its own events — and every exit
     // into or out of it.

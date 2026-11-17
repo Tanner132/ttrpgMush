@@ -52,7 +52,7 @@ describe('Places · removing an exit', () => {
   it('shows why the server refused and puts the confirm away', async () => {
     const user = userEvent.setup()
     vi.mocked(api.deleteExit).mockRejectedValue(
-      new ApiError(400, "Removing this exit would break a live job. Job site 'Gang Warehouse' has rooms with no way in from its entry room: 'Storage Room'."),
+      new ApiError(409, "The exit was changed by someone else. Reload and try again."),
     )
     renderForge(`/admin/forge/places?room=${Ids.downtown}`)
 
@@ -60,7 +60,7 @@ describe('Places · removing an exit', () => {
     await user.click(within(exits).getByRole('button', { name: 'Remove exit east to Coffee Shop' }))
     await user.click(within(exits).getByRole('button', { name: 'Confirm remove exit east to Coffee Shop' }))
 
-    expect(await within(exits).findByRole('alert')).toHaveTextContent("would break a live job. Job site 'Gang Warehouse'")
+    expect(await within(exits).findByRole('alert')).toHaveTextContent('The exit was changed by someone else.')
     expect(within(exits).queryByRole('button', { name: /^Confirm remove exit/ })).not.toBeInTheDocument()
     expect(within(exits).getByText('Coffee Shop')).toBeInTheDocument()
   })

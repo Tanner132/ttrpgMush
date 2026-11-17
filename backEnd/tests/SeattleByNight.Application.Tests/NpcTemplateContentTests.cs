@@ -33,19 +33,14 @@ public sealed class NpcTemplateContentTests
     [Fact]
     public void A_placement_pins_only_what_it_declares_and_inherits_the_rest()
     {
+        // Workstream 8: an NPC is a map row carrying its own overrides — the
+        // warehouse's enforcer is a street ganger in a better vest.
         var content = TestGameContent.Provider.Current;
-        var encounter = content.FindEncounter(ShippedContentIds.Encounters.GangWarehouse)!;
-        var enforcer = encounter.Npcs.Single(npc => npc.Name == "Hallway Enforcer");
-        var lookout = encounter.Npcs.Single(npc => npc.Name == "Warehouse Ganger");
-
-        // Both are street gangers; only one of them is wearing a better vest.
-        Assert.Equal(NpcTemplateIds.StreetGanger, enforcer.TemplateId);
-        Assert.Equal(NpcTemplateIds.StreetGanger, lookout.TemplateId);
-        Assert.Null(lookout.Overrides);
-        Assert.Null(lookout.Description);
+        var enforcer = new NpcStatOverrides(
+            Pools: new Dictionary<string, int> { [NpcPoolIds.Defense] = 9 }, Armor: 12);
 
         var baseTemplate = content.FindNpcTemplate(NpcTemplateIds.StreetGanger)!;
-        var effective = baseTemplate.WithOverrides(enforcer.Overrides);
+        var effective = baseTemplate.WithOverrides(enforcer);
 
         Assert.Equal(12, effective.Armor);
         Assert.Equal(9, effective.Pools[NpcPoolIds.Defense].Dice);
@@ -55,9 +50,6 @@ public sealed class NpcTemplateContentTests
         Assert.Equal(baseTemplate.PhysicalMonitor, effective.PhysicalMonitor);
         Assert.Equal(baseTemplate.Weapon, effective.Weapon);
         Assert.Equal(baseTemplate.Hostile, effective.Hostile);
-
-        Assert.Equal(NpcAwareness.Suspicious, enforcer.StartingAwareness);
-        Assert.NotNull(enforcer.Description);
     }
 
     [Fact]

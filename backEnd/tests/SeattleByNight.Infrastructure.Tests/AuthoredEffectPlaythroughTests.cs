@@ -16,7 +16,6 @@ namespace SeattleByNight.Infrastructure.Tests;
 public abstract class AuthoredEffectHarness : PlaythroughHarness
 {
     protected static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
-    protected static readonly Guid EncounterId = ShippedContentIds.Encounters.GangWarehouse;
 
     // Appends a trigger to the published warehouse encounter and publishes it
     // — exactly what an admin does in the World Forge, including the loader
@@ -38,9 +37,10 @@ public abstract class AuthoredEffectHarness : PlaythroughHarness
             missionInstanceId = assigned.Instance!.Id;
         }
 
-        await MoveAsync(DevelopmentDataSeeder.DowntownToAlleyExitId);
-        var entered = await ActAsync(DevelopmentGameActions.EnterEncounterActionId, missionInstanceId);
-        Assert.Equal(GameActionError.None, entered.Error);
+        // Walking onto the dock completes the first objective on the dock's
+        // queue, after the move has returned.
+        await WalkIntoWarehouseAsync();
+        await WaitForMissionStatusAsync(MissionInstanceStatus.InProgress);
 
         return missionInstanceId;
     }
@@ -105,13 +105,6 @@ public sealed class AuthoredFailObjectiveTests : AuthoredEffectHarness
             MissionObjectiveStatus.Failed,
             await ObjectiveStatusAsync(missionInstanceId, ShippedContentIds.Objectives.RetrievePackage));
 
-        await using var verify = Db();
-        // Both changes landed in one commit: the encounter archived with the
-        // mission, so there is no moment where a dead objective sits inside a
-        // live run.
-        Assert.False(await verify.EncounterInstances.AnyAsync(encounter =>
-            encounter.MissionInstanceId == missionInstanceId
-            && encounter.Status == EncounterInstanceStatus.Active.ToString()));
     }
 }
 

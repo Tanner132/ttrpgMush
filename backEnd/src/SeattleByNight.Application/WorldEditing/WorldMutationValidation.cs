@@ -21,26 +21,19 @@ public static class WorldMutationValidation
         return errors;
     }
 
-    // WF-25: a room is Public, or Private (part of a job site; only runners on
-    // the run get in, into their run's copy). Instanced is engine-only: it
-    // marks a run's copy and is never authored.
+    // Workstream 8: every room is Public. Leaving it out means Public too; the
+    // field stays for player-owned rooms (workstream 7).
     public static bool TryParseAuthoredAccessType(string? value, out RoomAccessType accessType)
     {
-        accessType = value switch
-        {
-            nameof(RoomAccessType.Public) => RoomAccessType.Public,
-            nameof(RoomAccessType.Private) => RoomAccessType.Private,
-            _ => RoomAccessType.Instanced,
-        };
-
-        return accessType != RoomAccessType.Instanced;
+        accessType = RoomAccessType.Public;
+        return value is null || value == nameof(RoomAccessType.Public);
     }
 
     private static void AddAccessTypeError(Dictionary<string, string[]> errors, string? accessType)
     {
         if (!TryParseAuthoredAccessType(accessType, out _))
         {
-            errors["accessType"] = ["Access type must be Public or Private."];
+            errors["accessType"] = ["Every room is Public: job sites are ordinary rooms, and player-owned rooms come later."];
         }
     }
 

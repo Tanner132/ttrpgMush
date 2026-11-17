@@ -12,9 +12,9 @@ function plural(count: number, one: string, many = `${one}s`) {
 
 /**
  * Which jobs use this room, and deleting it. The server's deletion check is
- * the one source for both: it names the job sites built from the room, the
- * jobs listening in it and the jobs whose way in starts here — exactly what
- * stops a delete.
+ * the one source for both: it names every job that happens in the room,
+ * listens in it, puts an item in it, sends runners to it or uses an NPC
+ * standing in it — exactly what stops a delete.
  */
 export function UsageSection({ room, onDeleted }: { room: WorldRoom; onDeleted: () => void }) {
   const { world, refreshWorld } = useForgeData()
@@ -25,7 +25,7 @@ export function UsageSection({ room, onDeleted }: { room: WorldRoom; onDeleted: 
   const usage = check.data
 
   const others = world.rooms
-    .filter((candidate) => candidate.id !== room.id && candidate.accessType === 'Public')
+    .filter((candidate) => candidate.id !== room.id)
     .map((candidate) => ({ id: candidate.id, displayName: candidate.name }))
 
   async function remove() {
@@ -40,13 +40,7 @@ export function UsageSection({ room, onDeleted }: { room: WorldRoom; onDeleted: 
     onDeleted()
   }
 
-  const touching = usage
-    ? [
-        ...(usage.jobSites ?? []).map((name) => ({ name, how: 'Job site is built from this room' })),
-        ...(usage.listeningJobs ?? []).map((name) => ({ name, how: 'Listens to events here' })),
-        ...usage.missionEntryLinks.map((name) => ({ name, how: 'Its way in starts here' })),
-      ]
-    : []
+  const touching = (usage?.jobs ?? []).map((name) => ({ name, how: 'Uses this room' }))
 
   return (
     <>
@@ -90,7 +84,7 @@ export function UsageSection({ room, onDeleted }: { room: WorldRoom; onDeleted: 
                 label={`${plural(usage.charactersPresent, 'character')} standing here will move to`}
                 value={relocateTo}
                 options={others}
-                placeholder="Choose a public room"
+                placeholder="Choose a room"
                 onChange={setRelocateTo}
               />
             )}

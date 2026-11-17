@@ -20,15 +20,17 @@ const RepeatOptions: { id: RepeatKind; displayName: string }[] = [
 /**
  * Giving the job a Johnson. A Johnson is a world NPC — one row everyone meets —
  * so placing one saves to the map at once rather than to the job's draft. Until
- * the job goes live they stand there with nothing to say about it.
+ * the job goes live they stand there with nothing to say about it. Or the job
+ * goes to a stat block: everyone built on it who has no conversation of their
+ * own offers it, in whatever room they stand.
  */
 function JohnsonForm({ job, pitchId }: { job: Job; pitchId: string }) {
   const { references, refreshWorld } = useForgeData()
   const templates = references.npcTemplates.filter((template) => !template.isRetired)
-  const publicRooms = references.rooms.filter((room) => room.accessType === 'Public')
+  const publicRooms = references.rooms
   const everyone = publicRooms.flatMap((room) => room.npcs.map((npc) => ({ ...npc, roomId: room.id, roomName: room.name })))
 
-  const [who, setWho] = useState<'new' | 'existing'>('new')
+  const [who, setWho] = useState<'new' | 'existing' | 'block'>('new')
   const [name, setName] = useState('')
   const [templateId, setTemplateId] = useState(templates.find((template) => !template.hostile)?.id ?? templates[0]?.id ?? '')
   const [description, setDescription] = useState('')
@@ -42,7 +44,15 @@ function JohnsonForm({ job, pitchId }: { job: Job; pitchId: string }) {
       if (!pitch) throw new Error('The conversation is still loading.')
       let block = templateId
 
-      if (who === 'new') {
+      if (who === 'block') {
+        // An NPC speaks their block's conversation only when it is the
+        // block's one: with two, the game would pick, not the author.
+        const taken = job.scenes.find((scene) => scene.id !== pitchId && scene.npcTemplateId === templateId)
+        if (taken) {
+          const blockName = templates.find((template) => template.id === templateId)?.displayName ?? 'That stat block'
+          throw new Error(`${blockName} already speaks '${taken.displayName}'. Give the job to one NPC built on it instead.`)
+        }
+      } else if (who === 'new') {
         await placeRoomNpc(roomId, { templateId, name: name.trim(), description: description.trim() || null, sceneId: pitchId })
       } else {
         const chosen = everyone.find((npc) => npc.id === existingId)
@@ -70,7 +80,8 @@ function JohnsonForm({ job, pitchId }: { job: Job; pitchId: string }) {
     })
   }
 
-  const ready = who === 'new' ? name.trim() !== '' && templateId !== '' && roomId !== '' : existingId !== ''
+  const ready =
+    who === 'new' ? name.trim() !== '' && templateId !== '' && roomId !== '' : who === 'block' ? templateId !== '' : existingId !== ''
 
   return (
     <form
@@ -86,7 +97,8 @@ function JohnsonForm({ job, pitchId }: { job: Job; pitchId: string }) {
         value={who}
         options={[
           { id: 'new', displayName: 'New' },
-          { id: 'existing', displayName: 'Existing', disabled: everyone.length === 0, title: everyone.length === 0 ? 'Nobody stands in a public room yet' : undefined },
+          { id: 'existing', displayName: 'Existing', disabled: everyone.length === 0, title: everyone.length === 0 ? 'Nobody stands on the map yet' : undefined },
+          { id: 'block', displayName: 'Stat block' },
         ]}
         onChange={setWho}
       />
@@ -108,11 +120,20 @@ function JohnsonForm({ job, pitchId }: { job: Job; pitchId: string }) {
             label="Location"
             value={roomId}
             options={publicRooms.map((room) => ({ id: room.id, displayName: room.name }))}
-            placeholder="Choose a public room"
-            hint="A Johnson stands in a public room, where any runner can find them."
+            placeholder="Choose a room"
+            hint="Where they start. They offer the job in whatever room they stand."
             onChange={setRoomId}
           />
         </>
+      ) : who === 'block' ? (
+        <Select
+          label="Stat block"
+          value={templateId}
+          options={templates.map((template) => ({ id: template.id, displayName: template.displayName }))}
+          placeholder={templates.length === 0 ? 'No live stat block — make one in the Library' : 'Choose a stat block'}
+          hint="Anyone built on it with no conversation of their own offers the job, wherever they stand."
+          onChange={setTemplateId}
+        />
       ) : (
         <Select
           label="Who offers the job"
@@ -130,10 +151,12 @@ function JohnsonForm({ job, pitchId }: { job: Job; pitchId: string }) {
       )}
       <div className="forge__actions">
         <Button type="submit" intent="primary" busy={action.busy} disabled={!ready}>
-          {who === 'new' ? 'Place Johnson' : 'Give them the job'}
+          {who === 'new' ? 'Place Johnson' : who === 'block' ? 'Give the stat block the job' : 'Give them the job'}
         </Button>
       </div>
-      <p className="forge__hint">Placed on the map straight away, with nothing to say about the job until it goes live.</p>
+      <p className="forge__hint">
+        {who === 'block' ? 'Nobody has anything to say about the job until it goes live.' : 'Placed on the map straight away, with nothing to say about the job until it goes live.'}
+      </p>
     </form>
   )
 }
@@ -233,22 +256,33 @@ export function JohnsonStep({ job, mission }: { job: Job; mission: Mission }) {
                 </Button>
               </div>
             </div>
-          ) : job.johnsons.length > 0 ? (
+          ) : job.johnsons.length > 0 || job.johnsonBlock ? (
             <div className="forge__stack">
-              <ul className="forge__rows">
-                {job.johnsons.map((npc) => (
-                  <li key={npc.id} className="forge__row">
-                    <Chip tone="info">Johnson</Chip>
-                    <b className="forge__row-name">{npc.name}</b>
-                    <Link to={`/admin/forge/places?room=${npc.roomId}`} onClick={guard}>
-                      {npc.roomName}
-                    </Link>
-                    <Button busy={opening.busy} aria-label={`Edit ${npc.name}`} onClick={() => void edit(npc)}>
-                      Edit
-                    </Button>
-                  </li>
-                ))}
-              </ul>
+              {job.johnsonBlock && (
+                <p className="forge__hint">
+                  Anyone built on <b>{job.johnsonBlock.name}</b> with no conversation of their own offers this job, wherever they stand.
+                </p>
+              )}
+              {job.johnsons.length === 0 ? (
+                <Empty>Nobody built on {job.johnsonBlock?.name} is on the map yet. Place one in Places.</Empty>
+              ) : (
+                <ul className="forge__rows">
+                  {job.johnsons.map((npc) => (
+                    <li key={npc.id} className="forge__row">
+                      <Chip tone="info">Johnson</Chip>
+                      <b className="forge__row-name">{npc.name}</b>
+                      <Link to={`/admin/forge/places?room=${npc.roomId}`} onClick={guard}>
+                        {npc.roomName}
+                      </Link>
+                      {npc.holdsPitch && (
+                        <Button busy={opening.busy} aria-label={`Edit ${npc.name}`} onClick={() => void edit(npc)}>
+                          Edit
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
               {opening.error && (
                 <StatusBanner tone="danger" role="alert">
                   {opening.error}

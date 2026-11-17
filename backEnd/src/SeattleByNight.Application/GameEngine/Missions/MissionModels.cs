@@ -26,24 +26,17 @@ public sealed record MissionInstanceSnapshot(
         Objectives.FirstOrDefault(objective => objective.ObjectiveId == objectiveId);
 }
 
-public sealed record EncounterInstanceSnapshot(
-    Guid Id,
-    Guid EncounterId,
-    Guid MissionInstanceId,
-    EncounterInstanceStatus Status,
-    Guid EntryRoomId,
-    Guid ReturnRoomId);
-
-// §38: a placed or carried item instance. Exactly one of RoomId /
-// OwnerCharacterId is set.
+// §38/workstream 8: a job's item in the shared world. At most one of RoomId
+// and OwnerCharacterId is set; neither means it is out of play (never placed,
+// or handed in) until an effect hands it over or the job resets.
 public sealed record WorldItemSnapshot(
     Guid Id,
-    // WF-27: the job-site item this instance was made from.
+    // The job item this row is, by its content id.
     Guid ItemId,
+    // The job that declares it.
+    Guid MissionId,
     string DisplayName,
     string Description,
-    Guid? MissionInstanceId,
-    Guid? EncounterInstanceId,
     Guid? RoomId,
     Guid? OwnerCharacterId,
     // WF-27: hidden until a search finds it, per character.

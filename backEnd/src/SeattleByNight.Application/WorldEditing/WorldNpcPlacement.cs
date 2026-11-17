@@ -6,11 +6,9 @@ using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Application.WorldEditing;
 
-// WF-25 exception: NPCs that live in the shared world — above all a job's
-// Johnson, who has to stand somewhere public so runners can be offered the
-// job and get paid. Run content (an encounter's NPCs) is placed in a job
-// site's Private rooms and copied per run; a world NPC is a single row that
-// everyone meets, so it may only stand in a Public map room.
+// Workstream 8: every NPC is a world NPC — a single row that everyone meets,
+// standing in a room of the one shared map. A job uses them; it does not own
+// them.
 public sealed record WorldNpcMutation(
     Guid? TemplateId,
     string? Name,
@@ -50,9 +48,7 @@ public sealed record WorldNpcResult(
 
 public interface IWorldNpcStore
 {
-    // The room's access type and whether it is a map room (not a run copy);
-    // null when it does not exist.
-    Task<(RoomAccessType AccessType, bool IsMapRoom)?> GetRoomAsync(Guid roomId, CancellationToken cancellationToken);
+    Task<bool> RoomExistsAsync(Guid roomId, CancellationToken cancellationToken);
 
     Task<NpcSnapshot> PlaceAsync(Guid actorUserId, Guid roomId, ValidWorldNpc npc, CancellationToken cancellationToken);
 
@@ -127,14 +123,14 @@ public sealed class WorldNpcPlacement(
         }
 
         // WF-27: content names this NPC by id. Renaming it is fine — the
-        // listener follows the id — but removing it would leave the listener
+        // listener follows the id — but removing it would leave content
         // pointing at no one, so the delete waits until nothing does.
-        var listeners = ListenersNaming(npcId).ToArray();
-        if (listeners.Length > 0)
+        var users = ContentNaming(npcId).ToArray();
+        if (users.Length > 0)
         {
             return WorldNpcResult.Failure(
                 WorldNpcError.InUse,
-                $"Events still name this NPC: {string.Join(", ", listeners)}. Remove those listeners first.");
+                $"Content still uses this NPC: {string.Join(", ", users)}. Take them out of it first.");
         }
 
         return await store.RemoveAsync(actorUserId, roomId, npcId, cancellationToken);
@@ -160,17 +156,16 @@ public sealed class WorldNpcPlacement(
             });
         }
 
-        var destination = await CheckRoomAsync(toRoomId, cancellationToken);
-        if (destination is not null)
+        if (!await store.RoomExistsAsync(toRoomId, cancellationToken))
         {
-            return destination.Error == WorldNpcError.Validation
-                ? WorldNpcResult.Invalid(new Dictionary<string, string[]>
-                {
-                    ["toRoomId"] = destination.ValidationErrors["roomId"],
-                })
-                : destination;
+            return WorldNpcResult.Invalid(new Dictionary<string, string[]>
+            {
+                ["toRoomId"] = ["That room does not exist."],
+            });
         }
 
+        // Listeners name an NPC in the room they stand in. A job using them
+        // (or a scene effect naming them) does not care where they are.
         var listeners = ListenersNaming(npcId).ToArray();
         if (listeners.Length > 0)
         {
@@ -188,6 +183,31 @@ public sealed class WorldNpcPlacement(
         }
 
         return await store.MoveAsync(actorUserId, roomId, npcId, toRoomId, cancellationToken);
+    }
+
+    // Everything in the served content that names this NPC: listeners, the
+    // jobs that use them, and scene effects.
+    private IEnumerable<string> ContentNaming(Guid npcId)
+    {
+        foreach (var listener in ListenersNaming(npcId))
+        {
+            yield return listener;
+        }
+
+        var current = content.Current;
+        foreach (var mission in current.Missions.Where(mission => mission.NpcIds.Contains(npcId)))
+        {
+            yield return $"job '{mission.DisplayName}' uses them";
+        }
+
+        foreach (var scene in current.Scenes.Where(scene => scene.Nodes
+            .SelectMany(node => node.Choices)
+            .SelectMany(choice => new[] { choice.Effects, choice.OnSuccess?.Effects, choice.OnFailure?.Effects })
+            .SelectMany(effects => effects ?? [])
+            .Any(effect => effect.NpcId == npcId)))
+        {
+            yield return $"conversation '{scene.DisplayName}'";
+        }
     }
 
     private IEnumerable<string> ListenersNaming(Guid npcId)
@@ -213,30 +233,9 @@ public sealed class WorldNpcPlacement(
                 .Concat(reaction.OnFailure?.Effects ?? [])
                 .Any(effect => effect.NpcId == npcId));
 
-    // Null when the room is a Public map room; otherwise the refusal.
-    private async Task<WorldNpcResult?> CheckRoomAsync(Guid roomId, CancellationToken cancellationToken)
-    {
-        var room = await store.GetRoomAsync(roomId, cancellationToken);
-        if (room is null)
-        {
-            return WorldNpcResult.Failure(WorldNpcError.RoomNotFound);
-        }
-
-        if (!room.Value.IsMapRoom || room.Value.AccessType != RoomAccessType.Public)
-        {
-            return WorldNpcResult.Invalid(new Dictionary<string, string[]>
-            {
-                ["roomId"] =
-                [
-                    room.Value.IsMapRoom
-                        ? "This room is Private: it belongs to a job site, so its NPCs are placed on the job and copied for each run."
-                        : "This room is a run's copy. World NPCs stand in Public map rooms.",
-                ],
-            });
-        }
-
-        return null;
-    }
+    // Null when the room exists; otherwise the refusal.
+    private async Task<WorldNpcResult?> CheckRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
+        await store.RoomExistsAsync(roomId, cancellationToken) ? null : WorldNpcResult.Failure(WorldNpcError.RoomNotFound);
 
     private async Task<(ValidWorldNpc? Npc, Dictionary<string, string[]> Errors)> ValidateAsync(
         WorldNpcMutation mutation, CancellationToken cancellationToken)

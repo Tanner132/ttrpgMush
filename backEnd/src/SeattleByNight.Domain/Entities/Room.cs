@@ -15,13 +15,6 @@ public sealed class Room
     // combat.collapsed-environment-modifier): one dice-pool delta applied to
     // ranged attacks made in this room, both directions. 0 = neutral.
     public int EnvironmentModifier { get; set; }
-    // §29/§31: non-null marks a room instantiated for one private encounter
-    // instance. Movement only admits participants moving within the same
-    // instance; the shared world never links exits into these rooms.
-    public Guid? EncounterInstanceId { get; set; }
-    // WF-25: on a run copy, the map room it was copied from. Null for map
-    // rooms, and for copies made before job sites were map rooms.
-    public Guid? SourceRoomId { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public Guid Version { get; set; } = Guid.NewGuid();
 }

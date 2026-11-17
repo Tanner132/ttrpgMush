@@ -247,51 +247,14 @@ public sealed class AffordanceService
         }
     }
 
-    // Milestone 5 (§32): mission affordances are pure state functions —
-    // travel is offered in a mission's linked room while its instance is
-    // open; inside the private encounter, placed items offer Take and the
-    // entry room offers Leave.
+    // Milestone 5 (§32), workstream 8: any item lying in the room offers
+    // Take, to whoever can see it. There is no site to travel into or leave.
     private async Task AddMissionAffordancesAsync(
         List<GameAffordance> affordances,
         Guid characterId,
         Guid roomId,
         CancellationToken cancellationToken)
     {
-        var currentEncounter = await missionReader.GetActiveEncounterByRoomAsync(roomId, cancellationToken);
-
-        if (currentEncounter is null)
-        {
-            // Shared world: offer travel into each open mission linked here,
-            // unless the character is already inside a different instance
-            // (they cannot be — they'd be standing in it — but a held live
-            // instance for another mission still blocks a second one; the
-            // engine enforces it, the list mirrors it).
-            var held = await missionReader.GetActiveEncounterForCharacterAsync(characterId, cancellationToken);
-            var openMissions = await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken);
-            foreach (var instance in openMissions)
-            {
-                if (gameContent.Current.FindMission(instance.MissionId) is not { } definition
-                    || definition.EntryLinkRoomId != roomId
-                    || (held is not null && held.MissionInstanceId != instance.Id))
-                {
-                    continue;
-                }
-
-                var enter = DevelopmentGameActions.All[DevelopmentGameActions.EnterEncounterActionId];
-                var encounterName = gameContent.Current.FindEncounter(definition.EncounterId)?.DisplayName
-                    ?? "the job site";
-                affordances.Add(new GameAffordance(
-                    enter.ActionId,
-                    instance.Id,
-                    $"{enter.DisplayName} {encounterName}",
-                    $"{definition.DisplayName}: {enter.Description}",
-                    enter.Kind));
-            }
-
-            return;
-        }
-
-        // Inside the instance: only its own participant can be here at all.
         var items = await missionReader.GetItemsInRoomAsync(roomId, cancellationToken);
         var take = DevelopmentGameActions.All[DevelopmentGameActions.TakeItemActionId];
 
@@ -308,19 +271,6 @@ public sealed class AffordanceService
                 $"{take.DisplayName} {item.DisplayName}",
                 take.Description,
                 take.Kind));
-        }
-
-        if (currentEncounter.EntryRoomId == roomId)
-        {
-            var leave = DevelopmentGameActions.All[DevelopmentGameActions.LeaveEncounterActionId];
-            var encounterName = gameContent.Current.FindEncounter(currentEncounter.EncounterId)?.DisplayName
-                ?? "the job site";
-            affordances.Add(new GameAffordance(
-                leave.ActionId,
-                null,
-                $"{leave.DisplayName} {encounterName}",
-                leave.Description,
-                leave.Kind));
         }
     }
 

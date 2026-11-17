@@ -163,7 +163,7 @@ public sealed class PlaceEventPlaythroughTests : PlaythroughHarness
     [Fact]
     public async Task A_place_is_refused_on_an_unknown_room_or_for_someone_not_there_but_any_map_room_will_do()
     {
-        // WF-26: a room's own events work in any map room, private ones too.
+        // WF-26: a room's own events work in any map room, the warehouse's too.
         var onSite = await TryPublishPlaceAsync("loading-dock", """
             [{ "key": "k", "event": "playerEnteredRoom", "reactions": [{ "kind": "narrate", "text": "x" }] }]
             """);
@@ -178,11 +178,11 @@ public sealed class PlaceEventPlaythroughTests : PlaythroughHarness
             [{ "key": "k", "event": "playerEnteredRoom",
                "reactions": [{ "kind": "npcSpeaks", "npcName": "Nobody", "text": "Hoi." }] }]
             """);
-        Assert.Contains("names an NPC who is not in 'Alley'", stranger.Error);
+        Assert.Contains("has an NPC speak or act who is not in 'Alley'", stranger.Error);
     }
 
     [Fact]
-    public async Task A_room_with_events_cannot_be_deleted_and_a_job_keeps_its_public_room_open()
+    public async Task A_room_with_events_or_a_job_using_it_cannot_be_deleted()
     {
         await PublishPlaceAsync("alley", """
             [{ "key": "k", "event": "playerEnteredRoom", "reactions": [{ "kind": "narrate", "text": "x" }] }]
@@ -190,23 +190,15 @@ public sealed class PlaceEventPlaythroughTests : PlaythroughHarness
 
         await using var scope = Provider.CreateAsyncScope();
         var store = scope.ServiceProvider.GetRequiredService<IWorldEditorStore>();
-        Assert.False((await store.CheckRoomDeletionAsync(DevelopmentDataSeeder.AlleyId))!.CanDelete);
+        var alley = await store.CheckRoomDeletionAsync(DevelopmentDataSeeder.AlleyId);
+        Assert.False(alley!.CanDelete);
+        Assert.True(alley.HasRoomEvents);
 
-        // The room's own events do not care whether it is Public…
-        async Task<WorldMutationResult<WorldRoom>> CloseAsync()
-        {
-            await using var db = Db();
-            var room = await db.Rooms.AsNoTracking().SingleAsync(row => row.Id == DevelopmentDataSeeder.CoffeeShopId);
-            return await store.UpdateRoomAsync(
-                UserId, room.Id, room.Version, new UpdateRoomMutation(room.Name, room.Description, "Private"));
-        }
-
-        // …but a job listening there does: it only listens in public rooms.
-        await PublishJobTriggerAsync("""
-            { "key": "k", "event": "playerEnteredRoom", "roomKey": "coffee-shop",
-              "reactions": [{ "kind": "narrate", "text": "x" }] }
-            """);
-        Assert.Contains("accessType", (await CloseAsync()).ValidationErrors.Keys);
+        // Workstream 8: every room is public, so a job listening in one never
+        // depends on its access, only on it staying on the map.
+        var coffeeShop = await store.CheckRoomDeletionAsync(DevelopmentDataSeeder.CoffeeShopId);
+        Assert.False(coffeeShop!.CanDelete);
+        Assert.Contains("Gang Warehouse Retrieval", coffeeShop.Jobs!);
     }
 
     private async Task AcceptAsync()

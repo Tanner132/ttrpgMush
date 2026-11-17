@@ -1,68 +1,33 @@
 import type { ContentReferences, Guid, WorldRoom } from '../api.ts'
-import type { EventScope } from '../events/scope.ts'
+import { PlaceEffects, PlaceEvents, type EventScope } from '../events/scope.ts'
 import type { Option } from '../fields.tsx'
-import type { ConditionKind, EffectKind, Encounter, Mission, Scene, TriggerEvent } from '../model.ts'
+import type { ConditionKind, EffectKind, Mission, Scene, TriggerEvent } from '../model.ts'
 
 /*
  * What a job's events and conversations may say. As with a room's own events,
- * every list here mirrors a rule in GameContentLoader or JobSiteMapValidator,
- * so the pickers offer only what a publish would accept — and, because a job
+ * every list here mirrors a rule in GameContentLoader or JobMapValidator, so
+ * the pickers offer only what a publish would accept — and, because a job
  * goes live as one set, they offer the job's own drafts as well as what is
  * already live.
+ *
+ * Workstream 8: there are no job sites. A job listens in any room of the
+ * shared map, to what stands there on the map and to its own items.
  */
 
 /** Everything inside the job that a picker can point at, read off its drafts. */
 export interface JobContext {
   mission: Mission
-  site: Encounter | null
   /** Conversation drafts, for "open a conversation". */
   scenes: Scene[]
   references: ContentReferences
   rooms: WorldRoom[]
 }
 
-/** Events a job can hear inside its own site. */
-const SiteEvents: TriggerEvent[] = [
-  'playerEnteredRoom',
-  'playerLeftRoom',
-  'encounterEntered',
-  'npcSpokenTo',
-  'npcDefeated',
-  'npcPacified',
-  'sneakAttempted',
-  'combatStarted',
-  'itemPickedUp',
-  'interactableInspected',
-  'lockedExitTried',
-]
+/** Events a job can hear: a room's own, plus its items being taken and the job being accepted. */
+const JobEvents: TriggerEvent[] = ['missionAccepted', ...PlaceEvents, 'itemPickedUp']
 
-/** Events a job can hear in a public room: nothing of the site's is there to watch. */
-const PublicEvents: TriggerEvent[] = [
-  'missionAccepted',
-  'playerEnteredRoom',
-  'playerLeftRoom',
-  'npcSpokenTo',
-  'npcDefeated',
-  'npcPacified',
-  'sneakAttempted',
-  'combatStarted',
-  'lockedExitTried',
-]
-
-const SiteEffects: EffectKind[] = [
-  'dealDamage',
-  'giveItem',
-  'takeItem',
-  'alertNpc',
-  'pacifyNpc',
-  'startCombat',
-  'completeObjective',
-  'failObjective',
-  'failMission',
-]
-
-/** In a public room a job has no site NPC to act on and no run to hand items out of. */
-const PublicEffects: EffectKind[] = ['dealDamage', 'takeItem', 'completeObjective', 'failObjective', 'failMission']
+/** A job's listeners may also hand over one of its items (GameContentLoader.JobEffects). */
+const JobEffects: EffectKind[] = [...PlaceEffects, 'giveItem']
 
 const ListenerConditions: ConditionKind[] = ['missionOpen', 'missionReadyToTurnIn', 'missionAvailable', 'carryingItem', 'notCarryingItem']
 
@@ -114,13 +79,20 @@ function missions(context: JobContext): EventScope['missions'] {
   ]
 }
 
-/** This site's items first — the ones a job hands out and asks for back. */
-function allItems(context: JobContext): Option[] {
-  const { site, references } = context
-  const own = (site?.items ?? []).map((item) => ({ id: item.id, displayName: item.name || 'Unnamed item' }))
-  const others = references.encounters
-    .filter((encounter) => encounter.id !== site?.id)
-    .flatMap((encounter) => encounter.items.map((item) => ({ id: item.id, displayName: `${item.name} · ${encounter.displayName}` })))
+/** Every NPC on the map, by name and where they stand. */
+function mapNpcs(references: ContentReferences): Option[] {
+  return references.rooms
+    .flatMap((room) => room.npcs.map((npc) => ({ id: npc.id, displayName: `${npc.name} · ${room.name}` })))
+    .sort(byName)
+}
+
+/** This job's items first — the ones it hands out and asks for back — then other jobs'. */
+export function allItems(context: JobContext): Option[] {
+  const { mission, references } = context
+  const own = mission.items.map((item) => ({ id: item.id, displayName: item.name || 'Unnamed item' }))
+  const others = references.missions
+    .filter((other) => other.id !== mission.id)
+    .flatMap((other) => other.items.map((item) => ({ id: item.id, displayName: `${item.name} · ${other.displayName}` })))
   return [...own, ...others]
 }
 
@@ -141,39 +113,36 @@ export function prompts(scenes: Scene[]): Option[] {
     .sort(byName)
 }
 
-/** Rooms a job may listen in: its own site, and any public room. */
+/** Rooms a job may listen in: any room on the map, its own rooms first. */
 export function listeningRooms(context: JobContext): Option[] {
-  const inSite = new Set(context.site?.roomIds ?? [])
-  const site = context.rooms.filter((room) => inSite.has(room.id)).map((room) => ({ id: room.id, displayName: `${room.name} · site` }))
-  const open = context.rooms
-    .filter((room) => room.accessType === 'Public')
-    .map((room) => ({ id: room.id, displayName: `${room.name} · public` }))
-  return [...site.sort(byName), ...open.sort(byName)]
+  const own = new Set(context.mission.roomIds)
+  const mine = context.rooms.filter((room) => own.has(room.id)).map((room) => ({ id: room.id, displayName: `${room.name} · this job` }))
+  const rest = context.rooms.filter((room) => !own.has(room.id)).map((room) => ({ id: room.id, displayName: room.name }))
+  return [...mine.sort(byName), ...rest.sort(byName)]
 }
 
 /** One of the job's events, in the room it listens in. */
 export function listenerScope(roomId: Guid | undefined, context: JobContext): EventScope {
-  const { site, references } = context
-  const inSite = roomId !== undefined && (site?.roomIds ?? []).includes(roomId)
-  const named = (things: { id: Guid; name: string }[]) => things.map((thing) => ({ id: thing.id, displayName: thing.name || 'Unnamed' }))
-  const worldNpcs = references.rooms.find((room) => room.id === roomId)?.npcs ?? []
-
+  const { mission, references } = context
+  const room = references.rooms.find((candidate) => candidate.id === roomId)
   return {
-    events: inSite ? SiteEvents : PublicEvents,
-    npcs: inSite ? named((site?.npcs ?? []).filter((npc) => npc.roomId === roomId)) : named(worldNpcs),
-    alertNpcs: inSite ? named(site?.npcs ?? []) : undefined,
-    items: inSite ? named((site?.items ?? []).filter((item) => item.roomId === roomId)) : [],
-    inspectables: inSite ? named((site?.interactables ?? []).filter((thing) => thing.roomId === roomId)) : [],
-    effects: inSite ? SiteEffects : PublicEffects,
+    events: JobEvents,
+    npcs: (room?.npcs ?? []).map((npc) => ({ id: npc.id, displayName: npc.name })),
+    // An alarm carries anywhere on the map.
+    alertNpcs: mapNpcs(references),
+    items: mission.items
+      .filter((item) => item.roomId !== undefined && item.roomId === roomId)
+      .map((item) => ({ id: item.id, displayName: item.name || 'Unnamed item' })),
+    inspectables: (room?.inspectables ?? []).map((thing) => ({ id: thing.id, displayName: thing.name })),
+    effects: JobEffects,
     conditions: ListenerConditions,
     missions: missions(context),
     allItems: allItems(context),
     tests: tests(context, false),
     scenes: prompts(context.scenes),
     canFireOnce: true,
-    // Inside the site everyone present is on the run; only a public room has
-    // bystanders to show a cover line to.
-    canHaveCoverLine: !inSite,
+    // Every room is shared: there are always bystanders to show a cover line to.
+    canHaveCoverLine: true,
   }
 }
 
@@ -182,15 +151,14 @@ export function listenerScope(roomId: Guid | undefined, context: JobContext): Ev
  * against, and an effect that names nobody means whoever is being talked to.
  */
 export function sceneScope(scene: Scene, context: JobContext): EventScope {
-  const { site } = context
   const hasNpc = scene.npcTemplateId !== undefined
-  const siteNpcs = (site?.npcs ?? []).map((npc) => ({ id: npc.id, displayName: npc.name || 'Unnamed' }))
+  const npcs = mapNpcs(context.references)
   return {
     events: [],
-    // A named NPC has to be on the site the conversation opens in; the
-    // Johnson, out in a public room, can only be meant by leaving it unnamed.
-    npcs: hasNpc ? [] : siteNpcs,
-    alertNpcs: hasNpc ? [] : siteNpcs,
+    // With an NPC behind it, an unnamed effect means them; a prompt names
+    // anyone on the map.
+    npcs: hasNpc ? [] : npcs,
+    alertNpcs: hasNpc ? [] : npcs,
     unnamedNpc: hasNpc ? 'Whoever the runner is talking to' : undefined,
     items: [],
     inspectables: [],

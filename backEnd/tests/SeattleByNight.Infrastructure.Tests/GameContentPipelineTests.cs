@@ -82,9 +82,6 @@ public sealed class GameContentPipelineTests : IAsyncLifetime
         // Membership, not order: the store composes by content key, so the
         // document no longer inherits the authored files' declaration order.
         Assert.Equal(
-            Keys(embedded.Encounters.Select(encounter => encounter.Id)),
-            Keys(content.Current.Encounters.Select(encounter => encounter.Id)));
-        Assert.Equal(
             Keys(embedded.Missions.Select(mission => mission.Id)),
             Keys(content.Current.Missions.Select(mission => mission.Id)));
         Assert.Equal(
@@ -95,12 +92,13 @@ public sealed class GameContentPipelineTests : IAsyncLifetime
         var mission = content.Current.FindMission(MissionKey)!;
         var authored = embedded.FindMission(MissionKey)!;
         Assert.Equal(authored.DisplayName, mission.DisplayName);
-        Assert.Equal(authored.EncounterId, mission.EncounterId);
-        Assert.Equal(authored.EntryLinkRoomId, mission.EntryLinkRoomId);
+        Assert.Equal(authored.RoomIds, mission.RoomIds);
+        Assert.Equal(authored.NpcIds, mission.NpcIds);
+        Assert.Equal(authored.Items, mission.Items);
         Assert.Equal(authored.Rewards, mission.Rewards);
         Assert.Equal(
-            authored.Objectives.Select(objective => (objective.Id, objective.Kind, objective.ItemId)),
-            mission.Objectives.Select(objective => (objective.Id, objective.Kind, objective.ItemId)));
+            authored.Objectives.Select(objective => (objective.Id, objective.Kind, objective.ItemId, objective.RoomId)),
+            mission.Objectives.Select(objective => (objective.Id, objective.Kind, objective.ItemId, objective.RoomId)));
     }
 
     private static Guid[] Keys(IEnumerable<Guid> ids) => ids.Order().ToArray();
@@ -155,14 +153,14 @@ public sealed class GameContentPipelineTests : IAsyncLifetime
         var publisher = scope.ServiceProvider.GetRequiredService<GameContentPublisher>();
         var content = _provider.GetRequiredService<IGameContentProvider>();
 
-        // Names an encounter nothing declares — the same reference-integrity
-        // check the embedded bundle gets at startup.
+        // Workstream 8: names a room that is not on the map — the publish
+        // gate checks a job against the map.
         await store.SaveDraftAsync(GameContentKind.Mission, GhostJob, "Ghost Job", GhostJobJson, Actor);
 
         var result = await publisher.PublishAsync(GameContentKind.Mission, GhostJob, Actor);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("Job 'Ghost Job' names a job site that does not exist", result.Error);
+        Assert.Contains("Job 'Ghost Job' uses 1 room(s) that are not on the map", result.Error);
 
         var refused = await store.FindAsync(GameContentKind.Mission, GhostJob);
         Assert.Equal(GameContentStatus.Draft, refused!.Status);
@@ -210,13 +208,12 @@ public sealed class GameContentPipelineTests : IAsyncLifetime
         {
           "id": "{{GhostJob}}",
           "displayName": "Ghost Job",
-          "description": "A job whose site does not exist.",
-          "encounterId": "{{Guid.NewGuid()}}",
-          "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
+          "description": "A job in a room that does not exist.",
+          "roomIds": [ "{{Guid.NewGuid()}}" ],
           "repeatability": { "kind": "oneTime" },
           "rewards": { "karma": 1, "nuyen": 100 },
           "objectives": [
-            { "id": "{{Guid.NewGuid()}}", "displayName": "Enter", "kind": "enterEncounter" }
+            { "id": "{{Guid.NewGuid()}}", "displayName": "Get to the alley", "kind": "reachRoom", "roomId": "33333333-3333-3333-3333-333333333333" }
           ]
         }
         """;
@@ -240,16 +237,26 @@ public sealed class GameContentPipelineTests : IAsyncLifetime
             return renamed;
         }
 
-        // WF-26: a second job on the same site cannot listen to the events
+        // WF-26: a second job in the same rooms cannot listen to the events
         // the first already does, so the copy listens to nothing.
+        // Workstream 8: a job's item is one object in the world, so the copy
+        // has none, and keeps only the objectives that need none.
         // WF-27: every record has its own id, so the copy's objectives get
         // new ones too.
         var copy = System.Text.Json.Nodes.JsonNode.Parse(renamed)!.AsObject();
         copy.Remove("triggers");
-        foreach (var objective in copy["objectives"]!.AsArray().OfType<System.Text.Json.Nodes.JsonObject>())
-        {
-            objective["id"] = Guid.NewGuid().ToString();
-        }
+        copy["items"] = new System.Text.Json.Nodes.JsonArray();
+        var reach = copy["objectives"]!.AsArray()
+            .OfType<System.Text.Json.Nodes.JsonObject>()
+            .Where(objective => (string?)objective["kind"] == "reachRoom")
+            .Select(objective =>
+            {
+                var fresh = (System.Text.Json.Nodes.JsonObject)objective.DeepClone();
+                fresh["id"] = Guid.NewGuid().ToString();
+                return (System.Text.Json.Nodes.JsonNode)fresh;
+            })
+            .ToArray();
+        copy["objectives"] = new System.Text.Json.Nodes.JsonArray(reach);
 
         return copy.ToJsonString();
     }

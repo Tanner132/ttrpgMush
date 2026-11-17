@@ -6,7 +6,6 @@ import { Chip, Empty, Section } from './fields.tsx'
 import { describeAge, statusTone, statusWord } from './format.ts'
 
 const KindWords: Record<ContentSummary['kind'], string> = {
-  Encounter: 'Job site',
   Mission: 'Job',
   NpcTemplate: 'Stat block',
   Scene: 'Conversation',
@@ -42,8 +41,7 @@ function Stat({ value, label, tone }: { value: number; label: string; tone?: 'dr
 export default function ForgeHome() {
   const { world, definitions, inventory } = useForgeData()
   const guard = useGuardedClick()
-  const publicRooms = world.rooms.filter((room) => room.accessType === 'Public').length
-  const privateRooms = world.rooms.length - publicRooms
+  const exits = world.exits.length
   const jobs = definitions('Mission')
   const recent = [...inventory.definitions]
     .sort((a, b) => b.updatedAtUtc.localeCompare(a.updatedAtUtc))
@@ -55,8 +53,8 @@ export default function ForgeHome() {
       <div className="forge__home-grid">
         <Section title="Places">
           <div className="forge__stats">
-            <Stat value={publicRooms} label="Public rooms" />
-            <Stat value={privateRooms} label="Private rooms" />
+            <Stat value={world.rooms.length} label="Rooms" />
+            <Stat value={exits} label="Exits" />
           </div>
           <div className="forge__actions">
             <Link className="ui-button ui-button--primary" to="/admin/forge/places" onClick={guard}>

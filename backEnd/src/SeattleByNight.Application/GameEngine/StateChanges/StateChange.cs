@@ -46,21 +46,6 @@ public sealed record SetNpcDamageChange(
 // character becomes playable again. Real SR5 healing is a later milestone.
 public sealed record ClearCharacterDamageChange(Guid CharacterId) : StateChange;
 
-// Milestone 5 (§29/§30): enter a mission's private encounter. First entry
-// instantiates the encounter definition — rooms, exits, NPCs, items,
-// interactables, participant row — and moves the character (durable location
-// + room visit) to the entry room; re-entry within the instance lifetime just
-// moves the character back in. PlaySessionId names the visit to swing.
-// RoomId (WF-25): the site's map room the runner arrives in. Null means the
-// site's entry room; a runner who walked in through a door into one of the
-// site's map rooms arrives in their run's copy of that room instead.
-public sealed record EnterEncounterChange(Guid MissionInstanceId, Guid PlaySessionId, Guid? RoomId = null) : StateChange;
-
-// Leaves the encounter: moves the character (durable location + room visit)
-// back to the instance's return room. Mission/encounter status transitions
-// are separate changes — leaving early is allowed and changes nothing else.
-public sealed record LeaveEncounterChange(Guid EncounterInstanceId, Guid PlaySessionId) : StateChange;
-
 // §38: the acting character takes a placed item — RoomId clears, owner set.
 public sealed record PickUpItemChange(Guid ItemId) : StateChange;
 
@@ -104,14 +89,13 @@ public sealed record EndSceneChange : StateChange;
 // pay. MissionId names a content definition.
 public sealed record AcceptMissionChange(Guid MissionId, int? NegotiatedNuyen) : StateChange;
 
-// §38: the item leaves the world — handed over at turn-in. The row is
-// deleted; the audit envelope keeps the record (dev decision
-// mission.item-consumed-on-turn-in).
+// §38/workstream 8: the item leaves play — handed over at turn-in, or taken
+// by an effect. A job's item is one object, so its row stays: it is out of
+// play (in no room, carried by nobody) until the job resets and puts it back
+// (phase 3). ItemId is the row's id.
 public sealed record RemoveItemChange(Guid ItemId, string Reason) : StateChange;
 
-// Milestone 6 defeat path: the mission fails (dev decision
-// combat.no-pc-death — defeat, not death) and its live encounter is
-// archived. Durable consequences from earlier commits stand.
+// The mission fails. Durable consequences from earlier commits stand.
 public sealed record FailMissionChange(Guid MissionInstanceId) : StateChange;
 
 // ------------------------------------------------------------------------
@@ -121,14 +105,9 @@ public sealed record FailMissionChange(Guid MissionInstanceId) : StateChange;
 // content picks from the list rather than extending it.
 // ------------------------------------------------------------------------
 
-// Hands the character an item the encounter declares but never placed (or
-// placed elsewhere) — a fresh instance owned by them, provenance intact.
-public sealed record GrantItemChange(
-    Guid MissionInstanceId,
-    Guid EncounterInstanceId,
-    Guid ItemId,
-    string DisplayName,
-    string Description) : StateChange;
+// Workstream 8: hands the character a job's item, wherever it lies. ItemId is
+// the item's content id. Does nothing if somebody else is carrying it.
+public sealed record GrantItemChange(Guid ItemId) : StateChange;
 
 // Records that a fire-once trigger has fired. Committing it in the same
 // transaction as the trigger's own effects is what makes "fires once" true

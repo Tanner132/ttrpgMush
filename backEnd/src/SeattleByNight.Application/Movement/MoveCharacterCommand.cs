@@ -89,11 +89,6 @@ public sealed class MoveCharacterCommandHandler : IRequestHandler<MoveCharacterC
             return MoveCharacterResult.Failure(storeResult.Error);
         }
 
-        if (storeResult.EntersRun is { } entry)
-        {
-            return await EnterRunAsync(request, storeResult, entry, cancellationToken);
-        }
-
         var session = await _roomSessionReader.GetByPlaySessionIdAsync(storeResult.PlaySessionId, null, cancellationToken);
 
         if (session is null)
@@ -111,6 +106,15 @@ public sealed class MoveCharacterCommandHandler : IRequestHandler<MoveCharacterC
         await RaiseAsync(
             request.UserId, TriggerEventKind.PlayerLeftRoom, storeResult.OldRoomId,
             storeResult.NewRoomId, cancellationToken);
+
+        // Workstream 8: a reachRoom objective completes before anything in the
+        // room reacts — the same queue, raised first.
+        var arrivalScope = await _scopeResolver.ResolveScopeAsync(storeResult.NewRoomId, cancellationToken);
+        _ = _queue.EnqueueAsync(
+            arrivalScope,
+            new GameActionRequest(Guid.NewGuid(), request.UserId, DevelopmentGameActions.ReachRoomActionId, Depth: 1),
+            CancellationToken.None);
+
         await RaiseAsync(
             request.UserId, TriggerEventKind.PlayerEnteredRoom, storeResult.NewRoomId,
             storeResult.NewRoomId, cancellationToken);
@@ -132,46 +136,5 @@ public sealed class MoveCharacterCommandHandler : IRequestHandler<MoveCharacterC
             scopeId,
             TriggerRequests.BuildRoot(userId, eventKind, eventRoomId),
             CancellationToken.None);
-    }
-
-    // WF-25: walking through a door into a job site's private room enters the
-    // run. That is the mission-enter action — the same path the "Travel to"
-    // affordance takes, so first entry copies the site, completes an
-    // enter-encounter objective and raises the arrival events exactly as it
-    // always has — aimed at the room the runner walked into.
-    private async Task<MoveCharacterResult> EnterRunAsync(
-        MoveCharacterCommand request,
-        MovementStoreResult storeResult,
-        RunEntry entry,
-        CancellationToken cancellationToken)
-    {
-        var scopeId = await _scopeResolver.ResolveScopeAsync(storeResult.OldRoomId, cancellationToken);
-        var outcome = await _queue.EnqueueAsync(
-            scopeId,
-            new GameActionRequest(
-                Guid.NewGuid(),
-                request.UserId,
-                DevelopmentGameActions.EnterEncounterActionId,
-                TargetId: entry.MissionInstanceId,
-                EntryRoomId: entry.MapRoomId),
-            cancellationToken);
-
-        if (!outcome.IsSuccess)
-        {
-            return MoveCharacterResult.Failure(MoveCharacterError.DestinationUnavailable);
-        }
-
-        var session = await _roomSessionReader.GetByPlaySessionIdAsync(storeResult.PlaySessionId, null, cancellationToken);
-        if (session is null)
-        {
-            return MoveCharacterResult.Failure(MoveCharacterError.StaleRoom);
-        }
-
-        // Entering the run raised its own arrival events; leaving the street
-        // is still this walk's to raise.
-        await RaiseAsync(
-            request.UserId, TriggerEventKind.PlayerLeftRoom, storeResult.OldRoomId,
-            session.Room.Id, cancellationToken);
-        return MoveCharacterResult.Success(storeResult.OldRoomId, session.Room.Id, session);
     }
 }

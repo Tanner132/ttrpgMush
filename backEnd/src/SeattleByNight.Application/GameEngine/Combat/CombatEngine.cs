@@ -257,7 +257,7 @@ public sealed class CombatEngine
         _ = queue.EnqueueAsync(
             scopeId,
             TriggerRequests.Build(
-                request, TriggerEventKind.CombatStarted, combat.RoomId, npcId: instigator.ContentId),
+                request, TriggerEventKind.CombatStarted, combat.RoomId, npcId: instigator.Id),
             CancellationToken.None);
     }
 
@@ -310,7 +310,6 @@ public sealed class CombatEngine
             participants.Add(new CombatParticipant
             {
                 ActorId = npc.Id,
-                ContentId = npc.ContentId,
                 IsNpc = true,
                 DisplayName = npc.Name,
                 Profile = profile,
@@ -1003,26 +1002,13 @@ public sealed class CombatEngine
             _ = queue.EnqueueAsync(
                 triggerScope,
                 TriggerRequests.Build(
-                    request, TriggerEventKind.NpcDefeated, combat.RoomId, npcId: defeated.ContentId),
+                    request, TriggerEventKind.NpcDefeated, combat.RoomId, npcId: defeated.ActorId),
                 CancellationToken.None);
         }
 
-        // Milestone 6 defeat path: going down inside a mission's private
-        // encounter blows the job. A reaction (§24) — enqueued after this
-        // action's own commits, never awaited (this method runs on the same
-        // scope's consumer) — fails the mission and puts the runner back at
-        // the entry point with their damage (dev decision combat.no-pc-death).
-        if (!victory
-            && await missionReader.GetActiveEncounterByRoomAsync(combat.RoomId, cancellationToken) is not null)
-        {
-            var scopeId = await scopeResolver.ResolveScopeAsync(combat.RoomId, cancellationToken);
-            var reaction = new GameActionRequest(
-                Guid.NewGuid(),
-                request.UserId,
-                DevelopmentGameActions.MissionDefeatActionId,
-                Depth: request.Depth + 1);
-            _ = queue.EnqueueAsync(scopeId, reaction, CancellationToken.None);
-        }
+        // Workstream 8: a runner who goes down stays where they fell, as in
+        // any public room, and their run is not failed (owner, 2026-11-12).
+        // The defeat reaction that blew the job went with the run copies.
     }
 
     private int RollInitiative(int dice) =>

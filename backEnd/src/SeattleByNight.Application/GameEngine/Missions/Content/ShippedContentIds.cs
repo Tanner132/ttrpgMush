@@ -5,8 +5,8 @@ namespace SeattleByNight.Application.GameEngine.Missions.Content;
 // themselves live in the bundle; these are only their (fixed) GUIDs.
 public static class ShippedContentIds
 {
-    // The warehouse job site's four Private map rooms, seeded by the
-    // development seeder.
+    // The four rooms the warehouse job happens in, seeded by the development
+    // seeder.
     public static class SiteRooms
     {
         public static readonly Guid LoadingDock = new("e0e0e0e0-0000-4000-8000-000000000001");
@@ -28,11 +28,6 @@ public static class ShippedContentIds
         public static readonly Guid ReadShippingRecords = new("017e2a55-843f-4e5e-a7f9-102310427c33");
     }
 
-    public static class Encounters
-    {
-        public static readonly Guid GangWarehouse = new("dd942386-7883-4d93-8201-571fdffb872c");
-    }
-
     public static class Missions
     {
         public static readonly Guid GangWarehouseRetrieval = new("c5c1844a-eb16-4278-a8ce-89b90b3ff11d");
@@ -41,7 +36,9 @@ public static class ShippedContentIds
     public static class Objectives
     {
         public static readonly Guid DeliverPackage = new("7b1f1d57-da5d-43ad-b46e-6f14a3a3b087");
+        // reachRoom: the loading dock.
         public static readonly Guid EnterWarehouse = new("23b71c4f-274e-4e16-b0f0-de7aa985ed57");
+        // reachRoom: back out to the alley.
         public static readonly Guid LeaveWarehouse = new("47eb6a5c-7a96-4580-8a55-be595afc2988");
         public static readonly Guid RetrievePackage = new("0609ca43-dd89-440a-8f6b-19583d8ae55c");
     }
@@ -53,6 +50,7 @@ public static class ShippedContentIds
         public static readonly Guid LedgerTerminalRecords = new("45a97f57-2124-40bc-8122-6f0172c1ff4a");
     }
 
+    // World NPCs the warehouse job uses, seeded by the development seeder.
     public static class SiteNpcs
     {
         public static readonly Guid HallwayEnforcer = new("b4d53dea-e019-4c09-973c-28c99db4d077");

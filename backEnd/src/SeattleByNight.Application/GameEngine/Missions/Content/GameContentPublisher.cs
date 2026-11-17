@@ -29,7 +29,8 @@ public sealed record GameContentRef(GameContentKind Kind, Guid ContentKey);
 public sealed class GameContentPublisher(
     IGameContentStore store,
     IGameContentProvider content,
-    IJobSiteMapReader siteMap)
+    IWorldMapReader worldMap,
+    IJobItemStore jobItems)
 {
     // Dry run: would publishing this draft produce a loadable corpus? Same
     // composition, same checks, no writes.
@@ -90,6 +91,7 @@ public sealed class GameContentPublisher(
         if (result.IsSuccess)
         {
             await content.ReloadAsync(cancellationToken);
+            await jobItems.SyncAsync(content.Current, cancellationToken);
         }
 
         return result;
@@ -140,6 +142,7 @@ public sealed class GameContentPublisher(
         if (result.IsSuccess)
         {
             await content.ReloadAsync(cancellationToken);
+            await jobItems.SyncAsync(content.Current, cancellationToken);
         }
 
         return result;
@@ -189,8 +192,8 @@ public sealed class GameContentPublisher(
         return await ValidateWithMapAsync(corpus, retired, cancellationToken);
     }
 
-    // WF-25: the loader's checks, then the job-site checks only the map can
-    // answer (are the site's rooms Private map rooms, and connected).
+    // The loader's checks, then the ones only the map can answer: is what the
+    // content names on the map, and where it needs to be (workstream 8).
     private async Task<GameContentPublishResult> ValidateWithMapAsync(
         IEnumerable<(GameContentKind Kind, string Json)> corpus,
         IReadOnlySet<Guid> retired,
@@ -208,7 +211,7 @@ public sealed class GameContentPublisher(
 
         try
         {
-            JobSiteMapValidator.Validate(document, await siteMap.ReadAsync(cancellationToken));
+            JobMapValidator.Validate(document, await worldMap.ReadAsync(cancellationToken));
             return GameContentPublishResult.Success();
         }
         catch (GameContentException exception)

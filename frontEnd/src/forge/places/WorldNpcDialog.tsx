@@ -36,7 +36,7 @@ export function WorldNpcDialog({
 }) {
   const { references } = useForgeData()
   const templates = references.npcTemplates.filter((template) => !template.isRetired || template.id === npc?.templateId)
-  const publicRooms = references.rooms.filter((candidate) => candidate.accessType === 'Public')
+  const publicRooms = references.rooms
   const [templateId, setTemplateId] = useState(npc?.templateId ?? templates[0]?.id ?? '')
   const [name, setName] = useState(npc?.name ?? '')
   const [description, setDescription] = useState(npc?.description ?? '')

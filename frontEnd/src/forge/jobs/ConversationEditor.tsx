@@ -3,8 +3,21 @@ import { Button } from '../../components/ui/Button.tsx'
 import { Modal } from '../../components/ui/Modal.tsx'
 import { ConditionList, EffectList } from '../events/EffectList.tsx'
 import { ConditionWords, EffectWords, type EventScope } from '../events/scope.ts'
-import { Check, Chip, Select, TextBox, TextInput } from '../fields.tsx'
-import { newId, type Condition, type Effect, type Scene, type SceneChoice, type SceneNode, type SceneOutcome } from '../model.ts'
+import { Check, Chip, NumberInput, Segmented, Select, TextBox, TextInput } from '../fields.tsx'
+import { useForgeData } from '../forgeContext.ts'
+import {
+  newId,
+  rollsFirst,
+  type ChoiceRoll,
+  type Condition,
+  type Effect,
+  type LimitKind,
+  type PoolComponent,
+  type Scene,
+  type SceneChoice,
+  type SceneNode,
+  type SceneOutcome,
+} from '../model.ts'
 
 /*
  * A conversation as a script: parts (what is said) and the replies on offer
@@ -43,6 +56,131 @@ function describeCondition(condition: Condition, scope: EventScope): string {
 }
 
 type Then = 'end' | 'stay' | string
+
+const Limits: { id: LimitKind; displayName: string }[] = [
+  { id: 'none', displayName: 'No limit' },
+  { id: 'physical', displayName: 'Physical' },
+  { id: 'mental', displayName: 'Mental' },
+  { id: 'social', displayName: 'Social' },
+]
+
+/** The words a roll is built from: the runner's sheet, and an NPC's stat block. */
+function useRollTerms() {
+  const { palette } = useForgeData()
+  const runner = [
+    ...palette.attributes.map((attribute) => ({ id: `attribute:${attribute.id}`, displayName: attribute.displayName })),
+    ...palette.skills.map((skill) => ({ id: `skill:${skill.id}`, displayName: `${skill.displayName} (skill)` })),
+  ]
+  const npc = [...palette.opposedPools, { id: 'body', displayName: 'Body' }, { id: 'willpower', displayName: 'Willpower' }]
+  const runnerName = (component: PoolComponent) =>
+    runner.find((term) => term.id === `${component.kind}:${component.id}`)?.displayName.replace(' (skill)', '') ?? component.id
+  const npcName = (id: string) => npc.find((term) => term.id === id)?.displayName ?? id
+  return { runner, npc, runnerName, npcName }
+}
+
+function describeRoll(roll: ChoiceRoll, terms: ReturnType<typeof useRollTerms>): string {
+  const runner = roll.pool.map(terms.runnerName).join(' + ') || 'nothing yet'
+  return roll.opposedPools && roll.opposedPools.length > 0
+    ? `${runner} vs ${roll.opposedPools.map(terms.npcName).join(' + ')}`
+    : `${runner} (${roll.threshold ?? 0})`
+}
+
+/** Two slots that add up: the first is needed, the second may stay empty. */
+function SumFields({
+  label,
+  values,
+  options,
+  onChange,
+}: {
+  label: string
+  values: string[]
+  options: { id: string; displayName: string }[]
+  onChange: (values: string[]) => void
+}) {
+  const set = (index: number, value: string) => {
+    const next = [values[0] ?? '', values[1] ?? '']
+    next[index] = value
+    onChange(next.filter((entry) => entry !== ''))
+  }
+  return (
+    <div className="forge__roll-sum" role="group" aria-label={label}>
+      <Select label={`${label}, first`} labelHidden value={values[0] ?? ''} options={options} placeholder="Choose…" onChange={(value) => set(0, value)} />
+      <span className="forge__roll-plus" aria-hidden="true">
+        +
+      </span>
+      <Select label={`${label}, second`} labelHidden value={values[1] ?? ''} options={options} placeholder="Nothing" onChange={(value) => set(1, value)} />
+    </div>
+  )
+}
+
+/**
+ * A roll written on the reply: the runner's attributes and skills, and — when
+ * the NPC being talked to pushes back — that NPC's pools.
+ */
+function RollFields({ roll, canContest, onChange }: { roll: ChoiceRoll; canContest: boolean; onChange: (roll: ChoiceRoll) => void }) {
+  const terms = useRollTerms()
+  const contested = roll.opposedPools !== undefined
+  const encode = (component: PoolComponent) => `${component.kind}:${component.id}`
+  const decode = (value: string): PoolComponent => {
+    const [kind, id] = value.split(':')
+    return { kind: kind as PoolComponent['kind'], id }
+  }
+
+  return (
+    <div className="forge__stack">
+      <div className="forge__subsection">
+        <h3 className="forge__subsection-title">Runner rolls</h3>
+        <SumFields
+          label="Runner rolls"
+          values={roll.pool.map(encode)}
+          options={terms.runner}
+          onChange={(values) => onChange({ ...roll, pool: values.map(decode) })}
+        />
+        <p className="forge__hint">Read off the runner's sheet when they pick the reply.</p>
+        <Select label="Limit" value={roll.limit ?? 'none'} options={Limits} onChange={(limit) => onChange({ ...roll, limit: limit as LimitKind })} />
+      </div>
+
+      <Check
+        label="Contested by the NPC"
+        checked={contested}
+        disabled={!contested && !canContest}
+        onChange={(on) =>
+          onChange(
+            on
+              ? { ...roll, threshold: undefined, opposedPools: [] }
+              : { ...roll, opposedPools: undefined, threshold: 2 },
+          )
+        }
+      />
+      {!canContest && !contested && (
+        <p className="forge__hint">Only a conversation with a Johnson or another NPC can be contested: give it one first.</p>
+      )}
+
+      {contested ? (
+        <div className="forge__subsection">
+          <h3 className="forge__subsection-title">NPC rolls</h3>
+          <SumFields label="NPC rolls" values={roll.opposedPools ?? []} options={terms.npc} onChange={(opposedPools) => onChange({ ...roll, opposedPools })} />
+          <p className="forge__hint">Read off the stat block of whoever the runner is talking to. The runner needs more hits.</p>
+        </div>
+      ) : (
+        <NumberInput
+          label="Hits needed"
+          value={roll.threshold}
+          min={1}
+          max={12}
+          onChange={(threshold) => onChange({ ...roll, threshold: threshold ?? 1 })}
+        />
+      )}
+    </div>
+  )
+}
+
+function rollReady(choice: SceneChoice): boolean {
+  if (choice.testId !== undefined) return choice.testId !== ''
+  if (choice.roll === undefined) return true
+  const { pool, opposedPools, threshold } = choice.roll
+  return pool.length > 0 && (opposedPools !== undefined ? opposedPools.length > 0 : (threshold ?? 0) > 0)
+}
 
 function thenOf(outcome: SceneOutcome): Then {
   return outcome.endsScene ? 'end' : (outcome.nextNodeId ?? 'stay')
@@ -100,17 +238,25 @@ function ReplyDialog({
   onClose: () => void
 }) {
   const [draft, setDraft] = useState(choice)
-  const rolls = draft.testId !== undefined
+  const rolls = rollsFirst(draft)
+  const canContest = scope.unnamedNpc !== undefined
+  const newRoll = (): ChoiceRoll => ({ pool: [], limit: 'social', ...(canContest ? { opposedPools: [] } : { threshold: 2 }) })
 
   function setRolls(on: boolean) {
     if (on) {
       // Flow moves onto the two branches: a reply with a roll has none of its own.
       const { nextNodeId, effects, endsScene, ...rest } = draft
-      setDraft({ ...rest, testId: scope.tests[0]?.id ?? '', onSuccess: { nextNodeId, effects, endsScene }, onFailure: { endsScene: true } })
+      setDraft({ ...rest, roll: newRoll(), onSuccess: { nextNodeId, effects, endsScene }, onFailure: { endsScene: true } })
     } else {
-      const { testId: _testId, onSuccess, onFailure: _onFailure, ...rest } = draft
+      const { testId: _testId, roll: _roll, onSuccess, onFailure: _onFailure, ...rest } = draft
       setDraft({ ...rest, ...(onSuccess ?? { endsScene: true }) })
     }
+  }
+
+  // A roll is built here, or taken from the Library's dice tests.
+  function setSource(source: 'build' | 'library') {
+    const { testId: _testId, roll: _roll, ...rest } = draft
+    setDraft(source === 'build' ? { ...rest, roll: newRoll() } : { ...rest, testId: scope.tests[0]?.id ?? '' })
   }
 
   return (
@@ -129,18 +275,36 @@ function ReplyDialog({
           <ConditionList conditions={draft.conditions} scope={scope} onChange={(conditions) => setDraft({ ...draft, conditions })} />
         </div>
 
-        <Check label="Roll first" checked={rolls} disabled={!rolls && scope.tests.length === 0} onChange={setRolls} />
+        <Check label="Roll first" checked={rolls} onChange={setRolls} />
 
         {rolls ? (
           <>
-            <Select
-              label="Test"
-              value={draft.testId}
-              options={scope.tests}
-              placeholder="Choose a test"
-              hint={scope.unnamedNpc ? 'An opposed test rolls against the NPC being talked to. Add your own in the Library.' : 'Add your own in the Library.'}
-              onChange={(testId) => setDraft({ ...draft, testId })}
+            <Segmented
+              label="Roll"
+              value={draft.roll !== undefined ? 'build' : 'library'}
+              options={[
+                { id: 'build', displayName: 'Build a roll' },
+                {
+                  id: 'library',
+                  displayName: 'A Library test',
+                  disabled: scope.tests.length === 0,
+                  title: scope.tests.length === 0 ? 'No dice test in the Library yet' : undefined,
+                },
+              ]}
+              onChange={setSource}
             />
+            {draft.roll !== undefined ? (
+              <RollFields roll={draft.roll} canContest={canContest} onChange={(roll) => setDraft({ ...draft, roll })} />
+            ) : (
+              <Select
+                label="Test"
+                value={draft.testId}
+                options={scope.tests}
+                placeholder="Choose a test"
+                hint={scope.unnamedNpc ? 'An opposed test rolls against the NPC being talked to. Add your own in the Library.' : 'Add your own in the Library.'}
+                onChange={(testId) => setDraft({ ...draft, testId })}
+              />
+            )}
             <div className="forge__branch">
               <span className="forge__branch-tag forge__branch-tag--pass">Pass</span>
               <OutcomeFields label="Pass" outcome={draft.onSuccess ?? {}} scene={scene} scope={scope} onChange={(onSuccess) => setDraft({ ...draft, onSuccess })} />
@@ -159,7 +323,7 @@ function ReplyDialog({
 
         <div className="forge__dialog-actions">
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" intent="primary" disabled={!draft.label.trim() || (rolls && !draft.testId)}>
+          <Button type="submit" intent="primary" disabled={!draft.label.trim() || !rollReady(draft)}>
             Keep reply
           </Button>
         </div>
@@ -204,6 +368,7 @@ function ReplyCard({
   onRemove: () => void
 }) {
   const test = scope.tests.find((candidate) => candidate.id === choice.testId)
+  const terms = useRollTerms()
   return (
     <li className="forge__reply">
       <div className="forge__reply-head">
@@ -223,8 +388,9 @@ function ReplyCard({
         </Button>
       </div>
       {choice.testId !== undefined && <p className="forge__reply-roll">Roll {test?.displayName ?? 'a test that no longer exists'}</p>}
+      {choice.roll !== undefined && <p className="forge__reply-roll">Roll {describeRoll(choice.roll, terms)}</p>}
       <dl className="forge__reply-out">
-        {choice.testId !== undefined ? (
+        {rollsFirst(choice) ? (
           <>
             <OutcomeSummary tag="Pass" tone="pass" outcome={choice.onSuccess ?? {}} scene={scene} scope={scope} />
             <OutcomeSummary tag="Fail" tone="fail" outcome={choice.onFailure ?? {}} scene={scene} scope={scope} />

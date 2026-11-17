@@ -73,55 +73,19 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
         return rows.Select(ToSnapshot).ToArray();
     }
 
-    public async Task<EncounterInstanceSnapshot?> GetActiveEncounterForCharacterAsync(
-        Guid characterId, CancellationToken cancellationToken)
-    {
-        var activeStatus = EncounterInstanceStatus.Active.ToString();
-        var row = await dbContext.EncounterParticipants
-            .AsNoTracking()
-            .Where(participant => participant.CharacterId == characterId)
-            .Join(
-                dbContext.EncounterInstances.Where(instance => instance.Status == activeStatus),
-                participant => participant.EncounterInstanceId,
-                instance => instance.Id,
-                (participant, instance) => instance)
-            .FirstOrDefaultAsync(cancellationToken);
-        return row is null ? null : ToSnapshot(row);
-    }
-
-    public async Task<EncounterInstanceSnapshot?> GetActiveEncounterByRoomAsync(
-        Guid roomId, CancellationToken cancellationToken)
-    {
-        var activeStatus = EncounterInstanceStatus.Active.ToString();
-        var row = await dbContext.Rooms
-            .AsNoTracking()
-            .Where(room => room.Id == roomId && room.EncounterInstanceId != null)
-            .Join(
-                dbContext.EncounterInstances.Where(instance => instance.Status == activeStatus),
-                room => room.EncounterInstanceId,
-                instance => instance.Id,
-                (room, instance) => instance)
-            .FirstOrDefaultAsync(cancellationToken);
-        return row is null ? null : ToSnapshot(row);
-    }
-
-    public async Task<EncounterInstanceSnapshot?> GetActiveEncounterForMissionAsync(
-        Guid missionInstanceId, CancellationToken cancellationToken)
-    {
-        var activeStatus = EncounterInstanceStatus.Active.ToString();
-        var row = await dbContext.EncounterInstances
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                instance => instance.MissionInstanceId == missionInstanceId && instance.Status == activeStatus,
-                cancellationToken);
-        return row is null ? null : ToSnapshot(row);
-    }
-
     public async Task<WorldItemSnapshot?> GetItemAsync(Guid itemId, CancellationToken cancellationToken)
     {
         var row = await dbContext.WorldItemInstances
             .AsNoTracking()
             .FirstOrDefaultAsync(item => item.Id == itemId, cancellationToken);
+        return row is null ? null : ToSnapshot(row);
+    }
+
+    public async Task<WorldItemSnapshot?> GetJobItemAsync(Guid itemId, CancellationToken cancellationToken)
+    {
+        var row = await dbContext.WorldItemInstances
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.ItemId == itemId, cancellationToken);
         return row is null ? null : ToSnapshot(row);
     }
 
@@ -179,16 +143,6 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
         if (!characterExists)
         {
             return new MissionAssignResult(MissionAssignError.CharacterNotFound);
-        }
-
-        // The mission-linked travel room must exist in the shared world —
-        // content referencing a missing room fails HERE, loudly, not as a
-        // never-appearing affordance (dev decision mission.entry-link-room).
-        var entryRoomExists = await dbContext.Rooms
-            .AnyAsync(room => room.Id == definition.EntryLinkRoomId && room.EncounterInstanceId == null, cancellationToken);
-        if (!entryRoomExists)
-        {
-            return new MissionAssignResult(MissionAssignError.EntryRoomMissing);
         }
 
         var (repeatabilityError, cooldownEndsAtUtc) = await CheckRepeatabilityAsync(
@@ -275,23 +229,13 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
             row.AcceptedAtUtc,
             row.CompletedAtUtc);
 
-    private static EncounterInstanceSnapshot ToSnapshot(EncounterInstance row) =>
-        new(
-            row.Id,
-            row.EncounterId,
-            row.MissionInstanceId,
-            Enum.Parse<EncounterInstanceStatus>(row.Status),
-            row.EntryRoomId,
-            row.ReturnRoomId);
-
     private static WorldItemSnapshot ToSnapshot(WorldItemInstance row) =>
         new(
             row.Id,
             row.ItemId,
+            row.MissionId,
             row.DisplayName,
             row.Description,
-            row.MissionInstanceId,
-            row.EncounterInstanceId,
             row.RoomId,
             row.OwnerCharacterId,
             row.IsHidden,

@@ -167,10 +167,8 @@ public sealed class TriggerEngine
     }
 
     // WF-26: every event happens in a room, and only that room's listeners
-    // hear it — the room's own first, then a job's. In a run's private copy
-    // the job is that run's; in a public room, it is any job the character
-    // has open. Listeners name the map room; a run's copy stands for the map
-    // room it was copied from (WF-27).
+    // hear it — the room's own first, then those of any job the character has
+    // open (workstream 8: there is one shared map, so no run copy to match).
     private async Task<IReadOnlyList<Candidate>> FindMatchingTriggersAsync(
         TriggerActionContext context,
         TriggerEventPayload payload,
@@ -178,11 +176,7 @@ public sealed class TriggerEngine
     {
         var characterId = context.Session.CharacterId;
         var candidates = new List<Candidate>();
-        var eventRoomId = payload.RoomId ?? context.Session.CurrentRoomId;
-        if (await roomContent.GetMapRoomIdAsync(eventRoomId, cancellationToken) is not { } mapRoomId)
-        {
-            return candidates;
-        }
+        var mapRoomId = payload.RoomId ?? context.Session.CurrentRoomId;
 
         if (content.Current.FindPlace(mapRoomId) is { IsRetired: false } place)
         {
@@ -191,15 +185,9 @@ public sealed class TriggerEngine
                 .Select(Candidate.ForRoom));
         }
 
-        var run = await missionReader.GetActiveEncounterByRoomAsync(eventRoomId, cancellationToken);
         var open = await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken);
         foreach (var instance in open)
         {
-            if (run is not null && instance.Id != run.MissionInstanceId)
-            {
-                continue;
-            }
-
             if (content.Current.FindMission(instance.MissionId) is not { } mission)
             {
                 continue;
@@ -410,13 +398,12 @@ public sealed class TriggerEngine
         // prompt would describe a place they are not standing in.
         if (!offstage)
         {
-            // WF-26: in a public room, what a trigger says is the player's
-            // business. Narration is written to them ("you…") and goes to
-            // them alone; an NPC the room owns speaks aloud; a job's lines
-            // reach only its runner, and everyone else sees a cover line.
-            // Inside a run's private copy everyone present is on the run.
-            var inPublic = await roomContent.IsPublicMapRoomAsync(context.Session.CurrentRoomId, cancellationToken);
-            if (inPublic && candidate.IsJob && (broadcasts.Count > 0 || prompt is not null))
+            // WF-26: what a trigger says is the player's business. Narration
+            // is written to them ("you…") and goes to them alone; an NPC the
+            // room owns speaks aloud; a job's lines reach only its runner, and
+            // everyone else sees a cover line. Workstream 8: every room is
+            // shared, so this holds everywhere.
+            if (candidate.IsJob && (broadcasts.Count > 0 || prompt is not null))
             {
                 await broadcaster.BroadcastAsync(
                     new RoomMessage(
@@ -427,7 +414,7 @@ public sealed class TriggerEngine
 
             foreach (var pending in broadcasts)
             {
-                var privately = inPublic && (pending.Npc is null || candidate.IsJob);
+                var privately = pending.Npc is null || candidate.IsJob;
                 await SendAsync(context, pending, privately, cancellationToken);
             }
 
@@ -436,7 +423,7 @@ public sealed class TriggerEngine
             // find.
             if (prompt is not null)
             {
-                await PresentSceneNodeAsync(context, prompt, privately: inPublic, cancellationToken);
+                await PresentSceneNodeAsync(context, prompt, privately: true, cancellationToken);
             }
         }
 
@@ -541,7 +528,7 @@ public sealed class TriggerEngine
     }
 
     private static NpcSnapshot? FindNpc(IReadOnlyList<NpcSnapshot> npcs, Guid? npcId) =>
-        npcId is null ? null : npcs.FirstOrDefault(npc => npc.ContentId == npcId);
+        npcId is null ? null : npcs.FirstOrDefault(npc => npc.Id == npcId);
 
     // One line a fired trigger owes the room, held until its changes commit.
     // Narration has no speaker; an NPC line carries the one who said it.

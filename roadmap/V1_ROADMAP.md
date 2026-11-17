@@ -1,7 +1,8 @@
 # Seattle by Night — v1 Roadmap
 
 The single list of work remaining before v1. Scope was set by the project owner
-on 2026-11-10; workstreams 8 and 9 were added on 2026-11-12. Current
+on 2026-11-10; workstreams 8 and 9 were added on 2026-11-12 and workstream 10
+on 2026-11-16 (redesigned 2026-11-17). Current
 capabilities are described in [`../README.md`](../README.md) and
 [`../PROJECT_CONTEXT.md`](../PROJECT_CONTEXT.md).
 
@@ -11,7 +12,7 @@ committed. Workstream
 1 keeps the record of what was built and decided, because workstream 8 changes
 much of it.
 
-v1 is nine workstreams:
+v1 is ten workstreams:
 
 | # | Workstream | State |
 | --- | --- | --- |
@@ -22,20 +23,28 @@ v1 is nine workstreams:
 | 5 | [Matrix in play](#5-matrix-in-play) | Needs rules clarification from the owner |
 | 6 | [Auth hardening](#6-auth-hardening) | Needs a delivery decision; prerequisite of 7 |
 | 7 | [Private and owned rooms](#7-private-and-owned-rooms) | Needs design decisions; blocked on 6. 8 fixes how a private room is marked |
-| 8 | [One shared world](#8-one-shared-world) | Phase 1 (exit states) built 2026-11-16, not committed; phases 2–5 next, in the order given in 8.4 |
+| 8 | [One shared world](#8-one-shared-world) | Phase 1 (exit states) committed in `7f06716`; phase 2 (remove the copies) built 2026-11-16 on branch `ws8-shared-world`, not committed; phases 3–5 next, in the order given in 8.4 |
 | 9 | [Room images](#9-room-images) | Decided 2026-11-12; ready to build, independent of the rest |
+| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Nothing built: phase 1 (seven defects) not started and ready to build; phase 2 after workstream 8 (order in 10.5) |
 
 Workstream 8 replaces how jobs run today (1.3) and changes the questions in 3
 and 7; read it before picking either of those up.
 
-Workstreams 2, 8 and 9 are specified well enough to build now. Workstreams 4–7
-each open with questions only the project owner can answer; nothing in them
+Workstreams 2, 8, 9 and 10 are specified well enough to build now. Workstreams
+4–7 each open with questions only the project owner can answer; nothing in them
 should be built until those are answered and the answers are recorded (rules in
 `SR5_RULE_DECISIONS.md`, architecture in `PROJECT_CONTEXT.md`).
 
-**Suggested order.** 9 and phase 1 of 8 (exit states) are independent and
-small. The rest of 8 comes before the acceptance run in 1.4, because 8 changes
-what a job is.
+**Where things stand (2026-11-17).** Workstream 8 phase 1 is committed
+(`7f06716`). Workstream 8 phase 2 and a reply's own roll (10.3) are built on
+`ws8-shared-world` and not committed. Nothing in workstream 10 is built.
+
+**Suggested order.** Commit workstream 8 phase 2. Workstream 10 phase 1
+(defects) can go at any time. Then workstream 8 phases 3–5, which come before
+the acceptance run in 1.4 (8 changes what a job is) and before workstream 10
+phase 2 (both migrate rooms and jobs). Then workstream 10 in the order of
+10.5, with 2.3 purchases before personal vehicles. Workstream 9 is independent
+and can go anywhere.
 
 ## Delivery rules
 
@@ -745,8 +754,9 @@ Decisions needed from the owner:
 runners compete for the same job in the same rooms.
 
 **State:** owner decisions recorded 2026-11-12 from a design discussion (8.1).
-Phase 1 (exit states) is built (2026-11-16, not yet committed; see 8.4). The
-rest of the build plan is in 8.4 and nothing blocks it. Room images, first planned
+Phase 1 (exit states) is committed (`7f06716`). Phase 2 (remove the copies)
+is built on branch `ws8-shared-world` (2026-11-16, not yet committed; see 8.4).
+Phases 3–5 are in 8.4 and nothing blocks them. Room images, first planned
 here, are workstream 9.
 
 What it replaces: today a job site is `Private` map rooms nobody can stand in,
@@ -994,7 +1004,7 @@ built in order on one branch and released together.
    `places/exits.ts`; play `RoomDetails.tsx` and `api/roomSession.ts`.
    `LockedExitTried` keeps firing. Waits on nothing.
 
-   **Done 2026-11-16** (not yet committed):
+   **Done 2026-11-16**, committed in `7f06716`:
    - `RoomExit.States` (`text[]`, check constraint on the four values, default
      empty); migration `ExitStates` copies the old flags into it before
      dropping them (and maps back on rollback, with restricted and private
@@ -1047,6 +1057,100 @@ built in order on one branch and released together.
      map, place items); `places/SiteContents.tsx`, the site-room colours and
      the reachability check go; the set that goes live shrinks to job and
      conversations.
+
+   **Design settled while building, 2026-11-16** (engineering choices, for
+   the owner's review; built on branch `ws8-shared-world`):
+   - *Job content.* A job loses `encounterId` and `entryLinkRoomId` and gains
+     `roomIds` (where it happens), `npcIds` (the world NPCs it uses, which its
+     reset will bring back in phase 3) and `items` (each with an optional room
+     and the hidden flag and search difficulty). The `Encounter` kind is
+     removed from the code. Inspectables are not job content any more: they
+     are map rows, authored in Places, and a listener names one by its row id.
+   - *Objectives.* `enterEncounter` and `exitEncounter` become one kind,
+     `reachRoom`, naming a map room. It completes when the runner walks into
+     that room: movement raises a non-player action, `mission-reach-room`, on
+     the arrival room's queue before the room-entry event, so the objective is
+     done before any listener reacts. `pickUpItem` and `deliverItem` stay.
+   - *Events.* `encounterEntered` is removed; `playerEnteredRoom` covers it.
+     Only `missionAccepted` is "about the job". A job's listener can sit in
+     any map room; it reaches only runners with that job open, and everyone
+     else in the room sees the cover line.
+   - *The publish check against the map* (`JobMapValidator`, replacing
+     `JobSiteMapValidator`): every room a job names (its rooms, its listeners,
+     its items, `reachRoom` objectives) is on the map; every NPC it names is a
+     world NPC, standing in the listener's room where a listener names it;
+     every inspectable a listener names is in that room. No item id may appear
+     in two jobs (the loader's unique-id check).
+   - *Job items.* One `WorldItemInstance` per job item, keyed by the item's id
+     and carrying `MissionId`. `JobItemSync` makes and updates the rows after
+     every publish, retire or delete and at start-up; it never moves an item
+     that is in play, and removes the rows of items no live or retired job
+     declares. An item with no room starts out of play (neither in a room nor
+     carried) until an effect hands it over. Turn-in and `takeItem` put the
+     item back out of play instead of deleting it; phase 3's reset puts it
+     back in its room. `giveItem` hands the row over only if nobody else is
+     carrying it.
+   - *Objectives on a shared item.* Picking the item up completes the
+     pick-up objective of the picker's open run on that job; delivering needs
+     the deliverer to hold it, whoever picked it up.
+   - *Removed:* run copies, `EncounterInstance`, `EncounterParticipant`,
+     `Room.EncounterInstanceId` / `SourceRoomId`, `NpcInstance.SourceNpcId`,
+     `RoomInteractable.SourceInteractableId`, the item's run columns, the
+     `Private` and `Instanced` access types (rooms are all `Public` until
+     workstream 7), `mission-enter`, `mission-exit`, `mission-defeat` and the
+     combat hook that raised it, `IRunAccessPolicy`, the lifecycle store and
+     its sweep. `GameScopeResolver` returns the room id.
+   - *Migration* (`SharedWorld`): characters standing in a run's copy go to
+     the starting room; run copies and everything in them are deleted; open
+     runs are marked Abandoned; open conversations are ended; `Private` rooms
+     become `Public`; the old job content is discarded — every `Encounter` and
+     `Mission` definition and every conversation that names a job — so the
+     seeder imports the rewritten warehouse job on the next start. Stat
+     blocks, tests, other conversations and rooms' own events are kept.
+   - *Shipped warehouse job.* Its four rooms are ordinary public rooms; the
+     ganger and the enforcer are world NPCs seeded with their old ids (the
+     enforcer keeps his armour and defence overrides); the ledger terminal is
+     a seeded map inspectable with its old id. Objectives: reach the loading
+     dock, take the package, reach the alley, deliver.
+
+   **Done 2026-11-16** (branch `ws8-shared-world`, not committed):
+   - Backend as above: model, loader, `JobMapValidator`, engine,
+     `JobItemStore`, migration `SharedWorld`, seeder and shipped bundle.
+   - Forge: the Site step is now **Rooms** (`jobs/RoomsStep.tsx`): choose
+     map rooms (or build one), tick the NPCs standing there that the job uses,
+     and place the job's items with the hidden flag and search difficulty.
+     Taking a room out drops the NPCs standing there and leaves its items to
+     be handed over. Objectives offer *Reach a room* with a room picker (the
+     job's rooms first); the items section moved to Rooms. A job's events can
+     listen in any room, see what stands there on the map and the job's own
+     items, may give items, and always may have a cover line. Room events can
+     watch an inspectable. New job = job + pitch; go live and delete take the
+     job, its conversations and prompts only. Places has no private rooms, no
+     "Who can enter", no area picker and no `SiteContents`; a room lists the
+     job items lying in it, linked to the job's Rooms step; its usage list is
+     the server's `jobs`. The home page counts rooms and exits.
+   - `gen:api` rerun; front end type-checks; oxlint shows only an older
+     warning in `Readout.tsx`.
+   - Tests: Domain 11; Application 577 (2 skipped); Api 158; Infrastructure
+     207 (1 skipped); front end 505 in 47 files.
+   - Checked in the running app on the dev database (migration applied on
+     start-up): the Jobs list shows the warehouse job live with its four
+     rooms; its Rooms step shows the rooms, the ganger and enforcer, and the
+     package in the storage room; Go live reports the server's own check
+     passing, and every builder check passes.
+   - A Johnson need not stand in any particular room. The Forge counts as
+     Johnsons both NPCs given the pitch by name and anyone built on the
+     pitch's stat block with no conversation of their own (how the game
+     already picks an NPC's conversation), and the Johnson step can give the
+     job to a stat block without choosing a room. Go live asks only that
+     somebody offers the job, not where; deleting a job clears or removes
+     only the NPCs given the pitch by name. The seeded Mr. Johnson now counts.
+     The Pitch step has a Johnson dropdown under the conversation name: picking
+     an NPC on the map rewrites the conversation for their stat block, gives
+     them the pitch, and lets go of whoever held it before.
+   - Known: the warehouse rooms sit at x≈10 on the map while the alley's new
+     door east leads to them, so the Forge map draws them apart from the
+     alley. Moving room coordinates is not something the editor does.
 3. **The job clock.** `JobState`, written by accept, turn-in and a background
    sweep that replaces the expiration service.
    - Accept opens the job and starts the deadline; later accepts join it. The
@@ -1066,10 +1170,8 @@ built in order on one branch and released together.
    - `MovementStore` treats a room's inbound exits as restricted while the
      combat tracker holds a fight there. It reads the tracker; combat code is
      untouched.
-   - `CombatEngine` today queues `mission-defeat` when the player goes down
-     inside a run copy. Phase 2 removes run copies, so that one hook is
-     deleted with them. A downed runner then stays in the room, as a downed
-     character in a public room does today, and their run is not failed.
+   - Done in phase 2: `CombatEngine` no longer queues `mission-defeat`; a
+     downed runner stays in the room and their run is not failed.
    Dispositions, death and group fights are the combat milestone (8.1).
 5. **Crews.** Crew table and membership endpoints (leave always; join refused
    while any member has an open job); accepting stamps every member with the
@@ -1198,6 +1300,340 @@ placeholder where the image would go.
 
 ---
 
+## 10. World Forge: cities and jobs at scale
+
+**Outcome:** one person can build large cities and complex shadowruns in the
+Forge, and the design underneath can grow to the end goal in 10.1 without
+being rebuilt. The work is cut into phases that each ship on their own.
+
+**State:** designed 2026-11-17 from a UI walkthrough (2026-11-16) and the
+owner's end goal and decisions. Nothing is built. Phase 1 can start now; each
+later phase lists what it still needs settled (10.8).
+
+This replaces the first version of this workstream (2026-11-16), which listed
+the walkthrough's findings only. Its item numbers WF-30 to WF-67 are kept.
+
+### 10.1 The end goal (owner, 2026-11-17)
+
+The Forge was being built as a small MVP and was losing sight of where it is
+going. This is where it is going:
+
+- **Large cities.** Several layers of about 100 rooms each, as a size the
+  Forge must handle, not a size every city must be.
+- **Rooms with things in them.** NPCs, items, secret rooms, and interactables
+  such as computers and flyers.
+- **Shadowruns.** An NPC offers a job, the runner negotiates, then goes and
+  does it. Goals include spying, stealing and killing. Jobs can involve
+  important NPCs and items.
+- **Jobs that remember.** A job is smart about what the character decided
+  before.
+- **Patrol routes** for NPCs.
+- **Weather, time and an image** for each room.
+- **Travel.** Trains, buses, taxis, personal vehicles, air travel.
+- **Rooms a player can claim.**
+
+### 10.2 Decisions (owner, 2026-11-17)
+
+- **Each city is its own map,** with its own coordinates and layers.
+- **Travel between maps is through travel rooms,** not compass exits.
+- **Rooms can be moved.** Coordinates stop being immutable; exits stay as
+  authored when a room moves.
+- **A new room is not in play until it is published,** as a job is. Players
+  do not see it or the exits into it before then.
+- **Edits to a room that is already live apply at once,** as they do today.
+  There is no draft copy of a live room.
+- **Memory belongs to the character.** What a runner did is remembered about
+  that runner. Nothing a player decides changes the world for everyone; the
+  resets in workstream 8 stand.
+- **Vehicles are travel, not driving.**
+  - Public transport (trains, buses, taxis) runs on the world clock. It takes
+    real time to arrive and real time to reach the destination.
+  - A personal vehicle is an on-demand ride: it arrives at once, and still
+    takes real time to reach the destination. This is what makes buying a
+    vehicle worth something in v1.
+  - A vehicle the player drives room by room is not planned.
+- **How travel plays.**
+  - A room offers travel options (a train, a taxi, a bus). The player boards
+    with a `/` command in that room and leaves with another `/` command.
+  - A transport is a moving room. Other characters can board it and talk in
+    it. How many fit depends on its size: taxi 3, bus 10, train unlimited.
+  - While it moves, riders are shown generic text of the city passing by,
+    written for that map and that kind of transport.
+  - Public transport is free.
+  - A crew may ride together, but nobody is boarded by someone else's
+    command.
+  - Logging out on public transport leaves the character aboard. On logging
+    in again they are still aboard, wherever the transport has got to.
+  - Public transport, taxis included, follows a set route. Riders name no
+    destination and can leave only at a stop.
+  - A full transport is full. No second taxi appears; the next one comes on
+    its timetable.
+- **Personal vehicles.**
+  - A room is marked as allowing vehicle travel (a street does, the third
+    floor of a tower does not). A vehicle can be called, driven through and
+    left only in such rooms.
+  - The owner names the destination. Riders can get out in any vehicle room
+    on the way.
+  - A vehicle carries the number of occupants its rules give. Where the
+    books give none, an estimate for that type of vehicle is used.
+  - A vehicle is an object in the world. It stays where it was left through
+    its owner's logout; a character logs back in at the room they left.
+    Other characters can walk up to it, look inside, break in, and steal it.
+    The only protection is parking it in a private room with a garage.
+    Vehicle security (alarms, trackers) is real SR5 but not in v1.
+  - Calling a vehicle moves it at once from wherever it stands, on any map.
+    The room it leaves is shown text describing it leaving; it then appears
+    in front of its owner.
+  - A stolen vehicle cannot be called. The owner must recover it first:
+    get in and drive it back to a garage they own.
+  - A later system will let a thief claim a stolen vehicle and become its
+    owner. Deferred: not in v1.
+  - Breaking in follows the core rules exactly, whatever they say for that
+    vehicle: a lockpicking test for an old car with plain locks, a Matrix
+    test for one with a good security system.
+  - A vehicle with passengers in it cannot be called.
+  - If the driver logs out mid-journey, the vehicle stops in the vehicle
+    room it had reached. Passengers stay aboard, in the back seat, in that
+    room.
+  - Cars can drive between cities.
+- **A live room can be unpublished.** Characters in it are put in the nearest
+  room by exit: a room one of the unpublished room's exits leads to. The
+  unpublish is refused while a character is in the room and none of its
+  exits leads to a live room. The same holds when a selection or a whole
+  map is unpublished.
+- **Map items are unique or not.** An item that is not unique comes back
+  after a time set when the item is made. A unique item is always
+  persistent: it never comes back and never disappears.
+  - If its holder is deleted, it drops in the last room they were in.
+  - If its holder dies, it stays on the body to be looted. If nobody takes
+    it before the body is removed (24 hours, workstream 8's "A runner going
+    down"), it is placed in the room the character was last in.
+- **A district can span layers.**
+- **Weather is a set of descriptions written on the district.** The server
+  moves between them over time, semi-randomly.
+- **Phases 5 to 8 are all in v1.**
+- **No playtesting now** (WF-53). The aim is the Forge itself being easy to
+  use.
+
+### 10.3 Foundations
+
+Six structural choices. Everything else in the end goal is additive on top of
+them; these are the ones that are expensive to change once a few hundred
+rooms and a few dozen jobs exist. Each is built in the phase named.
+
+1. **Map → district → room** (phases 2, 3). A map is a city. A district is a
+   named group of rooms on a map. Weather, default text and ambient events
+   are set on the district and inherited by its rooms, so nothing is set a
+   hundred times. Coordinates are unique within a map and layer.
+2. **One lifecycle** (phase 2). Rooms are draft or live, like content. The
+   state is per room; publishing is done for a selection, a district or a
+   map. NPCs, exits and interactables added to a live room are live at once.
+3. **Character facts** (phase 5). An effect writes a fact about the
+   character; a condition reads one. Facts come from a named list kept in
+   the Forge, so a job cannot test a fact nothing sets. This is what "smart
+   about previous decisions" and branching dialogue both stand on.
+4. **One model for things in rooms** (phase 6). NPCs, items, interactables
+   and exits share one notion of hidden, discoverable, locked and usable,
+   instead of four separate ones. Secret rooms, locked containers and usable
+   computers come from the same parts.
+5. **Events attach to their subject** (phase 8, before patrols). Today a job
+   event names an NPC in the room they stand in, which is why a named NPC
+   cannot be moved. An event about an NPC must follow the NPC.
+6. **One world clock** (phase 8). Time of day, weather changes, patrol
+   steps, transport timetables and workstream 8's job deadlines and resets
+   run off one scheduler.
+
+**What already works and is kept:** the six-step job builder and its
+scaffolded pitch; default objectives, labels and pay; an item defaulting to
+the selected room; the Go live checklist with one-click fixes; one publish
+for a job and its conversation; the Johnson preview; exit directions that
+show what is taken; the event editor preselecting the room's only NPC; a
+reply that builds its own roll (`ChoiceRoll`: one or two attributes or
+skills, contested against the NPC or against a threshold), built 2026-11-16
+on `ws8-shared-world`, not committed, and not yet tried end to end in the
+running app (the walkthrough's server predated it).
+
+### 10.4 Phases
+
+Phases 1 to 4 are Forge and map work. Phases 5 to 8 each need engine changes
+(new vocabulary is an additive change with tests, per the delivery rules).
+Phase 9 is the Forge side of other workstreams.
+
+#### Phase 1 — Defects
+
+Wrong behaviour seen in the walkthrough. Two of them lose work.
+
+**Status 2026-11-17: not started.** Checked against the working tree on
+`ws8-shared-world`: none of the seven is fixed. The two-way exit to an
+existing room is still two separate requests (`ExitsSection.tsx`); the API
+client has no 401 handling and still shows "Request failed (n)"; the delete
+summary reloads only when exits, rooms or the room's version change, not when
+an NPC or inspectable is added; Home sends a conversation to the Jobs list;
+the Events step lists every conversation without an NPC as the job's
+prompts. (Not to be confused with workstream 1, "World Forge fixes and
+gaps", which is built.)
+
+| ID | Area | Problem | Fix shape |
+| --- | --- | --- | --- |
+| WF-30 | Places, API | **A two-way exit is created in two requests and can half-apply.** Adding Kottbusser Tor → west → Downtown Street with *Both ways* ticked created the forward exit, failed on the way back (Downtown Street's east was taken), and reported "The world object was changed by another editor." The exit list did not refresh. | One server operation that creates both exits or neither. Check the reverse direction in the dialog before submit and say which exit holds it. Refresh the map after any failure. Keep the concurrency message for real version conflicts. |
+| WF-31 | Places | **The delete-room summary is stale.** After adding an NPC and an inspectable it still read "0 NPCs, 0 items, 0 inspectables"; correct after reload. | Derive the counts from the data the *Here* section renders. |
+| WF-32 | Forge shell | **An expired session loses unsaved work.** Save returned "Request failed (401)". Signing in again in another tab made the next save fail with "Request failed (400)" (stale antiforgery token); only a reload, which dropped the edits, recovered. | On 401, keep the draft, prompt to sign in in place, refetch the antiforgery token and retry. Never show a bare status code. |
+| WF-33 | Jobs | **A malformed document's refusal is shown raw** ("The JSON property 'roll' could not be mapped to any .NET member…"), naming no reply and no step. | Map loader and deserialisation errors to the record and field, with a link to the step. Check once at load that the Forge and its API are the same version. |
+| WF-34 | Home | Recent conversations link to the Jobs list, not the job's Pitch step. | Link to the step. |
+| WF-35 | Jobs | Another job's prompt (*Hallway Ambush*) is listed under a new job's Prompts with an Edit button. | List the job's own prompts; offer others through a picker that says who else uses them. |
+| WF-36 | Accessibility, styling | Checkboxes in the exit and reply dialogs are all named "on"; the "NPCs the job uses" fieldset is unstyled; the job's room list draws names on grey bars; "05 Objectives · Pay" wraps at 1024 px; headings upper-case `ß` to `SS`. | Label the inputs; style the fieldset and rows; fix the step label; do not upper-case authored names. |
+
+#### Phase 2 — Maps and the room lifecycle
+
+| ID | Item | Shape |
+| --- | --- | --- |
+| WF-41 | **Maps.** | A map record (a city) that rooms belong to. Coordinates unique within map and layer. Existing rooms move to a Seattle map by migration. The Forge's Places tab, breadcrumb and every picker work per map. |
+| WF-60 | **Room publishing.** | A room is draft or live. A draft room, the exits into it and what is in it are out of play. Publish one room, a selection, or a whole map (districts join in phase 3). A job cannot go live while it uses a draft room. A live room can be unpublished: the characters in it are put in a live room one of its exits leads to. It is refused while a live job uses the room, as deleting is, and while a character is in the room and none of its exits leads to a live room (including when a selection or whole map is unpublished). Each section of the room screen says when a change reaches players. |
+| WF-46 | **Moving rooms.** | Move a room, or a selection, to free cells. Exits are kept as authored. Audited. |
+| WF-70 | **Travel links, first cut.** | A room can offer travel to a named room on the same or another map. Instant in this phase, so that maps are joined as soon as there are two of them; phase 8 replaces it with transports that take time (WF-98 to WF-101). |
+| WF-71 | **Load one map at a time.** | The world and references endpoints return one map (and the records it needs), not the whole world. Home shows counts per map. |
+
+#### Phase 3 — The map editor at scale
+
+| ID | Item | Shape |
+| --- | --- | --- |
+| WF-40 | **See and move around a large map.** | Zoom levels up to a whole-layer overview; drag to pan; go to a room by name or to a coordinate; selecting a room does not recentre unless asked. The job's Rooms step opens on the job's rooms, else its Johnson. |
+| WF-42 | **One room picker.** | Searchable, grouped by map, district and layer, showing coordinates. Used for exit destinations, Johnson and NPC locations, relocation on delete, event rooms and objective rooms. |
+| WF-43 | **Building says what it will join.** | The build form lists every exit it will create, each with a tick box; diagonals start unticked. Removing an exit offers "and the way back". |
+| WF-44 | **Build many rooms at once.** | Paint mode: click or drag empty cells to stamp draft rooms from a template (name pattern, description, district), then edit. Duplicate a room with what is in it. |
+| WF-72 | **Select many, act once.** | Multi-select on the map: publish, move, delete, set district. |
+| WF-73 | **Districts.** | A named group of rooms on a map, on one layer or several, with properties its rooms inherit (default description text now; weather and ambient events when those exist). Publish by district. |
+| WF-45 | **Nothing unreachable by accident.** | Mark rooms with exits or travel links that leave the view; a check for live rooms that cannot be reached from the start room. |
+| WF-64 | **A world index.** | Sortable, filterable tables of rooms, NPCs and jobs per map, with flags (no description, no exits, draft), and search over all authored text. |
+
+#### Phase 4 — Writing conversations, events and jobs
+
+The owner found branching dialogue and events hard to write. The walkthrough
+was too shallow to hit it (one two-part pitch, one single-step event), but
+showed why: a reply has no answer line, so every distinct response is a new
+part and every roll is two more; the next part cannot be created from the
+reply; parts have numbers, not names; a reply is edited in a dialog that
+hides the rest of the conversation; the graph view is a disabled button; and
+a job's events are one flat list with their prompts written elsewhere.
+
+| ID | Item | Shape |
+| --- | --- | --- |
+| WF-74 | **A reply has an answer.** | A line the NPC says in response, on the reply and on a roll's pass and fail. Most replies then need no part of their own. A small content-model change. |
+| WF-75 | **Write a conversation as an outline.** | A reply's follow-up sits indented under it and is edited in place, not in a dialog. "New part" is a choice wherever a reply picks where it goes. Parts have names. |
+| WF-76 | **A graph for reading.** | Read-only: shows the shape, marks dead ends and parts nothing reaches, and jumps to the part clicked. Not an editor. |
+| WF-77 | **Templates.** | Replies: negotiate pay (with the roll, the effect and the "not yet negotiated" condition, closing WF-52), hand over the item, ask for details, walk away. Events: ambush on entry, guard warning. Jobs: new job from an existing one, with new ids (WF-62). |
+| WF-78 | **Events laid out along the route.** | A job's events grouped by room in the order a runner meets them, with each prompt written under the event that opens it. |
+| WF-63 | **Any NPC can talk.** | Conversations as a Library kind that any world NPC can be given, not only a Johnson's pitch. |
+| WF-54 | **Safer defaults.** | A new Johnson has no default location (it was *Alley*, placed live at once); a Library roll has no default test (it was *Observe Area*); "Raise pay" shows what a won roll pays. |
+| WF-61 | **Autosave.** | Drafts save as they are edited, version-checked. A job counts as one thing on Home. |
+| WF-67 | **The Rooms step explains itself.** | Say what putting a room in a job does (reset, usage, the delete guard); pick several rooms at once. |
+
+#### Phase 5 — Character facts
+
+| ID | Item | Shape |
+| --- | --- | --- |
+| WF-80 | **The fact store.** | Named facts recorded against a character, written in the same commit as the action that caused them. A fact may be marked as lasting only for the current run of a job. No fact is shared between characters. |
+| WF-81 | **Set and test.** | An effect that sets or clears a fact; a condition that tests one. Usable in replies, events and objectives. |
+| WF-82 | **The Forge's fact list.** | Facts are created and named in the Library and chosen from a picker, with "set by" and "tested by" shown for each. Go live refuses a job that tests a fact nothing can set. |
+| WF-83 | **Jobs that follow from jobs.** | A job can require or refuse facts before it is offered, and its endings set them, so one job can lead to another and a Johnson can remember a runner. |
+
+#### Phase 6 — Things in rooms
+
+| ID | Item | Shape |
+| --- | --- | --- |
+| WF-84 | **One hidden / locked model.** | NPCs, items, interactables and exits share hidden, discoverable (a search difficulty, found per character) and locked. Replaces the separate versions on items, inspectables and exits. |
+| WF-85 | **Secret rooms.** | A hidden exit can be found by searching, as a hidden item can today. Today a hidden exit can never be found. |
+| WF-50 | **Doors that open.** | Effects that lock and unlock an exit, and a door that opens for whoever carries a named item. Today a locked door can never be opened by content. |
+| WF-86 | **Interactables that do something.** | Beyond text when inspected: read (a flyer), search (a container that holds an item), use (a switch that runs effects). Using a computer through the Matrix waits on workstream 5. |
+| WF-87 | **Items that are not a job's.** | An item placed in a room by the map, not by a job. It is marked unique or not when it is made. One that is not unique comes back in its room after the time its author set; a unique one never comes back and never disappears. When its holder is deleted it drops in their last room; when they die it stays on the body for looting and, if not taken before the body is removed after 24 hours, is placed in their last room. Looting a body depends on the combat milestone. |
+| WF-51 | **Go live checks that the job can be done.** | A route from the Johnson to every objective room and item through doors that can be opened, shown in Go live. |
+
+#### Phase 7 — Objectives
+
+| ID | Item | Shape |
+| --- | --- | --- |
+| WF-66 | **More kinds of goal.** | Spying: observe an NPC or interactable, or be present for an event. Talk to an NPC. Plant an item. Kill or defeat an NPC, once the combat milestone settles what defeat means. |
+| WF-88 | **Optional goals and ways to fail.** | An objective can be optional (extra pay). A job can name what fails it: seen, an alarm raised, an NPC killed. Today every objective is required and they run strictly in order. |
+| WF-89 | **More than one ending.** | A job can end in named ways with their own pay and their own facts (WF-83). |
+
+#### Phase 8 — The world clock
+
+| ID | Item | Shape |
+| --- | --- | --- |
+| WF-90 | **One scheduler.** | A world clock and one background sweep, shared with workstream 8's job deadlines and resets. |
+| WF-91 | **Events follow their subject.** | A job event names an NPC wherever they stand. Removes the rule that a named NPC cannot be moved. Needed before patrols. |
+| WF-92 | **Time of day and weather.** | A district carries a set of weather descriptions written by its author; the server moves between them over time, semi-randomly, and every room in the district shows the current one. A room can be marked indoors. Time of day comes from the world clock. Descriptive only: no dice modifier until the rule is cited or decided in `SR5_RULE_DECISIONS.md`. |
+| WF-93 | **Patrol routes.** | An NPC is given an ordered list of rooms and how long to stay in each, drawn on the map in the Forge. A patrol pauses while the NPC is talking or fighting. |
+| WF-98 | **Transports are moving rooms.** | A transport is a room that is not on the map grid: characters board it, see each other, and talk in it as in any room. It has a kind and a capacity (taxi 3, bus 10, train unlimited); boarding is refused when it is full. Boarding and leaving are `/` commands, each for the character who types it. Rooms today require map coordinates, so this needs a room that has none. |
+| WF-99 | **Public transport.** | A room is given travel options. A train or bus follows a route of stops on the world clock, arriving and leaving on its timetable whether or not anyone is aboard; a taxi is a small transport on a route of its own, with no destination chosen by the rider. Riders board and leave only at stops. A full transport takes nobody else; the next comes on its timetable. Free. Travel between stops takes real time. A character who logs out aboard stays aboard and is wherever the transport is when they return. Where a transport is can be worked out from the clock rather than stored. |
+| WF-100 | **Personal vehicles.** | A room carries an "allows vehicles" mark, set in the Forge. An owner in such a room calls their vehicle with no wait, names a destination that is also a vehicle room, and the journey takes real time through the vehicle rooms between. Riders can get out in any of them. Capacity is the vehicle's `seats`: checked 2026-11-17, every car, bike, truck, boat, aircraft and submarine in the catalog (125) has a cited value; only drones (74) have none, and they carry nobody. An estimate is needed only for a vehicle added without one, and is recorded in `SR5_RULE_DECISIONS.md`. Calling moves the vehicle at once from wherever it stands, on any map; the room it leaves sees a line describing it going. Journeys can cross maps (cities), which needs vehicle routes between maps. If the driver logs out mid-journey, the vehicle stops in the vehicle room it had reached and passengers stay aboard there. Owning a vehicle depends on purchases (2.3). |
+| WF-103 | **A vehicle is an object in the world.** | A parked vehicle stands in its room through its owner's logout. Others can look inside, break in and steal it, unless it is parked in a private room with a garage. A stolen vehicle cannot be called until its owner recovers it by getting in and driving it to a garage they own. A vehicle with passengers in it cannot be called. A thief claiming a stolen vehicle as their own is deferred. Built on the phase 6 model (locked, usable). Breaking in follows the core rules (owner, 2026-11-17): look up the rule and page for each kind of vehicle security before building, and record it in `SR5_RULE_DECISIONS.md`. Plain locks are a lockpicking test; a security system that the rules make a Matrix test waits for workstream 5. Alarms and trackers are not in v1. Garages depend on private rooms (workstreams 6 and 7). |
+| WF-101 | **The city passing by.** | Each map has generic lines for each kind of transport, written in the Forge. Riders are shown them while the transport moves. |
+| WF-102 | **Authoring travel in the Forge.** | Mark a room's travel options; draw a route as an ordered list of stops with the time between them; set a timetable or a taxi's wait; write a map's passing-by lines. The map shows routes and stops. |
+
+#### Phase 9 — The Forge side of other workstreams
+
+| ID | Item | Depends on |
+| --- | --- | --- |
+| WF-94 | Room image upload and removal on the room screen. | Workstream 9 |
+| WF-95 | Mark a room as one a player can claim. | Workstreams 6 and 7 |
+| WF-65 | Export and import a map, a district or a job as a file, through the Forge's own validation. | Phases 2 and 3 |
+| WF-53 | Playtesting a conversation or a job. | Not now (10.2) |
+
+### 10.5 Order
+
+Phase 1 first. Then finish workstream 8 (phases 3–5) before phase 2: both
+migrate rooms and job content, and phases 4 and 8 build on workstream 8's
+jobs and sweep. Phases 2 and 3 next, in that order: they are what make a large
+city possible at all. Phase 4 can run alongside 3, since it touches different
+screens. Phases 5 to 8 follow in order, because facts (5) are used by
+objectives and endings (7), and things in rooms (6) by the reachability
+check. Purchases (2.3) must be built before personal vehicles (WF-100).
+Phase 9 items land when their workstreams do.
+
+### 10.6 Dependencies on other workstreams
+
+| Needs | For |
+| --- | --- |
+| 2.3 Nuyen purchases | Owning a personal vehicle (WF-100) |
+| 5 Matrix in play | Hacking a computer (WF-86); breaking into a vehicle whose security the rules make a Matrix test (WF-103) |
+| 6, 7 Auth and private rooms | Claimable rooms (WF-95); garages that protect a parked vehicle (WF-103) |
+| 8 One shared world | The scheduler (WF-90) shares its sweep; resets bound what the world remembers |
+| 9 Room images | WF-94 |
+| Combat milestone | Kill and defeat objectives (WF-66); a unique item on a dead character's body (WF-87) |
+
+### 10.7 Checking it
+
+After phases 1 to 3, build a five-room block and a fetch job through the UI,
+timed: under 15 minutes, no reloads, no exit removed by hand. After phase 3,
+build one full layer of 100 rooms and record how long it takes. After phase
+4, write a conversation with three levels of branching and a roll at each,
+and record the number of parts it needed.
+
+The walkthrough's content (five Berlin rooms at x 29–30 on the shared grid,
+and the live job *Kellerfund*) is still in the local development database.
+Phase 2's migration should move it to a Berlin map or it should be deleted
+first.
+
+### 10.8 Still to settle
+
+Settled 2026-11-17 and moved to 10.2: which phases are in v1, how travel
+plays, unpublishing a room, map items coming back, districts across layers,
+and weather.
+
+Also settled 2026-11-17: where vehicles can go, their capacity, taxis on set
+routes, leaving only at stops, no second taxi, nearest room by exit, calling
+a parked vehicle, a stolen vehicle cannot be called, garages, the driver
+logging out mid-journey, cars between cities, unique items persisting,
+recovering a stolen vehicle, calling a vehicle with passengers, unique
+items on deleted or dead characters, a thief claiming a vehicle
+(deferred), breaking in (follow the core rules), and unpublishing with
+nowhere to go (refused).
+
+Nothing is open. New questions found while building are added here.
+
+---
+
 ## Not in v1
 
 Considered and deliberately left out. Each needs its own scoping before it is
@@ -1212,7 +1648,7 @@ picked up.
 | SR5 catalog schema lock and digest enforcement | The catalog stays in its mutable pre-alpha phase. Lock it before real players create characters they expect to keep. |
 | Further sourcebook imports | Chrome Flesh, Data Trails, Forbidden Arcana, and Street Lethal are registered and unimported. |
 | Fuller combat | Grenades, called shots, suppressive fire, multiple attacks, interception, knockdown, full environmental tables, healing rules. Belongs with the combat milestone above. |
-| Rigging, vehicles, and drones in play | Catalog data only. |
+| Rigging, vehicles, and drones in play | Catalog data only. The exception is a personal vehicle used as on-demand travel (workstream 10, WF-100): no driving, no vehicle rules. Vehicle security (alarms, trackers) is out too, and so is a thief claiming a stolen vehicle as their own. |
 | Enforced quality and martial-arts effects | Display text today. |
 | Career: augmentation installation, attachments, selling/refunds/transfers, lifestyle billing, Availability tests, reputation (Street Cred, Notoriety, Public Awareness) | Lifetime Karma is tracked so Street Cred can be derived later. |
 | Storyteller approval queues and training time | Zero-Karma contact acquisition joins the gated list if this is ever built. |

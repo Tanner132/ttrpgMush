@@ -1,21 +1,17 @@
 import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button.tsx'
-import { Chip, Empty, NumberInput, Section, Select, TextBox, TextInput } from '../fields.tsx'
+import { Chip, Empty, NumberInput, Section, Select, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
-import { newId, sceneEffects, type Encounter, type Mission, type Objective, type ObjectiveKind, type SiteItem } from '../model.ts'
+import { newId, sceneEffects, type Mission, type Objective, type ObjectiveKind } from '../model.ts'
 import type { Job } from './useJob.ts'
 
 const KindWords: Record<ObjectiveKind, { add: string; chip: string; start: string }> = {
-  enterEncounter: { add: 'Reach', chip: 'Reach the site', start: 'Get inside' },
+  reachRoom: { add: 'Reach a room', chip: 'Reach', start: 'Get inside' },
   pickUpItem: { add: 'Get item', chip: 'Get item', start: 'Recover the item' },
-  exitEncounter: { add: 'Leave site', chip: 'Leave site', start: 'Get clear' },
   deliverItem: { add: 'Deliver', chip: 'Deliver to the Johnson', start: 'Deliver the item' },
 }
 
 const NeedsItem: ObjectiveKind[] = ['pickUpItem', 'deliverItem']
-
-/** In place of "no room": the item is never lying anywhere, only handed over. */
-const HandedOver = 'handed-over'
 
 /**
  * What counts as done, in order, and what it pays. Objectives complete
@@ -23,25 +19,33 @@ const HandedOver = 'handed-over'
  */
 export function ObjectivesStep({ job, mission }: { job: Job; mission: Mission }) {
   const { world } = useForgeData()
-  const site = job.site.value
   const pitch = job.pitch.value
-  const items = site?.items ?? []
+  const items = mission.items
   const itemOptions = items.map((item) => ({ id: item.id, displayName: item.name || 'Unnamed item' }))
-  const siteRooms = world.rooms.filter((room) => site?.roomIds.includes(room.id))
+  // The job's own rooms first; a runner can be sent anywhere on the map.
+  const own = new Set(mission.roomIds)
+  const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name)
+  const roomOptions = [
+    ...world.rooms.filter((room) => own.has(room.id)).sort(byName).map((room) => ({ id: room.id, displayName: `${room.name} · this job` })),
+    ...world.rooms.filter((room) => !own.has(room.id)).sort(byName).map((room) => ({ id: room.id, displayName: room.name })),
+  ]
   const negotiable = pitch !== null && sceneEffects(pitch).some((effect) => effect.kind === 'setNegotiatedPay')
 
   const setObjectives = (update: (objectives: Objective[]) => Objective[]) =>
     job.mission.setValue((current) => ({ ...current, objectives: update(current.objectives) }))
   const setObjective = (id: string, change: Partial<Objective>) =>
     setObjectives((objectives) => objectives.map((objective) => (objective.id === id ? { ...objective, ...change } : objective)))
-  const setSite = (update: (current: Encounter) => Encounter) => job.site.setValue(update)
-  const setItem = (id: string, change: Partial<SiteItem>) =>
-    setSite((current) => ({ ...current, items: current.items.map((item) => (item.id === id ? { ...item, ...change } : item)) }))
 
   function add(kind: ObjectiveKind) {
     setObjectives((objectives) => [
       ...objectives,
-      { id: newId(), displayName: KindWords[kind].start, kind, itemId: NeedsItem.includes(kind) ? items[0]?.id : undefined },
+      {
+        id: newId(),
+        displayName: KindWords[kind].start,
+        kind,
+        itemId: NeedsItem.includes(kind) ? items[0]?.id : undefined,
+        roomId: kind === 'reachRoom' ? mission.roomIds[0] : undefined,
+      },
     ])
   }
 
@@ -81,6 +85,16 @@ export function ObjectivesStep({ job, mission }: { job: Job; mission: Mission })
                     onChange={(itemId) => setObjective(objective.id, { itemId: itemId || undefined })}
                   />
                 )}
+                {objective.kind === 'reachRoom' && (
+                  <Select
+                    label={`Objective ${at + 1} room`}
+                    labelHidden
+                    value={objective.roomId}
+                    options={roomOptions}
+                    placeholder="Choose a room"
+                    onChange={(roomId) => setObjective(objective.id, { roomId: roomId || undefined })}
+                  />
+                )}
                 <Button aria-label={`Move objective ${at + 1} up`} disabled={at === 0} onClick={() => move(at, -1)}>
                   ↑
                 </Button>
@@ -105,7 +119,7 @@ export function ObjectivesStep({ job, mission }: { job: Job; mission: Mission })
             ))}
           </div>
           <p className="forge__hint">
-            Reach, get and leave complete themselves as the runner does them. Deliver completes when the runner hands the item to the Johnson, which is a reply in the pitch.
+            Reach and get complete themselves as the runner does them — to send runners back out, add another Reach. Deliver completes when the runner hands the item to the Johnson, which is a reply in the pitch. The job's items are placed in the Rooms step.
           </p>
         </Section>
       </div>
@@ -134,58 +148,6 @@ export function ObjectivesStep({ job, mission }: { job: Job; mission: Mission })
             <Link to={`/admin/forge/jobs/${job.id}/pitch`}>Pitch</Link>
           </div>
           <p className="forge__hint">Paid once per run, through the career ledger.</p>
-        </Section>
-
-        <Section title={`Items · ${items.length}`}>
-          {!site ? (
-            <p className="forge__hint">Loading the site…</p>
-          ) : (
-            <>
-              {items.length === 0 && <Empty>The job has no items. Add one to ask for it back, or to hand it out.</Empty>}
-              {items.map((item, at) => (
-                <div key={item.id} className="forge__effect">
-                  <div className="forge__effect-head">
-                    <TextInput label={`Item ${at + 1} name`} value={item.name} maxLength={120} onChange={(name) => setItem(item.id, { name })} />
-                    <Button
-                      intent="danger"
-                      aria-label={`Remove item ${item.name || at + 1}`}
-                      onClick={() => setSite((current) => ({ ...current, items: current.items.filter((existing) => existing.id !== item.id) }))}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                  <TextBox label={`Item ${at + 1} description`} value={item.description} rows={2} onChange={(description) => setItem(item.id, { description })} />
-                  <Select
-                    label={`Item ${at + 1} is`}
-                    value={item.roomId ?? HandedOver}
-                    options={[
-                      ...siteRooms.map((room) => ({ id: room.id, displayName: `Lying in ${room.name}` })),
-                      { id: HandedOver, displayName: 'Handed over by an event' },
-                    ]}
-                    onChange={(roomId) =>
-                      setItem(
-                        item.id,
-                        roomId === HandedOver ? { roomId: undefined, isHidden: undefined, discoveryThreshold: undefined } : { roomId },
-                      )
-                    }
-                  />
-                </div>
-              ))}
-              <div>
-                <Button
-                  onClick={() =>
-                    setSite((current) => ({
-                      ...current,
-                      items: [...current.items, { id: newId(), name: '', description: '', roomId: current.entryRoomId ?? current.roomIds[0] }],
-                    }))
-                  }
-                >
-                  + Item
-                </Button>
-              </div>
-              <p className="forge__hint">Hiding an item, and everything else placed on the site, is edited from its room in Places.</p>
-            </>
-          )}
         </Section>
       </div>
     </div>

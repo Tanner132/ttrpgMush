@@ -38,7 +38,8 @@ public interface IGameContentUsageReader
 public sealed class GameContentLifecycle(
     IGameContentStore store,
     IGameContentProvider content,
-    IGameContentUsageReader usage)
+    IGameContentUsageReader usage,
+    IJobItemStore jobItems)
 {
     public async Task<GameContentDeleteCheck> CanDeleteAsync(
         GameContentKind kind, Guid contentKey, CancellationToken cancellationToken = default)
@@ -108,6 +109,7 @@ public sealed class GameContentLifecycle(
 
         await store.MarkRetiredAsync(definition.Id, actorUserId, cancellationToken);
         await content.ReloadAsync(cancellationToken);
+        await jobItems.SyncAsync(content.Current, cancellationToken);
         return GameContentPublishResult.Success();
     }
 
@@ -197,6 +199,7 @@ public sealed class GameContentLifecycle(
         if (result.IsSuccess)
         {
             await content.ReloadAsync(cancellationToken);
+            await jobItems.SyncAsync(content.Current, cancellationToken);
         }
 
         return result;
@@ -228,6 +231,7 @@ public sealed class GameContentLifecycle(
         if (result.IsSuccess)
         {
             await content.ReloadAsync(cancellationToken);
+            await jobItems.SyncAsync(content.Current, cancellationToken);
         }
 
         return result;

@@ -63,8 +63,6 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 SetCharacterDamageChange characterDamage => await ApplySetCharacterDamageAsync(characterDamage, now, cancellationToken),
                 SetNpcDamageChange npcDamage => await ApplySetNpcDamageAsync(npcDamage, now, cancellationToken),
                 ClearCharacterDamageChange clearDamage => await ApplyClearCharacterDamageAsync(clearDamage, now, cancellationToken),
-                EnterEncounterChange enter => await ApplyEnterEncounterAsync(characterId, enter, now, cancellationToken),
-                LeaveEncounterChange leave => await ApplyLeaveEncounterAsync(characterId, leave, now, cancellationToken),
                 PickUpItemChange pickUp => await ApplyPickUpItemAsync(characterId, pickUp, now, cancellationToken),
                 CompleteObjectiveChange objective => await ApplyCompleteObjectiveAsync(objective, now, cancellationToken),
                 FailObjectiveChange failObjective => await ApplyFailObjectiveAsync(failObjective, now, cancellationToken),
@@ -74,7 +72,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 SetPendingNegotiatedPayChange pay => await ApplySetPendingNegotiatedPayAsync(characterId, pay, now, cancellationToken),
                 EndSceneChange => await ApplyEndSceneAsync(characterId, cancellationToken),
                 AcceptMissionChange accept => await ApplyAcceptMissionAsync(characterId, accept, now, cancellationToken),
-                RemoveItemChange removeItem => await ApplyRemoveItemAsync(removeItem, cancellationToken),
+                RemoveItemChange removeItem => await ApplyRemoveItemAsync(removeItem, now, cancellationToken),
                 FailMissionChange fail => await ApplyFailMissionAsync(fail, now, cancellationToken),
                 GrantItemChange grant => await ApplyGrantItemAsync(characterId, grant, now, cancellationToken),
                 RecordTriggerFireChange trigger => await ApplyRecordTriggerFireAsync(characterId, trigger, now, cancellationToken),
@@ -301,255 +299,6 @@ public sealed class StateChangeApplier : IStateChangeApplier
         return new AppliedStateChange("ClearCharacterDamage", "All damage healed.");
     }
 
-    // Milestone 5 (§29/§30): entering a mission's private encounter. First
-    // entry materializes the encounter definition — instance row, rooms,
-    // exits, NPCs, interactables, items, participant — and moves the
-    // character in; re-entry just moves the character back to the entry room.
-    private async Task<AppliedStateChange> ApplyEnterEncounterAsync(
-        Guid characterId,
-        EnterEncounterChange change,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var mission = await dbContext.MissionInstances
-            .FirstOrDefaultAsync(row => row.Id == change.MissionInstanceId, cancellationToken)
-            ?? throw new InvalidOperationException(
-                $"Mission instance '{change.MissionInstanceId}' does not exist.");
-        if (mission.CharacterId != characterId)
-        {
-            throw new InvalidOperationException("A character may only enter their own mission's encounter.");
-        }
-
-        var activeStatus = EncounterInstanceStatus.Active.ToString();
-        var encounter = await dbContext.EncounterInstances
-            .FirstOrDefaultAsync(
-                row => row.MissionInstanceId == mission.Id && row.Status == activeStatus,
-                cancellationToken);
-
-        string description;
-        if (encounter is null)
-        {
-            encounter = InstantiateEncounter(mission, characterId, now);
-            description = $"Encounter '{encounter.EncounterId}' instantiated; entered at its entry room.";
-        }
-        else
-        {
-            encounter.LastActivityUtc = now;
-            encounter.UpdatedAtUtc = now;
-            description = $"Re-entered encounter '{encounter.EncounterId}'.";
-        }
-
-        var arrivalRoomId = encounter.EntryRoomId;
-        if (change.RoomId is { } mapRoomId)
-        {
-            // The copy may have been added to the change tracker this action
-            // (first entry) or already exist (re-entry): look in both.
-            var instanceId = encounter.Id;
-            arrivalRoomId = dbContext.Rooms.Local
-                .Where(room => room.EncounterInstanceId == instanceId && room.SourceRoomId == mapRoomId)
-                .Select(room => (Guid?)room.Id)
-                .FirstOrDefault()
-                ?? await dbContext.Rooms
-                    .Where(room => room.EncounterInstanceId == instanceId && room.SourceRoomId == mapRoomId)
-                    .Select(room => (Guid?)room.Id)
-                    .FirstOrDefaultAsync(cancellationToken)
-                ?? throw new InvalidOperationException(
-                    $"Encounter {encounter.EncounterId} has no copy of room {mapRoomId} to arrive in.");
-            description += $" Arrived in room {mapRoomId}.";
-        }
-
-        await MoveCharacterAsync(characterId, change.PlaySessionId, arrivalRoomId, now, cancellationToken);
-
-        return new AppliedStateChange("EnterEncounter", description);
-    }
-
-    // Builds every row of a fresh encounter instance from its repo-authored
-    // definition (§28/§50). All adds land in this action's single transaction.
-    private EncounterInstance InstantiateEncounter(MissionInstance mission, Guid characterId, DateTimeOffset now)
-    {
-        var missionDefinition = gameContent.Current.FindMission(mission.MissionId)
-            ?? throw new InvalidOperationException(
-                $"Job {mission.MissionId} is missing from the game content.");
-        var definition = gameContent.Current.FindEncounter(missionDefinition.EncounterId)
-            ?? throw new InvalidOperationException(
-                $"Job site {missionDefinition.EncounterId} is missing from the game content.");
-
-        var character = dbContext.Characters.First(row => row.Id == characterId);
-
-        var encounter = new EncounterInstance
-        {
-            EncounterId = definition.Id,
-            MissionInstanceId = mission.Id,
-            Status = EncounterInstanceStatus.Active.ToString(),
-            ReturnRoomId = character.CurrentRoomId,
-            LastActivityUtc = now,
-            CreatedAtUtc = now,
-            UpdatedAtUtc = now,
-        };
-        dbContext.EncounterInstances.Add(encounter);
-
-        // WF-25/WF-27: a job site is made of map rooms. The run's copy is made
-        // from the map rows — name, description, environment, position, and
-        // the exits between them with their hidden/locked flags — so an edit
-        // in Places reaches every run that starts after it. Each copy records
-        // the map room it came from, which is how content (naming the map
-        // room) finds it.
-        var siteRoomIds = definition.RoomIds.ToList();
-        var mapRooms = dbContext.Rooms
-            .AsNoTracking()
-            .Where(room => room.EncounterInstanceId == null && siteRoomIds.Contains(room.Id))
-            .ToList();
-        if (mapRooms.Count != siteRoomIds.Count)
-        {
-            throw new InvalidOperationException(
-                $"Job site '{definition.DisplayName}' names rooms that are no longer on the map.");
-        }
-
-        var copies = new Dictionary<Guid, Room>();
-        foreach (var source in mapRooms)
-        {
-            var room = new Room
-            {
-                Name = source.Name,
-                Description = source.Description,
-                AccessType = RoomAccessType.Instanced,
-                EnvironmentModifier = source.EnvironmentModifier,
-                MapX = source.MapX,
-                MapY = source.MapY,
-                MapLayer = source.MapLayer,
-                SourceRoomId = source.Id,
-                EncounterInstanceId = encounter.Id,
-                CreatedAtUtc = now,
-            };
-            copies.Add(source.Id, room);
-            dbContext.Rooms.Add(room);
-        }
-
-        encounter.EntryRoomId = copies[definition.EntryRoomId].Id;
-
-        var mapExits = dbContext.RoomExits
-            .AsNoTracking()
-            .Where(exit => siteRoomIds.Contains(exit.SourceRoomId) && siteRoomIds.Contains(exit.DestinationRoomId))
-            .ToList();
-        foreach (var mapExit in mapExits)
-        {
-            dbContext.RoomExits.Add(new RoomExit
-            {
-                Id = Guid.NewGuid(),
-                SourceRoomId = copies[mapExit.SourceRoomId].Id,
-                DestinationRoomId = copies[mapExit.DestinationRoomId].Id,
-                Direction = mapExit.Direction,
-                States = mapExit.States,
-            });
-        }
-
-        foreach (var npcDefinition in definition.Npcs)
-        {
-            // Milestone 7 section 5: a retired template stops appearing. NPCs
-            // already standing keep resolving it, so nothing mid-run breaks.
-            if (gameContent.Current.FindNpcTemplate(npcDefinition.TemplateId) is { IsRetired: true })
-            {
-                continue;
-            }
-
-            // Milestone 7 section 4: the placement's overrides travel onto the
-            // row so it is self-describing; the base stat block stays in
-            // content and resolves live.
-            dbContext.NpcInstances.Add(new NpcInstance
-            {
-                TemplateId = npcDefinition.TemplateId,
-                SourceNpcId = npcDefinition.Id,
-                Name = npcDefinition.Name,
-                RoomId = copies[npcDefinition.RoomId].Id,
-                Description = npcDefinition.Description,
-                SceneId = npcDefinition.SceneId,
-                OverridesJson = NpcOverrideSerialization.Serialize(npcDefinition.Overrides),
-                Awareness = (npcDefinition.StartingAwareness ?? NpcAwareness.Unaware).ToString(),
-                CreatedAtUtc = now,
-                UpdatedAtUtc = now,
-            });
-        }
-
-        foreach (var interactableDefinition in definition.Interactables)
-        {
-            dbContext.RoomInteractables.Add(new RoomInteractable
-            {
-                RoomId = copies[interactableDefinition.RoomId].Id,
-                SourceInteractableId = interactableDefinition.Id,
-                Name = interactableDefinition.Name,
-                Description = interactableDefinition.Description,
-                IsHidden = interactableDefinition.IsHidden,
-                DiscoveryThreshold = interactableDefinition.DiscoveryThreshold,
-            });
-        }
-
-        foreach (var itemDefinition in definition.Items)
-        {
-            // Milestone 7: an item with no room is declared but not placed —
-            // it exists so a GiveItem effect has a name and description to
-            // hand over, and materializes only when that effect fires.
-            if (itemDefinition.RoomId is not { } itemRoom)
-            {
-                continue;
-            }
-
-            dbContext.WorldItemInstances.Add(new WorldItemInstance
-            {
-                ItemId = itemDefinition.Id,
-                DisplayName = itemDefinition.Name,
-                Description = itemDefinition.Description,
-                MissionInstanceId = mission.Id,
-                EncounterInstanceId = encounter.Id,
-                RoomId = copies[itemRoom].Id,
-                IsHidden = itemDefinition.IsHidden,
-                DiscoveryThreshold = itemDefinition.DiscoveryThreshold,
-                CreatedAtUtc = now,
-                UpdatedAtUtc = now,
-            });
-        }
-
-        dbContext.EncounterParticipants.Add(new EncounterParticipant
-        {
-            EncounterInstanceId = encounter.Id,
-            CharacterId = characterId,
-            JoinedAtUtc = now,
-        });
-
-        return encounter;
-    }
-
-    private async Task<AppliedStateChange> ApplyLeaveEncounterAsync(
-        Guid characterId,
-        LeaveEncounterChange change,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var encounter = await dbContext.EncounterInstances
-            .FirstOrDefaultAsync(row => row.Id == change.EncounterInstanceId, cancellationToken)
-            ?? throw new InvalidOperationException(
-                $"Encounter instance '{change.EncounterInstanceId}' does not exist.");
-
-        encounter.LastActivityUtc = now;
-        encounter.UpdatedAtUtc = now;
-
-        await MoveCharacterAsync(characterId, change.PlaySessionId, encounter.ReturnRoomId, now, cancellationToken);
-
-        // Milestone 6: leaving with only delivery left archives the encounter
-        // — there is nothing to come back for, and the mission itself waits
-        // on the mission giver (ReadyToTurnIn set by CompleteObjective).
-        var mission = await dbContext.MissionInstances
-            .FirstOrDefaultAsync(row => row.Id == encounter.MissionInstanceId, cancellationToken);
-        if (mission?.Status == MissionInstanceStatus.ReadyToTurnIn.ToString()
-            && encounter.Status == EncounterInstanceStatus.Active.ToString())
-        {
-            encounter.Status = EncounterInstanceStatus.Completed.ToString();
-        }
-
-        return new AppliedStateChange(
-            "LeaveEncounter", $"Left encounter '{encounter.EncounterId}'.");
-    }
-
-    // §38: possession flips atomically — room cleared, owner set.
     private async Task<AppliedStateChange> ApplyPickUpItemAsync(
         Guid characterId,
         PickUpItemChange change,
@@ -693,17 +442,6 @@ public sealed class StateChangeApplier : IStateChangeApplier
         mission.Status = MissionInstanceStatus.Completed.ToString();
         mission.CompletedAtUtc = now;
         mission.UpdatedAtUtc = now;
-
-        // Commit point (§3): the encounter instance is done with — archive it.
-        var activeStatus = EncounterInstanceStatus.Active.ToString();
-        var encounters = await dbContext.EncounterInstances
-            .Where(row => row.MissionInstanceId == mission.Id && row.Status == activeStatus)
-            .ToListAsync(cancellationToken);
-        foreach (var encounter in encounters)
-        {
-            encounter.Status = EncounterInstanceStatus.Completed.ToString();
-            encounter.UpdatedAtUtc = now;
-        }
 
         var granted = await AppendMissionRewardAsync(
             mission.CharacterId, mission.Id, change.Karma, change.Nuyen, now, cancellationToken);
@@ -898,14 +636,18 @@ public sealed class StateChangeApplier : IStateChangeApplier
     // §38: the item leaves the world (handed over at turn-in). The audit
     // envelope is the surviving record (dev decision
     // mission.item-consumed-on-turn-in).
+    // Workstream 8: the job's one item leaves play — in no room, carried by
+    // nobody — until the job's reset puts it back. The row stays.
     private async Task<AppliedStateChange> ApplyRemoveItemAsync(
-        RemoveItemChange change, CancellationToken cancellationToken)
+        RemoveItemChange change, DateTimeOffset now, CancellationToken cancellationToken)
     {
         var item = await dbContext.WorldItemInstances
             .FirstOrDefaultAsync(row => row.Id == change.ItemId, cancellationToken)
             ?? throw new InvalidOperationException($"World item '{change.ItemId}' does not exist.");
 
-        dbContext.WorldItemInstances.Remove(item);
+        item.RoomId = null;
+        item.OwnerCharacterId = null;
+        item.UpdatedAtUtc = now;
 
         return new AppliedStateChange("RemoveItem", $"{item.DisplayName} handed over — {change.Reason}");
     }
@@ -936,52 +678,37 @@ public sealed class StateChangeApplier : IStateChangeApplier
         mission.Status = MissionInstanceStatus.Failed.ToString();
         mission.UpdatedAtUtc = now;
 
-        var activeStatus = EncounterInstanceStatus.Active.ToString();
-        var encounters = await dbContext.EncounterInstances
-            .Where(row => row.MissionInstanceId == mission.Id && row.Status == activeStatus)
-            .ToListAsync(cancellationToken);
-        foreach (var encounter in encounters)
-        {
-            encounter.Status = EncounterInstanceStatus.Abandoned.ToString();
-            encounter.UpdatedAtUtc = now;
-        }
-
         return new AppliedStateChange("FailMission", "Mission failed.");
     }
 
-    // Milestone 7: an authored GiveItem hands over an encounter item that was
-    // never placed in a room. Provenance matches a placed item exactly, so
-    // objectives, turn-in, and the teardown sweep treat it the same way.
+    // Workstream 8: an authored GiveItem hands over the job's one item from
+    // wherever it is — a room, or out of play. If somebody else is carrying it
+    // by the time this commits, it stays theirs and nothing changes.
     private async Task<AppliedStateChange> ApplyGrantItemAsync(
         Guid characterId,
         GrantItemChange change,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        var alreadyHeld = await dbContext.WorldItemInstances.AnyAsync(
-            row => row.OwnerCharacterId == characterId
-                && row.MissionInstanceId == change.MissionInstanceId
-                && row.ItemId == change.ItemId,
-            cancellationToken);
-        if (alreadyHeld)
+        var item = await dbContext.WorldItemInstances
+            .FirstOrDefaultAsync(row => row.ItemId == change.ItemId, cancellationToken)
+            ?? throw new InvalidOperationException($"Job item '{change.ItemId}' has no row in the world.");
+
+        if (item.OwnerCharacterId == characterId)
         {
-            return new AppliedStateChange(
-                "GrantItem", $"{change.DisplayName} was already carried; nothing granted.");
+            return new AppliedStateChange("GrantItem", $"{item.DisplayName} was already carried; nothing granted.");
         }
 
-        dbContext.WorldItemInstances.Add(new WorldItemInstance
+        if (item.OwnerCharacterId is not null)
         {
-            ItemId = change.ItemId,
-            DisplayName = change.DisplayName,
-            Description = change.Description,
-            MissionInstanceId = change.MissionInstanceId,
-            EncounterInstanceId = change.EncounterInstanceId,
-            OwnerCharacterId = characterId,
-            CreatedAtUtc = now,
-            UpdatedAtUtc = now,
-        });
+            return new AppliedStateChange("GrantItem", $"{item.DisplayName} is carried by someone else; nothing granted.");
+        }
 
-        return new AppliedStateChange("GrantItem", $"Received: {change.DisplayName}.");
+        item.RoomId = null;
+        item.OwnerCharacterId = characterId;
+        item.UpdatedAtUtc = now;
+
+        return new AppliedStateChange("GrantItem", $"Received: {item.DisplayName}.");
     }
 
     // The fire-once ledger. Written in the same transaction as the trigger's
@@ -1024,34 +751,6 @@ public sealed class StateChangeApplier : IStateChangeApplier
     // Durable movement inside the applier's transaction: the same three
     // writes the movement store performs (location, close visit, open visit),
     // done through the change tracker so they commit with the action.
-    private async Task MoveCharacterAsync(
-        Guid characterId,
-        Guid playSessionId,
-        Guid destinationRoomId,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var character = await dbContext.Characters
-            .FirstOrDefaultAsync(row => row.Id == characterId, cancellationToken)
-            ?? throw new InvalidOperationException($"Character '{characterId}' does not exist.");
-        character.CurrentRoomId = destinationRoomId;
-
-        var openVisits = await dbContext.RoomVisits
-            .Where(visit => visit.PlaySessionId == playSessionId && visit.LeftAtUtc == null)
-            .ToListAsync(cancellationToken);
-        foreach (var visit in openVisits)
-        {
-            visit.LeftAtUtc = now;
-        }
-
-        dbContext.RoomVisits.Add(new RoomVisit
-        {
-            PlaySessionId = playSessionId,
-            RoomId = destinationRoomId,
-            EnteredAtUtc = now,
-        });
-    }
-
     private async Task<List<CharacterActiveEffect>> LoadActiveAsync(
         Guid characterId,
         DateTimeOffset now,

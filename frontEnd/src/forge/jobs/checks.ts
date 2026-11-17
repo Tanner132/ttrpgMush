@@ -1,11 +1,11 @@
 import type { Guid, WorldGraph } from '../api.ts'
-import { choiceOutcomes, newId, sceneEffects, type Encounter, type Mission, type Scene, type SceneChoice } from '../model.ts'
+import { choiceOutcomes, newId, sceneEffects, type Mission, type Scene, type SceneChoice } from '../model.ts'
 import type { Johnson } from './useJob.ts'
 
 export const Steps = [
   { id: 'johnson', label: 'Johnson' },
   { id: 'pitch', label: 'Pitch' },
-  { id: 'site', label: 'Site' },
+  { id: 'rooms', label: 'Rooms' },
   { id: 'events', label: 'Events' },
   { id: 'objectives', label: 'Objectives · Pay' },
   { id: 'review', label: 'Go live' },
@@ -44,30 +44,12 @@ function mapChoices(scene: Scene, update: (choice: SceneChoice) => SceneChoice):
   return { ...scene, nodes: scene.nodes.map((node) => ({ ...node, choices: node.choices.map(update) })) }
 }
 
-/** Site rooms that cannot be walked to from the entry room along exits between site rooms. */
-export function unreachableRooms(site: Encounter, world: WorldGraph): Guid[] {
-  if (!site.entryRoomId) return site.roomIds
-  const inSite = new Set(site.roomIds)
-  const reached = new Set<Guid>([site.entryRoomId])
-  const frontier = [site.entryRoomId]
-  while (frontier.length > 0) {
-    const from = frontier.pop()
-    for (const exit of world.exits) {
-      if (exit.sourceRoomId === from && inSite.has(exit.destinationRoomId) && !reached.has(exit.destinationRoomId)) {
-        reached.add(exit.destinationRoomId)
-        frontier.push(exit.destinationRoomId)
-      }
-    }
-  }
-  return site.roomIds.filter((roomId) => !reached.has(roomId))
-}
-
 export function jobChecks(
   mission: Mission,
-  site: Encounter | null,
   pitch: Scene | null,
   johnsons: Johnson[],
   world: WorldGraph,
+  johnsonBlock: { name: string } | null = null,
 ): JobCheck[] {
   const checks: JobCheck[] = []
   const roomName = (id: Guid | undefined) => world.rooms.find((room) => room.id === id)?.name ?? 'a room that no longer exists'
@@ -79,14 +61,17 @@ export function jobChecks(
     ok: mission.displayName.trim() !== '' && mission.description.trim() !== '',
     text: mission.description.trim() === '' ? 'The job needs a summary.' : mission.displayName.trim() === '' ? 'The job needs a name.' : `Job · ${mission.displayName}`,
   })
+  // A Johnson offers the job wherever they stand: which room is not asked.
   checks.push({
     id: 'johnson',
     step: 'johnson',
     ok: johnsons.length > 0,
     text:
       johnsons.length > 0
-        ? `Johnson · ${johnsons.map((johnson) => `${johnson.name} @ ${johnson.roomName}`).join(', ')}`
-        : 'Nobody offers this job yet: it needs a Johnson standing in a public room.',
+        ? `Johnson · ${johnsons.map((johnson) => johnson.name).join(', ')}`
+        : johnsonBlock
+          ? `Nobody offers this job yet: nobody built on ${johnsonBlock.name} is on the map.`
+          : 'Nobody offers this job yet: give it to an NPC or a stat block.',
   })
 
   // --------------------------------------------------------------- pitch
@@ -125,33 +110,25 @@ export function jobChecks(
     }
   }
 
-  // ---------------------------------------------------------------- site
-  if (!site || site.roomIds.length === 0) {
-    checks.push({ id: 'site', step: 'site', ok: false, text: 'The site has no rooms yet.' })
-  } else {
-    const open = site.roomIds.filter((roomId) => world.rooms.find((room) => room.id === roomId)?.accessType !== 'Private')
-    const cutOff = site.entryRoomId ? unreachableRooms(site, world) : []
-    const problem = !site.entryRoomId
-      ? 'Site · choose the room runners arrive in.'
-      : open.length > 0
-        ? `Site · ${open.map(roomName).join(', ')} must be Private to be part of a site.`
-        : cutOff.length > 0
-          ? `Site · no way in to ${cutOff.map(roomName).join(', ')} from ${roomName(site.entryRoomId)}.`
-          : null
-    checks.push({
-      id: 'site',
-      step: 'site',
-      ok: problem === null,
-      text: problem ?? `Site · ${plural(site.roomIds.length, 'room')}, all reachable`,
-    })
-    const wayIn = world.rooms.find((room) => room.id === mission.entryLinkRoomId)
-    checks.push({
-      id: 'way-in',
-      step: 'site',
-      ok: wayIn?.accessType === 'Public',
-      text: wayIn?.accessType === 'Public' ? `Way in · ${wayIn.name} → ${roomName(site.entryRoomId)}` : 'Site · choose the public room runners walk in from.',
-    })
-  }
+  // --------------------------------------------------------------- rooms
+  const gone = mission.roomIds.filter((roomId) => !world.rooms.some((room) => room.id === roomId))
+  const misplaced = mission.items.filter((item) => item.roomId !== undefined && !mission.roomIds.includes(item.roomId))
+  const unnamedItems = mission.items.filter((item) => item.name.trim() === '').length
+  checks.push({
+    id: 'rooms',
+    step: 'rooms',
+    ok: mission.roomIds.length > 0 && gone.length === 0 && misplaced.length === 0 && unnamedItems === 0,
+    text:
+      mission.roomIds.length === 0
+        ? 'The job uses no rooms yet.'
+        : gone.length > 0
+          ? `Rooms · ${plural(gone.length, 'room')} no longer on the map.`
+          : unnamedItems > 0
+            ? `Rooms · ${plural(unnamedItems, 'item')} with no name.`
+            : misplaced.length > 0
+              ? `Rooms · "${misplaced[0].name}" lies in a room the job does not use.`
+              : `Rooms · ${mission.roomIds.map(roomName).join(', ')} · ${plural(mission.npcIds.length, 'NPC')}, ${plural(mission.items.length, 'item')}`,
+  })
 
   // -------------------------------------------------------------- events
   const idle = mission.triggers.filter((listener) => listener.reactions.length === 0).length
@@ -165,23 +142,28 @@ export function jobChecks(
   }
 
   // ---------------------------------------------------------- objectives
-  const items = new Set((site?.items ?? []).map((item) => item.id))
+  const items = new Set(mission.items.map((item) => item.id))
   const itemless = mission.objectives.filter(
     (objective) => (objective.kind === 'pickUpItem' || objective.kind === 'deliverItem') && !(objective.itemId && items.has(objective.itemId)),
+  )
+  const roomless = mission.objectives.filter(
+    (objective) => objective.kind === 'reachRoom' && !(objective.roomId && world.rooms.some((room) => room.id === objective.roomId)),
   )
   const unnamed = mission.objectives.filter((objective) => objective.displayName.trim() === '').length
   checks.push({
     id: 'objectives',
     step: 'objectives',
-    ok: mission.objectives.length > 0 && itemless.length === 0 && unnamed === 0,
+    ok: mission.objectives.length > 0 && itemless.length === 0 && roomless.length === 0 && unnamed === 0,
     text:
       mission.objectives.length === 0
         ? 'The job needs at least one objective.'
         : unnamed > 0
           ? `Objectives · ${plural(unnamed, 'objective')} with no text.`
           : itemless.length > 0
-            ? `Objectives · "${itemless[0].displayName}" needs one of the site's items.`
-            : `Objectives · ${mission.objectives.length}`,
+            ? `Objectives · "${itemless[0].displayName}" needs one of the job's items.`
+            : roomless.length > 0
+              ? `Objectives · "${roomless[0].displayName}" needs a room to reach.`
+              : `Objectives · ${mission.objectives.length}`,
   })
 
   const deliver = mission.objectives.find((objective) => objective.kind === 'deliverItem')

@@ -142,6 +142,13 @@ public static class NpcPoolIds
     public static readonly IReadOnlyList<string> All =
         [Attack, Defense, Perception, Sneaking, Social];
 
+    // What a reply's contested roll may add up for the NPC: any pool, or the
+    // stat block's Body and Willpower.
+    public const string Body = "body";
+    public const string Willpower = "willpower";
+
+    public static readonly IReadOnlyList<string> RollTerms = [.. All, Body, Willpower];
+
     public static string DisplayNameFor(string poolId) =>
         poolId.Length == 0 ? poolId : char.ToUpperInvariant(poolId[0]) + poolId[1..];
 }

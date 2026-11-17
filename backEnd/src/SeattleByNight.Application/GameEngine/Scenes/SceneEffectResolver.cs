@@ -211,38 +211,36 @@ public sealed class SceneEffectResolver(
                     $"{effect.Damage} {(type == DamageType.Stun ? "stun" : "physical")} from a scripted hazard"));
                 notes.Add($"You take {effect.Damage} {(type == DamageType.Stun ? "stun" : "physical")} damage.");
 
-                // Going down to authored damage blows a job exactly the way
-                // going down in a fight does (dev decision combat.no-pc-death).
-                if (outcome.Incapacitated(
-                        context.Adapter.GetPhysicalConditionMonitor(),
-                        context.Adapter.GetStunConditionMonitor())
-                    && await missionReader.GetActiveEncounterByRoomAsync(
-                        context.Session.CurrentRoomId, cancellationToken) is not null)
-                {
-                    reactions.Add(BuildReaction(
-                        context, DevelopmentGameActions.MissionDefeatActionId,
-                        context.Session.CurrentRoomId, targetId: null));
-                }
-
+                // Workstream 8: going down no longer blows the job; the runner
+                // stays where they fell (owner, 2026-11-12).
                 break;
             }
 
             case SceneEffectKind.GiveItem:
             {
-                var encounter = await missionReader.GetActiveEncounterForCharacterAsync(
-                    characterId, cancellationToken)
-                    ?? throw new InvalidOperationException(
-                        "A giveItem effect needs a live encounter to take the item from.");
-                var definition = content.Current.FindEncounter(encounter.EncounterId)
-                    ?? throw new InvalidOperationException(
-                        $"Job site {encounter.EncounterId} is missing from the game content.");
-                var item = definition.FindItem(effect.ItemId!.Value)
-                    ?? throw new InvalidOperationException(
-                        $"Job site '{definition.DisplayName}' has no item {effect.ItemId}.");
+                // Workstream 8: a job's item is one object in the shared
+                // world. It is handed over from wherever it is — unless
+                // somebody else is carrying it, in which case it is theirs.
+                var item = await missionReader.GetJobItemAsync(effect.ItemId!.Value, cancellationToken);
+                if (item is null)
+                {
+                    notes.Add("There is nothing to hand over.");
+                    break;
+                }
 
-                changes.Add(new GrantItemChange(
-                    encounter.MissionInstanceId, encounter.Id, item.Id, item.Name, item.Description));
-                notes.Add($"You pocket the {item.Name}.");
+                if (item.OwnerCharacterId == characterId)
+                {
+                    break;
+                }
+
+                if (item.OwnerCharacterId is not null)
+                {
+                    notes.Add($"Somebody else already has the {item.DisplayName}.");
+                    break;
+                }
+
+                changes.Add(new GrantItemChange(item.ItemId));
+                notes.Add($"You pocket the {item.DisplayName}.");
 
                 // §38: acquiring an item completes its objective as a
                 // synchronous domain consequence, in the same commit — and how
@@ -250,13 +248,11 @@ public sealed class SceneEffectResolver(
                 // authored handover and a pickup off the floor are the same
                 // acquisition, so content must not have to pair giveItem with
                 // completeObjective by hand.
-                if (await missionReader.GetInstanceAsync(
-                        encounter.MissionInstanceId, cancellationToken) is { } instance
-                    && !instance.IsTerminal
+                if (await FindOpenInstanceAsync(characterId, item.MissionId, cancellationToken) is { } instance
                     && content.Current.FindMission(instance.MissionId) is { } mission
                     && mission.Objectives.FirstOrDefault(objective =>
                         objective.Kind == MissionObjectiveKind.PickUpItem
-                        && objective.ItemId == item.Id
+                        && objective.ItemId == item.ItemId
                         && instance.FindObjective(objective.Id)
                             is { Status: MissionObjectiveStatus.Active }) is { } acquired)
                 {
@@ -376,27 +372,13 @@ public sealed class SceneEffectResolver(
         return events;
     }
 
-    // An alert's NPC: the one it names anywhere in the encounter the character
-    // is inside, else the one the scene is with. Outside an encounter there is
-    // no site to carry an alarm through, so it falls back to the room.
+    // alertNpc's NPC: the one it names, wherever it stands on the map — an
+    // alarm carries further than a room — else the one the scene is with.
     private async Task<NpcSnapshot?> ResolveAlertTargetAsync(
-        SceneEffect effect, SceneEffectContext context, CancellationToken cancellationToken)
-    {
-        if (effect.NpcId is not { } npcId)
-        {
-            return context.SceneNpc;
-        }
-
-        var encounter = await missionReader.GetActiveEncounterByRoomAsync(
-            context.Session.CurrentRoomId, cancellationToken);
-        if (encounter is null)
-        {
-            return await ResolveNpcAsync(effect, context, cancellationToken);
-        }
-
-        var npcs = await roomContent.GetNpcsInEncounterAsync(encounter.Id, cancellationToken);
-        return npcs.FirstOrDefault(npc => npc.ContentId == npcId);
-    }
+        SceneEffect effect, SceneEffectContext context, CancellationToken cancellationToken) =>
+        effect.NpcId is { } npcId
+            ? await roomContent.GetNpcAsync(npcId, cancellationToken)
+            : context.SceneNpc;
 
     // An effect's NPC: the one it names, else the one the scene is with. A
     // named NPC must be in the acting character's room — an effect cannot
@@ -410,7 +392,7 @@ public sealed class SceneEffectResolver(
         }
 
         var npcs = await roomContent.GetNpcsInRoomAsync(context.Session.CurrentRoomId, cancellationToken);
-        return npcs.FirstOrDefault(npc => npc.ContentId == npcId);
+        return npcs.FirstOrDefault(npc => npc.Id == npcId);
     }
 
     // The reaction is described here and enqueued by the caller, after its
@@ -464,8 +446,8 @@ public sealed class SceneEffectResolver(
         }
 
         var owned = await missionReader.GetItemsOwnedByCharacterAsync(characterId, cancellationToken);
-        var item = owned.FirstOrDefault(candidate =>
-            candidate.ItemId == deliverObjective.ItemId && candidate.MissionInstanceId == instance.Id);
+        // Workstream 8: whoever picked it up, the deliverer has to be holding it.
+        var item = owned.FirstOrDefault(candidate => candidate.ItemId == deliverObjective.ItemId);
         if (item is null)
         {
             return null;

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import * as api from '../api.ts'
-import type { Encounter, Place } from '../model.ts'
+import type { Place } from '../model.ts'
 import { ContentStore, Ids, Rooms, useFakeServer } from '../test/forgeFixtures.ts'
 import { renderForge } from '../test/renderForge.tsx'
 
@@ -19,15 +19,6 @@ let store: ContentStore
 beforeEach(() => {
   vi.resetAllMocks()
   store = new ContentStore()
-  store.put('Encounter', Ids.site, {
-    id: Ids.site,
-    displayName: 'Gang Warehouse',
-    entryRoomId: Ids.dock,
-    roomIds: [Ids.dock],
-    npcs: [{ id: Ids.siteNpc, roomId: Ids.dock, templateId: Ids.ganger, name: 'Warehouse Ganger' }],
-    items: [{ id: Ids.package, name: 'Sealed Courier Package', description: 'A hard-shell case.', roomId: Ids.dock }],
-    interactables: [],
-  } satisfies Encounter)
   useFakeServer(store)
 })
 
@@ -97,14 +88,13 @@ describe('Places · the map', () => {
     const name = within(roomSection).getByLabelText('Name')
     await user.clear(name)
     await user.type(name, 'Downtown Core')
-    await user.click(within(roomSection).getByRole('button', { name: 'Private · job site' }))
     await user.click(within(roomSection).getByRole('button', { name: 'Save room' }))
 
     await waitFor(() =>
       expect(api.updateRoom).toHaveBeenCalledWith(Ids.downtown, {
         name: 'Downtown Core',
         description: 'Downtown description.',
-        accessType: 'Private',
+        accessType: 'Public',
         version: `${Ids.downtown}-v1`,
       }),
     )
@@ -277,7 +267,7 @@ describe('Places · what is here', () => {
     )
   })
 
-  it('moves a world NPC to another public room, and shows a refused move in the server\'s words', async () => {
+  it('moves a world NPC to another room, and shows a refused move in the server\'s words', async () => {
     const user = userEvent.setup()
     vi.mocked(api.updateRoomNpc).mockImplementation(async (roomId, npcId, input) => ({
       id: npcId, roomId, templateId: input.templateId, name: input.name, description: input.description ?? null,
@@ -289,8 +279,8 @@ describe('Places · what is here', () => {
     const here = screen.getByRole('region', { name: 'Here' })
     await user.click(await within(here).findByRole('button', { name: 'Edit Mr. Johnson' }))
     const dialog = screen.getByRole('dialog', { name: 'Edit Mr. Johnson' })
-    // Only public rooms can take a world NPC.
-    expect(within(within(dialog).getByLabelText('Location')).queryByRole('option', { name: 'Loading Dock' })).not.toBeInTheDocument()
+    // Every room on the map can take a world NPC.
+    expect(within(within(dialog).getByLabelText('Location')).getByRole('option', { name: 'Loading Dock' })).toBeInTheDocument()
     await user.selectOptions(within(dialog).getByLabelText('Location'), 'Alley')
     await user.click(within(dialog).getByRole('button', { name: 'Save NPC' }))
 
@@ -317,29 +307,14 @@ describe('Places · what is here', () => {
     expect(await within(here).findByRole('alert')).toHaveTextContent("Events still name this NPC: room events 'Coffee Shop'.")
   })
 
-  it('edits a private room\'s job site: adds a hidden item and saves the site draft', async () => {
-    const user = userEvent.setup()
+  it('shows the job items lying in a room, linked to the job that places them', async () => {
     await openPlaces(Ids.dock)
 
     const here = screen.getByRole('region', { name: 'Here' })
-    expect(await within(here).findByText('Warehouse Ganger')).toBeInTheDocument()
-    expect(within(here).getByText('Sealed Courier Package')).toBeInTheDocument()
-
-    await user.click(within(here).getByRole('button', { name: '+ Item' }))
-    const dialog = screen.getByRole('dialog', { name: 'Add item' })
-    await user.type(within(dialog).getByLabelText('Name'), 'Scuffed Keycard')
-    await user.type(within(dialog).getByLabelText('Description'), 'A door card on a snapped lanyard.')
-    await user.click(within(dialog).getByRole('button', { name: 'Hidden' }))
-    const hits = within(dialog).getByLabelText('Search hits to find it')
-    await user.clear(hits)
-    await user.type(hits, '3')
-    await user.click(within(dialog).getByRole('button', { name: 'Add item' }))
-    await user.click(within(here).getByRole('button', { name: 'Save job site Gang Warehouse draft' }))
-
-    await waitFor(() => expect(api.saveDraft).toHaveBeenCalledWith('Encounter', Ids.site, expect.any(String)))
-    const items = store.draft<Encounter>('Encounter', Ids.site).items
-    expect(items).toHaveLength(2)
-    expect(items[1]).toMatchObject({ name: 'Scuffed Keycard', roomId: Ids.dock, isHidden: true, discoveryThreshold: 3 })
+    expect(await within(here).findByText('Sealed Courier Package')).toBeInTheDocument()
+    expect(within(here).getByRole('link', { name: 'Gang Warehouse Retrieval' })).toHaveAttribute('href', `/admin/forge/jobs/${Ids.job}/rooms`)
+    // Items are the job's: the room offers no way to add one.
+    expect(within(here).queryByRole('button', { name: '+ Item' })).not.toBeInTheDocument()
   })
 })
 
@@ -349,15 +324,15 @@ describe('Places · deleting', () => {
 
     const usage = screen.getByRole('region', { name: 'Jobs touching this room' })
     expect(await within(usage).findByText('Gang Warehouse Retrieval')).toBeInTheDocument()
-    expect(within(usage).getByText('Listens to events here')).toBeInTheDocument()
-    expect(within(screen.getByRole('region', { name: 'Delete room' })).getByText(/Jobs listen to events in this room/)).toBeInTheDocument()
+    expect(within(usage).getByText('Uses this room')).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Delete room' })).getByText(/Jobs use this room/)).toBeInTheDocument()
   })
 
   it('moves characters standing in the room before deleting it', async () => {
     const user = userEvent.setup()
     vi.mocked(api.getRoomDeletion).mockResolvedValue({
-      canDelete: true, incomingExits: 1, outgoingExits: 1, missionEntryLinks: [], activeReturnLinks: 0, charactersPresent: 2,
-      chatMessages: 4, roomVisits: 2, isEncounterRoom: false, isStartingRoom: false, reason: null, jobSites: [], listeningJobs: [],
+      canDelete: true, incomingExits: 1, outgoingExits: 1, charactersPresent: 2,
+      chatMessages: 4, roomVisits: 2, isStartingRoom: false, reason: null, jobs: [],
       npcsRemoved: 1, itemsRemoved: 0, inspectablesRemoved: 0, hasRoomEvents: true,
     })
     vi.mocked(api.deleteRoom).mockResolvedValue({ ...(await api.getRoomDeletion(Ids.alley)) })

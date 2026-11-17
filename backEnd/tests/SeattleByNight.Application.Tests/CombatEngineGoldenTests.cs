@@ -94,7 +94,7 @@ public sealed class CombatEngineGoldenTests
                 options, Clock);
             var missionEngine = new MissionEngine(
                 missions, TestGameContent.Provider, Applier, Audit, Chat, Broadcaster,
-                new FakeTravelNotifier(), RoomContent, queue, scopeResolver, options);
+                RoomContent, queue, scopeResolver, options);
             var sceneSessions = new FakeSceneSessionReader();
             var sceneConditions = new SceneConditionEvaluator(missions, TestGameContent.Provider);
             var sceneEffects = new SceneEffectResolver(
