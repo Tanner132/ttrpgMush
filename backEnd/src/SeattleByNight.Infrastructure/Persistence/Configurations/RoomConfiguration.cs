@@ -44,34 +44,11 @@ public sealed class RoomConfiguration : IEntityTypeConfiguration<Room>
             .HasColumnName("map_layer")
             .IsRequired();
 
-        // Map coordinates are only meaningful (and only unique) on the shared
-        // world map — instanced rooms all sit at 0/0/0 outside it (§31).
+        // Workstream 8: every room is on the one map, so every room's place on
+        // it is unique.
         builder.HasIndex(r => new { r.MapLayer, r.MapX, r.MapY })
             .IsUnique()
-            .HasFilter("encounter_instance_id IS NULL")
             .HasDatabaseName("ux_rooms_map_layer_map_x_map_y");
-
-        builder.Property(r => r.EncounterInstanceId)
-            .HasColumnName("encounter_instance_id")
-            .HasColumnType("uuid");
-        builder.Property(r => r.SourceRoomId)
-            .HasColumnName("source_room_id")
-            .HasColumnType("uuid");
-
-        // A copy outlives its source: deleting a map room must not take the
-        // archived copies (and their chat and visit history) with it.
-        builder.HasOne<Room>()
-            .WithMany()
-            .HasForeignKey(r => r.SourceRoomId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        builder.HasIndex(r => r.EncounterInstanceId)
-            .HasDatabaseName("ix_rooms_encounter_instance");
-
-        builder.HasOne<EncounterInstance>()
-            .WithMany()
-            .HasForeignKey(r => r.EncounterInstanceId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(r => r.CreatedAtUtc)
             .HasColumnName("created_at_utc")

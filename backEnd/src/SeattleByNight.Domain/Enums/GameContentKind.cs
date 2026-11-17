@@ -4,9 +4,10 @@ namespace SeattleByNight.Domain.Enums;
 // row per authored definition. Each kind maps to one array of the merged
 // content document the loader parses, so adding a kind is an additive change
 // here, in the composer, and in the loader — never per-definition code.
+// Workstream 8 removed Encounter: a job names map rooms instead of owning a
+// site.
 public enum GameContentKind
 {
-    Encounter,
     Mission,
     // A scene graph. Bound to an NPC template it is that NPC's scene;
     // unbound it is a prompt a trigger opens (Milestone 7).

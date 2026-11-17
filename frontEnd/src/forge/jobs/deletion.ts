@@ -1,5 +1,5 @@
 import { getDefinition, type ContentKind, type ContentReferences, type ContentSummary, type Guid } from '../api.ts'
-import { openedSceneIds, parse, type Encounter, type Mission, type Place, type Scene } from '../model.ts'
+import { openedSceneIds, parse, type Mission, type Place, type Scene } from '../model.ts'
 
 /** A prompt one of the job's events opens, and whatever else still uses it. */
 export interface PromptUse {
@@ -11,8 +11,6 @@ export interface PromptUse {
 
 interface Sources {
   jobId: Guid
-  /** The job's site, when it is deleted with the job (another job is not built on it). */
-  siteGoing: Guid | null
   definitions: (kind: ContentKind) => ContentSummary[]
   references: ContentReferences
 }
@@ -20,7 +18,7 @@ interface Sources {
 /**
  * Who else uses each of a job's prompts, so deleting the job can take the
  * ones nobody else needs. Other jobs' and rooms' events open prompts, and NPCs
- * on a site or on the map can hold one as their conversation. Both the draft
+ * on the map can hold one as their conversation. Both the draft
  * and the live copy of each count: the draft is what will go live, and the
  * live copy is what the server's delete check reads.
  */
@@ -37,7 +35,7 @@ export async function findPromptUses(promptIds: Guid[], scenes: Scene[], sources
     return details.flatMap((detail) => [detail.draftJson, detail.publishedJson].filter((json): json is string => json !== null))
   }
 
-  const [missions, places, sites] = await Promise.all([load('Mission', sources.jobId), load('Place', null), load('Encounter', sources.siteGoing)])
+  const [missions, places] = await Promise.all([load('Mission', sources.jobId), load('Place', null)])
   for (const json of missions) {
     const other = parse<Mission>(json)
     for (const id of openedSceneIds(other)) note(id, `job '${other.displayName}'`)
@@ -45,10 +43,6 @@ export async function findPromptUses(promptIds: Guid[], scenes: Scene[], sources
   for (const json of places) {
     const place = parse<Place>(json)
     for (const id of openedSceneIds(place)) note(id, `room events '${place.displayName}'`)
-  }
-  for (const json of sites) {
-    const site = parse<Encounter>(json)
-    for (const npc of site.npcs) note(npc.sceneId, `${npc.name} on site '${site.displayName}'`)
   }
   for (const room of sources.references.rooms) {
     for (const npc of room.npcs) note(npc.sceneId, `${npc.name} in ${room.name}`)

@@ -186,7 +186,7 @@ public sealed class TriggerCoveragePlaythroughTests : TriggerCompositionHarness
     {
         await using var db = Db();
         return await db.WorldItemInstances
-            .Where(item => item.EncounterInstanceId != null)
+            .Where(item => item.ItemId == ShippedContentIds.Items.Package)
             .Select(item => item.Id)
             .SingleAsync();
     }

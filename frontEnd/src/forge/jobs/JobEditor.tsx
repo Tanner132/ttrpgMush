@@ -13,7 +13,7 @@ import { JohnsonStep } from './JohnsonStep.tsx'
 import { ObjectivesStep } from './ObjectivesStep.tsx'
 import { PitchStep } from './PitchStep.tsx'
 import { ReviewStep } from './ReviewStep.tsx'
-import { SiteStep } from './SiteStep.tsx'
+import { RoomsStep } from './RoomsStep.tsx'
 import { useJob } from './useJob.ts'
 
 function isStep(value: string | undefined): value is StepId {
@@ -34,7 +34,6 @@ function JobEditor({ id }: { id: string }) {
   const { references, world, summary } = useForgeData()
   const job = useJob(id)
   const mission = job.mission.value
-  const site = job.site.value
   const pitch = job.pitch.value
   const prompt = job.prompt.value
 
@@ -44,16 +43,15 @@ function JobEditor({ id }: { id: string }) {
     const edited = new Map([pitch, prompt].filter((scene) => scene !== null).map((scene) => [scene.id, scene]))
     return {
       mission,
-      site,
       scenes: job.scenes.map((scene) => edited.get(scene.id) ?? scene),
       references,
       rooms: world.rooms,
     }
-  }, [mission, site, pitch, prompt, job.scenes, references, world.rooms])
+  }, [mission, pitch, prompt, job.scenes, references, world.rooms])
 
   const checks = useMemo(
-    () => (mission ? jobChecks(mission, site, job.pitchId ? pitch : null, job.johnsons, world) : []),
-    [mission, site, pitch, job.pitchId, job.johnsons, world],
+    () => (mission ? jobChecks(mission, job.pitchId ? pitch : null, job.johnsons, world, job.johnsonBlock) : []),
+    [mission, pitch, job.pitchId, job.johnsons, world, job.johnsonBlock],
   )
 
   const back = (
@@ -144,7 +142,7 @@ function JobEditor({ id }: { id: string }) {
 
       {step === 'johnson' && <JohnsonStep job={job} mission={mission} />}
       {step === 'pitch' && <PitchStep job={job} context={context} />}
-      {step === 'site' && <SiteStep job={job} mission={mission} />}
+      {step === 'rooms' && <RoomsStep job={job} mission={mission} />}
       {step === 'events' && <EventsStep job={job} mission={mission} context={context} />}
       {step === 'objectives' && <ObjectivesStep job={job} mission={mission} />}
       {step === 'review' && <ReviewStep job={job} mission={mission} checks={checks} onStep={go} />}

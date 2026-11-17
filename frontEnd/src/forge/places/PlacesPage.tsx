@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { WorldRoom } from '../api.ts'
-import { Section, Select } from '../fields.tsx'
+import { Section } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { useConfirmLeave } from '../hooks.ts'
 import { EventsSection } from './EventsSection.tsx'
 import { ExitsSection } from './ExitsSection.tsx'
 import { MapGrid, type BuildSpot } from './MapGrid.tsx'
 import { BuildRoomForm, RoomSection } from './RoomSection.tsx'
-import { SiteContents } from './SiteContents.tsx'
 import { UsageSection } from './UsageSection.tsx'
 import { WorldContents } from './WorldContents.tsx'
 
@@ -28,7 +27,7 @@ function defaultRoom(rooms: WorldRoom[]): WorldRoom | undefined {
  * there, and which jobs depend on it.
  */
 export default function PlacesPage() {
-  const { world, references } = useForgeData()
+  const { world } = useForgeData()
   const [params, setParams] = useSearchParams()
   const confirmLeave = useConfirmLeave()
   const room = world.rooms.find((candidate) => candidate.id === params.get('room')) ?? defaultRoom(world.rooms)
@@ -47,32 +46,15 @@ export default function PlacesPage() {
     setParams({ room: next.id })
   }
 
-  const sites = references.encounters.filter((site) => !site.isRetired)
-  const siteOfRoom = room ? sites.find((site) => site.roomIds.includes(room.id)) : undefined
-  const area = siteOfRoom?.id ?? 'map'
-
   return (
     <div className="forge__page">
       <div className="forge__titlebar">
         <div className="forge__titlebar-main">
           <p className="forge__eyebrow">
-            Places · {siteOfRoom ? `job site · ${siteOfRoom.displayName}` : room?.accessType === 'Private' ? 'private room' : 'public city'} · layer {room?.mapLayer ?? view.layer}
+            Places · the city · layer {room?.mapLayer ?? view.layer}
           </p>
           <h1 className="forge__title">{room?.name ?? 'An empty map'}</h1>
         </div>
-        {sites.length > 0 && (
-          <div className="forge__titlebar-side">
-            <Select
-              label="Area"
-              value={area}
-              options={[{ id: 'map', displayName: 'The city' }, ...sites.map((site) => ({ id: site.id, displayName: `${site.displayName} · job site` }))]}
-              onChange={(id) => {
-                const target = id === 'map' ? defaultRoom(world.rooms.filter((candidate) => candidate.accessType === 'Public')) : world.rooms.find((candidate) => candidate.id === sites.find((site) => site.id === id)?.entryRoomId)
-                if (target) open(target)
-              }}
-            />
-          </div>
-        )}
       </div>
 
       <div className="forge__columns">
@@ -109,7 +91,7 @@ export default function PlacesPage() {
 
           {room && (
             <Section title="Here">
-              {room.accessType === 'Public' ? <WorldContents key={room.id} room={room} /> : <SiteContents key={room.id} room={room} />}
+              <WorldContents key={room.id} room={room} />
             </Section>
           )}
         </div>

@@ -73,7 +73,6 @@ public sealed class DatabaseGameContentProvider(IServiceScopeFactory scopes) : I
         IReadOnlySet<Guid> KeysOf(GameContentKind kind) =>
             retired.TryGetValue(kind, out var keys) ? keys : new HashSet<Guid>();
 
-        var encounters = KeysOf(GameContentKind.Encounter);
         var missions = KeysOf(GameContentKind.Mission);
         var scenes = KeysOf(GameContentKind.Scene);
         var templates = KeysOf(GameContentKind.NpcTemplate);
@@ -81,17 +80,8 @@ public sealed class DatabaseGameContentProvider(IServiceScopeFactory scopes) : I
 
         return document with
         {
-            Encounters = document.Encounters
-                .Select(entry => entry with { IsRetired = encounters.Contains(entry.Id) })
-                .ToArray(),
             Missions = document.Missions
-                // A job whose site has been taken out of play is itself out of
-                // play: retiring an encounter retires everything that runs in
-                // it, without an admin having to chase the list down.
-                .Select(entry => entry with
-                {
-                    IsRetired = missions.Contains(entry.Id) || encounters.Contains(entry.EncounterId),
-                })
+                .Select(entry => entry with { IsRetired = missions.Contains(entry.Id) })
                 .ToArray(),
             Scenes = document.Scenes
                 .Select(entry => entry with { IsRetired = scenes.Contains(entry.Id) })

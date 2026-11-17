@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import * as api from '../api.ts'
-import { newPrompt, type Encounter, type Mission, type Place, type Scene } from '../model.ts'
+import { newPrompt, type Mission, type Place, type Scene } from '../model.ts'
 import { ContentStore, Ids, references, useFakeServer } from '../test/forgeFixtures.ts'
 import { renderForge } from '../test/renderForge.tsx'
 
@@ -22,25 +22,14 @@ const Pitch = {
 }
 const Ambush = 'aaaaaaaa-aaaa-aaaa-aaaa-000000000010'
 
-function site(): Encounter {
-  return {
-    id: Ids.site,
-    displayName: 'Gang Warehouse',
-    entryRoomId: Ids.dock,
-    roomIds: [Ids.dock],
-    npcs: [{ id: Ids.siteNpc, roomId: Ids.dock, templateId: Ids.ganger, name: 'Warehouse Ganger' }],
-    items: [{ id: Ids.package, name: 'Sealed Courier Package', description: 'A hard-shell case.', roomId: Ids.dock }],
-    interactables: [],
-  }
-}
-
 function job(): Mission {
   return {
     id: Ids.job,
     displayName: 'Gang Warehouse Retrieval',
     description: 'Get the case back.',
-    encounterId: Ids.site,
-    entryLinkRoomId: Ids.alley,
+    roomIds: [Ids.dock],
+    npcIds: [Ids.siteNpc],
+    items: [{ id: Ids.package, name: 'Sealed Courier Package', description: 'A hard-shell case.', roomId: Ids.dock }],
     repeatability: { kind: 'cooldown', cooldownHours: 24 },
     rewards: { karma: 2, nuyen: 2000 },
     objectives: [{ id: Ids.objective, displayName: 'Retrieve the courier package', kind: 'pickUpItem', itemId: Ids.package }],
@@ -74,7 +63,6 @@ let refs: ReturnType<typeof references>
 beforeEach(() => {
   vi.resetAllMocks()
   store = new ContentStore()
-  store.put('Encounter', Ids.site, site())
   store.put('Mission', Ids.job, job())
   store.put('Scene', Pitch.id, pitch())
   refs = references()
@@ -99,7 +87,7 @@ describe('Jobs · the list', () => {
     expect(await screen.findByRole('link', { name: 'Gang Warehouse Retrieval' })).toHaveAttribute('href', `/admin/forge/jobs/${Ids.job}/johnson`)
   })
 
-  it('starts a new job as three drafts that point at each other, and opens it', async () => {
+  it('starts a new job as two drafts that point at each other, and opens it', async () => {
     const user = userEvent.setup()
     renderForge('/admin/forge/jobs')
 
@@ -109,11 +97,10 @@ describe('Jobs · the list', () => {
 
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(/^\/admin\/forge\/jobs\/[0-9a-f-]{36}\/johnson$/))
     const saved = vi.mocked(api.saveDraft).mock.calls
-    expect(saved.map(([kind]) => kind)).toEqual(['Encounter', 'Scene', 'Mission'])
-    const newSite = JSON.parse(saved[0][2]) as Encounter
-    const newPitch = JSON.parse(saved[1][2]) as Scene
-    const newJob = JSON.parse(saved[2][2]) as Mission
-    expect(newJob).toMatchObject({ displayName: 'Barrens Clinic Run', encounterId: newSite.id })
+    expect(saved.map(([kind]) => kind)).toEqual(['Scene', 'Mission'])
+    const newPitch = JSON.parse(saved[0][2]) as Scene
+    const newJob = JSON.parse(saved[1][2]) as Mission
+    expect(newJob).toMatchObject({ displayName: 'Barrens Clinic Run', roomIds: [], npcIds: [], items: [] })
     // The conversation offers the job, and only while it can be taken.
     const accept = newPitch.nodes.flatMap((node) => node.choices).find((choice) => choice.effects?.some((effect) => effect.kind === 'acceptMission'))
     expect(accept?.effects).toEqual([{ kind: 'acceptMission', missionId: newJob.id }])
@@ -127,7 +114,7 @@ describe('Jobs · Johnson', () => {
     await openJob('johnson')
 
     const johnson = screen.getByRole('region', { name: 'Johnson' })
-    expect(await within(johnson).findByText('Mr. Johnson')).toBeInTheDocument()
+    expect(await within(johnson).findByRole('button', { name: 'Edit Mr. Johnson' })).toBeInTheDocument()
     expect(within(johnson).getByRole('link', { name: 'Coffee Shop' })).toHaveAttribute('href', `/admin/forge/places?room=${Ids.coffee}`)
   })
 
@@ -200,6 +187,58 @@ describe('Jobs · Johnson', () => {
     expect(await within(screen.getByRole('region', { name: 'Johnson' })).findByText('Ms. Marchetti')).toBeInTheDocument()
   })
 
+  it('counts anyone built on the pitch’s stat block as its Johnson, in whatever room they stand', async () => {
+    // Nobody holds the conversation by name: they speak it as their stat block's.
+    refs.rooms[1].npcs = [{ id: Ids.johnson, name: 'Mr. Johnson', templateId: Ids.johnsonBlock }]
+    refs.rooms[0].npcs = [{ id: crypto.randomUUID(), name: 'Ms. Kane', templateId: Ids.johnsonBlock }]
+    await openJob('johnson')
+
+    const johnson = screen.getByRole('region', { name: 'Johnson' })
+    expect(await within(johnson).findByText('Ms. Kane')).toBeInTheDocument()
+    expect(within(johnson).getAllByRole('listitem').map((row) => row.textContent)).toEqual(['JohnsonMs. KaneDowntown', 'JohnsonMr. JohnsonCoffee Shop'])
+    expect(within(johnson).getByText(/with no conversation of their own offers this job, wherever they stand/)).toBeInTheDocument()
+    // They are just people built on the block: the job does not edit them.
+    expect(within(johnson).queryByRole('button', { name: /^Edit / })).not.toBeInTheDocument()
+    // Going live asks only that someone offers the job, not where.
+    await userEvent.setup().click(screen.getByRole('link', { name: /Go live/ }))
+    expect(await screen.findByText('Johnson · Ms. Kane, Mr. Johnson')).toBeInTheDocument()
+  })
+
+  it('gives the job to a stat block without choosing a room', async () => {
+    const user = userEvent.setup()
+    refs.rooms[1].npcs = []
+    store.put('Scene', Pitch.id, { ...pitch(), npcTemplateId: undefined })
+    await openJob('johnson')
+
+    const form = await screen.findByRole('form', { name: 'Give the job a Johnson' })
+    await user.click(within(form).getByRole('button', { name: 'Stat block' }))
+    expect(within(form).queryByLabelText('Location')).not.toBeInTheDocument()
+    await user.selectOptions(within(form).getByLabelText('Stat block'), 'Mr. Johnson')
+    await user.click(within(form).getByRole('button', { name: 'Give the stat block the job' }))
+
+    await waitFor(() => expect(store.draft<Scene>('Scene', Pitch.id).npcTemplateId).toBe(Ids.johnsonBlock))
+    expect(api.placeRoomNpc).not.toHaveBeenCalled()
+    expect(api.updateRoomNpc).not.toHaveBeenCalled()
+    expect(await screen.findByText(/Nobody built on Mr. Johnson is on the map yet/)).toBeInTheDocument()
+  })
+
+  it('will not give the job to a stat block that already speaks another conversation', async () => {
+    const user = userEvent.setup()
+    refs.rooms[1].npcs = []
+    store.put('Scene', Pitch.id, { ...pitch(), npcTemplateId: undefined })
+    const smallTalk = { ...newPrompt('Small talk'), npcTemplateId: Ids.johnsonBlock }
+    store.put('Scene', smallTalk.id, smallTalk)
+    await openJob('johnson')
+
+    const form = await screen.findByRole('form', { name: 'Give the job a Johnson' })
+    await user.click(within(form).getByRole('button', { name: 'Stat block' }))
+    await user.selectOptions(within(form).getByLabelText('Stat block'), 'Mr. Johnson')
+    await user.click(within(form).getByRole('button', { name: 'Give the stat block the job' }))
+
+    expect(await within(form).findByRole('alert')).toHaveTextContent("Mr. Johnson already speaks 'Small talk'")
+    expect(store.draft<Scene>('Scene', Pitch.id).npcTemplateId).toBeUndefined()
+  })
+
   it('keeps edits while moving between steps and saves them together', async () => {
     const user = userEvent.setup()
     await openJob('johnson')
@@ -207,25 +246,52 @@ describe('Jobs · Johnson', () => {
     await user.clear(screen.getByLabelText('Job summary'))
     await user.type(screen.getByLabelText('Job summary'), 'A sealed case, a gang, one night.')
     await user.click(screen.getByRole('link', { name: /Objectives · Pay/ }))
-    await user.click(await screen.findByRole('button', { name: '+ Leave site' }))
+    await user.click(await screen.findByRole('button', { name: '+ Reach a room' }))
     await user.click(screen.getByRole('button', { name: 'Save job draft' }))
 
     await waitFor(() => expect(api.saveDraft).toHaveBeenCalled())
     const saved = store.draft<Mission>('Mission', Ids.job)
     expect(saved.description).toBe('A sealed case, a gang, one night.')
-    expect(saved.objectives.map((objective) => objective.kind)).toEqual(['pickUpItem', 'exitEncounter'])
+    expect(saved.objectives.map((objective) => objective.kind)).toEqual(['pickUpItem', 'reachRoom'])
+    // A new reach objective starts on the job's first room.
+    expect(saved.objectives[1].roomId).toBe(Ids.dock)
   })
 })
 
 describe('Jobs · pitch', () => {
+  it('chooses who says the conversation right on the Pitch step, replacing the Johnson before', async () => {
+    const user = userEvent.setup()
+    const kane = crypto.randomUUID()
+    refs.rooms[0].npcs = [{ id: kane, name: 'Ms. Kane', templateId: Ids.ganger }]
+    const fromServer = vi.mocked(api.listRoomNpcs).getMockImplementation()!
+    vi.mocked(api.listRoomNpcs).mockImplementation(async (roomId, signal) =>
+      roomId === Ids.downtown
+        ? [{ id: kane, templateId: Ids.ganger, name: 'Ms. Kane', roomId, physicalDamage: 0, stunDamage: 0, awareness: 'Unaware', description: null, sceneId: null }]
+        : fromServer(roomId, signal),
+    )
+    await openJob('pitch')
+
+    const johnson = await screen.findByLabelText('Johnson')
+    expect(johnson).toHaveValue(Ids.johnson)
+    await user.selectOptions(johnson, 'Ms. Kane · Downtown')
+
+    // Written for her stat block first, then she is given it, then he is let go.
+    await waitFor(() => expect(api.updateRoomNpc).toHaveBeenCalledTimes(2))
+    expect(store.draft<Scene>('Scene', Pitch.id).npcTemplateId).toBe(Ids.ganger)
+    expect(api.updateRoomNpc).toHaveBeenNthCalledWith(1, Ids.downtown, kane, expect.objectContaining({ templateId: Ids.ganger, sceneId: Pitch.id }))
+    expect(api.updateRoomNpc).toHaveBeenNthCalledWith(2, Ids.coffee, Ids.johnson, expect.objectContaining({ sceneId: null }))
+    expect(vi.mocked(api.saveDraft).mock.invocationCallOrder.at(-1)!).toBeLessThan(vi.mocked(api.updateRoomNpc).mock.invocationCallOrder[0])
+  })
+
   it('adds a reply that rolls against the Johnson and raises the pay on a pass', async () => {
     const user = userEvent.setup()
     await openJob('pitch')
 
     await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' })
+    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 5000 })
     await user.type(within(dialog).getByLabelText('Runner says'), 'I want more money.')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
+    await user.click(within(dialog).getByRole('button', { name: 'A Library test' }))
     // With a stat block behind the conversation, an opposed test is on offer.
     await user.selectOptions(within(dialog).getByLabelText('Test'), 'Talk down the lookout · opposed')
     const pass = within(dialog).getByText('Pass').closest('.forge__branch') as HTMLElement
@@ -248,29 +314,102 @@ describe('Jobs · pitch', () => {
   })
 })
 
-describe('Jobs · site', () => {
-  it('adds a private room to the site and refuses to count a public one', async () => {
+describe('Jobs · rolls built on a reply', () => {
+  it('builds a contested roll from the runner’s attributes and skills against the NPC’s pools', async () => {
     const user = userEvent.setup()
-    store.put('Encounter', Ids.site, { ...site(), roomIds: [], entryRoomId: undefined, npcs: [], items: [] })
-    store.put('Mission', Ids.job, { ...job(), objectives: [] })
-    await openJob('site')
+    await openJob('pitch')
+
+    await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 5000 })
+    await user.type(within(dialog).getByLabelText('Runner says'), 'Lean on him.')
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
+
+    // A conversation with a stat block starts contested; nothing is chosen yet.
+    expect(within(dialog).getByRole('checkbox', { name: 'Contested by the NPC' })).toBeChecked()
+    expect(within(dialog).getByRole('button', { name: 'Keep reply' })).toBeDisabled()
+    await user.selectOptions(within(dialog).getByLabelText('Runner rolls, first'), 'Charisma')
+    await user.selectOptions(within(dialog).getByLabelText('Runner rolls, second'), 'Con (skill)')
+    await user.selectOptions(within(dialog).getByLabelText('NPC rolls, first'), 'Social')
+    await user.selectOptions(within(dialog).getByLabelText('NPC rolls, second'), 'Willpower')
+    await user.click(within(dialog).getByRole('button', { name: 'Keep reply' }))
+
+    expect(await screen.findByText('Roll Charisma + Con vs Social + Willpower')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Save job draft' }))
+    await waitFor(() => expect(api.saveDraft).toHaveBeenCalled())
+    const reply = store.draft<Scene>('Scene', Pitch.id).nodes[0].choices[2]
+    expect(reply.roll).toEqual({
+      pool: [{ kind: 'attribute', id: 'charisma' }, { kind: 'skill', id: 'con' }],
+      limit: 'social',
+      opposedPools: ['social', 'willpower'],
+    })
+    expect(reply).not.toHaveProperty('testId')
+    expect(reply.onFailure).toEqual({ endsScene: true })
+  })
+
+  it('a roll nobody contests needs hits, and one slot is enough', async () => {
+    const user = userEvent.setup()
+    await openJob('pitch')
+
+    await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 5000 })
+    await user.type(within(dialog).getByLabelText('Runner says'), 'Read the room.')
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Contested by the NPC' }))
+    await user.selectOptions(within(dialog).getByLabelText('Runner rolls, first'), 'Intuition')
+    await user.clear(within(dialog).getByLabelText('Hits needed'))
+    await user.type(within(dialog).getByLabelText('Hits needed'), '3')
+    await user.click(within(dialog).getByRole('button', { name: 'Keep reply' }))
+
+    expect(await screen.findByText('Roll Intuition (3)')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Save job draft' }))
+    await waitFor(() => expect(api.saveDraft).toHaveBeenCalled())
+    expect(store.draft<Scene>('Scene', Pitch.id).nodes[0].choices[2].roll).toEqual({
+      pool: [{ kind: 'attribute', id: 'intuition' }],
+      limit: 'social',
+      threshold: 3,
+    })
+  })
+})
+
+describe('Jobs · rooms', () => {
+  it('uses a map room in the job, with the NPC standing there, and saves it on the job', async () => {
+    const user = userEvent.setup()
+    store.put('Mission', Ids.job, { ...job(), roomIds: [], npcIds: [], items: [], objectives: [] })
+    await openJob('rooms')
 
     const map = await screen.findByRole('group', { name: /^Map, layer 0/ })
-    // The dock is ten squares east of the alley the map opens on.
-    for (let pans = 0; pans < 10; pans++) await user.click(screen.getByRole('button', { name: 'Look east' }))
-    await user.click(within(map).getByRole('button', { name: 'Loading Dock (private)' }))
-    await user.click(screen.getByRole('button', { name: 'Add to site' }))
+    await user.click(within(map).getByRole('button', { name: 'Loading Dock' }))
+    await user.click(screen.getByRole('button', { name: 'Use in this job' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Warehouse Ganger' }))
+    await user.click(screen.getByRole('button', { name: '+ Item' }))
+    await user.type(screen.getByLabelText('Item 1 name'), 'Ledger')
+    await user.click(screen.getByRole('checkbox', { name: 'Hidden until searched for' }))
     await user.click(screen.getByRole('button', { name: 'Save job draft' }))
 
     await waitFor(() => expect(api.saveDraft).toHaveBeenCalled())
-    // The first room in is where runners arrive.
-    expect(store.draft<Encounter>('Encounter', Ids.site)).toMatchObject({ roomIds: [Ids.dock], entryRoomId: Ids.dock })
-    expect(within(map).getByRole('button', { name: 'Loading Dock (private), the way in' })).toBeInTheDocument()
+    const saved = store.draft<Mission>('Mission', Ids.job)
+    expect(saved).toMatchObject({ roomIds: [Ids.dock], npcIds: [Ids.siteNpc] })
+    // A new item lies in the room on screen.
+    expect(saved.items).toEqual([expect.objectContaining({ name: 'Ledger', roomId: Ids.dock, isHidden: true, discoveryThreshold: 2 })])
+    expect(within(map).getByRole('button', { name: 'Loading Dock, used by this job' })).toBeInTheDocument()
+  })
+
+  it('taking a room out drops the NPCs standing there and leaves its items to be handed over', async () => {
+    const user = userEvent.setup()
+    await openJob('rooms')
+
+    await user.click(await screen.findByRole('button', { name: 'Take out of job' }))
+    await user.click(screen.getByRole('button', { name: 'Save job draft' }))
+
+    await waitFor(() => expect(api.saveDraft).toHaveBeenCalled())
+    const saved = store.draft<Mission>('Mission', Ids.job)
+    expect(saved).toMatchObject({ roomIds: [], npcIds: [] })
+    expect(saved.items[0].roomId).toBeUndefined()
   })
 })
 
 describe('Jobs · events', () => {
-  it('adds an event in a site room, watching what stands there, and saves it on the job', async () => {
+  it('adds an event in one of the job\'s rooms, watching its item there, and saves it on the job', async () => {
     const user = userEvent.setup()
     await openJob('events')
 
@@ -294,7 +433,7 @@ describe('Jobs · events', () => {
     expect(listener.repeatable).toBeUndefined()
   })
 
-  it('moving an event to a public room drops what it watched and offers a cover line', async () => {
+  it('moving an event to another room drops what it watched and keeps the cover line', async () => {
     const user = userEvent.setup()
     store.put('Mission', Ids.job, {
       ...job(),
@@ -303,10 +442,11 @@ describe('Jobs · events', () => {
     await openJob('events')
 
     expect(await screen.findByLabelText('Which NPC')).toHaveValue(Ids.siteNpc)
-    expect(screen.queryByLabelText('Everyone else in the room sees')).not.toBeInTheDocument()
-    await user.selectOptions(screen.getByLabelText('Where event 1 happens'), 'Coffee Shop · public')
+    // Every room is shared, so a job's event always can show bystanders a cover line.
+    expect(screen.getByLabelText('Everyone else in the room sees')).toBeInTheDocument()
+    await user.selectOptions(screen.getByLabelText('Where event 1 happens'), 'Coffee Shop')
 
-    // The site's ganger is not in the coffee shop; the Johnson is.
+    // The ganger is not in the coffee shop; the Johnson is.
     expect(screen.getByLabelText('Which NPC')).toHaveValue('')
     expect(within(screen.getByLabelText('Which NPC')).getByRole('option', { name: 'Mr. Johnson' })).toBeInTheDocument()
     expect(screen.getByLabelText('Everyone else in the room sees')).toBeInTheDocument()
@@ -330,7 +470,6 @@ describe('Jobs · go live', () => {
     await waitFor(() => expect(api.publishSet).toHaveBeenCalled())
     expect(store.draft<Scene>('Scene', Pitch.id).nodes[0].choices[0].conditions).toEqual([{ kind: 'missionAvailable', missionId: Ids.job }])
     expect(vi.mocked(api.publishSet).mock.calls[0][0]).toEqual([
-      { kind: 'Encounter', contentKey: Ids.site },
       { kind: 'Scene', contentKey: Pitch.id },
       { kind: 'Mission', contentKey: Ids.job },
     ])
@@ -342,13 +481,12 @@ describe('Jobs · go live', () => {
       ...pitch(),
       nodes: [{ ...pitch().nodes[0], choices: pitch().nodes[0].choices.map((choice) => (choice.id === Pitch.accept ? { ...choice, conditions: [{ kind: 'missionAvailable', missionId: Ids.job }] } : choice)) }],
     })
-    vi.mocked(api.validateSet).mockResolvedValue({ isValid: false, error: "Job site 'Gang Warehouse' has rooms with no way in from its entry room: 'Storage Room'." })
+    vi.mocked(api.validateSet).mockResolvedValue({ isValid: false, error: "Job 'Gang Warehouse Retrieval' uses an NPC who is not on the map. Place them in Places." })
     await openJob('review')
 
-    expect(await screen.findByText(/has rooms with no way in from its entry room: 'Storage Room'/)).toBeInTheDocument()
+    expect(await screen.findByText(/uses an NPC who is not on the map/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Go live' })).toBeDisabled()
     expect(api.validateSet).toHaveBeenCalledWith([
-      { kind: 'Encounter', contentKey: Ids.site },
       { kind: 'Scene', contentKey: Pitch.id },
       { kind: 'Mission', contentKey: Ids.job },
     ])
@@ -390,7 +528,7 @@ describe('Jobs · go live', () => {
     expect(screen.getByTestId('location')).toHaveTextContent(`/admin/forge/jobs/${Ids.job}/review`)
   })
 
-  it('deletes the job together with its conversation and its site, and goes back to the list', async () => {
+  it('deletes the job together with its conversation, and goes back to the list', async () => {
     const user = userEvent.setup()
     await openJob('review')
 
@@ -400,8 +538,7 @@ describe('Jobs · go live', () => {
     // One request: the job and its conversation each point at the other.
     await waitFor(() =>
       expect(api.deleteSet).toHaveBeenCalledWith([
-        { kind: 'Encounter', contentKey: Ids.site },
-        { kind: 'Scene', contentKey: Pitch.id },
+          { kind: 'Scene', contentKey: Pitch.id },
         { kind: 'Mission', contentKey: Ids.job },
       ]),
     )
@@ -434,8 +571,7 @@ describe('Jobs · go live', () => {
 
     await waitFor(() =>
       expect(api.deleteSet).toHaveBeenCalledWith([
-        { kind: 'Encounter', contentKey: Ids.site },
-        { kind: 'Scene', contentKey: Pitch.id },
+          { kind: 'Scene', contentKey: Pitch.id },
         { kind: 'Scene', contentKey: only.id },
         { kind: 'Mission', contentKey: Ids.job },
       ]),
@@ -461,8 +597,7 @@ describe('Jobs · go live', () => {
 
     await waitFor(() =>
       expect(api.deleteSet).toHaveBeenCalledWith([
-        { kind: 'Encounter', contentKey: Ids.site },
-        { kind: 'Scene', contentKey: Pitch.id },
+          { kind: 'Scene', contentKey: Pitch.id },
         { kind: 'Mission', contentKey: Ids.job },
       ]),
     )

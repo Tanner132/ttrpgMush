@@ -2436,7 +2436,7 @@ export interface components {
             mapLayer: null | number | string;
         };
         /** @enum {unknown} */
-        GameContentKind: "Encounter" | "Mission" | "Scene" | "Test" | "NpcTemplate" | "Place";
+        GameContentKind: "Mission" | "Scene" | "Test" | "NpcTemplate" | "Place";
         GameContentSetItem: {
             kind: components["schemas"]["GameContentKind"];
             /** Format: uuid */

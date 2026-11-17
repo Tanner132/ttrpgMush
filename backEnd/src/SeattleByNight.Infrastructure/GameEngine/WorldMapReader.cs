@@ -1,41 +1,36 @@
-using SeattleByNight.Domain;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Infrastructure.Persistence;
 
 namespace SeattleByNight.Infrastructure.GameEngine;
 
-public sealed class JobSiteMapReader(SeattleByNightDbContext db) : IJobSiteMapReader
+// Workstream 8: the shared map as the publish gate and the Forge's pickers see
+// it — every room, who stands in it and what can be inspected there.
+public sealed class WorldMapReader(SeattleByNightDbContext db) : IWorldMapReader
 {
-    public async Task<JobSiteMap> ReadAsync(CancellationToken cancellationToken = default)
+    public async Task<WorldMap> ReadAsync(CancellationToken cancellationToken = default)
     {
         var rows = await db.Rooms
             .AsNoTracking()
-            .Where(room => room.EncounterInstanceId == null)
-            .Select(room => new { room.Id, room.Name, room.AccessType })
+            .Select(room => new { room.Id, room.Name })
             .ToListAsync(cancellationToken);
 
-        // World NPCs stand in map rooms; a run's NPCs stand in its copies.
-        var npcs = (await (from npc in db.NpcInstances.AsNoTracking()
-                join room in db.Rooms.AsNoTracking() on npc.RoomId equals room.Id
-                where room.EncounterInstanceId == null
-                select new { npc.Id, npc.RoomId, npc.Name, npc.TemplateId, npc.SceneId })
+        var npcs = (await db.NpcInstances.AsNoTracking()
+                .Select(npc => new { npc.Id, npc.RoomId, npc.Name, npc.TemplateId, npc.SceneId })
                 .ToListAsync(cancellationToken))
-            .ToLookup(npc => npc.RoomId, npc => new JobSiteMapNpc(npc.Id, npc.Name, npc.TemplateId, npc.SceneId));
+            .ToLookup(npc => npc.RoomId, npc => new WorldMapNpc(npc.Id, npc.Name, npc.TemplateId, npc.SceneId));
 
-        var rooms = rows.ToDictionary(
+        var inspectables = (await db.RoomInteractables.AsNoTracking()
+                .Select(inspectable => new { inspectable.Id, inspectable.RoomId, inspectable.Name })
+                .ToListAsync(cancellationToken))
+            .ToLookup(inspectable => inspectable.RoomId, inspectable => new WorldMapInspectable(inspectable.Id, inspectable.Name));
+
+        return new WorldMap(rows.ToDictionary(
             room => room.Id,
-            room => new JobSiteMapRoom(room.Id, room.Name, room.AccessType, npcs[room.Id].ToArray()));
-
-        var exits = await (from exit in db.RoomExits.AsNoTracking()
-            join source in db.Rooms.AsNoTracking() on exit.SourceRoomId equals source.Id
-            join destination in db.Rooms.AsNoTracking() on exit.DestinationRoomId equals destination.Id
-            where source.EncounterInstanceId == null && destination.EncounterInstanceId == null
-            select new JobSiteMapExit(
-                source.Id, destination.Id, exit.Direction,
-                exit.States.Contains(ExitStates.Hidden), exit.States.Contains(ExitStates.Locked)))
-            .ToListAsync(cancellationToken);
-
-        return new JobSiteMap(rooms, exits);
+            room => new WorldMapRoom(
+                room.Id,
+                room.Name,
+                npcs[room.Id].OrderBy(npc => npc.Name).ToArray(),
+                inspectables[room.Id].OrderBy(inspectable => inspectable.Name).ToArray())));
     }
 }

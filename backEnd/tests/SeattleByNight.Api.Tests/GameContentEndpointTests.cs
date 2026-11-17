@@ -67,7 +67,7 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
         Assert.False(mission.HasPendingEdits);
         Assert.Null(mission.DraftError);
         // Every kind the composer knows about came through the import.
-        Assert.Contains(inventory.Definitions, definition => definition.Kind == GameContentKind.Encounter);
+        Assert.Contains(inventory.Definitions, definition => definition.Kind == GameContentKind.NpcTemplate);
         Assert.Contains(inventory.Definitions, definition => definition.Kind == GameContentKind.Scene);
         Assert.Contains(inventory.Definitions, definition => definition.Kind == GameContentKind.Test);
     }
@@ -84,12 +84,16 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
         Assert.NotNull(references);
         var mission = Assert.Single(references.Missions, mission => mission.Id == WarehouseMission);
         Assert.NotEmpty(mission.Objectives);
-        var site = Assert.Single(references.Encounters, encounter => encounter.Id == mission.EncounterId);
-        Assert.Contains(ShippedContentIds.SiteRooms.LoadingDock, site.RoomIds);
-        Assert.Contains(site.Npcs, npc => npc.Name == "Warehouse Ganger");
+        // Workstream 8: the job names its map rooms and world NPCs, and the
+        // map lists who stands where and what can be inspected there.
+        Assert.Contains(ShippedContentIds.SiteRooms.LoadingDock, mission.RoomIds);
+        Assert.Contains(ShippedContentIds.SiteNpcs.WarehouseGanger, mission.NpcIds);
+        Assert.Contains(mission.Items, item => item.Id == ShippedContentIds.Items.Package);
         Assert.Contains(references.Tests, test => test.BuiltIn);
-        Assert.Contains(references.Rooms, room => room.Id == ShippedContentIds.SiteRooms.LoadingDock && room.AccessType == RoomAccessType.Private);
-        Assert.Contains(references.Rooms, room => room.AccessType == RoomAccessType.Public);
+        Assert.Contains(references.Rooms, room => room.Id == ShippedContentIds.SiteRooms.WarehouseFloor
+            && room.Npcs.Any(npc => npc.Name == "Warehouse Ganger"));
+        Assert.Contains(references.Rooms, room => room.Id == ShippedContentIds.SiteRooms.StorageRoom
+            && room.Inspectables.Any(inspectable => inspectable.Id == ShippedContentIds.Inspectables.LedgerTerminal));
     }
 
     [Fact]
@@ -228,12 +232,13 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
               "id": "{{jobId}}",
               "displayName": "Second Shift",
               "description": "The warehouse again, for a different client.",
-              "encounterId": "{{ShippedContentIds.Encounters.GangWarehouse}}",
-              "entryLinkRoomId": "33333333-3333-3333-3333-333333333333",
+              "roomIds": ["{{ShippedContentIds.SiteRooms.LoadingDock}}"],
+              "npcIds": [],
+              "items": [],
               "repeatability": { "kind": "unlimited" },
               "rewards": { "karma": 1, "nuyen": 500 },
               "objectives": [
-                { "id": "{{Guid.NewGuid()}}", "displayName": "Get inside", "kind": "enterEncounter" }
+                { "id": "{{Guid.NewGuid()}}", "displayName": "Get inside", "kind": "reachRoom", "roomId": "{{ShippedContentIds.SiteRooms.LoadingDock}}" }
               ],
               "triggers": [
                 {
@@ -322,17 +327,16 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
     {
         var admin = await _factory.LoginDevAdminAsync();
 
-        // The shipped job goes with its Johnson's conversation, but its site
-        // is not in the set and the job is not the only thing naming it...
-        // here the job itself is left out, and it still names the site.
+        // The shipped job goes with its Johnson's conversation; asked to go
+        // alone, the conversation outside the set still names it.
         var result = await PostForValidationAsync(admin, "/api/admin/content/delete", new
         {
-            items = new object[] { new { kind = "Encounter", contentKey = ShippedContentIds.Encounters.GangWarehouse } },
+            items = new object[] { new { kind = "Mission", contentKey = WarehouseMission } },
         });
 
         Assert.False(result.IsValid);
         var inventory = await GetInventoryAsync(admin);
-        Assert.Contains(inventory.Definitions, definition => definition.ContentKey == ShippedContentIds.Encounters.GangWarehouse);
+        Assert.Contains(inventory.Definitions, definition => definition.ContentKey == WarehouseMission);
     }
 
     [Fact]
@@ -416,7 +420,8 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
         var check = await admin.GetFromJsonAsync<GameContentDeletableResponse>(
             $"/api/admin/content/NpcTemplate/{ShippedContentIds.NpcTemplates.StreetGanger}/deletable", ApiTestFactory.JsonOptions);
         Assert.False(check!.CanDelete);
-        Assert.Contains("uses a stat block that does not exist", check.Reason);
+        // Workstream 8: the warehouse's two world NPCs are street gangers.
+        Assert.Contains("is referenced by 2 placed NPCs", check.Reason);
 
         var response = await admin.DeleteAsync($"/api/admin/content/NpcTemplate/{ShippedContentIds.NpcTemplates.StreetGanger}");
         response.EnsureSuccessStatusCode();

@@ -14,7 +14,6 @@ namespace SeattleByNight.Infrastructure.Tests;
 // Public map rooms, and every change is audited.
 public sealed class WorldNpcPlacementTests : PlaythroughHarness
 {
-    private static readonly Guid WarehouseLoadingDockMapRoomId = new("e0e0e0e0-0000-4000-8000-000000000001");
 
     private static WorldNpcMutation Marchetti(Guid? template = null) =>
         new(
@@ -37,18 +36,6 @@ public sealed class WorldNpcPlacementTests : PlaythroughHarness
         Assert.Equal("A tired woman in clinic scrubs.", row.Description);
         Assert.True(await db.AuditRecords.AnyAsync(audit =>
             audit.Action == AuditActions.WorldNpcPlaced && audit.TargetId == row.Id));
-    }
-
-    [Fact]
-    public async Task A_job_sites_private_room_takes_no_world_npc()
-    {
-        await using var scope = Provider.CreateAsyncScope();
-        var placement = scope.ServiceProvider.GetRequiredService<WorldNpcPlacement>();
-
-        var result = await placement.PlaceAsync(UserId, WarehouseLoadingDockMapRoomId, Marchetti());
-
-        Assert.Equal(WorldNpcError.Validation, result.Error);
-        Assert.Contains("roomId", result.ValidationErrors.Keys);
     }
 
     [Fact]
@@ -230,16 +217,16 @@ public sealed class WorldNpcPlacementTests : PlaythroughHarness
     }
 
     [Fact]
-    public async Task A_world_npc_is_not_moved_into_a_job_site_or_mid_conversation()
+    public async Task A_world_npc_is_not_moved_off_the_map_or_mid_conversation()
     {
         await using var scope = Provider.CreateAsyncScope();
         var placement = scope.ServiceProvider.GetRequiredService<WorldNpcPlacement>();
         var placed = (await placement.PlaceAsync(UserId, DevelopmentDataSeeder.CoffeeShopId, Marchetti())).Npc!;
 
-        var intoSite = await placement.MoveAsync(
-            UserId, DevelopmentDataSeeder.CoffeeShopId, placed.Id, WarehouseLoadingDockMapRoomId);
-        Assert.Equal(WorldNpcError.Validation, intoSite.Error);
-        Assert.Contains("toRoomId", intoSite.ValidationErrors.Keys);
+        var nowhere = await placement.MoveAsync(
+            UserId, DevelopmentDataSeeder.CoffeeShopId, placed.Id, Guid.NewGuid());
+        Assert.Equal(WorldNpcError.Validation, nowhere.Error);
+        Assert.Contains("toRoomId", nowhere.ValidationErrors.Keys);
 
         await using (var db = Db())
         {

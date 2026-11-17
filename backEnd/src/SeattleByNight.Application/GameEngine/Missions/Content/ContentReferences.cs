@@ -1,5 +1,4 @@
 using SeattleByNight.Application.GameEngine.Tests;
-using SeattleByNight.Domain.Enums;
 
 namespace SeattleByNight.Application.GameEngine.Missions.Content;
 
@@ -9,7 +8,6 @@ namespace SeattleByNight.Application.GameEngine.Missions.Content;
 // document the game is already serving (and the map), so it costs nothing to
 // build and is exactly what a publish will be checked against.
 public sealed record ContentReferences(
-    IReadOnlyList<EncounterReference> Encounters,
     IReadOnlyList<MissionReference> Missions,
     IReadOnlyList<SceneReference> Scenes,
     IReadOnlyList<TestReference> Tests,
@@ -17,27 +15,16 @@ public sealed record ContentReferences(
     IReadOnlyList<PlaceReference> Places,
     IReadOnlyList<MapRoomReference> Rooms)
 {
-    public static ContentReferences Build(GameContentDocument document, JobSiteMap map) =>
+    public static ContentReferences Build(GameContentDocument document, WorldMap map) =>
         new(
-            document.Encounters
-                .Select(encounter => new EncounterReference(
-                    encounter.Id,
-                    encounter.DisplayName,
-                    encounter.IsRetired,
-                    encounter.EntryRoomId,
-                    encounter.RoomIds,
-                    encounter.Npcs.Select(npc => new PlacedReference(npc.Id, npc.Name, npc.RoomId)).ToArray(),
-                    encounter.Items.Select(item => new PlacedReference(item.Id, item.Name, item.RoomId)).ToArray(),
-                    encounter.Interactables
-                        .Select(interactable => new PlacedReference(interactable.Id, interactable.Name, interactable.RoomId))
-                        .ToArray()))
-                .ToArray(),
             document.Missions
                 .Select(mission => new MissionReference(
                     mission.Id,
                     mission.DisplayName,
                     mission.IsRetired,
-                    mission.EncounterId,
+                    mission.RoomIds,
+                    mission.NpcIds,
+                    mission.Items.Select(item => new PlacedReference(item.Id, item.Name, item.RoomId)).ToArray(),
                     mission.Objectives
                         .Select(objective => new ObjectiveReference(objective.Id, objective.DisplayName, objective.Kind))
                         .ToArray()))
@@ -66,29 +53,21 @@ public sealed record ContentReferences(
                 .ToArray(),
             map.Rooms.Values
                 .OrderBy(room => room.Name, StringComparer.OrdinalIgnoreCase)
-                .Select(room => new MapRoomReference(room.Id, room.Name, room.AccessType, room.Npcs ?? []))
+                .Select(room => new MapRoomReference(room.Id, room.Name, room.Npcs ?? [], room.Inspectables ?? []))
                 .ToArray());
 }
 
-public sealed record EncounterReference(
-    Guid Id,
-    string DisplayName,
-    bool IsRetired,
-    Guid EntryRoomId,
-    IReadOnlyList<Guid> RoomIds,
-    IReadOnlyList<PlacedReference> Npcs,
-    IReadOnlyList<PlacedReference> Items,
-    IReadOnlyList<PlacedReference> Interactables);
-
-// Something a job site places: its id, display name and room (null for an
-// item that is only ever handed over).
+// Something a job places: its id, display name and room (null for an item
+// that is only ever handed over).
 public sealed record PlacedReference(Guid Id, string Name, Guid? RoomId);
 
 public sealed record MissionReference(
     Guid Id,
     string DisplayName,
     bool IsRetired,
-    Guid EncounterId,
+    IReadOnlyList<Guid> RoomIds,
+    IReadOnlyList<Guid> NpcIds,
+    IReadOnlyList<PlacedReference> Items,
     IReadOnlyList<ObjectiveReference> Objectives);
 
 public sealed record ObjectiveReference(Guid Id, string DisplayName, MissionObjectiveKind Kind);
@@ -103,7 +82,7 @@ public sealed record NpcTemplateReference(Guid Id, string DisplayName, bool IsRe
 
 public sealed record PlaceReference(Guid Id, string DisplayName, bool IsRetired);
 
-// A map room — where a room's events, a job site room or a Johnson goes —
-// with the world NPCs standing in it.
+// A map room — where a job happens, a room's events or a Johnson goes — with
+// the world NPCs standing in it and its inspectables.
 public sealed record MapRoomReference(
-    Guid Id, string Name, RoomAccessType AccessType, IReadOnlyList<JobSiteMapNpc> Npcs);
+    Guid Id, string Name, IReadOnlyList<WorldMapNpc> Npcs, IReadOnlyList<WorldMapInspectable> Inspectables);

@@ -13,7 +13,7 @@ export interface EventScope {
   events: TriggerEvent[]
   /** NPCs that can be watched, speak, or be the target of an NPC effect. */
   npcs: Option[]
-  /** NPCs an alarm can reach: on a job site it carries through every room. Defaults to `npcs`. */
+  /** NPCs an alarm can reach: for a job, anyone on the map. Defaults to `npcs`. */
   alertNpcs?: Option[]
   /**
    * Set where an NPC effect may leave the NPC unnamed — in a conversation,
@@ -51,7 +51,6 @@ export const EventWords: Record<TriggerEvent, { label: string; detail: string }>
   lockedExitTried: { label: 'Locked door tried', detail: 'An exit out of here' },
   interactableInspected: { label: 'Runner inspects', detail: 'An inspectable here' },
   itemPickedUp: { label: 'Item picked up', detail: 'An item here' },
-  encounterEntered: { label: 'Runner arrives on site', detail: 'Job sites only' },
   missionAccepted: { label: 'Job accepted', detail: 'Where the runner stands' },
 }
 
@@ -93,6 +92,7 @@ export const ConditionWords: Record<ConditionKind, string> = {
 
 /** The events a room's own content can hear (GameContentLoader.PlaceEvents). */
 export const PlaceEvents: TriggerEvent[] = [
+  'interactableInspected',
   'playerEnteredRoom',
   'playerLeftRoom',
   'npcSpokenTo',
@@ -125,9 +125,8 @@ export const PlaceConditions: ConditionKind[] = [
 ]
 
 /**
- * A room's own events. Only world NPCs standing in the room on the map can be
- * named — the publish gate checks exactly that — so a job site's NPCs are not
- * offered here; a job listens to those.
+ * A room's own events. Only world NPCs and inspectables in the room on the
+ * map can be named — the publish gate checks exactly that.
  */
 export function placeScope(roomId: Guid, references: ContentReferences): EventScope {
   const room = references.rooms.find((candidate) => candidate.id === roomId)
@@ -135,7 +134,7 @@ export function placeScope(roomId: Guid, references: ContentReferences): EventSc
     events: PlaceEvents,
     npcs: (room?.npcs ?? []).map((npc) => ({ id: npc.id, displayName: npc.name })),
     items: [],
-    inspectables: [],
+    inspectables: (room?.inspectables ?? []).map((thing) => ({ id: thing.id, displayName: thing.name })),
     effects: PlaceEffects,
     conditions: PlaceConditions,
     missions: references.missions
@@ -145,8 +144,8 @@ export function placeScope(roomId: Guid, references: ContentReferences): EventSc
         displayName: mission.displayName,
         objectives: mission.objectives.map((objective) => ({ id: objective.id, displayName: objective.displayName })),
       })),
-    allItems: references.encounters.flatMap((encounter) =>
-      encounter.items.map((item) => ({ id: item.id, displayName: `${item.name} · ${encounter.displayName}` })),
+    allItems: references.missions.flatMap((mission) =>
+      mission.items.map((item) => ({ id: item.id, displayName: `${item.name} · ${mission.displayName}` })),
     ),
     tests: references.tests
       .filter((test) => !test.opposed)

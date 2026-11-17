@@ -10,11 +10,12 @@ public sealed class WorldItemInstanceConfiguration : IEntityTypeConfiguration<Wo
     {
         builder.ToTable("world_item_instances", table =>
         {
-            // §38: an item is either placed in a room or carried — never both,
-            // never neither.
+            // §38: an item is never both lying somewhere and carried.
+            // Workstream 8: it may be neither — out of play until handed over
+            // or put back by its job's reset.
             table.HasCheckConstraint(
                 "ck_world_item_instances_one_location",
-                "(room_id IS NULL) <> (owner_character_id IS NULL)");
+                "room_id IS NULL OR owner_character_id IS NULL");
         });
 
         builder.HasKey(item => item.Id);
@@ -24,8 +25,7 @@ public sealed class WorldItemInstanceConfiguration : IEntityTypeConfiguration<Wo
         builder.Property(item => item.DiscoveryThreshold).HasColumnName("discovery_threshold");
         builder.Property(item => item.DisplayName).HasColumnName("display_name").HasMaxLength(200).IsRequired();
         builder.Property(item => item.Description).HasColumnName("description").HasMaxLength(4000).IsRequired();
-        builder.Property(item => item.MissionInstanceId).HasColumnName("mission_instance_id").HasColumnType("uuid");
-        builder.Property(item => item.EncounterInstanceId).HasColumnName("encounter_instance_id").HasColumnType("uuid");
+        builder.Property(item => item.MissionId).HasColumnName("mission_id").HasColumnType("uuid").IsRequired();
         builder.Property(item => item.RoomId).HasColumnName("room_id").HasColumnType("uuid");
         builder.Property(item => item.OwnerCharacterId).HasColumnName("owner_character_id").HasColumnType("uuid");
         builder.Property(item => item.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
@@ -37,8 +37,13 @@ public sealed class WorldItemInstanceConfiguration : IEntityTypeConfiguration<Wo
         builder.HasIndex(item => item.OwnerCharacterId)
             .HasDatabaseName("ix_world_item_instances_owner");
 
-        builder.HasIndex(item => item.MissionInstanceId)
-            .HasDatabaseName("ix_world_item_instances_mission_instance");
+        // One row per job item.
+        builder.HasIndex(item => item.ItemId)
+            .IsUnique()
+            .HasDatabaseName("ux_world_item_instances_item");
+
+        builder.HasIndex(item => item.MissionId)
+            .HasDatabaseName("ix_world_item_instances_mission");
 
         builder.HasOne<Room>()
             .WithMany()
@@ -50,14 +55,5 @@ public sealed class WorldItemInstanceConfiguration : IEntityTypeConfiguration<Wo
             .HasForeignKey(item => item.OwnerCharacterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<MissionInstance>()
-            .WithMany()
-            .HasForeignKey(item => item.MissionInstanceId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne<EncounterInstance>()
-            .WithMany()
-            .HasForeignKey(item => item.EncounterInstanceId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -23,7 +23,6 @@ public sealed class NpcInstanceConfiguration : IEntityTypeConfiguration<NpcInsta
         // an empty override.
         builder.Property(npc => npc.Description).HasColumnName("description").HasMaxLength(2000);
         builder.Property(npc => npc.SceneId).HasColumnName("scene_id").HasColumnType("uuid");
-        builder.Property(npc => npc.SourceNpcId).HasColumnName("source_npc_id").HasColumnType("uuid");
         builder.Property(npc => npc.OverridesJson).HasColumnName("overrides").HasColumnType("jsonb");
         builder.Property(npc => npc.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
         builder.Property(npc => npc.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");

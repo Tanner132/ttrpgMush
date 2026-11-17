@@ -36,9 +36,7 @@ public abstract class AmbushPlaythroughHarness : PlaythroughHarness
             missionInstanceId = assigned.Instance!.Id;
         }
 
-        await MoveAsync(DevelopmentDataSeeder.DowntownToAlleyExitId);
-        var enter = await ActAsync(DevelopmentGameActions.EnterEncounterActionId, missionInstanceId);
-        Assert.Equal(GameActionError.None, enter.Error);
+        await WalkIntoWarehouseAsync();
 
         var dockId = await CurrentRoomAsync();
         await MoveAsync(await FindExitAsync(dockId, "east"));
@@ -102,13 +100,13 @@ public sealed class AmbushBlockPlaythroughTests : AmbushPlaythroughHarness
                 .SingleAsync(npc => npc.Id == enforcerId);
             Assert.Equal(NpcAwareness.Pacified.ToString(), enforcer.Awareness);
 
-            // giveItem materialized an encounter item that was never placed
-            // in a room, carrying its mission provenance.
+            // giveItem handed over the job's keycard, which lay nowhere until
+            // then (workstream 8: one row per job item).
             var keycard = await verify.WorldItemInstances.AsNoTracking()
                 .SingleAsync(item => item.ItemId == ShippedContentIds.Items.EnforcerKeycard);
             Assert.Equal(CharacterId, keycard.OwnerCharacterId);
             Assert.Null(keycard.RoomId);
-            Assert.Equal(missionInstanceId, keycard.MissionInstanceId);
+            Assert.Equal(MissionId, keycard.MissionId);
 
             // The scene ended; the fire-once record stands.
             Assert.False(await verify.SceneSessions.AnyAsync(s => s.CharacterId == CharacterId));

@@ -15,7 +15,6 @@ export function newId(): Guid {
 export type TriggerEvent =
   | 'playerEnteredRoom'
   | 'playerLeftRoom'
-  | 'encounterEntered'
   | 'itemPickedUp'
   | 'npcSpokenTo'
   | 'npcDefeated'
@@ -113,34 +112,11 @@ export interface Place {
   triggers: Listener[]
 }
 
-export type Awareness = 'unaware' | 'suspicious' | 'alerted' | 'pacified'
-
-/** Per-NPC changes to its stat block. Anything absent comes from the block. */
-export interface StatOverrides {
-  pools?: Record<string, number>
-  physicalMonitor?: number
-  stunMonitor?: number
-  armor?: number
-  initiativeBase?: number
-  initiativeDice?: number
-  body?: number
-  willpower?: number
-  hostile?: boolean
-  weapon?: Weapon
-}
-
-export interface SiteNpc {
-  id: Guid
-  roomId: Guid
-  templateId: Guid
-  name: string
-  description?: string
-  sceneId?: Guid
-  startingAwareness?: Awareness
-  overrides?: StatOverrides
-}
-
-export interface SiteItem {
+/**
+ * Workstream 8: an item a job puts into the shared world. It is one object;
+ * whoever takes it has it, and the job's reset puts it back.
+ */
+export interface JobItem {
   id: Guid
   name: string
   description: string
@@ -150,48 +126,32 @@ export interface SiteItem {
   discoveryThreshold?: number
 }
 
-export interface SiteInspectable {
-  id: Guid
-  roomId: Guid
-  name: string
-  description: string
-  isHidden?: boolean
-  discoveryThreshold?: number
-}
-
-/** A job site: map rooms, an entry room, and the job's things placed in them. */
-export interface Encounter {
-  id: Guid
-  displayName: string
-  /** Absent only while a site is first being drawn; it cannot go live without one. */
-  entryRoomId?: Guid
-  roomIds: Guid[]
-  npcs: SiteNpc[]
-  items: SiteItem[]
-  interactables: SiteInspectable[]
-}
-
 // ------------------------------------------------------------------- jobs
 
-export type ObjectiveKind = 'enterEncounter' | 'pickUpItem' | 'exitEncounter' | 'deliverItem'
+export type ObjectiveKind = 'reachRoom' | 'pickUpItem' | 'deliverItem'
 
 export interface Objective {
   id: Guid
   displayName: string
   kind: ObjectiveKind
   itemId?: Guid
+  /** reachRoom: the map room to walk into. */
+  roomId?: Guid
 }
 
 export type RepeatKind = 'oneTime' | 'cooldown' | 'unlimited'
 
-/** A job (mission): who it is for, where it happens, what counts as done, and what it pays. */
+/** A job (mission): where it happens, what counts as done, and what it pays. */
 export interface Mission {
   id: Guid
   displayName: string
   description: string
-  encounterId: Guid
-  /** The public room the runner walks into the site from. */
-  entryLinkRoomId?: Guid
+  /** Workstream 8: the map rooms the job happens in. */
+  roomIds: Guid[]
+  /** The world NPCs it uses (its reset brings them back). */
+  npcIds: Guid[]
+  /** What it puts into the world. */
+  items: JobItem[]
   repeatability: { kind: RepeatKind; cooldownHours?: number }
   rewards: { karma: number; nuyen: number }
   objectives: Objective[]
@@ -213,8 +173,28 @@ export interface SceneChoice extends SceneOutcome {
   conditions: Condition[]
   /** A built-in test's name, or an authored test's GUID. */
   testId?: string
+  /** A roll built on the reply itself. A reply has this or a test, never both. */
+  roll?: ChoiceRoll
   onSuccess?: SceneOutcome
   onFailure?: SceneOutcome
+}
+
+/**
+ * A roll built on a reply. The runner adds up one or two attributes or
+ * skills, read off their sheet when they pick the reply. Contested, the NPC
+ * being talked to adds up one or two of their stat block's pools (or Body,
+ * Willpower); otherwise the runner needs `threshold` hits.
+ */
+export interface ChoiceRoll {
+  pool: PoolComponent[]
+  limit?: LimitKind
+  threshold?: number
+  opposedPools?: string[]
+}
+
+/** Whether picking the reply rolls first, and so has a pass and a fail. */
+export function rollsFirst(choice: SceneChoice): boolean {
+  return choice.testId !== undefined || choice.roll !== undefined
 }
 
 /** One part of a conversation: what is said, and the replies on offer. */
@@ -345,16 +325,14 @@ export function newDiceTest(): DiceTest {
   }
 }
 
-export function newSite(id: Guid, displayName: string): Encounter {
-  return { id, displayName, roomIds: [], npcs: [], items: [], interactables: [] }
-}
-
-export function newMission(id: Guid, displayName: string, encounterId: Guid): Mission {
+export function newMission(id: Guid, displayName: string): Mission {
   return {
     id,
     displayName,
     description: '',
-    encounterId,
+    roomIds: [],
+    npcIds: [],
+    items: [],
     repeatability: { kind: 'cooldown', cooldownHours: 24 },
     rewards: { karma: 2, nuyen: 2000 },
     objectives: [],
@@ -414,7 +392,7 @@ export function newPrompt(displayName: string): Scene {
 
 /** Every outcome a reply can have: its own, or its roll's two branches. */
 export function choiceOutcomes(choice: SceneChoice): SceneOutcome[] {
-  return choice.testId !== undefined ? [choice.onSuccess ?? {}, choice.onFailure ?? {}] : [choice]
+  return rollsFirst(choice) ? [choice.onSuccess ?? {}, choice.onFailure ?? {}] : [choice]
 }
 
 /** Every effect anywhere in a conversation. */

@@ -162,7 +162,7 @@ public sealed class SceneEngine
 
         // §24: talking to someone is an event content can react to.
         await EnqueueTriggerAsync(
-            context.Request, context.Session, TriggerEventKind.NpcSpokenTo, npcId: npc.ContentId,
+            context.Request, context.Session, TriggerEventKind.NpcSpokenTo, npcId: npc.Id,
             cancellationToken: cancellationToken);
 
         return GameActionOutcome.Final(null, message);
@@ -216,7 +216,7 @@ public sealed class SceneEngine
         SceneOutcome outcome;
         var testChanges = new List<StateChange>();
 
-        if (choice.TestId is not null)
+        if (choice.Rolls)
         {
             var testResult = await RollChoiceTestAsync(context, choice, npc, template, cancellationToken);
             if (testResult.Error != GameActionError.None)
@@ -261,7 +261,7 @@ public sealed class SceneEngine
         // §24: what the choice DID is also a content event. The derivation is
         // shared with the trigger engine so the same effect raises the same
         // event wherever it was authored.
-        foreach (var raised in SceneEffectResolver.EventsFor(outcome.Effects, npc?.ContentId))
+        foreach (var raised in SceneEffectResolver.EventsFor(outcome.Effects, npc?.Id))
         {
             await EnqueueTriggerAsync(
                 context.Request, context.Session, raised.Event,
@@ -297,7 +297,8 @@ public sealed class SceneEngine
         NpcTemplate? template,
         CancellationToken cancellationToken)
     {
-        var definition = content.Current.FindTest(choice.TestId!)
+        var definition = choice.Roll?.ToTest(choice)
+            ?? content.Current.FindTest(choice.TestId!)
             ?? throw new InvalidOperationException($"Scene test '{choice.TestId}' is not defined.");
 
         if (context.Request.PushTheLimit && context.Runtime.CurrentEdge < 1)
@@ -307,7 +308,17 @@ public sealed class SceneEngine
 
         var built = context.Actor.BuildTest(definition, context.Request.SituationalModifier ?? 0);
         var spec = built.Spec;
-        if (definition.OpposedPoolId is { } opposedPoolId)
+        if (choice.Roll is { IsOpposed: true } roll)
+        {
+            if (npc is null || template is null)
+            {
+                throw new InvalidOperationException(
+                    $"Scene choice '{choice.Label}' is a contested roll, but has no NPC to roll against.");
+            }
+
+            spec = spec with { Opposition = new NpcActor(npc, template).GetOpposingPool(roll.OpposedPools!) };
+        }
+        else if (definition.OpposedPoolId is { } opposedPoolId)
         {
             if (npc is null || template is null)
             {

@@ -64,8 +64,7 @@ export function MapGrid({
   center,
   selectedId,
   pendingBuild,
-  siteRoomIds,
-  entryRoomId,
+  jobRoomIds,
   onOpen,
   onBuild,
   onLayer,
@@ -77,9 +76,8 @@ export function MapGrid({
   center: { x: number; y: number }
   selectedId: Guid | null
   pendingBuild: BuildSpot | null
-  /** When drawing a job site: the rooms in it, and its way in. */
-  siteRoomIds?: ReadonlySet<Guid>
-  entryRoomId?: Guid
+  /** When drawing a job: the rooms it happens in. */
+  jobRoomIds?: ReadonlySet<Guid>
   onOpen: (room: WorldRoom) => void
   onBuild: (spot: BuildSpot) => void
   onLayer: (layer: number) => void
@@ -110,30 +108,23 @@ export function MapGrid({
         if (room) {
           const marks = stairs.get(room.id)
           const current = room.id === selectedId
-          const inSite = siteRoomIds?.has(room.id) ?? false
-          const isEntry = entryRoomId === room.id
+          const inJob = jobRoomIds?.has(room.id) ?? false
           cells.push(
             <button
               key={cellKey}
               type="button"
               className={[
                 'forge-map__room',
-                room.accessType === 'Private' ? 'forge-map__room--private' : null,
-                inSite ? 'forge-map__room--site' : null,
+                inJob ? 'forge-map__room--job' : null,
                 current ? 'forge-map__room--current' : null,
               ]
                 .filter(Boolean)
                 .join(' ')}
               aria-current={current ? 'location' : undefined}
-              aria-label={`${room.name}${room.accessType === 'Private' ? ' (private)' : ''}${marks?.up ? ', stairs up' : ''}${marks?.down ? ', stairs down' : ''}${isEntry ? ', the way in' : inSite ? ', in this site' : ''}`}
+              aria-label={`${room.name}${marks?.up ? ', stairs up' : ''}${marks?.down ? ', stairs down' : ''}${inJob ? ', used by this job' : ''}`}
               onClick={() => onOpen(room)}
             >
               <span className="forge-map__room-name">{room.name}</span>
-              {isEntry && (
-                <span className="forge-map__entry" aria-hidden="true">
-                  Entry
-                </span>
-              )}
               {(marks?.up || marks?.down) && (
                 <span className="forge-map__stairs" aria-hidden="true">
                   {marks?.up ? '▲' : ''}
@@ -211,9 +202,8 @@ export function MapGrid({
         {cells}
       </div>
       <div className="forge-map__legend" aria-hidden="true">
-        <span><i className="forge-map__swatch" />Public</span>
-        <span><i className="forge-map__swatch forge-map__swatch--private" />Private</span>
-        {siteRoomIds && <span><i className="forge-map__swatch forge-map__swatch--site" />This site</span>}
+        <span><i className="forge-map__swatch" />Room</span>
+        {jobRoomIds && <span><i className="forge-map__swatch forge-map__swatch--job" />This job</span>}
         <span>▲▼ Stairs</span>
         <span>┄ Hidden</span>
         <span>═ Locked</span>

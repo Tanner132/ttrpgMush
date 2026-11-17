@@ -173,7 +173,7 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
             <TextInput label="New room name" value={newName} maxLength={120} onChange={setNewName} />
             <TextBox label="New room description" value={newDescription} rows={2} onChange={setNewDescription} />
             <p className="forge__hint">
-              Built at {spot.x}, {spot.y} on layer {spot.layer}, {room.accessType.toLowerCase()} like this room.
+              Built at {spot.x}, {spot.y} on layer {spot.layer}.
             </p>
           </>
         )}

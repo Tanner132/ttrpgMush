@@ -20,9 +20,6 @@ public sealed class GameContentComposerTests
         var fragments = GameContentComposer.Split(MergedBundle);
 
         Assert.Equal(
-            embedded.Encounters.Select(encounter => encounter.Id).ToArray(),
-            fragments.Where(f => f.Kind == GameContentKind.Encounter).Select(f => f.ContentKey).ToArray());
-        Assert.Equal(
             embedded.Missions.Select(mission => mission.Id).ToArray(),
             fragments.Where(f => f.Kind == GameContentKind.Mission).Select(f => f.ContentKey).ToArray());
         Assert.Equal(
@@ -42,7 +39,6 @@ public sealed class GameContentComposerTests
         // Compared as serialized text: the definition records hold
         // collections, so their generated equality is reference-based and
         // would pass for any two documents that merely look alike.
-        Assert.Equal(Dump(embedded.Encounters), Dump(composed.Encounters));
         Assert.Equal(Dump(embedded.Missions), Dump(composed.Missions));
         Assert.Equal(Dump(embedded.Scenes), Dump(composed.Scenes));
         Assert.Equal("test-revision", composed.Version);
@@ -55,7 +51,6 @@ public sealed class GameContentComposerTests
     {
         var composed = GameContentComposer.ComposeAndLoad([], "empty");
 
-        Assert.Empty(composed.Encounters);
         Assert.Empty(composed.Missions);
         Assert.Empty(composed.Scenes);
     }
@@ -66,11 +61,11 @@ public sealed class GameContentComposerTests
         var mission = GameContentComposer.Split(MergedBundle)
             .Single(fragment => fragment.Kind == GameContentKind.Mission);
 
-        // The mission alone, without the encounter it names.
+        // The job alone, without the conversation its ambush opens.
         var error = Assert.Throws<GameContentException>(() =>
             GameContentComposer.ComposeAndLoad([(mission.Kind, mission.Json)], "broken"));
 
-        MessageAssert.Has("names a job site that does not exist", error.Message);
+        MessageAssert.Has("reaction 'openScene' names a scene that does not exist", error.Message);
     }
 
     [Fact]

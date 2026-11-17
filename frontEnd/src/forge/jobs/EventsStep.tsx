@@ -14,7 +14,8 @@ import type { Job } from './useJob.ts'
 /**
  * The job's events: pick a room, pick something that happens in it, say what
  * follows. Unlike a room's own events these fire once per run unless told
- * otherwise, and in a public room only the runner sees them.
+ * otherwise, and only the runner sees them; anyone else in the room sees the
+ * cover line, if there is one.
  */
 export function EventsStep({ job, mission, context }: { job: Job; mission: Mission; context: JobContext }) {
   const { refreshContent } = useForgeData()
@@ -92,7 +93,7 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
             <Button
               disabled={rooms.length === 0}
               onClick={() =>
-                setListeners((listeners) => [...listeners, { ...newListener('playerEnteredRoom'), roomId: context.site?.entryRoomId ?? rooms[0]?.id }])
+                setListeners((listeners) => [...listeners, { ...newListener('playerEnteredRoom'), roomId: mission.roomIds[0] ?? rooms[0]?.id }])
               }
             >
               + Event

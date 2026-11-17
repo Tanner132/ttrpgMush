@@ -80,15 +80,15 @@ public static class DevelopmentGameActions
     public const string NpcCombatTurnActionId = "npc-combat-turn";
     public const string CombatTurnTimeoutActionId = "combat-turn-timeout";
 
-    // Milestone 5 mission verbs (§29/§35/§38).
-    public const string EnterEncounterActionId = "mission-enter";
+    // Milestone 5 mission verbs (§29/§35/§38). Workstream 8: there is no site
+    // to travel into or leave; walking into a room an objective names is
+    // raised by movement as mission-reach-room.
     public const string TakeItemActionId = "take-item";
-    public const string LeaveEncounterActionId = "mission-exit";
+    public const string ReachRoomActionId = "mission-reach-room";
 
-    // Milestone 6 conversation verbs (§36/§37) and the defeat reaction.
+    // Milestone 6 conversation verbs (§36/§37).
     public const string TalkNpcActionId = "talk-npc";
     public const string SceneChoiceActionId = "scene-choice";
-    public const string MissionDefeatActionId = "mission-defeat";
 
     // Milestone 7 engine-only reactions: the content-event carrier, and the
     // combat opener an authored startCombat effect reaches for.
@@ -199,16 +199,8 @@ public static class DevelopmentGameActions
             GameActionKind.Combat,
             PlayerInvokable: false);
 
-        // Mission verbs (§29/§35/§38): travel into a mission's private
-        // encounter, take a placed item, and leave the encounter. The
+        // Mission verbs (§35/§38): take an item lying in the room. The
         // MissionEngine resolves targets and owns the state transitions.
-        actions[EnterEncounterActionId] = new GameActionDefinition(
-            EnterEncounterActionId,
-            "Travel to",
-            "Head to the mission site and enter the encounter.",
-            GameActionKind.Mission,
-            TargetKind: GameActionTargetKind.MissionInstance);
-
         actions[TakeItemActionId] = new GameActionDefinition(
             TakeItemActionId,
             "Take",
@@ -216,11 +208,15 @@ public static class DevelopmentGameActions
             GameActionKind.Mission,
             TargetKind: GameActionTargetKind.Item);
 
-        actions[LeaveEncounterActionId] = new GameActionDefinition(
-            LeaveEncounterActionId,
-            "Leave",
-            "Leave the mission site and return to where you came from.",
-            GameActionKind.Mission);
+        // Reaction (§24), workstream 8: movement raises this on the arrival
+        // room's queue so a reachRoom objective completes before any listener
+        // in that room reacts.
+        actions[ReachRoomActionId] = new GameActionDefinition(
+            ReachRoomActionId,
+            "Reach Room",
+            "The runner walked into a room an objective may name.",
+            GameActionKind.Mission,
+            PlayerInvokable: false);
 
         // Conversation verbs (§36/§37): open a scene with an NPC whose
         // template has one, and pick a choice from the current node. Choice
@@ -239,15 +235,6 @@ public static class DevelopmentGameActions
             "Pick what to say next.",
             GameActionKind.Scene,
             TargetKind: GameActionTargetKind.SceneChoice);
-
-        // Reaction (§24): combat defeat inside a mission encounter fails the
-        // mission and returns the runner to the entry point.
-        actions[MissionDefeatActionId] = new GameActionDefinition(
-            MissionDefeatActionId,
-            "Mission Defeat",
-            "The runner went down mid-job; the mission fails.",
-            GameActionKind.Mission,
-            PlayerInvokable: false);
 
         // Reaction (§24): carries one content event to the TriggerEngine,
         // which decides whether any authored trigger fires on it. Untargeted

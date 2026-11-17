@@ -12,14 +12,11 @@ public sealed class RoomSessionReader : IRoomSessionReader
 {
     private readonly SeattleByNightDbContext _dbContext;
     private readonly ICombatTracker _combatTracker;
-    private readonly IRunAccessPolicy _runAccess;
 
-    public RoomSessionReader(
-        SeattleByNightDbContext dbContext, ICombatTracker combatTracker, IRunAccessPolicy runAccess)
+    public RoomSessionReader(SeattleByNightDbContext dbContext, ICombatTracker combatTracker)
     {
         _dbContext = dbContext;
         _combatTracker = combatTracker;
-        _runAccess = runAccess;
     }
 
     public async Task<RoomSession?> GetByPlaySessionIdAsync(
@@ -67,7 +64,9 @@ public sealed class RoomSessionReader : IRoomSessionReader
             return null;
         }
 
-        var exitRows = await _dbContext.RoomExits
+        // Hidden doors are left out until found; whatever else is on a door
+        // (locked, restricted, private) is shown.
+        var exits = await _dbContext.RoomExits
             .AsNoTracking()
             .Where(e => e.SourceRoomId == character.CurrentRoomId && !e.States.Contains(ExitStates.Hidden))
             .OrderBy(e => e.Direction)
@@ -75,30 +74,8 @@ public sealed class RoomSessionReader : IRoomSessionReader
                 _dbContext.Rooms.AsNoTracking(),
                 e => e.DestinationRoomId,
                 r => r.Id,
-                (e, r) => new
-                {
-                    e.Id,
-                    e.Direction,
-                    e.DestinationRoomId,
-                    r.Name,
-                    e.States,
-                    r.AccessType,
-                    r.EncounterInstanceId,
-                })
+                (e, r) => new RoomExitSummary(e.Id, e.Direction, e.DestinationRoomId, r.Name, e.States))
             .ToListAsync(cancellationToken);
-
-        // WF-25: a door into a job site's private room opens only for a
-        // runner on that job, so for everyone else it is shown as what it
-        // behaves as — locked.
-        var exits = new List<RoomExitSummary>(exitRows.Count);
-        foreach (var e in exitRows)
-        {
-            var runDoorShut = !e.States.Contains(ExitStates.Locked)
-                && e is { AccessType: RoomAccessType.Private, EncounterInstanceId: null }
-                && await _runAccess.FindEnterableRunAsync(character.Id, e.DestinationRoomId, cancellationToken) is null;
-            var states = runDoorShut ? ExitStates.Normalize([.. e.States, ExitStates.Locked]) : e.States;
-            exits.Add(new RoomExitSummary(e.Id, e.Direction, e.DestinationRoomId, e.Name, states));
-        }
 
         var occupants = await _dbContext.Characters
             .AsNoTracking()

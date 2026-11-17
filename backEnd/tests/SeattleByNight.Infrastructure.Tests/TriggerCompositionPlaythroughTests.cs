@@ -21,7 +21,6 @@ namespace SeattleByNight.Infrastructure.Tests;
 public abstract class TriggerCompositionHarness : PlaythroughHarness
 {
     protected static readonly Guid MissionId = ShippedContentIds.Missions.GangWarehouseRetrieval;
-    protected static readonly Guid EncounterId = ShippedContentIds.Encounters.GangWarehouse;
 
     protected Task PublishEncounterTriggerAsync(string triggerJson) => PublishJobTriggerAsync(triggerJson);
 
@@ -38,9 +37,7 @@ public abstract class TriggerCompositionHarness : PlaythroughHarness
             missionInstanceId = assigned.Instance!.Id;
         }
 
-        await MoveAsync(DevelopmentDataSeeder.DowntownToAlleyExitId);
-        var entered = await ActAsync(DevelopmentGameActions.EnterEncounterActionId, missionInstanceId);
-        Assert.Equal(GameActionError.None, entered.Error);
+        await WalkIntoWarehouseAsync();
         return missionInstanceId;
     }
 
@@ -393,7 +390,7 @@ public sealed class StaleEventPlaythroughTests : TriggerCompositionHarness
         await using (var db = Db())
         {
             hallwayId = await db.Rooms
-                .Where(room => room.Name == "Back Hallway" && room.EncounterInstanceId != null)
+                .Where(room => room.Id == ShippedContentIds.SiteRooms.BackHallway)
                 .Select(room => room.Id)
                 .SingleAsync();
         }
@@ -457,7 +454,7 @@ public sealed class OffstageEventPlaythroughTests : TriggerCompositionHarness
         await using (var db = Db())
         {
             hallwayId = await db.Rooms
-                .Where(room => room.Name == "Back Hallway" && room.EncounterInstanceId != null)
+                .Where(room => room.Id == ShippedContentIds.SiteRooms.BackHallway)
                 .Select(room => room.Id)
                 .SingleAsync();
             baselineStun = await db.CharacterRuntimeStates.AsNoTracking()

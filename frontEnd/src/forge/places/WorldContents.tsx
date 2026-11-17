@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button.tsx'
 import { Modal } from '../../components/ui/Modal.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
@@ -106,6 +107,10 @@ export function WorldContents({ room }: { room: WorldRoom }) {
   const removeInspectable = useAction()
   const templateName = (id: string) => references.npcTemplates.find((template) => template.id === id)?.displayName ?? 'Missing stat block'
   const sceneName = (id: string | null) => (id ? (references.scenes.find((scene) => scene.id === id)?.displayName ?? 'Missing conversation') : null)
+  // Workstream 8: a job's items lie in map rooms, placed from the job's Rooms step.
+  const jobItems = references.missions.flatMap((mission) =>
+    mission.items.filter((item) => item.roomId === room.id).map((item) => ({ ...item, jobId: mission.id, jobName: mission.displayName })),
+  )
 
   async function afterNpcChange() {
     setDialog(null)
@@ -219,7 +224,22 @@ export function WorldContents({ room }: { room: WorldRoom }) {
         )}
       </div>
 
-      <p className="forge__hint">Items live on job sites, where a job can hand them out or ask for them back.</p>
+      <div className="forge__stack">
+        <b>Job items · {jobItems.length}</b>
+        {jobItems.length === 0 ? (
+          <Empty>No job puts an item here.</Empty>
+        ) : (
+          <ul className="forge__rows">
+            {jobItems.map((item) => (
+              <li key={item.id} className="forge__row">
+                <b className="forge__row-name">{item.name}</b>
+                <Link to={`/admin/forge/jobs/${item.jobId}/rooms`}>{item.jobName}</Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="forge__hint">A job's items are placed from the job's Rooms step, where it can hand them out or ask for them back.</p>
+      </div>
 
       <div className="forge__actions">
         <Button onClick={() => setDialog({ npc: null })}>+ NPC</Button>

@@ -14,10 +14,9 @@ using Testcontainers.PostgreSql;
 
 namespace SeattleByNight.Infrastructure.Tests;
 
-// Milestone 5 (§29/§30/§35/§38/§39): the mission flow against a real
-// database — assignment repeatability, encounter instantiation, the
-// same-commit objective rule, the grant-once reward ledger, instance privacy
-// in movement, and abandonment.
+// Milestone 5 (§35/§38/§39), workstream 8: the mission flow against a real
+// database — assignment repeatability, the job's items as one row each, the
+// same-commit objective rule, and the grant-once reward ledger.
 public sealed class MissionPersistenceTests : IAsyncLifetime
 {
     private static readonly EmbeddedGameContentProvider GameContent = new();
@@ -35,6 +34,7 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         await using var db = CreateDbContext();
         await db.Database.MigrateAsync();
         await DevelopmentDataSeeder.SeedAsync(db);
+        await new JobItemStore(db, TimeProvider.System).SyncAsync(GameContent.Current);
     }
 
     public async Task DisposeAsync()
@@ -87,60 +87,58 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         Assert.True(afterCooldown.IsSuccess);
     }
 
+    // Workstream 8: one row per job item, made from the content. The package
+    // lies where the job puts it; the keycard lies nowhere until handed over.
     [Fact]
-    public async Task Enter_InstantiatesThePrivateEncounterAndMovesTheCharacterIn()
+    public async Task Sync_MakesOneRowPerJobItem_AndKeepsWhereAnItemIsOnTheNextSync()
     {
-        var setup = await CreateRunnerAsync();
-        var instance = (await AssignAsync(setup.CharacterId)).Instance!;
-
-        await ApplyAsync(setup.CharacterId, new StateChange[]
+        await using (var db = CreateDbContext())
         {
-            new EnterEncounterChange(instance.Id, setup.SessionId),
-            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.EnterWarehouse),
-        });
+            var package = await db.WorldItemInstances.AsNoTracking()
+                .SingleAsync(item => item.ItemId == ShippedContentIds.Items.Package);
+            Assert.Equal(ShippedContentIds.SiteRooms.StorageRoom, package.RoomId);
+            Assert.Equal(MissionId, package.MissionId);
 
-        await using var db = CreateDbContext();
-        var encounter = await db.EncounterInstances.AsNoTracking()
-            .SingleAsync(row => row.MissionInstanceId == instance.Id);
-        Assert.Equal(EncounterInstanceStatus.Active.ToString(), encounter.Status);
-        Assert.Equal(DevelopmentDataSeeder.AlleyId, encounter.ReturnRoomId);
+            var keycard = await db.WorldItemInstances.AsNoTracking()
+                .SingleAsync(item => item.ItemId == ShippedContentIds.Items.EnforcerKeycard);
+            Assert.Null(keycard.RoomId);
+            Assert.Null(keycard.OwnerCharacterId);
+        }
 
-        var rooms = await db.Rooms.AsNoTracking()
-            .Where(room => room.EncounterInstanceId == encounter.Id)
-            .ToListAsync();
-        Assert.Equal(4, rooms.Count);
-        Assert.All(rooms, room => Assert.Equal(RoomAccessType.Instanced, room.AccessType));
-        Assert.Contains(rooms, room => room.Id == encounter.EntryRoomId);
-        // WF-27: a run's copy remembers the map room it was made from, which
-        // is how a listener on that room recognizes the copy.
-        Assert.All(rooms, room => Assert.NotNull(room.SourceRoomId));
-        Assert.Contains(rooms, room => room.SourceRoomId == ShippedContentIds.SiteRooms.BackHallway);
+        // Where an item is, is game state: a later sync renames it but does
+        // not move it back.
+        await using (var db = CreateDbContext())
+        {
+            var package = await db.WorldItemInstances.SingleAsync(item => item.ItemId == ShippedContentIds.Items.Package);
+            package.RoomId = DevelopmentDataSeeder.AlleyId;
+            package.DisplayName = "Old name";
+            await db.SaveChangesAsync();
+        }
 
-        var roomIds = rooms.Select(room => room.Id).ToHashSet();
-        Assert.Equal(6, await db.RoomExits.CountAsync(exit => roomIds.Contains(exit.SourceRoomId)));
-        Assert.Equal(2, await db.NpcInstances.CountAsync(npc => roomIds.Contains(npc.RoomId)));
-        Assert.Equal(1, await db.RoomInteractables.CountAsync(interactable => roomIds.Contains(interactable.RoomId)));
-        // The keycard is declared but unplaced, so only the package
-        // materializes as a room item at instantiation (Milestone 7).
-        Assert.Equal(1, await db.WorldItemInstances.CountAsync(item =>
-            item.EncounterInstanceId == encounter.Id && item.RoomId != null));
-        Assert.Equal(1, await db.WorldItemInstances.CountAsync(item =>
-            item.EncounterInstanceId == encounter.Id));
-        Assert.Equal(1, await db.EncounterParticipants.CountAsync(participant =>
-            participant.EncounterInstanceId == encounter.Id && participant.CharacterId == setup.CharacterId));
+        await using (var db = CreateDbContext())
+        {
+            await new JobItemStore(db, TimeProvider.System).SyncAsync(GameContent.Current);
+        }
 
-        var character = await db.Characters.AsNoTracking().SingleAsync(row => row.Id == setup.CharacterId);
-        Assert.Equal(encounter.EntryRoomId, character.CurrentRoomId);
+        await using var verify = CreateDbContext();
+        var after = await verify.WorldItemInstances.AsNoTracking()
+            .SingleAsync(item => item.ItemId == ShippedContentIds.Items.Package);
+        Assert.Equal(DevelopmentDataSeeder.AlleyId, after.RoomId);
+        Assert.Equal("Sealed Courier Package", after.DisplayName);
+        Assert.Equal(2, await verify.WorldItemInstances.CountAsync());
+    }
 
-        var openVisit = await db.RoomVisits.AsNoTracking()
-            .SingleAsync(visit => visit.PlaySessionId == setup.SessionId && visit.LeftAtUtc == null);
-        Assert.Equal(encounter.EntryRoomId, openVisit.RoomId);
+    [Fact]
+    public async Task Sync_RemovesTheRowsOfItemsNoJobDeclares()
+    {
+        var empty = GameContentLoader.Load("""{ "contentId": "c", "version": "1" }""");
+        await using (var db = CreateDbContext())
+        {
+            await new JobItemStore(db, TimeProvider.System).SyncAsync(empty);
+        }
 
-        var mission = await db.MissionInstances.AsNoTracking().SingleAsync(row => row.Id == instance.Id);
-        Assert.Equal(MissionInstanceStatus.InProgress.ToString(), mission.Status);
-        var objectives = MissionSerialization.DeserializeObjectives(mission.ObjectivesJson);
-        Assert.Equal(MissionObjectiveStatus.Completed, objectives[0].Status);
-        Assert.Equal(MissionObjectiveStatus.Active, objectives[1].Status);
+        await using var verify = CreateDbContext();
+        Assert.Equal(0, await verify.WorldItemInstances.CountAsync());
     }
 
     [Fact]
@@ -150,19 +148,10 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         var instance = (await AssignAsync(setup.CharacterId)).Instance!;
         await ApplyAsync(setup.CharacterId, new StateChange[]
         {
-            new EnterEncounterChange(instance.Id, setup.SessionId),
             new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.EnterWarehouse),
         });
 
-        Guid itemId;
-        await using (var db = CreateDbContext())
-        {
-            itemId = await db.WorldItemInstances
-                .Where(item => item.MissionInstanceId == instance.Id)
-                .Select(item => item.Id)
-                .SingleAsync();
-        }
-
+        var itemId = await PackageRowAsync();
         await ApplyAsync(setup.CharacterId, new StateChange[]
         {
             new PickUpItemChange(itemId),
@@ -180,31 +169,51 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         Assert.Equal(MissionObjectiveStatus.Active, objectives[2].Status);
     }
 
+    // Workstream 8: handing the item in puts it out of play, it is not
+    // deleted; and an authored handover never takes it from someone holding it.
+    [Fact]
+    public async Task A_handed_in_item_is_out_of_play_and_a_held_item_is_not_handed_to_anyone_else()
+    {
+        var holder = await CreateRunnerAsync();
+        var rival = await CreateRunnerAsync();
+        var packageId = await PackageRowAsync();
+
+        await ApplyAsync(holder.CharacterId, [new PickUpItemChange(packageId)]);
+        await ApplyAsync(rival.CharacterId, [new GrantItemChange(ShippedContentIds.Items.Package)]);
+
+        await using (var db = CreateDbContext())
+        {
+            var held = await db.WorldItemInstances.AsNoTracking().SingleAsync(row => row.Id == packageId);
+            Assert.Equal(holder.CharacterId, held.OwnerCharacterId);
+        }
+
+        await ApplyAsync(holder.CharacterId, [new RemoveItemChange(packageId, "delivered")]);
+
+        await using (var db = CreateDbContext())
+        {
+            var handedIn = await db.WorldItemInstances.AsNoTracking().SingleAsync(row => row.Id == packageId);
+            Assert.Null(handedIn.RoomId);
+            Assert.Null(handedIn.OwnerCharacterId);
+        }
+
+        // Out of play, it can be handed over again.
+        await ApplyAsync(rival.CharacterId, [new GrantItemChange(ShippedContentIds.Items.Package)]);
+        await using var verify = CreateDbContext();
+        Assert.Equal(
+            rival.CharacterId,
+            (await verify.WorldItemInstances.AsNoTracking().SingleAsync(row => row.Id == packageId)).OwnerCharacterId);
+    }
+
     [Fact]
     public async Task Completion_GrantsLedgeredRewardsExactlyOnce()
     {
         var setup = await CreateRunnerAsync(withCareerState: true);
         var instance = (await AssignAsync(setup.CharacterId)).Instance!;
-        await ApplyAsync(setup.CharacterId, new StateChange[]
-        {
-            new EnterEncounterChange(instance.Id, setup.SessionId),
-            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.EnterWarehouse),
-        });
-
-        Guid encounterId;
-        await using (var db = CreateDbContext())
-        {
-            encounterId = await db.EncounterInstances
-                .Where(row => row.MissionInstanceId == instance.Id)
-                .Select(row => row.Id)
-                .SingleAsync();
-        }
 
         var completion = new StateChange[]
         {
-            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.LeaveWarehouse),
+            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.EnterWarehouse),
             new CompleteMissionChange(instance.Id, Karma: 2, Nuyen: 2000),
-            new LeaveEncounterChange(encounterId, setup.SessionId),
         };
         await ApplyAsync(setup.CharacterId, completion);
 
@@ -220,12 +229,6 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
         Assert.Equal(MissionInstanceStatus.Completed.ToString(), mission.Status);
         Assert.NotNull(mission.CompletedAtUtc);
 
-        var encounter = await verify.EncounterInstances.AsNoTracking().SingleAsync(row => row.Id == encounterId);
-        Assert.Equal(EncounterInstanceStatus.Completed.ToString(), encounter.Status);
-
-        var character = await verify.Characters.AsNoTracking().SingleAsync(row => row.Id == setup.CharacterId);
-        Assert.Equal(DevelopmentDataSeeder.AlleyId, character.CurrentRoomId);
-
         var career = await verify.CharacterCareerStates.AsNoTracking()
             .SingleAsync(row => row.CharacterId == setup.CharacterId);
         Assert.Equal(2, career.CurrentKarma);
@@ -238,147 +241,13 @@ public sealed class MissionPersistenceTests : IAsyncLifetime
             .CountAsync(receipt => receipt.CharacterId == setup.CharacterId));
     }
 
-    [Fact]
-    public async Task Movement_WorksInsideTheInstanceAndRefusesEntryFromOutside()
+    private async Task<Guid> PackageRowAsync()
     {
-        var setup = await CreateRunnerAsync();
-        var instance = (await AssignAsync(setup.CharacterId)).Instance!;
-        await ApplyAsync(setup.CharacterId, new StateChange[]
-        {
-            new EnterEncounterChange(instance.Id, setup.SessionId),
-        });
-
-        Guid entryRoomId;
-        Guid northExitId;
-        Guid floorRoomId;
-        await using (var db = CreateDbContext())
-        {
-            entryRoomId = await db.EncounterInstances
-                .Where(row => row.MissionInstanceId == instance.Id)
-                .Select(row => row.EntryRoomId)
-                .SingleAsync();
-            var exit = await db.RoomExits.AsNoTracking()
-                .SingleAsync(candidate => candidate.SourceRoomId == entryRoomId && candidate.Direction == "north");
-            northExitId = exit.Id;
-            floorRoomId = exit.DestinationRoomId;
-
-            // A rogue exit from the shared world into the instance must still
-            // be refused — instanced rooms are only reachable from inside.
-            db.RoomExits.Add(new RoomExit
-            {
-                Id = Guid.NewGuid(),
-                SourceRoomId = DevelopmentDataSeeder.DowntownStreetId,
-                DestinationRoomId = floorRoomId,
-                // Downtown's seeded exits already use east/north/down, and
-                // (source_room_id, direction) is unique.
-                Direction = "northeast",
-            });
-            await db.SaveChangesAsync();
-        }
-
-        var movement = new MovementStore(CreateDbContext(), new TestTimeProvider(DateTimeOffset.UtcNow));
-        var inside = await movement.MoveAsync(setup.UserId, northExitId, TimeSpan.FromHours(1));
-        Assert.True(inside.IsSuccess);
-        Assert.Equal(floorRoomId, inside.NewRoomId);
-
-        var outsider = await CreateRunnerAsync(roomId: DevelopmentDataSeeder.DowntownStreetId);
-        Guid rogueExitId;
-        await using (var db = CreateDbContext())
-        {
-            rogueExitId = await db.RoomExits
-                .Where(exit => exit.SourceRoomId == DevelopmentDataSeeder.DowntownStreetId
-                    && exit.DestinationRoomId == floorRoomId)
-                .Select(exit => exit.Id)
-                .SingleAsync();
-        }
-
-        var refused = await new MovementStore(CreateDbContext(), new TestTimeProvider(DateTimeOffset.UtcNow))
-            .MoveAsync(outsider.UserId, rogueExitId, TimeSpan.FromHours(1));
-        Assert.Equal(MoveCharacterError.DestinationUnavailable, refused.Error);
-    }
-
-    [Fact]
-    public async Task ScopeResolver_MapsInstanceRoomsToTheirEncounterInstance()
-    {
-        var setup = await CreateRunnerAsync();
-        var instance = (await AssignAsync(setup.CharacterId)).Instance!;
-        await ApplyAsync(setup.CharacterId, new StateChange[]
-        {
-            new EnterEncounterChange(instance.Id, setup.SessionId),
-        });
-
         await using var db = CreateDbContext();
-        var encounter = await db.EncounterInstances.AsNoTracking()
-            .SingleAsync(row => row.MissionInstanceId == instance.Id);
-
-        var resolver = new GameScopeResolver(db);
-        Assert.Equal(encounter.Id, await resolver.ResolveScopeAsync(encounter.EntryRoomId));
-        Assert.Equal(
-            DevelopmentDataSeeder.AlleyId,
-            await resolver.ResolveScopeAsync(DevelopmentDataSeeder.AlleyId));
-    }
-
-    [Fact]
-    public async Task Abandonment_ReturnsTheCharacterAndArchivesTheInstance()
-    {
-        var setup = await CreateRunnerAsync();
-        var instance = (await AssignAsync(setup.CharacterId)).Instance!;
-        await ApplyAsync(setup.CharacterId, new StateChange[]
-        {
-            new EnterEncounterChange(instance.Id, setup.SessionId),
-            new CompleteObjectiveChange(instance.Id, ShippedContentIds.Objectives.EnterWarehouse),
-        });
-
-        Guid encounterId;
-        await using (var db = CreateDbContext())
-        {
-            encounterId = await db.EncounterInstances
-                .Where(row => row.MissionInstanceId == instance.Id)
-                .Select(row => row.Id)
-                .SingleAsync();
-
-            // The participant's session ends (disconnect + idle expiry).
-            var session = await db.PlaySessions.SingleAsync(row => row.Id == setup.SessionId);
-            session.EndedAtUtc = DateTimeOffset.UtcNow;
-            session.ExpiresAtUtc = DateTimeOffset.UtcNow;
-            await db.SaveChangesAsync();
-        }
-
-        var graceWindow = TimeSpan.FromMinutes(15);
-        var now = DateTimeOffset.UtcNow;
-
-        await using (var db = CreateDbContext())
-        {
-            var lifecycle = new EncounterLifecycleStore(db, new TestTimeProvider(now));
-
-            // Inside the grace window the instance survives.
-            Assert.Empty(await lifecycle.ListExpiredEncounterIdsAsync(now, graceWindow));
-
-            // Past it, the instance expires and abandonment runs.
-            var later = now.AddMinutes(30);
-            var expired = await lifecycle.ListExpiredEncounterIdsAsync(later, graceWindow);
-            Assert.Contains(encounterId, expired);
-
-            var abandoned = await lifecycle.TryAbandonAsync(encounterId);
-            Assert.NotNull(abandoned);
-            Assert.Equal(instance.Id, abandoned.MissionInstanceId);
-
-            // A second sweep finds nothing to claim.
-            Assert.Null(await lifecycle.TryAbandonAsync(encounterId));
-        }
-
-        await using var verify = CreateDbContext();
-        var mission = await verify.MissionInstances.AsNoTracking().SingleAsync(row => row.Id == instance.Id);
-        Assert.Equal(MissionInstanceStatus.Abandoned.ToString(), mission.Status);
-
-        var encounter = await verify.EncounterInstances.AsNoTracking().SingleAsync(row => row.Id == encounterId);
-        Assert.Equal(EncounterInstanceStatus.Abandoned.ToString(), encounter.Status);
-
-        var character = await verify.Characters.AsNoTracking().SingleAsync(row => row.Id == setup.CharacterId);
-        Assert.Equal(DevelopmentDataSeeder.AlleyId, character.CurrentRoomId);
-
-        Assert.Equal(0, await verify.RoomVisits.CountAsync(visit =>
-            visit.PlaySessionId == setup.SessionId && visit.LeftAtUtc == null));
+        return await db.WorldItemInstances
+            .Where(item => item.ItemId == ShippedContentIds.Items.Package)
+            .Select(item => item.Id)
+            .SingleAsync();
     }
 
     private SeattleByNightDbContext CreateDbContext()

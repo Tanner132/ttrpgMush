@@ -76,6 +76,45 @@ public sealed class NpcActor : IActor
         return new OpposingPool($"{DisplayName} — {pool.DisplayName}", Math.Max(0, dice));
     }
 
+    // A reply's contested roll: the named terms added up (pools, Body,
+    // Willpower), with wounds once and the Perception awareness bonus when
+    // Perception is among them.
+    public OpposingPool GetOpposingPool(IReadOnlyList<string> terms)
+    {
+        var dice = NpcDerivedValues.WoundModifier(npc);
+        var labels = new List<string>();
+        foreach (var term in terms)
+        {
+            if (string.Equals(term, NpcPoolIds.Body, StringComparison.OrdinalIgnoreCase))
+            {
+                dice += template.Body;
+                labels.Add("Body");
+            }
+            else if (string.Equals(term, NpcPoolIds.Willpower, StringComparison.OrdinalIgnoreCase))
+            {
+                dice += template.Willpower;
+                labels.Add("Willpower");
+            }
+            else
+            {
+                var pool = RequirePool(term);
+                dice += pool.Dice;
+                labels.Add(pool.DisplayName);
+                if (string.Equals(pool.PoolId, NpcPoolIds.Perception, StringComparison.OrdinalIgnoreCase))
+                {
+                    dice += npc.Awareness switch
+                    {
+                        NpcAwareness.Suspicious => 1,
+                        NpcAwareness.Alerted => 2,
+                        _ => 0,
+                    };
+                }
+            }
+        }
+
+        return new OpposingPool($"{DisplayName} — {string.Join(" + ", labels)}", Math.Max(0, dice));
+    }
+
     public CombatProfile GetCombatProfile() => new(
         template.InitiativeBase + NpcDerivedValues.WoundModifier(npc),
         template.InitiativeDice,

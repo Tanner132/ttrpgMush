@@ -82,15 +82,6 @@ builder.Services.AddOptions<WorldOptions>()
     .ValidateOnStart();
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<WorldOptions>>().Value);
 
-builder.Services.AddOptions<EncounterOptions>()
-    .Bind(builder.Configuration.GetSection(EncounterOptions.SectionName))
-    .Validate(o => o.AbandonGraceWindow > TimeSpan.Zero,
-        "Encounter:AbandonGraceWindow must be positive.")
-    .Validate(o => o.ExpirationScanInterval > TimeSpan.Zero,
-        "Encounter:ExpirationScanInterval must be positive.")
-    .ValidateOnStart();
-builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<EncounterOptions>>().Value);
-
 builder.Services.AddOptions<DiceOptions>()
     .Bind(builder.Configuration.GetSection(DiceOptions.SectionName))
     .Validate(o => o.MaxDice > 0, "Dice:MaxDice must be positive.")
@@ -113,7 +104,6 @@ builder.Services.AddSignalR().AddJsonProtocol(options =>
 
 builder.Services.AddHostedService<PlaySessionExpirationService>();
 builder.Services.AddHostedService<StructuredTimeService>();
-builder.Services.AddHostedService<EncounterExpirationService>();
 
 builder.Services.AddApplicationAuthorization();
 
@@ -320,10 +310,12 @@ static async Task SeedAndLoadGameContentAsync(IServiceProvider services, ILogger
 
     var content = services.GetRequiredService<IGameContentProvider>();
     await content.ReloadAsync();
+
+    // Workstream 8: every live job's items are rows in the world.
+    await services.GetRequiredService<IJobItemStore>().SyncAsync(content.Current);
     logger.LogInformation(
-        "Serving game content revision {Version}: {Encounters} encounters, {Missions} missions, {Scenes} scenes.",
+        "Serving game content revision {Version}: {Missions} missions, {Scenes} scenes.",
         content.Current.Version,
-        content.Current.Encounters.Count,
         content.Current.Missions.Count,
         content.Current.Scenes.Count);
 }

@@ -119,40 +119,6 @@ public sealed class WorldEditorStore : IWorldEditorStore
 
         WorldMutationValidation.TryParseAuthoredAccessType(mutation.AccessType, out var accessType);
 
-        // A run's copy is engine-owned; the world editor only edits map rooms.
-        if (room.EncounterInstanceId is not null)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            return WorldMutationResult<WorldRoom>.Failure(WorldMutationError.NotFound);
-        }
-
-        // WF-25: a job site is made of Private rooms. Opening one of them to
-        // the public would put the whole street inside every run's site.
-        if (accessType != RoomAccessType.Private
-            && room.AccessType == RoomAccessType.Private
-            && _gameContent.Current.Encounters.FirstOrDefault(encounter => encounter.HasRoom(room.Id)) is { } site)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            return WorldMutationResult<WorldRoom>.Invalid(new Dictionary<string, string[]>
-            {
-                ["accessType"] = [$"This room is part of the job site '{site.DisplayName}', so it has to stay Private."],
-            });
-        }
-
-        // WF-26: a job listening here from outside its own site is listening
-        // in a public room; closing the room would leave that published and
-        // silently never firing.
-        if (accessType != RoomAccessType.Public
-            && room.AccessType == RoomAccessType.Public
-            && JobsListeningIn(room.Id).FirstOrDefault() is { } listener)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            return WorldMutationResult<WorldRoom>.Invalid(new Dictionary<string, string[]>
-            {
-                ["accessType"] = [$"The job '{listener}' listens to events here, which it can only do in a Public room. Take them off the job first."],
-            });
-        }
-
         var newVersion = Guid.NewGuid();
         _db.Entry(room).Property(candidate => candidate.Version).OriginalValue = version;
         room.Name = mutation.Name.Trim();
@@ -287,55 +253,21 @@ public sealed class WorldEditorStore : IWorldEditorStore
 
         var rooms = await LoadEndpointRoomsAsync(exit.SourceRoomId, exit.DestinationRoomId, cancellationToken);
 
-        // A run's copy is engine-owned; the world editor only edits the map.
-        if (rooms is null
-            || rooms.Value.Source.EncounterInstanceId is not null
-            || rooms.Value.Destination.EncounterInstanceId is not null)
+        if (rooms is null)
         {
             await transaction.RollbackAsync(cancellationToken);
             return WorldMutationResult<WorldExit>.Failure(WorldMutationError.NotFound);
         }
 
-        // WF-25: a live job site has to stay walkable from its entry room.
-        // The publish gate checks that against the map, so the same check runs
-        // here against the map as it would be without this exit — otherwise
-        // the delete succeeds and the corpus quietly stops validating. A map
-        // that already fails the check is not this exit's doing, and removing
-        // it is not refused on that account.
-        var mapReader = new GameEngine.JobSiteMapReader(_db);
-        var soundBefore = SiteCheck(await mapReader.ReadAsync(cancellationToken)) is null;
-
+        // Workstream 8: a job only names rooms, never the doors between them,
+        // so removing an exit cannot break one.
         _db.RoomExits.Remove(exit);
         _auditWriter.Append(actorUserId, AuditActions.RoomExitDeleted, AuditTargetTypes.RoomExit, exit.Id,
             ExitDetails(exit));
         await _db.SaveChangesAsync(cancellationToken);
 
-        if (soundBefore && SiteCheck(await mapReader.ReadAsync(cancellationToken)) is { } broken)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            _db.ChangeTracker.Clear();
-            return WorldMutationResult<WorldExit>.Invalid(new Dictionary<string, string[]>
-            {
-                ["exit"] = [$"Removing this exit would break a live job. {broken}"],
-            });
-        }
-
         await transaction.CommitAsync(cancellationToken);
         return WorldMutationResult<WorldExit>.Success(ToWorldExit(exit, rooms.Value.Source, rooms.Value.Destination));
-    }
-
-    // Null when every live job site still stands on this map; otherwise why not.
-    private string? SiteCheck(JobSiteMap map)
-    {
-        try
-        {
-            JobSiteMapValidator.Validate(_gameContent.Current, map);
-            return null;
-        }
-        catch (GameContentException exception)
-        {
-            return exception.Message;
-        }
     }
 
     private async Task<(Room Source, Room Destination)?> LoadEndpointRoomsAsync(
@@ -383,31 +315,13 @@ public sealed class WorldEditorStore : IWorldEditorStore
         var roomVisits = await _db.RoomVisits.CountAsync(
             visit => visit.RoomId == roomId, cancellationToken);
 
-        var activeStatus = EncounterInstanceStatus.Active.ToString();
-        var returnLinks = await _db.EncounterInstances.CountAsync(
-            encounter => encounter.ReturnRoomId == roomId && encounter.Status == activeStatus,
-            cancellationToken);
-
-        // Content, not rows: a mission whose entry link names this room would
-        // stop being assignable the moment it disappeared.
-        var entryLinks = _gameContent.Current.Missions
-            .Where(mission => mission.EntryLinkRoomId == roomId)
-            .Select(mission => mission.DisplayName)
-            .ToArray();
-
-        var isEncounterRoom = room.EncounterInstanceId is not null
-            || room.AccessType == RoomAccessType.Instanced;
         var isStartingRoom = roomId == WorldOptions.DefaultStartingRoomId;
-
-        var mapRoom = room.EncounterInstanceId is null;
-        var jobSites = mapRoom
-            ? _gameContent.Current.Encounters
-                .Where(encounter => encounter.HasRoom(roomId))
-                .Select(encounter => encounter.DisplayName)
-                .ToArray()
-            : [];
-        var listeningJobs = mapRoom ? JobsListeningIn(roomId).ToArray() : [];
-        var hasRoomEvents = mapRoom && _gameContent.Current.FindPlace(roomId) is not null;
+        var jobs = JobsUsing(roomId, await _db.NpcInstances
+                .Where(npc => npc.RoomId == roomId)
+                .Select(npc => npc.Id)
+                .ToListAsync(cancellationToken))
+            .ToArray();
+        var hasRoomEvents = _gameContent.Current.FindPlace(roomId) is not null;
 
         // WF-27: everything in the room goes with it. These are counted so
         // the builder can say what a delete will take before it is clicked.
@@ -418,40 +332,40 @@ public sealed class WorldEditorStore : IWorldEditorStore
             interactable => interactable.RoomId == roomId, cancellationToken);
 
         // Exits no longer block: they go with the room, in both directions.
-        var reason = isEncounterRoom
-            ? "This room belongs to a run in progress. It goes away when the run ends."
-            : isStartingRoom
-                ? "This is where new characters start. Point the world at another starting room first."
-                : jobSites.Length > 0
-                    ? $"Job sites are built from this room: {string.Join(", ", jobSites)}. Take it out of the job first."
-                : listeningJobs.Length > 0
-                    ? $"Jobs listen to events in this room: {string.Join(", ", listeningJobs)}. "
-                        + "Remove those listeners first."
-                : entryLinks.Length > 0
-                    ? $"Job entry links point here: {string.Join(", ", entryLinks)}."
-                : returnLinks > 0
-                    ? $"{returnLinks} runs in flight would return a character here."
-                    : null;
+        var reason = isStartingRoom
+            ? "This is where new characters start. Point the world at another starting room first."
+            : jobs.Length > 0
+                ? $"Jobs use this room: {string.Join(", ", jobs)}. Take it out of them first."
+                : null;
 
         return new RoomDeletionCheck(
             CanDelete: reason is null,
             IncomingExits: incoming,
             OutgoingExits: outgoing,
-            MissionEntryLinks: entryLinks,
-            ActiveReturnLinks: returnLinks,
             CharactersPresent: occupants,
             ChatMessages: chatMessages,
             RoomVisits: roomVisits,
-            IsEncounterRoom: isEncounterRoom,
             IsStartingRoom: isStartingRoom,
             Reason: reason,
-            JobSites: jobSites,
-            ListeningJobs: listeningJobs,
+            Jobs: jobs,
             NpcsRemoved: npcs,
             ItemsRemoved: items,
             InspectablesRemoved: inspectables,
             HasRoomEvents: hasRoomEvents);
     }
+
+    // Workstream 8: every way a job can depend on a room — it happens there,
+    // listens there, puts an item there, sends runners there, or uses an NPC
+    // standing there (who would go with the room).
+    private IEnumerable<string> JobsUsing(Guid roomId, IReadOnlyCollection<Guid> npcsHere) =>
+        _gameContent.Current.Missions
+            .Where(mission =>
+                mission.RoomIds.Contains(roomId)
+                || mission.Triggers.Any(trigger => trigger.RoomId == roomId)
+                || mission.Items.Any(item => item.RoomId == roomId)
+                || mission.Objectives.Any(objective => objective.RoomId == roomId)
+                || mission.NpcIds.Any(npcsHere.Contains))
+            .Select(mission => mission.DisplayName);
 
     public async Task<WorldMutationResult<RoomDeletionCheck>> DeleteRoomAsync(
         Guid actorUserId,
@@ -485,14 +399,13 @@ public sealed class WorldEditorStore : IWorldEditorStore
             }
 
             var destinationExists = await _db.Rooms.AnyAsync(
-                candidate => candidate.Id == destination && candidate.EncounterInstanceId == null,
-                cancellationToken);
+                candidate => candidate.Id == destination, cancellationToken);
             if (!destinationExists)
             {
                 return WorldMutationResult<RoomDeletionCheck>.Success(check with
                 {
                     CanDelete = false,
-                    Reason = "The relocation target is not a public world room.",
+                    Reason = "The relocation target is not a room on the map.",
                 });
             }
 
@@ -673,13 +586,4 @@ public sealed class WorldEditorStore : IWorldEditorStore
         var now = _timeProvider.GetUtcNow().ToUniversalTime();
         return new DateTimeOffset(now.Ticks - (now.Ticks % 10), TimeSpan.Zero);
     }
-
-    // WF-26: jobs listening to events in a room outside their own site.
-    private IEnumerable<string> JobsListeningIn(Guid roomId) =>
-        _gameContent.Current.Missions
-            .Where(mission =>
-                mission.Triggers.Any(trigger => trigger.RoomId == roomId)
-                && !(_gameContent.Current.FindEncounter(mission.EncounterId)?.HasRoom(roomId) ?? false))
-            .Select(mission => mission.DisplayName);
-
 }

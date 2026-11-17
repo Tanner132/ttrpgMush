@@ -59,8 +59,8 @@ public static class DependencyInjection
         services.AddScoped<IUserAdminStore, UserAdminStore>();
         services.AddScoped<IAuditLogReader, AuditLogReader>();
         services.AddScoped<IWorldGraphReader, WorldGraphReader>();
-        services.AddScoped<IJobSiteMapReader, JobSiteMapReader>();
-        services.AddScoped<IRunAccessPolicy, RunAccessPolicy>();
+        services.AddScoped<IWorldMapReader, WorldMapReader>();
+        services.AddScoped<IJobItemStore, JobItemStore>();
         services.AddScoped<IWorldNpcStore, WorldNpcStore>();
         services.AddScoped<IWorldEditorStore, WorldEditorStore>();
         services.AddSingleton<IDiceRandom, CryptographicDiceRandom>();
@@ -74,7 +74,6 @@ public static class DependencyInjection
         services.AddScoped<IRoomContentEditor, RoomContentStore>();
         services.AddScoped<IMissionReader, MissionStore>();
         services.AddScoped<IMissionAssignmentStore, MissionStore>();
-        services.AddScoped<IEncounterLifecycleStore, EncounterLifecycleStore>();
         services.AddScoped<IGameScopeResolver, GameScopeResolver>();
         services.AddScoped<ISceneSessionReader, SceneSessionStore>();
         services.AddScoped<ITriggerFireReader, SceneSessionStore>();

@@ -269,24 +269,23 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
         Assert.Equal(HttpStatusCode.NotFound, again.StatusCode);
     }
 
+    // Workstream 8: a job names rooms, never the doors between them, so an
+    // exit between a job's rooms can go like any other.
     [Fact]
-    public async Task DeleteExit_ThatALiveJobSiteNeeds_IsRefusedAndSaysWhy()
+    public async Task DeleteExit_BetweenAJobsRooms_IsAllowed()
     {
         var admin = await _factory.LoginDevAdminAsync();
 
-        // The only way from the Warehouse Floor into the Storage Room. Without
-        // it the shipped job site has a room nobody can reach.
-        var onlyWayIn = new Guid("e0e0e0e0-0000-4000-9000-000000000003");
+        // Warehouse Floor → Storage Room.
+        var exitId = new Guid("e0e0e0e0-0000-4000-9000-000000000003");
 
-        var response = await admin.DeleteAsync($"/api/admin/world/exits/{onlyWayIn}");
+        var response = await admin.DeleteAsync($"/api/admin/world/exits/{exitId}");
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var body = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Gang Warehouse", body);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         await using var db = _factory.CreateDbContext();
-        Assert.True(await db.RoomExits.AnyAsync(exit => exit.Id == onlyWayIn));
-        Assert.False(await db.AuditRecords.AnyAsync(record =>
-            record.Action == AuditActions.RoomExitDeleted && record.TargetId == onlyWayIn));
+        Assert.False(await db.RoomExits.AnyAsync(exit => exit.Id == exitId));
+        Assert.True(await db.AuditRecords.AnyAsync(record =>
+            record.Action == AuditActions.RoomExitDeleted && record.TargetId == exitId));
     }
 
     [Fact]

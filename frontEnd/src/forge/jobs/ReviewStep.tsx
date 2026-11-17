@@ -30,16 +30,15 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
   const [notice, setNotice] = useState<string | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [johnsonFate, setJohnsonFate] = useState<JohnsonFate>('remove')
+  const holders = job.johnsons.filter((johnson) => johnson.holdsPitch)
   // Prompts the author chose to keep; the rest that nothing else uses go with the job.
   const [keptPrompts, setKeptPrompts] = useState<Set<Guid>>(new Set())
 
-  // The site goes with the job unless another job is built on it.
-  const siteShared = references.missions.some((other) => other.id !== job.id && other.encounterId === mission.encounterId)
   const promptIds = openedSceneIds(mission).filter((id) => id !== job.pitchId && summary('Scene', id) !== undefined)
   const promptUses = useLoad(
     async (signal) =>
       confirmingDelete
-        ? await findPromptUses(promptIds, job.scenes, { jobId: job.id, siteGoing: siteShared ? null : mission.encounterId, definitions, references }, signal)
+        ? await findPromptUses(promptIds, job.scenes, { jobId: job.id, definitions, references }, signal)
         : null,
     [confirmingDelete, promptIds.join(',')],
   )
@@ -83,14 +82,14 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
   async function remove() {
     const done = await lifecycle.run(async () => {
       // The job goes with the conversation that offers it — each is the only
-      // thing pointing at the other — with its site, unless another job is
-      // built on that, and with the prompts its events open that nothing
-      // else uses (unless the author keeps them).
+      // thing pointing at the other — and with the prompts its events open
+      // that nothing else uses (unless the author keeps them). The rooms,
+      // NPCs and inspectables it used are the map's and stay; its items go
+      // with it.
       const going = records.filter(
         (record) =>
           record.kind === 'Mission' ||
-          (record.kind === 'Scene' && (record.contentKey === job.pitchId || promptsGoing.includes(record.contentKey))) ||
-          (record.kind === 'Encounter' && !siteShared),
+          (record.kind === 'Scene' && (record.contentKey === job.pitchId || promptsGoing.includes(record.contentKey))),
       )
       const result = await deleteSet(going)
       if (!result.isValid) throw new Error(result.error ?? 'The server refused to delete the job.')
@@ -104,8 +103,10 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
     // The Johnson is a map row, not content, so they are dealt with once the
     // job is gone: until then the job's own events may still name them. The
     // job is deleted either way, so a problem here is reported on the list.
+    // Only those given the pitch by name are touched: one who speaks it
+    // through their stat block is just someone built on that block.
     const problems: string[] = []
-    for (const johnson of job.johnsons) {
+    for (const johnson of holders) {
       try {
         if (johnsonFate === 'remove') {
           await removeRoomNpc(johnson.roomId, johnson.id)
@@ -125,7 +126,7 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
         problems.push(`${johnson.name} (${johnson.roomName}): ${toErrorMessage(caught)}`)
       }
     }
-    if (job.johnsons.length > 0) await refreshWorld()
+    if (holders.length > 0) await refreshWorld()
     navigate(
       '/admin/forge/jobs',
       problems.length > 0
@@ -198,7 +199,7 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
                 : `Fix ${errorCount} errors first.`
               : !pending && !job.dirty
                 ? 'Everything here is already live as written.'
-                : `Puts ${records.length === 1 ? 'this record' : `the job's ${records.length} records`} live together: the site, its conversations and the job.`}
+                : `Puts ${records.length === 1 ? 'this record' : `the job's ${records.length} records`} live together: its conversations and the job.`}
           </p>
           {live.error && (
             <StatusBanner tone="danger" role="alert">
@@ -237,11 +238,11 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
           {confirmingDelete && (
             <div className="forge__stack" role="group" aria-label="Delete the job">
               <p className="forge__hint">
-                Deletes the job, its pitch{siteShared ? '' : ' and its site'}. {siteShared ? 'The site stays: another job is built on it.' : ''}
+                Deletes the job, its pitch and its items. The rooms and NPCs it used stay on the map.
               </p>
-              {job.johnsons.length > 0 && (
+              {holders.length > 0 && (
                 <Segmented
-                  label={job.johnsons.length === 1 ? `Johnson: ${job.johnsons[0].name}` : 'Johnsons'}
+                  label={holders.length === 1 ? `Johnson: ${holders[0].name}` : 'Johnsons'}
                   value={johnsonFate}
                   options={[
                     { id: 'remove', displayName: 'Remove from the map' },

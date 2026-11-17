@@ -137,8 +137,8 @@ describe('Forge home', () => {
     renderForge('/admin/forge')
 
     const places = await screen.findByRole('region', { name: 'Places' })
-    expect(within(places).getByText('Public rooms').previousSibling).toHaveTextContent('3')
-    expect(within(places).getByText('Private rooms').previousSibling).toHaveTextContent('1')
+    expect(within(places).getByText('Rooms').previousSibling).toHaveTextContent('4')
+    expect(within(places).getByText('Exits').previousSibling).toHaveTextContent('4')
     expect(screen.getByRole('link', { name: 'Open Read shipping records' })).toHaveAttribute('href', `/admin/forge/library/dice-tests/${Ids.records}`)
   })
 })

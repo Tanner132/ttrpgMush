@@ -28,10 +28,7 @@ public abstract class NpcTemplateHarness : PlaythroughHarness
                 CharacterId, content.Current.FindMission(MissionId)!, CancellationToken.None);
             Assert.True(assigned.IsSuccess);
 
-            await MoveAsync(DevelopmentDataSeeder.DowntownToAlleyExitId);
-            var entered = await ActAsync(
-                DevelopmentGameActions.EnterEncounterActionId, assigned.Instance!.Id);
-            Assert.Equal(GameActionError.None, entered.Error);
+            await WalkIntoWarehouseAsync();
         }
     }
 

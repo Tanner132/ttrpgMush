@@ -13,8 +13,8 @@ import type {
 } from '../api.ts'
 
 /*
- * A small world for the Forge's tests: the development city's three public
- * rooms, one private job-site room, and the content that goes with them. The
+ * A small world for the Forge's tests: the development city's three rooms,
+ * the warehouse's loading dock, and the content that goes with them. The
  * content store is in memory, so a test can save a draft and read it back the
  * way the server would serve it.
  */
@@ -27,7 +27,6 @@ export const Ids = {
   johnson: 'bbbbbbbb-bbbb-bbbb-bbbb-000000000001',
   ganger: 'c9598b8d-a483-4741-8463-29bf6e7b64f0',
   johnsonBlock: '4cf1c180-6e71-41ca-8c1b-d33b50f3d06f',
-  site: 'dd942386-7883-4d93-8201-571fdffb872c',
   job: 'c5c1844a-eb16-4278-a8ce-89b90b3ff11d',
   objective: '0609ca43-dd89-440a-8f6b-19583d8ae55c',
   package: '86c291a8-4ad0-436c-ad63-73973a3b7c19',
@@ -36,8 +35,8 @@ export const Ids = {
   talkDown: '5ebec4f2-5d44-47cd-9167-13650586c518',
 }
 
-function room(id: string, name: string, x: number, y: number, accessType: WorldRoom['accessType'] = 'Public'): WorldRoom {
-  return { id, name, description: `${name} description.`, accessType, mapX: x, mapY: y, mapLayer: 0, createdAtUtc: '2026-11-01T00:00:00Z', version: `${id}-v1` }
+function room(id: string, name: string, x: number, y: number): WorldRoom {
+  return { id, name, description: `${name} description.`, accessType: 'Public', mapX: x, mapY: y, mapLayer: 0, createdAtUtc: '2026-11-01T00:00:00Z', version: `${id}-v1` }
 }
 
 export function exit(from: WorldRoom, to: WorldRoom, direction: WorldExit['direction'], flags: Partial<WorldExit> = {}): WorldExit {
@@ -59,7 +58,7 @@ export const Rooms = {
   downtown: room(Ids.downtown, 'Downtown', 0, 0),
   coffee: room(Ids.coffee, 'Coffee Shop', 1, 0),
   alley: room(Ids.alley, 'Alley', 0, 1),
-  dock: room(Ids.dock, 'Loading Dock', 10, 0, 'Private'),
+  dock: room(Ids.dock, 'Loading Dock', 1, 1),
 }
 
 export function world(): WorldGraph {
@@ -129,24 +128,14 @@ export const palette: ContentPalette = {
 
 export function references(): ContentReferences {
   return {
-    encounters: [
-      {
-        id: Ids.site,
-        displayName: 'Gang Warehouse',
-        isRetired: false,
-        entryRoomId: Ids.dock,
-        roomIds: [Ids.dock],
-        npcs: [{ id: Ids.siteNpc, name: 'Warehouse Ganger', roomId: Ids.dock }],
-        items: [{ id: Ids.package, name: 'Sealed Courier Package', roomId: Ids.dock }],
-        interactables: [],
-      },
-    ],
     missions: [
       {
         id: Ids.job,
         displayName: 'Gang Warehouse Retrieval',
         isRetired: false,
-        encounterId: Ids.site,
+        roomIds: [Ids.dock],
+        npcIds: [Ids.siteNpc],
+        items: [{ id: Ids.package, name: 'Sealed Courier Package', roomId: Ids.dock }],
         objectives: [{ id: Ids.objective, displayName: 'Retrieve the courier package', kind: 'PickUpItem' }],
       },
     ],
@@ -162,10 +151,10 @@ export function references(): ContentReferences {
     ],
     places: [],
     rooms: [
-      { id: Ids.downtown, name: 'Downtown', accessType: 'Public', npcs: [] },
-      { id: Ids.coffee, name: 'Coffee Shop', accessType: 'Public', npcs: [{ id: Ids.johnson, name: 'Mr. Johnson' }] },
-      { id: Ids.alley, name: 'Alley', accessType: 'Public', npcs: [] },
-      { id: Ids.dock, name: 'Loading Dock', accessType: 'Private', npcs: [] },
+      { id: Ids.downtown, name: 'Downtown', npcs: [], inspectables: [] },
+      { id: Ids.coffee, name: 'Coffee Shop', npcs: [{ id: Ids.johnson, name: 'Mr. Johnson' }], inspectables: [] },
+      { id: Ids.alley, name: 'Alley', npcs: [], inspectables: [] },
+      { id: Ids.dock, name: 'Loading Dock', npcs: [{ id: Ids.siteNpc, name: 'Warehouse Ganger', templateId: Ids.ganger }], inspectables: [] },
     ],
   }
 }
@@ -304,16 +293,12 @@ export function useFakeServer(store: ContentStore, graph: WorldGraph = world(), 
     canDelete: roomId !== Ids.coffee,
     incomingExits: 1,
     outgoingExits: 1,
-    missionEntryLinks: [],
-    activeReturnLinks: 0,
     charactersPresent: 0,
     chatMessages: 0,
     roomVisits: 0,
-    isEncounterRoom: false,
     isStartingRoom: false,
-    reason: roomId === Ids.coffee ? 'Jobs listen to events in this room: Gang Warehouse Retrieval. Remove those listeners first.' : null,
-    jobSites: [],
-    listeningJobs: roomId === Ids.coffee ? ['Gang Warehouse Retrieval'] : [],
+    reason: roomId === Ids.coffee ? 'Jobs use this room: Gang Warehouse Retrieval. Take it out of those jobs first.' : null,
+    jobs: roomId === Ids.coffee ? ['Gang Warehouse Retrieval'] : [],
     npcsRemoved: 0,
     itemsRemoved: 0,
     inspectablesRemoved: 0,

@@ -9,7 +9,7 @@ import { useContentDraft } from '../useContentDraft.ts'
 
 /** A stat block: the dice and body an NPC is built on. Placed NPCs can override any of it. */
 export function StatBlockEditor({ id }: { id: string }) {
-  const { palette, summary, references } = useForgeData()
+  const { palette, references } = useForgeData()
   const guard = useGuardedClick()
   const navigate = useNavigate()
   const draft = useContentDraft<StatBlock>('NpcTemplate', id, () => newStatBlock(palette.npcPools.map((pool) => pool.id)))
@@ -21,7 +21,6 @@ export function StatBlockEditor({ id }: { id: string }) {
 
   const set = (change: Partial<StatBlock>) => draft.setValue((current) => ({ ...current, ...change }))
   const setWeapon = (change: Partial<Weapon>) => draft.setValue((current) => ({ ...current, weapon: { ...current.weapon, ...change } }))
-  const dependents = summary('NpcTemplate', id)?.dependents ?? []
   // World NPCs — Johnsons and regulars standing in public rooms — are rows on
   // the map, not content, so they are read off the map's own list.
   const worldNpcs = references.rooms.flatMap((room) =>
@@ -120,20 +119,11 @@ export function StatBlockEditor({ id }: { id: string }) {
         </fieldset>
       </Section>
 
-      <Section title={`Used by · ${dependents.length + worldNpcs.length}`}>
-        {dependents.length + worldNpcs.length === 0 ? (
+      <Section title={`Used by · ${worldNpcs.length}`}>
+        {worldNpcs.length === 0 ? (
           <Empty>No NPC is built on this yet.</Empty>
         ) : (
           <ul className="forge__rows">
-            {dependents.map((dependent) => (
-              <li key={`${dependent.encounterId}-${dependent.name}`} className="forge__row">
-                <Chip tone="info">Job NPC</Chip>
-                <b className="forge__row-name">{dependent.name}</b>
-                <Link to={`/admin/forge/places?room=${dependent.roomId}`} onClick={guard}>
-                  {dependent.encounterName}
-                </Link>
-              </li>
-            ))}
             {worldNpcs.map((npc) => (
               <li key={npc.id} className="forge__row">
                 <Chip>World NPC</Chip>

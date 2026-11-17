@@ -24,11 +24,6 @@ public sealed class GameContentUsageReader(SeattleByNightDbContext db) : IGameCo
                     instance => instance.MissionId == contentKey, cancellationToken),
                 "mission instances"),
 
-            GameContentKind.Encounter => new GameContentUsage(
-                await db.EncounterInstances.CountAsync(
-                    encounter => encounter.EncounterId == contentKey, cancellationToken),
-                "encounter instances"),
-
             GameContentKind.NpcTemplate => new GameContentUsage(
                 await db.NpcInstances.CountAsync(
                     npc => npc.TemplateId == contentKey, cancellationToken),

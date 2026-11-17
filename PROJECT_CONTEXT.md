@@ -88,8 +88,8 @@ StateChanges, Tests).
 ## World model
 
 - **Room** — name, description, access type, and required immutable coordinates
-  `(x, y, layer)` unique within a layer. `RoomAccessType` is `Public`, `Private` (a job site's room) or `Instanced`
-  (a run's copy of one); see "Job sites are map rooms" below.
+  `(x, y, layer)` unique within a layer. Every room is `Public` (workstream 8:
+  one shared map, no run copies); the field stays for player-owned rooms.
 - **RoomExit** — a directed edge with one of ten directions (eight compass
   points, `up`, `down`) and a `states` array (`ExitStates`: `locked`, `hidden`,
   `restricted`, `private`; empty is an open door, workstream 8). Hidden,
@@ -104,10 +104,10 @@ StateChanges, Tests).
   separate create.
 - Movement names an exit from the character's current room, never a destination
   room ID.
-- A public room can be deleted only through a referential check (exits, mission
-  links, occupants with a relocation target); its chat and visit history go with
-  it in the same transaction and the counts are audited. A single exit can be
-  deleted unless that would cut a live job site's room off from its entry.
+- A room can be deleted only through a referential check (exits, the jobs
+  that use it, occupants with a relocation target); its chat and visit history
+  go with it in the same transaction and the counts are audited. A single exit
+  can always be deleted.
 - Rooms and exits carry opaque version tokens; a stale update returns `409`.
 - The `New Character Room` is required world data created by migration.
   Development seeding adds sample rooms, `devuser`, and `Dev Runner`.
@@ -228,8 +228,8 @@ built follows it; these are the load-bearing rules.
   dice roller are pure with an injected roller. Every resolution records its
   seed and a full pool breakdown; a pool never reaches the client as an
   unexplained number. Every test is audited.
-- **Command queue.** Actions run strictly one at a time per scope (room or
-  encounter instance) with idempotent request IDs. No reentrancy: anything an
+- **Command queue.** Actions run strictly one at a time per room with
+  idempotent request IDs. No reentrancy: anything an
   action causes is enqueued as a new command.
 - **Decisions.** A resolution can pause on a `DecisionRequest` (Edge, defense).
   Every request has a default and a timeout, so an absent player can never
@@ -241,67 +241,73 @@ built follows it; these are the load-bearing rules.
   mutation.
 - **Affordances.** The server computes each viewer's available actions. Hidden
   interactables stay invisible until discovered.
-- **Time.** Encounters are `Freeform` until combat starts, then
+- **Time.** A room is `Freeform` until combat starts, then
   `StructuredTime`, driven by a background service that runs NPC turns and
   enforces player turn timers.
 - **Combat scope.** Initiative and passes, the SR5 action economy, ranged
   (single shot, semi-auto, burst) and basic melee/unarmed attacks, reload, cover,
   Full Defense, delay, soak, condition monitors, and deterministic NPC behavior.
-  A defeated player character is knocked out, not killed, and wakes at the
-  encounter entry point with damage persisting. Recoil and environmental
+  A defeated player character is knocked out, not killed, and stays where
+  they fell with damage persisting; going down does not fail a job. Recoil and environmental
   modifiers are simplified; both simplifications are recorded in the rule
   decisions register.
-- **Instances.** A mission runs in a private encounter instance that
-  materializes its own room, item, and NPC rows. Instances survive disconnects
-  within a grace window (15 minutes by default) and are swept when abandoned.
-  One player per instance today; the model holds a participant collection.
-- **Every authored record is keyed by a GUID (WF-27).** Rooms, job sites,
-  jobs, objectives, listeners, conversations (and their steps and choices),
+- **One shared world (workstream 8).** There are no run copies: every runner
+  on a job walks the same map rooms, meets the same NPC rows and competes for
+  the same item rows. A job resets between runs (phase 3).
+- **Every authored record is keyed by a GUID (WF-27).** Rooms, jobs, objectives, listeners, conversations (and their steps and choices),
   stat blocks, authored tests, NPC placements, items and inspectables are all
   referenced by id; names are display text only. Engine vocabulary (skills,
   pools, effect and event kinds, actions, built-in tests) keeps its names, so
   a test reference is a built-in name or an authored test's GUID. The shipped
   bundle's ids are in `ShippedContentIds`.
-- **Job sites are map rooms (WF-25).** Every map room has an access type:
-  `Public`, or `Private` (part of a job site). An encounter names its site
-  rooms by map room id; a run's copy is made from the map rows (name,
-  description, environment, position, and the exits between them with
-  hidden/locked flags) and each copy records its `SourceRoomId` — as copied
-  NPCs and inspectables record `SourceNpcId` / `SourceInteractableId` — so
-  events in a copy carry the original's id. Nobody stands in a `Private` map
-  room: walking into one enters the runner's run copy through the
-  `mission-enter` action (`IRunAccessPolicy` decides who may), and everyone
-  else finds the door locked. The publish gate checks sites against the map
-  (`JobSiteMapValidator`: rooms on the map, Private, reachable from the entry).
+- **A job names map rooms (workstream 8).** A mission lists the `roomIds` it
+  happens in, the world `npcIds` it uses (its reset brings them back), and
+  its own `items`. Each job item is one `WorldItemInstance` row keyed by
+  `ItemId`, carrying the `MissionId`; `IJobItemStore.SyncAsync` makes and
+  renames the rows after every publish, retire and delete and at start-up,
+  but never moves one — where an item is, is game state. Handing an item in
+  puts it out of play (no room, no owner) rather than deleting it, and a
+  `giveItem` never takes an item from someone holding it. No item belongs to
+  two jobs. The publish gate checks jobs and room events against the map
+  (`JobMapValidator`: rooms, NPCs and inspectables on the map, a listener's
+  subject and speakers in its room, an alert's NPC anywhere on the map).
+  Objectives are `reachRoom` (completes on the arrival room's queue, before
+  the room's own events), `pickUpItem` and `deliverItem`.
 - **Events belong to rooms (WF-20, WF-26).** Every event happens in a room.
   A room's own reactions are a `Place` definition keyed by the room's id; they
-  fire every time. A job's listeners live on the mission, each naming a room
-  (its site, or a public room); only one job may listen to a given event
+  fire every time. A job's listeners live on the mission, each naming any map
+  room; only one job may listen to a given event
   (room + kind + subject), and they fire once per run. A retired job holds no
   events: another job may take one over, and the retired job's listeners
   still reach runs already under way (the loader is given the store's retired
   ids). Publishing the retired job again is refused if its event has been
   taken. The room reacts first,
-  then the job. In a public room, narration goes to the player who caused it
-  and a job's lines reach only its runner while the room sees a cover line
-  (`othersSee`). Johnsons are world NPCs placed in Public rooms
+  then the job. Narration goes to the player who caused it, and a job's lines
+  reach only its runner while the room sees a cover line (`othersSee`).
+  A Johnson offers the job in whatever room they stand; no room is asked
+  for. A Johnson is either a world NPC given the pitch by name (`SceneId`),
+  or anyone built on the pitch's stat block who holds no conversation of
+  their own (`FindSceneForNpc`); the Forge counts the stat-block route only
+  when the pitch is that block's one conversation. Johnsons are placed
   (`WorldNpcPlacement`), and may be bound to a conversation that is still a
   draft: they are placed while the job is written and have nothing to say
-  until it is live. A world NPC can be moved between Public rooms as the same
+  until it is live. A world NPC can be moved between rooms as the same
   row (`WorldNpcPlacement.MoveAsync`), except mid-conversation, during a fight
   in their room, or while a live listener names them. Room events beyond entry (WF-21): `sneakAttempted`
-  (with outcome), `combatStarted`, `lockedExitTried`, `playerLeftRoom`.
+  (with outcome), `combatStarted`, `lockedExitTried`, `playerLeftRoom`,
+  `interactableInspected`.
 - **Deleting (WF-27).** Deleting a room deletes its NPCs, items, inspectables,
-  its own events and its exits both ways; it is refused while a job listens to
-  the room or builds a site from it. A world NPC a listener names cannot be
+  its own events and its exits both ways; it is refused while any job uses the
+  room (happens in it, listens in it, puts an item in it, sends runners to it,
+  or uses an NPC standing in it). A world NPC a listener names cannot be
   removed. Refusals name what still points at the record.
 - **Hidden items (WF-27).** Items, like inspectables, can be hidden with a
   search difficulty; observe-area reveals them per character
   (`DiscoverySubjectType.Item`), and an undiscovered item cannot be taken.
 - **Content writes are serialized (WF-22).** Publish, delete and draft saves
   run under one advisory lock (`IGameContentStore.RunExclusiveAsync`).
-- **A job goes live, and leaves, as a set (WF-28).** A job names its site and
-  the conversations its events open, and its Johnson's conversation names the
+- **A job goes live, and leaves, as a set (WF-28).** A job names the
+  conversations its events open, and its Johnson's conversation names the
   job, so those definitions cannot pass the publish gate — or the delete gate
   — one at a time. `GameContentPublisher.PublishSetAsync` and
   `GameContentLifecycle.DeleteSetAsync` check the set as one candidate corpus
@@ -320,9 +326,18 @@ built follows it; these are the load-bearing rules.
 
 ## Game content and World Forge
 
-- Content kinds: `Encounter`, `Mission`, `Scene`, `Test`, `NpcTemplate`. Mission
-  items, rooms, exits, interactables, NPC placements, and encounter triggers are
-  authored inside an encounter fragment.
+- Content kinds: `Mission`, `Scene`, `Test`, `NpcTemplate`, `Place`. Rooms,
+  exits, world NPCs and inspectables are map rows edited in Places; a job's
+  items are authored on the job. In the Forge a job is built in steps:
+  Johnson, Pitch, Rooms, Events, Objectives · Pay, Go live.
+- **A reply can roll.** It names a `Test` (a Library dice test or a built-in),
+  or builds its own `roll` (`ChoiceRoll`): the runner adds up one or two
+  attributes or skills, read off their sheet when they pick it; contested, the
+  NPC being talked to adds up one or two of their stat block's pools, Body or
+  Willpower (`NpcActor.GetOpposingPool(terms)`); uncontested, it needs a
+  threshold. A built roll becomes the same `SkillTestDefinition` a Library
+  test loads into, so modifiers, limits and Edge work alike. Contested needs a
+  conversation bound to a stat block. Event reactions still roll Library tests.
 - **Compose, don't script.** Event, effect, condition, and objective *kinds* are
   code. Everything built from them is content. A new kind is a small additive
   engine change with tests; there is no scripting language.
@@ -340,18 +355,14 @@ built follows it; these are the load-bearing rules.
 
 Deliberate decisions that look like bugs but are not:
 
-1. **Only materialized content is isolated from edits.** Rooms, exits, items,
-   NPC placements, and objectives are copied into an instance. Triggers, scenes,
-   NPC base stat blocks, and mission definitions resolve live, so publishing an
-   edit reaches runs already in flight.
+1. **Content resolves live.** Nothing is copied into a run except its
+   objective list. Triggers, scenes, NPC stat blocks and mission definitions
+   resolve live, so publishing an edit reaches runs already in flight.
 2. **Retired content stays in the served document** so running instances keep
    resolving it. The `IsRetired` flag stops it being offered to anyone new.
-   Retiring an encounter retires its missions.
-3. **`alertNpc` resolves encounter-wide; `pacifyNpc` and `startCombat` are
-   room-scoped.** The publish gate enforces the split.
-4. **The return room is not authored.** The engine records where the runner
-   entered from.
-5. **Pay is negotiable when a scene offers a `setNegotiatedPay` choice**, not by
+3. **`alertNpc` reaches anywhere on the map; `pacifyNpc` and `startCombat`
+   are room-scoped.** The publish gate enforces the split.
+4. **Pay is negotiable when a scene offers a `setNegotiatedPay` choice**, not by
    a mission flag.
 
 Nothing an admin can click may break a character's ledger, receipts, or audit

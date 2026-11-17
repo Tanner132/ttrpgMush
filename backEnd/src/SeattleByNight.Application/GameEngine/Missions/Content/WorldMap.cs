@@ -1,163 +1,151 @@
-using SeattleByNight.Domain.Enums;
-
 namespace SeattleByNight.Application.GameEngine.Missions.Content;
 
-// WF-25: the shared map as the content pipeline needs to see it. Job sites are
-// made of map rooms, so whether a site is sound depends on the map as much as
-// on the content: the content names rooms by id, the map says what those rooms
-// are and how they connect.
-public sealed record JobSiteMapRoom(
+// Workstream 8: the shared map as the content pipeline needs to see it. Jobs
+// happen in map rooms and use world NPCs and map inspectables, so whether a job
+// is sound depends on the map as much as on the content: the content names
+// things by id, the map says where they are.
+public sealed record WorldMapRoom(
     Guid Id,
     string Name,
-    RoomAccessType AccessType,
-    // The world NPCs standing in the room (Johnsons and the like).
-    IReadOnlyList<JobSiteMapNpc>? Npcs = null);
+    // The world NPCs standing in the room.
+    IReadOnlyList<WorldMapNpc>? Npcs = null,
+    // The inspectables in the room.
+    IReadOnlyList<WorldMapInspectable>? Inspectables = null);
+
+public sealed record WorldMapInspectable(Guid Id, string Name);
 
 // TemplateId and SceneId let the Forge say which stat block a world NPC is
 // built on and whose conversation they hold (a job's Johnson), without a
 // request per room.
-public sealed record JobSiteMapNpc(Guid Id, string Name, Guid? TemplateId = null, Guid? SceneId = null);
+public sealed record WorldMapNpc(Guid Id, string Name, Guid? TemplateId = null, Guid? SceneId = null);
 
-public sealed record JobSiteMapExit(
-    Guid FromRoomId,
-    Guid ToRoomId,
-    string Direction,
-    bool IsHidden,
-    bool IsLocked);
-
-public sealed record JobSiteMap(
-    IReadOnlyDictionary<Guid, JobSiteMapRoom> Rooms,
-    IReadOnlyList<JobSiteMapExit> Exits)
+public sealed record WorldMap(IReadOnlyDictionary<Guid, WorldMapRoom> Rooms)
 {
-    public static JobSiteMap Empty { get; } = new(new Dictionary<Guid, JobSiteMapRoom>(), []);
+    public static WorldMap Empty { get; } = new(new Dictionary<Guid, WorldMapRoom>());
+
+    public WorldMapRoom? FindNpcRoom(Guid npcId) =>
+        Rooms.Values.FirstOrDefault(room => (room.Npcs ?? []).Any(npc => npc.Id == npcId));
 }
 
-public interface IJobSiteMapReader
+public interface IWorldMapReader
 {
-    // Every room on the shared map (never a run's copy), and every exit
-    // between two of them.
-    Task<JobSiteMap> ReadAsync(CancellationToken cancellationToken = default);
+    Task<WorldMap> ReadAsync(CancellationToken cancellationToken = default);
 }
 
 // The publish-time half of the content checks — the half the content loader
-// cannot do, because it never sees the database.
-public static class JobSiteMapValidator
+// cannot do, because it never sees the database. Everything content names on
+// the map has to be there, and where a listener needs it to be.
+public static class JobMapValidator
 {
-    public static void Validate(GameContentDocument document, JobSiteMap map)
+    public static void Validate(GameContentDocument document, WorldMap map)
     {
-        foreach (var encounter in document.Encounters)
-        {
-            ValidateEncounter(encounter, map);
-        }
-
         foreach (var place in document.Places)
         {
             map.Rooms.TryGetValue(place.Id, out var room);
             Fail(room is null, $"Room events '{place.DisplayName}' name a room that is not on the map.");
             foreach (var trigger in place.Triggers)
             {
-                RequireNamedNpcsPresent(trigger, room!, $"Room events '{room!.Name}' {Describe(trigger)}");
+                ValidateListener(trigger, room!, map, $"Room events '{room!.Name}' {Describe(trigger)}");
             }
         }
 
         foreach (var mission in document.Missions)
         {
-            ValidateJobListeners(mission, document.FindEncounter(mission.EncounterId), map);
+            ValidateJob(mission, map);
+        }
+
+        foreach (var scene in document.Scenes)
+        {
+            foreach (var effect in scene.Nodes
+                .SelectMany(node => node.Choices)
+                .SelectMany(choice => new[] { choice.Effects, choice.OnSuccess?.Effects, choice.OnFailure?.Effects })
+                .SelectMany(effects => effects ?? []))
+            {
+                Fail(
+                    effect.NpcId is { } npcId && map.FindNpcRoom(npcId) is null,
+                    $"Scene '{scene.DisplayName}' effect '{Name(effect.Kind.ToString())}' names an NPC who is not on the map.");
+            }
         }
     }
 
-    private static void ValidateEncounter(EncounterDefinition encounter, JobSiteMap map)
+    private static void ValidateJob(MissionDefinition mission, WorldMap map)
     {
-        var missing = encounter.RoomIds.Where(roomId => !map.Rooms.ContainsKey(roomId)).ToList();
+        var where = $"Job '{mission.DisplayName}'";
+
+        var missing = mission.RoomIds.Where(roomId => !map.Rooms.ContainsKey(roomId)).ToList();
         Fail(
             missing.Count > 0,
-            $"Job site '{encounter.DisplayName}' includes {missing.Count} room(s) that are not on the map. "
-                + "A job site is made of map rooms: build them in Places.");
+            $"{where} uses {missing.Count} room(s) that are not on the map. Build them in Places.");
 
-        foreach (var roomId in encounter.RoomIds)
+        foreach (var npcId in mission.NpcIds)
         {
-            var mapRoom = map.Rooms[roomId];
-            Fail(
-                mapRoom.AccessType != RoomAccessType.Private,
-                $"Job site '{encounter.DisplayName}' uses '{mapRoom.Name}', which is a {mapRoom.AccessType} "
-                    + "room. Rooms in a job site must be Private, so only runners on the run get in.");
+            Fail(map.FindNpcRoom(npcId) is null, $"{where} uses an NPC who is not on the map. Place them in Places.");
         }
 
-        // Every room has to be reachable from the entry room along the map's
-        // exits between site rooms. Hidden and locked exits still count: a
-        // hidden door can be found and a locked one is the author's choice,
-        // but a room with no way in at all is a mistake.
-        var siteRooms = encounter.RoomIds.ToHashSet();
-        var reached = new HashSet<Guid> { encounter.EntryRoomId };
-        var frontier = new Queue<Guid>([encounter.EntryRoomId]);
-        while (frontier.Count > 0)
+        foreach (var objective in mission.Objectives)
         {
-            var from = frontier.Dequeue();
-            foreach (var exit in map.Exits)
+            Fail(
+                objective.RoomId is { } roomId && !map.Rooms.ContainsKey(roomId),
+                $"{where} objective '{objective.DisplayName}' names a room that is not on the map.");
+        }
+
+        foreach (var trigger in mission.Triggers)
+        {
+            var listener = $"{where} {Describe(trigger)}";
+            map.Rooms.TryGetValue(trigger.RoomId, out var room);
+            Fail(room is null, $"{listener} listens in a room that is not on the map.");
+            ValidateListener(trigger, room!, map, listener);
+        }
+    }
+
+    // A listener's subject is in its room. So is everyone it has speak or act
+    // face to face; an alert carries further, so its NPC only has to be on the
+    // map.
+    private static void ValidateListener(TriggerDefinition trigger, WorldMapRoom room, WorldMap map, string where)
+    {
+        var present = (room.Npcs ?? []).Select(npc => npc.Id).ToHashSet();
+
+        Fail(
+            trigger.NpcId is { } watched && !present.Contains(watched),
+            $"{where} watches an NPC who is not in '{room.Name}'.");
+        Fail(
+            trigger.InteractableId is { } inspectable && !(room.Inspectables ?? []).Any(candidate => candidate.Id == inspectable),
+            $"{where} watches an inspectable that is not in '{room.Name}'.");
+
+        foreach (var reaction in trigger.Reactions)
+        {
+            Fail(
+                reaction.NpcId is { } speaker && !present.Contains(speaker),
+                $"{where} has an NPC speak or act who is not in '{room.Name}'.");
+
+            foreach (var effect in (reaction.Effects ?? [])
+                .Concat(reaction.OnSuccess?.Effects ?? [])
+                .Concat(reaction.OnFailure?.Effects ?? []))
             {
-                if (exit.FromRoomId == from && siteRooms.Contains(exit.ToRoomId) && reached.Add(exit.ToRoomId))
+                if (effect.NpcId is not { } npcId)
                 {
-                    frontier.Enqueue(exit.ToRoomId);
+                    continue;
+                }
+
+                if (effect.Kind == SceneEffectKind.AlertNpc)
+                {
+                    Fail(map.FindNpcRoom(npcId) is null, $"{where} alerts an NPC who is not on the map.");
+                }
+                else
+                {
+                    Fail(
+                        !present.Contains(npcId),
+                        $"{where} effect '{Name(effect.Kind.ToString())}' names an NPC who is not in '{room.Name}', "
+                            + "and it only reaches the room the player is in. Use 'alertNpc' to reach further.");
                 }
             }
         }
-
-        var unreachable = siteRooms.Where(roomId => !reached.Contains(roomId)).ToList();
-        Fail(
-            unreachable.Count > 0,
-            $"Job site '{encounter.DisplayName}' has rooms with no way in from its entry room: "
-                + $"{string.Join(", ", unreachable.Select(roomId => $"'{map.Rooms[roomId].Name}'"))}. "
-                + "Connect them with exits in Places.");
     }
 
-    // WF-26: a job listening outside its own site listens in a public room —
-    // never another job's private one — and the NPCs it names are the ones
-    // standing there on the map.
-    private static void ValidateJobListeners(MissionDefinition mission, EncounterDefinition? site, JobSiteMap map)
-    {
-        foreach (var trigger in mission.Triggers)
-        {
-            if (site is not null && site.HasRoom(trigger.RoomId))
-            {
-                continue;
-            }
-
-            var where = $"Job '{mission.DisplayName}' {Describe(trigger)}";
-            map.Rooms.TryGetValue(trigger.RoomId, out var room);
-            Fail(room is null, $"{where} listens in a room that is not on the map.");
-            Fail(
-                room!.AccessType != RoomAccessType.Public,
-                $"{where} listens in '{room.Name}', a {room.AccessType} room that is not part of this job. "
-                    + "A job listens in its own site or in public rooms.");
-            RequireNamedNpcsPresent(trigger, room, where);
-        }
-    }
-
-    // Everyone a listener names — the NPC it watches, who speaks, who an
-    // effect reaches — has to be standing in its room, or the line or effect
-    // silently does nothing.
-    private static void RequireNamedNpcsPresent(TriggerDefinition trigger, JobSiteMapRoom room, string where)
-    {
-        var present = (room.Npcs ?? []).Select(npc => npc.Id).ToHashSet();
-        var named = new List<Guid?> { trigger.NpcId };
-        foreach (var reaction in trigger.Reactions)
-        {
-            named.Add(reaction.NpcId);
-            named.AddRange((reaction.Effects ?? [])
-                .Concat(reaction.OnSuccess?.Effects ?? [])
-                .Concat(reaction.OnFailure?.Effects ?? [])
-                .Select(effect => effect.NpcId));
-        }
-
-        foreach (var npcId in named.OfType<Guid>().Distinct())
-        {
-            Fail(!present.Contains(npcId), $"{where} names an NPC who is not in '{room.Name}'.");
-        }
-    }
+    private static string Name(string kind) => char.ToLowerInvariant(kind[0]) + kind[1..];
 
     private static string Describe(TriggerDefinition trigger) =>
-        $"listener '{char.ToLowerInvariant(trigger.Event.ToString()[0])}{trigger.Event.ToString()[1..]}' "
-            + $"({trigger.Id.ToString()[..8]})";
+        $"listener '{Name(trigger.Event.ToString())}' ({trigger.Id.ToString()[..8]})";
 
     private static void Fail(bool condition, string message)
     {

@@ -19,9 +19,6 @@ public sealed class NpcInstance
     // Scene binding override; null falls through to whatever scene the
     // template speaks.
     public Guid? SceneId { get; set; }
-    // WF-27: the job-site placement a run's NPC was made from; null for a
-    // world NPC, which is its own record.
-    public Guid? SourceNpcId { get; set; }
 
     // The placement's sparse mechanical diff as authored JSON; null means the
     // NPC is exactly its template.

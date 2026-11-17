@@ -138,9 +138,9 @@ public static class DevelopmentDataSeeder
                     Direction = "up"
                 }
         };
-        // WF-25: the shipped Gang Warehouse job site — four Private map rooms
-        // east of town, connected as the job expects. Only runners on the job
-        // get in; their run's copy is made from these rows.
+        // The shipped Gang Warehouse job happens in four ordinary rooms east
+        // of town (workstream 8: there are no private job sites), reached by a
+        // door from the alley.
         var site = ShippedContentIds.SiteRooms.LoadingDock;
         if (!await db.Rooms.AnyAsync(room => room.Id == site, cancellationToken))
         {
@@ -164,6 +164,8 @@ public static class DevelopmentDataSeeder
             SiteExit(4, ShippedContentIds.SiteRooms.StorageRoom, ShippedContentIds.SiteRooms.WarehouseFloor, "west"),
             SiteExit(5, ShippedContentIds.SiteRooms.LoadingDock, ShippedContentIds.SiteRooms.BackHallway, "east"),
             SiteExit(6, ShippedContentIds.SiteRooms.BackHallway, ShippedContentIds.SiteRooms.LoadingDock, "west"),
+            SiteExit(7, AlleyId, ShippedContentIds.SiteRooms.LoadingDock, "east"),
+            SiteExit(8, ShippedContentIds.SiteRooms.LoadingDock, AlleyId, "west"),
         ];
 
         var seedExitIds = seedExits.Select(exit => exit.Id).ToArray();
@@ -184,6 +186,56 @@ public static class DevelopmentDataSeeder
                 Awareness = NpcAwareness.Unaware.ToString(),
                 CreatedAtUtc = DateTimeOffset.UtcNow,
                 UpdatedAtUtc = DateTimeOffset.UtcNow,
+            });
+        }
+
+        // Workstream 8: the warehouse's people and its ledger terminal are
+        // world rows like anything else on the map, with the ids the job's
+        // content names them by.
+        if (!await db.NpcInstances.AnyAsync(npc => npc.Id == ShippedContentIds.SiteNpcs.WarehouseGanger, cancellationToken))
+        {
+            db.NpcInstances.Add(new NpcInstance
+            {
+                Id = ShippedContentIds.SiteNpcs.WarehouseGanger,
+                TemplateId = NpcTemplateIds.StreetGanger,
+                Name = "Warehouse Ganger",
+                RoomId = ShippedContentIds.SiteRooms.WarehouseFloor,
+                Awareness = NpcAwareness.Unaware.ToString(),
+                CreatedAtUtc = DateTimeOffset.UtcNow,
+                UpdatedAtUtc = DateTimeOffset.UtcNow,
+            });
+        }
+
+        if (!await db.NpcInstances.AnyAsync(npc => npc.Id == ShippedContentIds.SiteNpcs.HallwayEnforcer, cancellationToken))
+        {
+            db.NpcInstances.Add(new NpcInstance
+            {
+                Id = ShippedContentIds.SiteNpcs.HallwayEnforcer,
+                TemplateId = NpcTemplateIds.StreetGanger,
+                Name = "Hallway Enforcer",
+                RoomId = ShippedContentIds.SiteRooms.BackHallway,
+                Description = "Heavier than the kids out on the floor, in a scuffed ballistic vest that has stopped things before. He watches the corner like it is his job, because it is.",
+                OverridesJson = NpcOverrideSerialization.Serialize(new NpcStatOverrides(
+                    Pools: new Dictionary<string, int> { [NpcPoolIds.Defense] = 9 },
+                    Armor: 12)),
+                Awareness = NpcAwareness.Suspicious.ToString(),
+                CreatedAtUtc = DateTimeOffset.UtcNow,
+                UpdatedAtUtc = DateTimeOffset.UtcNow,
+            });
+        }
+
+        if (!await db.RoomInteractables.AnyAsync(
+                interactable => interactable.Id == ShippedContentIds.Inspectables.LedgerTerminal, cancellationToken))
+        {
+            db.RoomInteractables.Add(new RoomInteractable
+            {
+                Id = ShippedContentIds.Inspectables.LedgerTerminal,
+                RoomId = ShippedContentIds.SiteRooms.StorageRoom,
+                Name = "Ledger Terminal",
+                Description = "An old inventory terminal, still logged in. The gang's shipping records scroll past — someone sloppy runs this place.",
+                IsHidden = true,
+                DiscoveryThreshold = 2,
+                CreatedAtUtc = DateTimeOffset.UtcNow,
             });
         }
 
@@ -462,7 +514,7 @@ public static class DevelopmentDataSeeder
             Id = id,
             Name = name,
             Description = description,
-            AccessType = RoomAccessType.Private,
+            AccessType = RoomAccessType.Public,
             EnvironmentModifier = environment,
             MapX = x,
             MapY = y,

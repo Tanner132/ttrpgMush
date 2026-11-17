@@ -2,28 +2,34 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { getDefinition, type ContentRef, type ContentSummary, type Guid } from '../api.ts'
 import { useForgeData } from '../forgeContext.ts'
 import { useLoad } from '../hooks.ts'
-import { newMission, newPrompt, newSite, openedSceneIds, parse, sceneEffects, type Encounter, type Mission, type Scene } from '../model.ts'
+import { newMission, newPrompt, openedSceneIds, parse, sceneEffects, type Mission, type Scene } from '../model.ts'
 import { useContentDraft, type ContentDraft } from '../useContentDraft.ts'
 
-/** A world NPC holding this job's conversation: the job's Johnson. */
+/**
+ * A world NPC who offers this job: the job's Johnson. They offer it wherever
+ * they stand. `holdsPitch` is true for one given the job's conversation by
+ * name; one who is not speaks it because it is their stat block's
+ * conversation, as everyone built on that block does.
+ */
 export interface Johnson {
   id: Guid
   name: string
   templateId: Guid | null
   roomId: Guid
   roomName: string
+  holdsPitch: boolean
 }
 
 /**
  * A job as the builder works on it. A job is several records that point at
- * each other — the job, its site, the Johnson's conversation, and any prompts
- * its events open — so they are loaded, edited and saved together, and stay
- * put while the author moves between steps.
+ * each other — the job, the Johnson's conversation, and any prompts its events
+ * open — so they are loaded, edited and saved together, and stay put while the
+ * author moves between steps. Where it happens is the shared map's rooms,
+ * which the job names.
  */
 export interface Job {
   id: Guid
   mission: ContentDraft<Mission>
-  site: ContentDraft<Encounter>
   /** The Johnson's conversation: the one that offers this job. Its value is null when there is none yet. */
   pitch: ContentDraft<Scene>
   pitchId: Guid | null
@@ -33,16 +39,22 @@ export interface Job {
   openPrompt: (id: Guid | null) => void
   /** Every conversation draft as last read, for pickers and for finding the pitch. */
   scenes: Scene[]
-  /** True once the job, its site and its conversations have all been read. */
+  /** True once the job and its conversations have all been read. */
   ready: boolean
   johnsons: Johnson[]
+  /**
+   * The stat block whose conversation the pitch is, when it is that block's
+   * only one: everyone built on it who holds no conversation of their own
+   * offers the job, in whatever room they stand. Null otherwise.
+   */
+  johnsonBlock: { id: Guid; name: string } | null
   dirty: boolean
   busy: boolean
   /** The first refusal among the job's records, in the server's words. */
   error: string | null
   saveAll: () => Promise<boolean>
   revertAll: () => void
-  /** The records that make up the job and go live together: site, conversations, and the job. */
+  /** The records that make up the job and go live together: its conversations and the job. */
   publishSet: () => ContentRef[]
 }
 
@@ -53,9 +65,7 @@ function offers(scene: Scene, missionId: Guid): boolean {
 export function useJob(id: Guid): Job {
   const { definitions, references, summary } = useForgeData()
 
-  const mission = useContentDraft<Mission>('Mission', id, () => newMission(id, 'New job', ''))
-  const siteId = mission.value?.encounterId || null
-  const site = useContentDraft<Encounter>('Encounter', siteId, () => newSite(siteId ?? '', 'Job site'))
+  const mission = useContentDraft<Mission>('Mission', id, () => newMission(id, 'New job'))
 
   // Conversations are read as drafts, not as what is live: a job still being
   // written counts. Reloaded when one is made or deleted, not on every save —
@@ -87,16 +97,35 @@ export function useJob(id: Guid): Job {
   const [promptId, setPromptId] = useState<Guid | null>(null)
   const prompt = useContentDraft<Scene>('Scene', promptId, () => newPrompt('Prompt'))
 
+  // An NPC with no conversation of their own speaks their stat block's (the
+  // game's FindSceneForNpc). When a block has several conversations the
+  // server picks one, so the builder counts a block only when the pitch is
+  // its only conversation.
+  // The open draft has the newest word on the pitch's block.
+  const pitchBlockId = (pitch.value ?? scenes.find((scene) => scene.id === pitchId))?.npcTemplateId ?? null
+  const johnsonBlock = useMemo(() => {
+    if (pitchId === null || pitchBlockId === null || scenes.some((scene) => scene.id !== pitchId && scene.npcTemplateId === pitchBlockId)) return null
+    const template = references.npcTemplates.find((candidate) => candidate.id === pitchBlockId)
+    return { id: pitchBlockId, name: template?.displayName ?? 'a stat block that no longer exists' }
+  }, [pitchBlockId, pitchId, scenes, references.npcTemplates])
+
   const johnsons = useMemo<Johnson[]>(
     () =>
       pitchId === null
         ? []
         : references.rooms.flatMap((room) =>
             room.npcs
-              .filter((npc) => npc.sceneId === pitchId)
-              .map((npc) => ({ id: npc.id, name: npc.name, templateId: npc.templateId ?? null, roomId: room.id, roomName: room.name })),
+              .filter((npc) => npc.sceneId === pitchId || (johnsonBlock !== null && !npc.sceneId && npc.templateId === johnsonBlock.id))
+              .map((npc) => ({
+                id: npc.id,
+                name: npc.name,
+                templateId: npc.templateId ?? null,
+                roomId: room.id,
+                roomName: room.name,
+                holdsPitch: npc.sceneId === pitchId,
+              })),
           ),
-    [references.rooms, pitchId],
+    [references.rooms, pitchId, johnsonBlock],
   )
 
   // Ready once every record the steps read has arrived. Latched: a later
@@ -106,22 +135,21 @@ export function useJob(id: Guid): Job {
   if (
     !ready &&
     mission.value !== null &&
-    arrived(site as ContentDraft<unknown>, siteId) &&
     (loadedScenes.data !== null || loadedScenes.error !== null) &&
     arrived(pitch as ContentDraft<unknown>, pitchId)
   ) {
     setReady(true)
   }
 
-  const drafts = [mission, site, pitch, prompt]
+  const drafts = [mission, pitch, prompt]
   const dirty = drafts.some((draft) => draft.dirty)
   const busy = drafts.some((draft) => draft.busy)
   const error = drafts.find((draft) => draft.error)?.error ?? null
 
   const saveAll = async () => {
-    // The site first: the job names it, and reads cleaner in the audit log
-    // saved in the order it would be published.
-    for (const draft of [site, pitch, prompt, mission]) {
+    // Conversations first: the job opens them, and the audit log reads
+    // cleaner saved in the order it would be published.
+    for (const draft of [pitch, prompt, mission]) {
       if (draft.dirty && !(await draft.save())) return false
     }
     return true
@@ -142,17 +170,15 @@ export function useJob(id: Guid): Job {
         items.push({ kind, contentKey })
       }
     }
-    add('Encounter', siteId)
     add('Scene', pitchId)
     for (const opened of mission.value ? openedSceneIds(mission.value) : []) add('Scene', opened)
     add('Mission', id)
     return items
-  }, [summary, siteId, pitchId, mission.value, id])
+  }, [summary, pitchId, mission.value, id])
 
   return {
     id,
     mission,
-    site,
     pitch,
     pitchId,
     prompt,
@@ -161,6 +187,7 @@ export function useJob(id: Guid): Job {
     scenes,
     ready,
     johnsons,
+    johnsonBlock,
     dirty,
     busy,
     error,

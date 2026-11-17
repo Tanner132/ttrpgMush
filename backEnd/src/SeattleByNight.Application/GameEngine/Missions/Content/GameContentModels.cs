@@ -12,7 +12,6 @@ namespace SeattleByNight.Application.GameEngine.Missions.Content;
 public sealed record GameContentDocument(
     string ContentId,
     string Version,
-    IReadOnlyList<EncounterDefinition> Encounters,
     IReadOnlyList<MissionDefinition> Missions,
     IReadOnlyList<SceneDefinition> Scenes,
     IReadOnlyList<SkillTestDefinition> Tests,
@@ -24,9 +23,6 @@ public sealed record GameContentDocument(
     // WF-27: every authored record is found by its id; names are display only.
     public PlaceDefinition? FindPlace(Guid roomId) =>
         Places.FirstOrDefault(place => place.Id == roomId);
-
-    public EncounterDefinition? FindEncounter(Guid encounterId) =>
-        Encounters.FirstOrDefault(encounter => encounter.Id == encounterId);
 
     public MissionDefinition? FindMission(Guid missionId) =>
         Missions.FirstOrDefault(mission => mission.Id == missionId);
@@ -73,9 +69,20 @@ public sealed record GameContentDocument(
     public NpcTemplate? ResolveNpcTemplate(NpcSnapshot npc) =>
         FindNpcTemplate(npc.TemplateId)?.WithOverrides(npc.Overrides);
 
-    // WF-27: a job-site placement anywhere in the document, by its id.
-    public EncounterNpcDefinition? FindSiteNpc(Guid npcId) =>
-        Encounters.SelectMany(site => site.Npcs).FirstOrDefault(npc => npc.Id == npcId);
+    // Workstream 8: a job's item and the job that owns it. An item belongs to
+    // exactly one job (the loader refuses two).
+    public (MissionDefinition Job, JobItemDefinition Item)? FindJobItem(Guid itemId)
+    {
+        foreach (var mission in Missions)
+        {
+            if (mission.FindItem(itemId) is { } item)
+            {
+                return (mission, item);
+            }
+        }
+
+        return null;
+    }
 }
 
 // Milestone 7 section 5: retired content stays in the served document so
@@ -87,52 +94,11 @@ public interface IRetirableDefinition
     bool IsRetired { get; init; }
 }
 
-// §28/WF-25/WF-27: a job site. Its rooms are map rooms, named by their ids;
-// their names, descriptions and exits are the map's. What the site adds is the
-// job's content placed in those rooms, every piece with its own id.
-public sealed record EncounterDefinition(
-    Guid Id,
-    string DisplayName,
-    Guid EntryRoomId,
-    IReadOnlyList<Guid> RoomIds,
-    IReadOnlyList<EncounterNpcDefinition> Npcs,
-    IReadOnlyList<EncounterItemDefinition> Items,
-    IReadOnlyList<EncounterInteractableDefinition> Interactables) : IRetirableDefinition
-{
-    public bool IsRetired { get; init; }
-
-    public bool HasRoom(Guid roomId) => RoomIds.Contains(roomId);
-
-    public EncounterNpcDefinition? FindNpc(Guid npcId) => Npcs.FirstOrDefault(npc => npc.Id == npcId);
-
-    public EncounterItemDefinition? FindItem(Guid itemId) => Items.FirstOrDefault(item => item.Id == itemId);
-
-    public EncounterInteractableDefinition? FindInteractable(Guid interactableId) =>
-        Interactables.FirstOrDefault(interactable => interactable.Id == interactableId);
-}
-
-// Milestone 7 §4: a placed NPC is its base template plus overrides. Everything
-// optional falls through to the template, so a template fix reaches every NPC
-// that has not explicitly pinned the value.
-public sealed record EncounterNpcDefinition(
-    Guid Id,
-    Guid RoomId,
-    Guid TemplateId,
-    string Name,
-    // Player-visible description override.
-    string? Description = null,
-    // Scene binding override. Absent means this NPC speaks whatever scene is
-    // bound to its template.
-    Guid? SceneId = null,
-    // Awareness the NPC is instantiated with. Absent means Unaware.
-    NpcAwareness? StartingAwareness = null,
-    // The sparse mechanical diff — the escape hatch, not the normal case.
-    NpcStatOverrides? Overrides = null);
-
-// RoomId null means the item is declared but not placed anywhere: it exists
-// only to be handed over by a GiveItem effect. A hidden item is found by
-// searching the room, like a hidden inspectable (WF-27).
-public sealed record EncounterItemDefinition(
+// Workstream 8: an item a job puts into the shared world. It is one object:
+// whoever takes it has it, and the job's reset (phase 3) puts it back.
+// RoomId null means it lies nowhere and only an effect (giveItem) hands it
+// over. A hidden item is found by searching the room, per character.
+public sealed record JobItemDefinition(
     Guid Id,
     string Name,
     string Description,
@@ -140,34 +106,30 @@ public sealed record EncounterItemDefinition(
     bool IsHidden = false,
     int DiscoveryThreshold = 0);
 
-public sealed record EncounterInteractableDefinition(
-    Guid Id,
-    Guid RoomId,
-    string Name,
-    string Description,
-    bool IsHidden = false,
-    int DiscoveryThreshold = 0);
-
 // §34: a reusable mission definition, including repeatability from day one
 // (§39 economy safeguard).
+//
+// Workstream 8: a job happens in rooms of the one shared map. It names them,
+// and the world NPCs it uses, but owns neither; what it owns is its items.
 public sealed record MissionDefinition(
     Guid Id,
     string DisplayName,
     string Description,
-    Guid EncounterId,
-    // The shared-world room that offers the "travel to the site" affordance
-    // (mission-linked room, §32). References a stable seeded/admin room id;
-    // assignment validates it exists (dev decision mission.entry-link-room).
-    Guid EntryLinkRoomId,
+    // The map rooms the job happens in.
+    IReadOnlyList<Guid> RoomIds,
+    // The world NPCs the job uses (its reset brings them back, phase 3).
+    IReadOnlyList<Guid> NpcIds,
+    IReadOnlyList<JobItemDefinition> Items,
     MissionRepeatability Repeatability,
     MissionRewards Rewards,
     IReadOnlyList<MissionObjectiveDefinition> Objectives,
-    // WF-26: the job's listeners. Each names a room — one of the job's site
-    // rooms, or a public room — and an event in it. In the site they reach
-    // the run's own copy; in a public room, a runner with the job open.
+    // WF-26: the job's listeners. Each names a map room and an event in it,
+    // and reaches only runners with the job open.
     IReadOnlyList<TriggerDefinition> Triggers) : IRetirableDefinition
 {
     public bool IsRetired { get; init; }
+
+    public JobItemDefinition? FindItem(Guid itemId) => Items.FirstOrDefault(item => item.Id == itemId);
 }
 
 public enum MissionRepeatabilityKind
@@ -183,15 +145,14 @@ public sealed record MissionRepeatability(
 
 public sealed record MissionRewards(int Karma, int Nuyen);
 
-// Objective triggers: entering the encounter, picking up a declared item,
-// exiting the encounter, and (Milestone 6) delivering a carried item to the
-// mission giver through scene. Objectives activate strictly in order (dev
-// decision mission.sequential-objectives).
+// Objective kinds: reaching a map room (workstream 8, replacing entering and
+// leaving a run's site), picking up one of the job's items, and (Milestone 6)
+// delivering a carried item to the mission giver through a scene. Objectives
+// activate strictly in order (dev decision mission.sequential-objectives).
 public enum MissionObjectiveKind
 {
-    EnterEncounter,
+    ReachRoom,
     PickUpItem,
-    ExitEncounter,
     DeliverItem,
 }
 
@@ -199,7 +160,9 @@ public sealed record MissionObjectiveDefinition(
     Guid Id,
     string DisplayName,
     MissionObjectiveKind Kind,
-    Guid? ItemId = null);
+    Guid? ItemId = null,
+    // reachRoom: the map room to walk into.
+    Guid? RoomId = null);
 
 // ------------------------------------------------------------------------
 // Scenes (§37, generalized in Milestone 7): a node graph defined as data —
@@ -248,7 +211,52 @@ public sealed record SceneChoiceDefinition(
     SceneOutcome? OnFailure = null,
     Guid? NextNodeId = null,
     IReadOnlyList<SceneEffect>? Effects = null,
-    bool EndsScene = false);
+    bool EndsScene = false,
+    // A roll written on the reply itself, instead of naming a test. A reply
+    // has one or the other, never both.
+    ChoiceRoll? Roll = null)
+{
+    // Whether picking the reply rolls dice, and so branches on the result.
+    public bool Rolls => TestId is not null || Roll is not null;
+}
+
+// A roll built on a reply: the runner's pool is read off their sheet
+// (attributes and skills, e.g. Charisma + Negotiation); a contested roll adds
+// the NPC's, read off the stat block of the NPC being talked to (its pools,
+// Body and Willpower, e.g. Social + Willpower). Uncontested, the runner needs
+// Threshold hits.
+public sealed record ChoiceRoll(
+    IReadOnlyList<TestPoolComponent>? Pool,
+    LimitKind? Limit = null,
+    int? Threshold = null,
+    IReadOnlyList<string>? OpposedPools = null)
+{
+    public bool IsOpposed => OpposedPools is { Count: > 0 };
+
+    // The same test definition an authored test loads into, so the roll goes
+    // through the same builder, modifiers and Edge rules.
+    public SkillTestDefinition ToTest(SceneChoiceDefinition choice)
+    {
+        var limit = Limit ?? LimitKind.None;
+        var tag = limit switch
+        {
+            LimitKind.Physical => TestTag.Physical,
+            LimitKind.Mental => TestTag.Mental,
+            _ => TestTag.Social,
+        };
+        return new SkillTestDefinition(
+            $"reply-{choice.Id}",
+            choice.Label,
+            choice.Label,
+            SkillId: string.Empty,
+            IsOpposed ? TestKind.Opposed : TestKind.Threshold,
+            limit,
+            new HashSet<TestTag> { tag },
+            IsOpposed ? null : Threshold,
+            OpposedPoolId: null,
+            Pool);
+    }
+}
 
 public sealed record SceneOutcome(
     Guid? NextNodeId = null,
@@ -309,7 +317,8 @@ public enum SceneEffectKind
     // Opens combat with the named placed NPC as the aggressor — the same
     // entry point a failed sneak's alert uses.
     StartCombat,
-    // Hands the character an item the encounter declares, placed or not.
+    // Hands the character one of a job's items, wherever it lies, unless
+    // someone else is carrying it.
     GiveItem,
     // Takes a carried item back out of the world.
     TakeItem,
@@ -320,7 +329,7 @@ public enum SceneEffectKind
     // dead chain — this fails the mission in the same commit, and the record
     // says which objective blew it.
     FailObjective,
-    // The job is blown: the mission fails and its encounter archives.
+    // The job is blown: the runner's mission fails.
     FailMission,
     // Moves the character's open scene to another node and re-prompts them.
     // A trigger reaction only: inside a scene, flow belongs on the choice's
@@ -339,7 +348,7 @@ public sealed record SceneEffect(
     Guid? MissionId = null,
     Guid? ItemId = null,
     Guid? ObjectiveId = null,
-    // Names an NPC by id — a job's placement, or a world NPC — for effects
+    // Names a world NPC by id, for effects
     // that act on someone other than the NPC a scene is with.
     Guid? NpcId = null,
     int? Damage = null,
@@ -353,17 +362,14 @@ public sealed record SceneEffect(
 // ------------------------------------------------------------------------
 // Triggers (Milestone 7): (event, conditions) → reaction sequence. This is
 // what makes "most basic events and responses creatable without code" true —
-// admins attach triggers to encounters and missions, and the engine surfaces
+// admins attach triggers to rooms and jobs, and the engine surfaces
 // its own internal events (§24) to them through a fixed palette.
 // ------------------------------------------------------------------------
 
 public enum TriggerEventKind
 {
-    // The character walked into a room (movement, or arriving in an
-    // encounter's entry room).
+    // The character walked into a room.
     PlayerEnteredRoom,
-    // The character travelled into the mission's private encounter.
-    EncounterEntered,
     ItemPickedUp,
     NpcSpokenTo,
     NpcDefeated,
@@ -375,9 +381,8 @@ public enum TriggerEventKind
     SneakAttempted,
     // A fight began in the room, with the named NPC.
     CombatStarted,
-    // The character tried an exit that is locked to them (a locked door, or a
-    // job site's private room they are not on the run for). The event's room
-    // is the one they were standing in.
+    // The character tried a locked door. The event's room is the one they
+    // were standing in.
     LockedExitTried,
     // The character walked out of a room. The event's room is the one they left; by
     // the time this is consumed they are already elsewhere, so it runs its
@@ -457,7 +462,7 @@ public sealed record TriggerDefinition(
 {
     // Events about the job itself: they only ever reach the job they are
     // about, so no two jobs can contend for them.
-    public bool IsAboutTheJob => Event is TriggerEventKind.MissionAccepted or TriggerEventKind.EncounterEntered;
+    public bool IsAboutTheJob => Event is TriggerEventKind.MissionAccepted;
 }
 
 public enum TriggerOutcome

@@ -426,7 +426,7 @@ public sealed class GameActionExecutor
                     request,
                     TriggerEventKind.SneakAttempted,
                     session.CurrentRoomId,
-                    npcId: npc.ContentId,
+                    npcId: npc.Id,
                     outcome: resolution.Success ? TriggerOutcome.Success : TriggerOutcome.Failure);
                 void RaiseSneak() => _ = queue.EnqueueAsync(sneakScope, sneakEvent, CancellationToken.None);
 
@@ -604,7 +604,7 @@ public sealed class GameActionExecutor
         {
             await EnqueueTriggerAsync(
                 request, session, TriggerEventKind.InteractableInspected,
-                interactableId: inspected.ContentId, cancellationToken: cancellationToken);
+                interactableId: inspected.Id, cancellationToken: cancellationToken);
         }
 
         return GameActionOutcome.Final(null, message ?? $"{definition.DisplayName} resolved.");

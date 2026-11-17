@@ -37,6 +37,25 @@ public sealed class NpcActorTests
     }
 
     [Fact]
+    public void A_reply_roll_adds_up_the_named_pools_and_stats()
+    {
+        // Social 4 + Willpower 3, as the ganger's stat block has them.
+        var pool = Actor().GetOpposingPool([NpcPoolIds.Social, NpcPoolIds.Willpower]);
+
+        Assert.Equal(7, pool.Value);
+        Assert.Equal("Razor — Social + Willpower", pool.Source);
+    }
+
+    [Fact]
+    public void A_reply_roll_takes_wounds_once_and_awareness_with_perception()
+    {
+        // Perception 6 + Body 3, +2 alerted, −(3/3) wounds once.
+        var pool = Actor(NpcAwareness.Alerted, physicalDamage: 3).GetOpposingPool([NpcPoolIds.Perception, NpcPoolIds.Body]);
+
+        Assert.Equal(10, pool.Value);
+    }
+
+    [Fact]
     public void Wounds_shrink_every_pool()
     {
         // −(6/3 + 3/3) = −3 off the base 6.

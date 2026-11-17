@@ -17,8 +17,8 @@ public sealed record MissionActionContext(
     GameActionRequest Request,
     ActivePlaySession Session);
 
-// Milestone 5 (§29/§35/§38): resolves the mission verbs — entering a
-// mission's private encounter, taking a placed item, and leaving. Follows the
+// Milestone 5 (§35/§38), workstream 8: resolves the mission verbs — taking a
+// job's item and reaching a room an objective names. Follows the
 // CombatEngine pattern: runs on the queue consumer, declares every mutation
 // as State Changes applied in one transaction, audits, then notifies. The
 // synchronous-consequence rule (§24) is what makes objectives correct here:
@@ -37,7 +37,6 @@ public sealed class MissionEngine
     private readonly IGameTestAuditStore auditStore;
     private readonly IRoomChatStore chatStore;
     private readonly IGameMessageBroadcaster broadcaster;
-    private readonly ITravelNotifier travelNotifier;
     private readonly IRoomContentReader roomContent;
     private readonly IGameCommandQueue queue;
     private readonly IGameScopeResolver scopeResolver;
@@ -50,7 +49,6 @@ public sealed class MissionEngine
         IGameTestAuditStore auditStore,
         IRoomChatStore chatStore,
         IGameMessageBroadcaster broadcaster,
-        ITravelNotifier travelNotifier,
         IRoomContentReader roomContent,
         IGameCommandQueue queue,
         IGameScopeResolver scopeResolver,
@@ -62,7 +60,6 @@ public sealed class MissionEngine
         this.auditStore = auditStore;
         this.chatStore = chatStore;
         this.broadcaster = broadcaster;
-        this.travelNotifier = travelNotifier;
         this.roomContent = roomContent;
         this.queue = queue;
         this.scopeResolver = scopeResolver;
@@ -72,110 +69,10 @@ public sealed class MissionEngine
     public Task<GameActionOutcome> ExecuteAsync(MissionActionContext context, CancellationToken cancellationToken) =>
         context.Request.ActionId switch
         {
-            DevelopmentGameActions.EnterEncounterActionId => EnterAsync(context, cancellationToken),
             DevelopmentGameActions.TakeItemActionId => TakeItemAsync(context, cancellationToken),
-            DevelopmentGameActions.LeaveEncounterActionId => LeaveAsync(context, cancellationToken),
-            DevelopmentGameActions.MissionDefeatActionId => DefeatAsync(context, cancellationToken),
+            DevelopmentGameActions.ReachRoomActionId => ReachRoomAsync(context, cancellationToken),
             _ => Task.FromResult(GameActionOutcome.Failure(GameActionError.ActionNotFound)),
         };
-
-    private async Task<GameActionOutcome> EnterAsync(
-        MissionActionContext context, CancellationToken cancellationToken)
-    {
-        var session = context.Session;
-
-        if (context.Request.TargetId is not Guid missionInstanceId)
-        {
-            return GameActionOutcome.Failure(GameActionError.TargetNotFound);
-        }
-
-        var instance = await missionReader.GetInstanceAsync(missionInstanceId, cancellationToken);
-        if (instance is null || instance.CharacterId != session.CharacterId || instance.IsTerminal)
-        {
-            return GameActionOutcome.Failure(GameActionError.TargetNotFound);
-        }
-
-        if (content.Current.FindMission(instance.MissionId) is not MissionDefinition definition)
-        {
-            // An accepted instance whose definition disappeared is content
-            // drift, not a bad request.
-            return GameActionOutcome.Failure(GameActionError.ActionFailed);
-        }
-
-        // Travel starts at the mission-linked room (§32); affordance
-        // validation enforces this for players, this guards reactions/replays.
-        // WF-25: walking through a door into one of the site's map rooms is
-        // the other way in. The movement store checked the door and the
-        // runner's place on the run before raising this; here the room only
-        // has to be part of this job's site.
-        var entryRoomId = context.Request.EntryRoomId;
-        if (entryRoomId is Guid walkedInto)
-        {
-            var site = content.Current.FindEncounter(definition.EncounterId);
-            if (site is null || !site.HasRoom(walkedInto))
-            {
-                return GameActionOutcome.Failure(GameActionError.ActionNotAvailable);
-            }
-        }
-        else if (session.CurrentRoomId != definition.EntryLinkRoomId)
-        {
-            return GameActionOutcome.Failure(GameActionError.ActionNotAvailable);
-        }
-
-        // One private encounter at a time (dev decision
-        // mission.single-encounter-at-a-time): a character already inside (or
-        // holding) another live instance must finish or abandon it first.
-        var existingEncounter = await missionReader.GetActiveEncounterForCharacterAsync(
-            session.CharacterId, cancellationToken);
-        if (existingEncounter is not null && existingEncounter.MissionInstanceId != instance.Id)
-        {
-            return GameActionOutcome.Failure(
-                GameActionError.ActionNotAvailable);
-        }
-
-        var changes = new List<StateChange> { new EnterEncounterChange(instance.Id, session.Id, entryRoomId) };
-
-        // §38 synchronous consequence: arriving completes an Active
-        // enter-encounter objective in the same commit as the move.
-        if (FindActiveObjective(instance, definition, MissionObjectiveKind.EnterEncounter) is { } objective)
-        {
-            changes.Add(new CompleteObjectiveChange(instance.Id, objective.Id));
-        }
-
-        var applied = await stateChangeApplier.ApplyAsync(session.CharacterId, changes, cancellationToken);
-        await AppendAuditAsync(context, applied, cancellationToken);
-
-        // Post-commit (§24): swing the live connections to the room the
-        // runner arrived in — the entry room, or (WF-25) the run's copy of the
-        // site room they walked into.
-        var encounter = await missionReader.GetActiveEncounterForMissionAsync(instance.Id, cancellationToken);
-        var arrivalRoomId = encounter?.EntryRoomId;
-        if (encounter is not null && entryRoomId is Guid mapRoomId)
-        {
-            arrivalRoomId = await roomContent.GetRunCopyIdAsync(encounter.Id, mapRoomId, cancellationToken)
-                ?? encounter.EntryRoomId;
-        }
-
-        if (arrivalRoomId is Guid arrivedIn)
-        {
-            await travelNotifier.NotifyMovedAsync(
-                session.Id, session.CurrentRoomId, arrivedIn, cancellationToken);
-
-            // §24: arriving raises two content events — the encounter
-            // opening, and walking into the room. Both go on the ARRIVAL
-            // room's queue, which is where the character now is.
-            await EnqueueTriggerAsync(
-                context.Request, arrivedIn, TriggerEventKind.EncounterEntered,
-                missionId: definition.Id, cancellationToken: cancellationToken);
-            await EnqueueTriggerAsync(
-                context.Request, arrivedIn, TriggerEventKind.PlayerEnteredRoom,
-                cancellationToken: cancellationToken);
-        }
-
-        var encounterName = content.Current.FindEncounter(definition.EncounterId)?.DisplayName
-            ?? "job site";
-        return GameActionOutcome.Final(null, $"You travel to the {encounterName}.");
-    }
 
     private async Task<GameActionOutcome> TakeItemAsync(
         MissionActionContext context, CancellationToken cancellationToken)
@@ -206,15 +103,14 @@ public sealed class MissionEngine
         string? objectiveNote = null;
 
         // §38: ItemPickedUp completes its objective as a synchronous domain
-        // consequence — one commit, never a follow-up write.
-        if (item.MissionInstanceId is Guid missionInstanceId
-            && await missionReader.GetInstanceAsync(missionInstanceId, cancellationToken) is { } instance
-            && instance.CharacterId == session.CharacterId
-            && !instance.IsTerminal
-            && content.Current.FindMission(instance.MissionId) is { } definition
-            && FindActiveObjective(instance, definition, MissionObjectiveKind.PickUpItem, item.ItemId) is { } objective)
+        // consequence — one commit, never a follow-up write. Workstream 8: the
+        // item is the job's one object, so the objective is the picker's own,
+        // on their open run of that job.
+        if (await FindOpenRunAsync(session.CharacterId, item.MissionId, cancellationToken) is { } run
+            && FindActiveObjective(run.Instance, run.Definition, MissionObjectiveKind.PickUpItem, itemId: item.ItemId)
+                is { } objective)
         {
-            changes.Add(new CompleteObjectiveChange(instance.Id, objective.Id));
+            changes.Add(new CompleteObjectiveChange(run.Instance.Id, objective.Id));
             objectiveNote = $" Objective complete: {objective.DisplayName}.";
         }
 
@@ -231,92 +127,47 @@ public sealed class MissionEngine
         return GameActionOutcome.Final(null, $"You take the {item.DisplayName}.{objectiveNote}");
     }
 
-    private async Task<GameActionOutcome> LeaveAsync(
+    // Workstream 8: movement raises this on the arrival room's queue, ahead of
+    // the room-entry event, so walking into a room an objective names
+    // completes it before any listener there reacts. One commit for every run
+    // it completes.
+    private async Task<GameActionOutcome> ReachRoomAsync(
         MissionActionContext context, CancellationToken cancellationToken)
     {
         var session = context.Session;
-
-        var encounter = await missionReader.GetActiveEncounterByRoomAsync(
-            session.CurrentRoomId, cancellationToken);
-        if (encounter is null || encounter.EntryRoomId != session.CurrentRoomId)
-        {
-            return GameActionOutcome.Failure(GameActionError.ActionNotAvailable);
-        }
-
-        var instance = await missionReader.GetInstanceAsync(encounter.MissionInstanceId, cancellationToken);
-        if (instance is null || instance.CharacterId != session.CharacterId)
-        {
-            return GameActionOutcome.Failure(GameActionError.ActionNotAvailable);
-        }
-
-        var definition = content.Current.FindMission(instance.MissionId);
         var changes = new List<StateChange>();
-        string message;
+        var notes = new List<string>();
 
-        if (definition is not null
-            && FindActiveObjective(instance, definition, MissionObjectiveKind.ExitEncounter) is { } objective)
+        foreach (var instance in await missionReader.GetOpenInstancesForCharacterAsync(
+            session.CharacterId, cancellationToken))
         {
-            // Milestone 6: leaving no longer completes the mission — with the
-            // goods in hand the job waits on the mission giver (the applier
-            // moves the mission to ReadyToTurnIn and archives the encounter).
-            changes.Add(new CompleteObjectiveChange(instance.Id, objective.Id));
-            message = $"You slip back out. Objective complete: {objective.DisplayName}. "
-                + "Time to see your Johnson about getting paid.";
-        }
-        else
-        {
-            // Leaving early is always allowed; the instance stays live for
-            // re-entry until the lifecycle sweep abandons it (§30).
-            message = "You slip back out. The job isn't done yet.";
+            if (content.Current.FindMission(instance.MissionId) is { } definition
+                && FindActiveObjective(instance, definition, MissionObjectiveKind.ReachRoom, roomId: session.CurrentRoomId)
+                    is { } objective)
+            {
+                changes.Add(new CompleteObjectiveChange(instance.Id, objective.Id));
+                notes.Add($"Objective complete: {objective.DisplayName}.");
+            }
         }
 
-        changes.Add(new LeaveEncounterChange(encounter.Id, session.Id));
+        if (changes.Count == 0)
+        {
+            return GameActionOutcome.Final(null, null);
+        }
 
         var applied = await stateChangeApplier.ApplyAsync(session.CharacterId, changes, cancellationToken);
         await AppendAuditAsync(context, applied, cancellationToken);
-
-        await travelNotifier.NotifyMovedAsync(
-            session.Id, session.CurrentRoomId, encounter.ReturnRoomId, cancellationToken);
-
-        return GameActionOutcome.Final(null, message);
+        return GameActionOutcome.Final(null, string.Join(" ", notes));
     }
 
-    // Milestone 6 defeat path (§24 reaction, enqueued by combat when the
-    // player goes down inside a mission encounter): the mission fails, the
-    // encounter archives, and the runner wakes at the entry point with their
-    // damage intact (dev decision combat.no-pc-death).
-    private async Task<GameActionOutcome> DefeatAsync(
-        MissionActionContext context, CancellationToken cancellationToken)
+    private async Task<(MissionInstanceSnapshot Instance, MissionDefinition Definition)?> FindOpenRunAsync(
+        Guid characterId, Guid missionId, CancellationToken cancellationToken)
     {
-        var session = context.Session;
-
-        var encounter = await missionReader.GetActiveEncounterByRoomAsync(
-            session.CurrentRoomId, cancellationToken);
-        if (encounter is null)
-        {
-            return GameActionOutcome.Failure(GameActionError.ActionNotAvailable);
-        }
-
-        var instance = await missionReader.GetInstanceAsync(encounter.MissionInstanceId, cancellationToken);
-        if (instance is null || instance.CharacterId != session.CharacterId)
-        {
-            return GameActionOutcome.Failure(GameActionError.ActionNotAvailable);
-        }
-
-        var changes = new List<StateChange>
-        {
-            new FailMissionChange(instance.Id),
-            new LeaveEncounterChange(encounter.Id, session.Id),
-        };
-
-        var applied = await stateChangeApplier.ApplyAsync(session.CharacterId, changes, cancellationToken);
-        await AppendAuditAsync(context, applied, cancellationToken);
-
-        await travelNotifier.NotifyMovedAsync(
-            session.Id, session.CurrentRoomId, encounter.ReturnRoomId, cancellationToken);
-
-        var message = "You come to outside, aching everywhere. The job is blown.";
-        return GameActionOutcome.Final(null, message);
+        var open = await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken);
+        return open.FirstOrDefault(instance => instance.MissionId == missionId) is { } instance
+            && content.Current.FindMission(missionId) is { } definition
+                ? (instance, definition)
+                : null;
     }
 
     // §24: raises a content event on a room's queue at Depth + 1. Never
@@ -326,23 +177,24 @@ public sealed class MissionEngine
         Guid roomId,
         TriggerEventKind eventKind,
         Guid? itemId = null,
-        Guid? missionId = null,
         CancellationToken cancellationToken = default)
     {
         var scopeId = await scopeResolver.ResolveScopeAsync(roomId, cancellationToken);
         _ = queue.EnqueueAsync(
             scopeId,
-            TriggerRequests.Build(request, eventKind, roomId, itemId: itemId, missionId: missionId),
+            TriggerRequests.Build(request, eventKind, roomId, itemId: itemId),
             CancellationToken.None);
     }
 
-    // The first Active objective of the given kind (and item, for pickups).
-    // Objectives activate sequentially, so "first Active" is "the one".
+    // The first Active objective of the given kind (and item, for pickups, or
+    // room, for reaching one). Objectives activate sequentially, so "first
+    // Active" is "the one".
     private static MissionObjectiveDefinition? FindActiveObjective(
         MissionInstanceSnapshot instance,
         MissionDefinition definition,
         MissionObjectiveKind kind,
-        Guid? itemId = null)
+        Guid? itemId = null,
+        Guid? roomId = null)
     {
         foreach (var objective in definition.Objectives)
         {
@@ -352,6 +204,11 @@ public sealed class MissionEngine
             }
 
             if (kind == MissionObjectiveKind.PickUpItem && objective.ItemId != itemId)
+            {
+                continue;
+            }
+
+            if (kind == MissionObjectiveKind.ReachRoom && objective.RoomId != roomId)
             {
                 continue;
             }

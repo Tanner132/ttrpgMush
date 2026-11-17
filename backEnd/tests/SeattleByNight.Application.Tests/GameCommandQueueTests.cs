@@ -127,7 +127,7 @@ public sealed class GameCommandQueueTests
             var missionEngine = new MissionEngine(
                 missions, TestGameContent.Provider, Applier, Audit,
                 new FakeRoomChatStore(), new FakeGameMessageBroadcaster(),
-                new FakeTravelNotifier(), roomContent, innerQueue, scopeResolver, options);
+                roomContent, innerQueue, scopeResolver, options);
             var sceneSessions = new FakeSceneSessionReader();
             var sceneConditions = new SceneConditionEvaluator(missions, TestGameContent.Provider);
             var sceneEffects = new SceneEffectResolver(

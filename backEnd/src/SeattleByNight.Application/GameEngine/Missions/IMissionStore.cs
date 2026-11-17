@@ -22,17 +22,11 @@ public interface IMissionReader
     Task<IReadOnlyDictionary<Guid, int>> CountOpenInstancesByMissionAsync(
         CancellationToken cancellationToken);
 
-    // The Active encounter instance this character participates in, if any.
-    Task<EncounterInstanceSnapshot?> GetActiveEncounterForCharacterAsync(
-        Guid characterId, CancellationToken cancellationToken);
-
-    // The Active encounter instance a room belongs to, if any.
-    Task<EncounterInstanceSnapshot?> GetActiveEncounterByRoomAsync(Guid roomId, CancellationToken cancellationToken);
-
-    Task<EncounterInstanceSnapshot?> GetActiveEncounterForMissionAsync(
-        Guid missionInstanceId, CancellationToken cancellationToken);
-
+    // An item row by its own id.
     Task<WorldItemSnapshot?> GetItemAsync(Guid itemId, CancellationToken cancellationToken);
+
+    // Workstream 8: the one row of a job's item, by the item's content id.
+    Task<WorldItemSnapshot?> GetJobItemAsync(Guid itemId, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<WorldItemSnapshot>> GetItemsInRoomAsync(Guid roomId, CancellationToken cancellationToken);
 
@@ -51,7 +45,6 @@ public enum MissionAssignError
 {
     None = 0,
     CharacterNotFound,
-    EntryRoomMissing,
     AlreadyActive,
     NotRepeatable,
     CooldownActive,
