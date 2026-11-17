@@ -9,6 +9,7 @@ import { Empty, Section } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { newListener, newPlace, type Place } from '../model.ts'
 import { useContentDraft } from '../useContentDraft.ts'
+import { ReachNote } from './reach.tsx'
 
 /**
  * A room's own events (WF-26): what happens here for anyone, every time. A
@@ -33,6 +34,7 @@ export function EventsSection({ room }: { room: WorldRoom }) {
         !draft.loadError && <p className="forge__hint" role="status">Loading events…</p>
       ) : (
         <div className="forge__stack">
+          <ReachNote room={room} kind="events" />
           {place.triggers.length === 0 && (
             <Empty>Nothing happens here yet. Add an event — a description on entry, a line when someone talks to an NPC.</Empty>
           )}

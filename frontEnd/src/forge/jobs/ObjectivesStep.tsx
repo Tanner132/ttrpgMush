@@ -3,6 +3,7 @@ import { Button } from '../../components/ui/Button.tsx'
 import { Chip, Empty, NumberInput, Section, Select, TextBox, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { AftermathHours, DefaultDeadlineHours, newId, sceneEffects, type AftermathStage, type Mission, type Objective, type ObjectiveKind } from '../model.ts'
+import type { Guid } from '../api.ts'
 import type { Job } from './useJob.ts'
 
 const KindWords: Record<ObjectiveKind, { add: string; chip: string; start: string }> = {
@@ -18,16 +19,19 @@ const NeedsItem: ObjectiveKind[] = ['pickUpItem', 'deliverItem']
  * strictly in sequence, so the order here is the order runners meet them in.
  */
 export function ObjectivesStep({ job, mission }: { job: Job; mission: Mission }) {
-  const { world } = useForgeData()
+  const { world, references } = useForgeData()
   const pitch = job.pitch.value
   const items = mission.items
   const itemOptions = items.map((item) => ({ id: item.id, displayName: item.name || 'Unnamed item' }))
   // The job's own rooms first; a runner can be sent anywhere on the map.
   const own = new Set(mission.roomIds)
   const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name)
+  // WF-71: every map's rooms, named with their map when there is more than one.
+  const mapName = (mapId: Guid | null | undefined) =>
+    world.maps.length > 1 ? ` · ${world.maps.find((map) => map.id === mapId)?.name ?? 'another map'}` : ''
   const roomOptions = [
-    ...world.rooms.filter((room) => own.has(room.id)).sort(byName).map((room) => ({ id: room.id, displayName: `${room.name} · this job` })),
-    ...world.rooms.filter((room) => !own.has(room.id)).sort(byName).map((room) => ({ id: room.id, displayName: room.name })),
+    ...references.rooms.filter((room) => own.has(room.id)).sort(byName).map((room) => ({ id: room.id, displayName: `${room.name} · this job` })),
+    ...references.rooms.filter((room) => !own.has(room.id)).sort(byName).map((room) => ({ id: room.id, displayName: `${room.name}${mapName(room.mapId)}` })),
   ]
   const negotiable = pitch !== null && sceneEffects(pitch).some((effect) => effect.kind === 'setNegotiatedPay')
 

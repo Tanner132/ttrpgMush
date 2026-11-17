@@ -23,6 +23,10 @@ const session: RoomSession = {
   messages: [],
   olderMessagesCursor: null,
   combat: null,
+  travel: [
+    { id: 't1', name: 'Berlin', destinationRoomId: 'b1', destinationRoomName: 'Kottbusser Tor', mapName: 'Berlin' },
+    { id: 't2', name: 'Bellevue', destinationRoomId: 'b2', destinationRoomName: 'Bellevue Square', mapName: 'Seattle' },
+  ],
 }
 
 function createHarness(overrides: Partial<UseGameplayCommandsOptions> = {}) {
@@ -327,6 +331,34 @@ describe('useGameplayCommands', () => {
 
     expect(ok).toBe(false)
     expect(appendLocal).toHaveBeenCalledWith('error', 'Not connected.')
+  })
+
+  // WF-70: travel links are taken through the same hub call as exits.
+  it('lists travel with a bare /travel and takes one by name', async () => {
+    const { result, moveThroughExit, appendLocal } = createHarness()
+
+    await act(async () => {
+      await result.current.submit('/travel')
+    })
+    expect(appendLocal).toHaveBeenCalledWith('info', 'You can travel to: Berlin (Kottbusser Tor, Berlin); Bellevue (Bellevue Square, Seattle).')
+
+    let ok = false
+    await act(async () => {
+      ok = await result.current.submit('/travel berlin')
+    })
+    expect(ok).toBe(true)
+    expect(moveThroughExit).toHaveBeenCalledWith('t1')
+  })
+
+  it('asks which travel was meant when a prefix matches two', async () => {
+    const { result, moveThroughExit, appendLocal } = createHarness()
+
+    await act(async () => {
+      await result.current.submit('/travel be')
+    })
+
+    expect(moveThroughExit).not.toHaveBeenCalled()
+    expect(appendLocal).toHaveBeenCalledWith('error', 'Which did you mean? Matches: Berlin, Bellevue.')
   })
 
   it('resolves /go by exact direction and submits the exit id', async () => {

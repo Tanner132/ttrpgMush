@@ -44,11 +44,25 @@ public sealed class RoomConfiguration : IEntityTypeConfiguration<Room>
             .HasColumnName("map_layer")
             .IsRequired();
 
-        // Workstream 8: every room is on the one map, so every room's place on
-        // it is unique.
-        builder.HasIndex(r => new { r.MapLayer, r.MapX, r.MapY })
+        // WF-41: a room's place is unique within its map and layer.
+        builder.Property(r => r.MapId)
+            .HasColumnName("map_id")
+            .HasColumnType("uuid")
+            .IsRequired();
+
+        builder.HasIndex(r => new { r.MapId, r.MapLayer, r.MapX, r.MapY })
             .IsUnique()
-            .HasDatabaseName("ux_rooms_map_layer_map_x_map_y");
+            .HasDatabaseName("ux_rooms_map_id_map_layer_map_x_map_y");
+
+        builder.HasOne<CityMap>()
+            .WithMany()
+            .HasForeignKey(r => r.MapId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // WF-60: draft or live.
+        builder.Property(r => r.IsLive)
+            .HasColumnName("is_live")
+            .IsRequired();
 
         builder.Property(r => r.CreatedAtUtc)
             .HasColumnName("created_at_utc")

@@ -153,6 +153,7 @@ Type plain text to speak. Commands:
 | `/roll <NdS[+/-M]>` | Free-form dice, rolled and recorded by the server. |
 | `/look`, `/who`, `/help` | Local output only; never broadcast or stored. |
 | `/go <direction>` | Move through a visible exit. |
+| `/travel [destination]` | List where you can travel from here (to a named room, on this map or another city), or travel there. |
 | `/character` | Open your character sheet without leaving the room. |
 | `/test [name] [edge]` | Perform a game test, or list the available ones. `edge` spends Edge to Push the Limit. |
 | `/do [name] [edge]` | Perform any action currently available to you (for example `/do sneak past razor`), or list them. |
@@ -185,7 +186,7 @@ authoritative contract. In summary:
 | `/api/game/missions` | The caller's missions, with an open job's deadline | Authenticated |
 | `/api/game/crew` | The caller's crew; invite, join, leave | Authenticated |
 | `/api/admin/users`, `/api/admin/audit` | Role management, audit log | `Administrator` |
-| `/api/admin/world` | Rooms, exits, room deletion, NPC/interactable placement, room environment | `Administrator`, `WorldBuilder` |
+| `/api/admin/world` | One map at a time (`?mapId=`): rooms, exits, travel links; maps, publishing and unpublishing rooms, moving rooms, room deletion, NPC/interactable placement, room environment | `Administrator`, `WorldBuilder` |
 | `/api/admin/content` | World Forge content lifecycle | `Administrator`, `WorldBuilder` |
 | `/api/admin/missions` | List mission definitions, assign a mission to a character | `Administrator`, `WorldBuilder` |
 

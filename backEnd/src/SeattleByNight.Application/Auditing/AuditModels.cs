@@ -24,6 +24,14 @@ public static class AuditActions
     // WF-28: inspectables placed on the map (a public room's, not a job's).
     public const string RoomInspectableUpdated = "RoomInspectableUpdated";
     public const string RoomInspectableRemoved = "RoomInspectableRemoved";
+    // World Forge phase 2: maps, publishing, moving rooms, travel links.
+    public const string MapCreated = "MapCreated";
+    public const string MapRenamed = "MapRenamed";
+    public const string RoomPublished = "RoomPublished";
+    public const string RoomUnpublished = "RoomUnpublished";
+    public const string RoomMoved = "RoomMoved";
+    public const string TravelLinkCreated = "TravelLinkCreated";
+    public const string TravelLinkDeleted = "TravelLinkDeleted";
 }
 
 public static class AuditTargetTypes
@@ -34,6 +42,8 @@ public static class AuditTargetTypes
     public const string GameContent = "GameContent";
     public const string Npc = "Npc";
     public const string RoomInspectable = "RoomInspectable";
+    public const string Map = "Map";
+    public const string TravelLink = "TravelLink";
 }
 
 public interface IAuditWriter

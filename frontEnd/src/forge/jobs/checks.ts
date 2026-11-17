@@ -50,9 +50,11 @@ export function jobChecks(
   johnsons: Johnson[],
   world: WorldGraph,
   johnsonBlock: { name: string } | null = null,
+  /** WF-71: every room on every map; the world holds one map only. */
+  allRooms: { id: Guid; name: string; isLive?: boolean }[] = world.rooms,
 ): JobCheck[] {
   const checks: JobCheck[] = []
-  const roomName = (id: Guid | undefined) => world.rooms.find((room) => room.id === id)?.name ?? 'a room that no longer exists'
+  const roomName = (id: Guid | undefined) => allRooms.find((room) => room.id === id)?.name ?? 'a room that no longer exists'
 
   // ------------------------------------------------------------- Johnson
   checks.push({
@@ -111,18 +113,22 @@ export function jobChecks(
   }
 
   // --------------------------------------------------------------- rooms
-  const gone = mission.roomIds.filter((roomId) => !world.rooms.some((room) => room.id === roomId))
+  const gone = mission.roomIds.filter((roomId) => !allRooms.some((room) => room.id === roomId))
+  // WF-60: a job cannot go live while it uses a draft room.
+  const drafts = mission.roomIds.filter((roomId) => allRooms.some((room) => room.id === roomId && room.isLive === false))
   const misplaced = mission.items.filter((item) => item.roomId !== undefined && !mission.roomIds.includes(item.roomId))
   const unnamedItems = mission.items.filter((item) => item.name.trim() === '').length
   checks.push({
     id: 'rooms',
     step: 'rooms',
-    ok: mission.roomIds.length > 0 && gone.length === 0 && misplaced.length === 0 && unnamedItems === 0,
+    ok: mission.roomIds.length > 0 && gone.length === 0 && drafts.length === 0 && misplaced.length === 0 && unnamedItems === 0,
     text:
       mission.roomIds.length === 0
         ? 'The job uses no rooms yet.'
         : gone.length > 0
           ? `Rooms · ${plural(gone.length, 'room')} no longer on the map.`
+          : drafts.length > 0
+            ? `Rooms · ${drafts.map(roomName).join(', ')} ${drafts.length === 1 ? 'is a draft' : 'are drafts'}: publish in Places first.`
           : unnamedItems > 0
             ? `Rooms · ${plural(unnamedItems, 'item')} with no name.`
             : misplaced.length > 0
@@ -147,7 +153,7 @@ export function jobChecks(
     (objective) => (objective.kind === 'pickUpItem' || objective.kind === 'deliverItem') && !(objective.itemId && items.has(objective.itemId)),
   )
   const roomless = mission.objectives.filter(
-    (objective) => objective.kind === 'reachRoom' && !(objective.roomId && world.rooms.some((room) => room.id === objective.roomId)),
+    (objective) => objective.kind === 'reachRoom' && !(objective.roomId && allRooms.some((room) => room.id === objective.roomId)),
   )
   const unnamed = mission.objectives.filter((objective) => objective.displayName.trim() === '').length
   checks.push({

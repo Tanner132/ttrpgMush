@@ -9,6 +9,7 @@ export type ParsedCommand =
   | { kind: 'look' }
   | { kind: 'character' }
   | { kind: 'go'; selector: string }
+  | { kind: 'travel'; destination: string }
   | { kind: 'test'; selector: string; pushTheLimit: boolean }
   | { kind: 'do'; selector: string; pushTheLimit: boolean }
   | { kind: 'run' }
@@ -95,6 +96,11 @@ export function parseCommand(raw: string): ParsedCommand {
       return { kind: 'usage-error', command, message: `Usage: ${usageFor(command)}` }
     }
     return { kind: 'roll', expression: argument }
+  }
+
+  // WF-70: /travel lists; /travel <name> goes.
+  if (command === 'travel') {
+    return { kind: 'travel', destination: argument }
   }
 
   if (command === 'go') {

@@ -16,6 +16,7 @@ import {
   type WorldExit,
   type WorldRoom,
 } from '../api.ts'
+import { ReachNote } from './reach.tsx'
 import { Check, Chip, Empty, Section, Segmented, Select, TextBox, TextInput } from '../fields.tsx'
 import { shortDirection, words } from '../format.ts'
 import { useForgeData } from '../forgeContext.ts'
@@ -91,6 +92,7 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
             mapX: spot.x,
             mapY: spot.y,
             mapLayer: spot.layer,
+            mapId: room.mapId,
           })
           // The server has already joined the new room to its neighbours;
           // this makes that join what was asked for here.
@@ -117,7 +119,9 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
     !existing && target === 'existing' && bothWays && destinationId !== '' && !reverseExists
       ? world.exits.find((exit) => exit.sourceRoomId === destinationId && exit.direction === OppositeDirection[direction])
       : undefined
-  const destinationName = world.rooms.find((candidate) => candidate.id === destinationId)?.name
+  const destinationName =
+    world.rooms.find((candidate) => candidate.id === destinationId)?.name ??
+    world.exits.find((exit) => exit.destinationRoomId === destinationId)?.destinationRoomName
 
   const ready =
     !taken.has(direction) &&
@@ -250,6 +254,7 @@ export function ExitsSection({ room }: { room: WorldRoom }) {
 
   return (
     <Section title="Exits">
+      <ReachNote room={room} />
       {outgoing.length === 0 ? (
         <Empty>No way out yet.</Empty>
       ) : (

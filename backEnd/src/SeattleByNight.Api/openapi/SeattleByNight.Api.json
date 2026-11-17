@@ -942,6 +942,16 @@
         "tags": [
           "WorldEditorEndpoints"
         ],
+        "parameters": [
+          {
+            "name": "mapId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1138,6 +1148,182 @@
         "parameters": [
           {
             "name": "exitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/maps": {
+      "get": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorldMapRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/maps/{mapId}": {
+      "put": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "mapId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorldMapRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/rooms/publish": {
+      "post": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomSelectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/rooms/unpublish": {
+      "post": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomSelectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/rooms/move": {
+      "post": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveRoomsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/travel": {
+      "post": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TravelLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/world/travel/{linkId}": {
+      "delete": {
+        "tags": [
+          "WorldEditorEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "linkId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2489,6 +2675,13 @@
               "string"
             ],
             "format": "int64"
+          },
+          "mapId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -2902,6 +3095,59 @@
           "toRoomId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "MoveRoomsRequest": {
+        "required": [
+          "roomIds",
+          "toMapId",
+          "deltaX",
+          "deltaY",
+          "deltaLayer"
+        ],
+        "type": "object",
+        "properties": {
+          "roomIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "toMapId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "deltaX": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "deltaY": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "deltaLayer": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -3322,6 +3568,32 @@
           }
         }
       },
+      "RoomSelectionRequest": {
+        "required": [
+          "roomIds",
+          "mapId"
+        ],
+        "type": "object",
+        "properties": {
+          "roomIds": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "mapId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "SaveGameContentDraftRequest": {
         "required": [
           "json"
@@ -3499,6 +3771,30 @@
           }
         }
       },
+      "TravelLinkRequest": {
+        "required": [
+          "sourceRoomId",
+          "destinationRoomId",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceRoomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "destinationRoomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "UpdateWorldExitRequest": {
         "required": [
           "sourceRoomId",
@@ -3579,6 +3875,27 @@
         "properties": {
           "expectedVersion": {
             "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "WorldMapRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "version": {
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "uuid"
           }
         }

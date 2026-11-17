@@ -876,6 +876,36 @@ namespace SeattleByNight.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CityMap", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ux_maps_name");
+
+                    b.ToTable("maps", (string)null);
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.Crew", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1302,6 +1332,14 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.Property<int>("EnvironmentModifier")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsLive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_live");
+
+                    b.Property<Guid>("MapId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("map_id");
+
                     b.Property<int>("MapLayer")
                         .HasColumnType("integer")
                         .HasColumnName("map_layer");
@@ -1327,9 +1365,9 @@ namespace SeattleByNight.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MapLayer", "MapX", "MapY")
+                    b.HasIndex("MapId", "MapLayer", "MapX", "MapY")
                         .IsUnique()
-                        .HasDatabaseName("ux_rooms_map_layer_map_x_map_y");
+                        .HasDatabaseName("ux_rooms_map_id_map_layer_map_x_map_y");
 
                     b.ToTable("rooms", (string)null);
                 });
@@ -1517,6 +1555,47 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.HasIndex("NpcInstanceId");
 
                     b.ToTable("scene_sessions", (string)null);
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.TravelLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid>("DestinationRoomId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("destination_room_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("SourceRoomId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_room_id");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DestinationRoomId")
+                        .HasDatabaseName("ix_travel_links_destination");
+
+                    b.HasIndex("SourceRoomId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("ux_travel_links_source_name");
+
+                    b.ToTable("travel_links", (string)null);
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.TriggerFire", b =>
@@ -1960,6 +2039,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.Room", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.CityMap", null)
+                        .WithMany()
+                        .HasForeignKey("MapId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.RoomExit", b =>
                 {
                     b.HasOne("SeattleByNight.Domain.Entities.Room", null)
@@ -2011,6 +2099,21 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("NpcInstanceId")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.TravelLink", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("DestinationRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SeattleByNight.Domain.Entities.Room", null)
+                        .WithMany()
+                        .HasForeignKey("SourceRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.TriggerFire", b =>

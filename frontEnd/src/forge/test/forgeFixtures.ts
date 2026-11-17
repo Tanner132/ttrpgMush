@@ -9,6 +9,7 @@ import type {
   ContentSummary,
   WorldExit,
   WorldGraph,
+  WorldMapSummary,
   WorldRoom,
 } from '../api.ts'
 
@@ -33,10 +34,14 @@ export const Ids = {
   siteNpc: 'f83134f1-47e5-4cde-9fde-8277384646eb',
   records: '017e2a55-843f-4e5e-a7f9-102310427c33',
   talkDown: '5ebec4f2-5d44-47cd-9167-13650586c518',
+  seattle: '5ea771e0-0000-4000-8000-000000000001',
 }
 
+/** WF-41: the one map the test world is on. */
+export const SeattleMap: WorldMapSummary = { id: Ids.seattle, name: 'Seattle', rooms: 4, draftRooms: 0, createdAtUtc: '2026-11-01T00:00:00Z', version: 'seattle-v1' }
+
 function room(id: string, name: string, x: number, y: number): WorldRoom {
-  return { id, name, description: `${name} description.`, accessType: 'Public', mapX: x, mapY: y, mapLayer: 0, createdAtUtc: '2026-11-01T00:00:00Z', version: `${id}-v1` }
+  return { id, name, description: `${name} description.`, accessType: 'Public', mapX: x, mapY: y, mapLayer: 0, createdAtUtc: '2026-11-01T00:00:00Z', version: `${id}-v1`, mapId: Ids.seattle, isLive: true }
 }
 
 export function exit(from: WorldRoom, to: WorldRoom, direction: WorldExit['direction'], flags: Partial<WorldExit> = {}): WorldExit {
@@ -70,6 +75,9 @@ export function world(): WorldGraph {
       exit(Rooms.downtown, Rooms.alley, 'north'),
       exit(Rooms.alley, Rooms.downtown, 'south', { states: ['hidden'] }),
     ],
+    map: SeattleMap,
+    maps: [SeattleMap],
+    travelLinks: [],
   }
 }
 
@@ -152,10 +160,10 @@ export function references(): ContentReferences {
     ],
     places: [],
     rooms: [
-      { id: Ids.downtown, name: 'Downtown', npcs: [], inspectables: [] },
-      { id: Ids.coffee, name: 'Coffee Shop', npcs: [{ id: Ids.johnson, name: 'Mr. Johnson' }], inspectables: [] },
-      { id: Ids.alley, name: 'Alley', npcs: [], inspectables: [] },
-      { id: Ids.dock, name: 'Loading Dock', npcs: [{ id: Ids.siteNpc, name: 'Warehouse Ganger', templateId: Ids.ganger }], inspectables: [] },
+      { id: Ids.downtown, name: 'Downtown', npcs: [], inspectables: [], mapId: Ids.seattle, isLive: true },
+      { id: Ids.coffee, name: 'Coffee Shop', npcs: [{ id: Ids.johnson, name: 'Mr. Johnson' }], inspectables: [], mapId: Ids.seattle, isLive: true },
+      { id: Ids.alley, name: 'Alley', npcs: [], inspectables: [], mapId: Ids.seattle, isLive: true },
+      { id: Ids.dock, name: 'Loading Dock', npcs: [{ id: Ids.siteNpc, name: 'Warehouse Ganger', templateId: Ids.ganger }], inspectables: [], mapId: Ids.seattle, isLive: true },
     ],
   }
 }

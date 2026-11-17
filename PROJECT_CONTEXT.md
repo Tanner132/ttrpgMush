@@ -87,9 +87,25 @@ StateChanges, Tests).
 
 ## World model
 
-- **Room** — name, description, access type, and required immutable coordinates
-  `(x, y, layer)` unique within a layer. Every room is `Public` (workstream 8:
-  one shared map, no run copies); the field stays for player-owned rooms.
+- **Map** (`CityMap`, World Forge phase 2) — a city. Every room is on one;
+  rooms built before maps existed were moved to Seattle
+  (`CityMap.SeattleId`) by the `MapsAndRoomLifecycle` migration.
+- **Room** — name, description, access type, its map, and coordinates
+  `(x, y, layer)` unique within its map and layer. A room can be moved (WF-46,
+  `WorldMapStore.MoveRoomsAsync`; a selection by an offset, optionally to
+  another map; exits are kept as authored; audited). Every room is `Public`
+  (workstream 8: one shared map, no run copies); the field stays for
+  player-owned rooms.
+- **Draft and live rooms** (WF-60). `Room.IsLive`; the Forge builds drafts,
+  seeded and migrated rooms are live. A draft room, every exit and travel link
+  into it, and what is in it are out of play: movement refuses them and the
+  room view leaves them out. A job cannot go live while it uses a draft room
+  (`JobMapValidator`). Unpublishing is refused while a job uses the room, for
+  the starting room, and while someone inside has no exit to a live room
+  outside the selection; otherwise they are moved through such an exit.
+- **TravelLink** (WF-70) — a named way from a room to a room on any map.
+  Instant for now (phase 8 gives travel a time); taken through the same hub
+  call as an exit (`MovementStore` falls back to a link id), with `/travel`.
 - **RoomExit** — a directed edge with one of ten directions (eight compass
   points, `up`, `down`) and a `states` array (`ExitStates`: `locked`, `hidden`,
   `restricted`, `private`; empty is an open door, workstream 8). Hidden,
@@ -101,7 +117,7 @@ StateChanges, Tests).
   room. Exits have no names.
 - Coordinates place a room in the editor and seed default adjacency only.
   Creating a room creates both directed exits to each occupied same-layer
-  neighbor; after that, persisted exits are authoritative and may diverge from
+  neighbor on its map; after that, persisted exits are authoritative and may diverge from
   the grid. Vertical exits are always explicit. A manual reverse exit is a
   separate create.
 - Movement names an exit from the character's current room, never a destination

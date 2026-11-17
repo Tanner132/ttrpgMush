@@ -43,6 +43,8 @@ public sealed class SeattleByNightDbContext : IdentityDbContext<ApplicationUser,
     public DbSet<SceneSession> SceneSessions => Set<SceneSession>();
     public DbSet<GameContentDefinition> GameContentDefinitions => Set<GameContentDefinition>();
     public DbSet<TriggerFire> TriggerFires => Set<TriggerFire>();
+    public DbSet<CityMap> Maps => Set<CityMap>();
+    public DbSet<TravelLink> TravelLinks => Set<TravelLink>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

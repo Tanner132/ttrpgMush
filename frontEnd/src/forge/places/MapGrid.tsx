@@ -8,6 +8,8 @@ export interface BuildSpot {
   x: number
   y: number
   layer: number
+  /** WF-41: the map the room is built on. */
+  mapId?: Guid
   /** The room the new one opens off, when the square is next to one. */
   from?: { room: WorldRoom; direction: ExitDirection }
 }
@@ -115,13 +117,14 @@ export function MapGrid({
               type="button"
               className={[
                 'forge-map__room',
+                room.isLive ? null : 'forge-map__room--draft',
                 inJob ? 'forge-map__room--job' : null,
                 current ? 'forge-map__room--current' : null,
               ]
                 .filter(Boolean)
                 .join(' ')}
               aria-current={current ? 'location' : undefined}
-              aria-label={`${room.name}${marks?.up ? ', stairs up' : ''}${marks?.down ? ', stairs down' : ''}${inJob ? ', used by this job' : ''}`}
+              aria-label={`${room.name}${room.isLive ? '' : ', draft'}${marks?.up ? ', stairs up' : ''}${marks?.down ? ', stairs down' : ''}${inJob ? ', used by this job' : ''}`}
               onClick={() => onOpen(room)}
             >
               <span className="forge-map__room-name">{room.name}</span>
@@ -203,6 +206,7 @@ export function MapGrid({
       </div>
       <div className="forge-map__legend" aria-hidden="true">
         <span><i className="forge-map__swatch" />Room</span>
+        <span><i className="forge-map__swatch forge-map__swatch--draft" />Draft</span>
         {jobRoomIds && <span><i className="forge-map__swatch forge-map__swatch--job" />This job</span>}
         <span>▲▼ Stairs</span>
         <span>┄ Hidden</span>

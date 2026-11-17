@@ -6,7 +6,15 @@ import { toErrorMessage } from '../api/client.ts'
  * one's answer is kept, so switching what is open mid-fetch can never land
  * the old answer on the new screen (WF-2).
  */
-export function useLoad<T>(loader: (signal: AbortSignal) => Promise<T>, deps: readonly unknown[]) {
+/**
+ * Loads data for a screen. With `keepPrevious`, what was loaded stays on show
+ * while the next load runs (WF-71: switching maps keeps the Forge mounted).
+ */
+export function useLoad<T>(
+  loader: (signal: AbortSignal) => Promise<T>,
+  deps: readonly unknown[],
+  { keepPrevious = false }: { keepPrevious?: boolean } = {},
+) {
   const [data, setData] = useState<T | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,10 +53,10 @@ export function useLoad<T>(loader: (signal: AbortSignal) => Promise<T>, deps: re
   // compared as one key so the effect's own list stays fixed.
   const key = JSON.stringify(deps)
   useEffect(() => {
-    setData(null)
+    if (!keepPrevious) setData(null)
     void reload()
     return invalidate
-  }, [key, reload, invalidate])
+  }, [key, reload, invalidate, keepPrevious])
 
   return { data, setData, error, loading, reload }
 }

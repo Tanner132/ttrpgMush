@@ -1,5 +1,6 @@
-import { useCallback, useMemo, type ReactNode } from 'react'
-import { getInventory, getPalette, getReferences, getWorld } from './api.ts'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { ApiError } from '../api/client.ts'
+import { getInventory, getPalette, getReferences, getWorld, type Guid } from './api.ts'
 import { ForgeDataContext, type ForgeData } from './forgeContext.ts'
 import { useLoad } from './hooks.ts'
 
@@ -15,7 +16,25 @@ export function ForgeDataProvider({ children }: { children: ReactNode }) {
     },
     [],
   )
-  const world = useLoad((signal) => getWorld(signal), [])
+  // WF-71: one map at a time. The last map opened is remembered per browser.
+  const [requestedMap, setRequestedMap] = useState<Guid | null>(readRememberedMap)
+  const world = useLoad(
+    async (signal) => {
+      try {
+        return await getWorld(requestedMap, signal)
+      } catch (error) {
+        // A remembered map that has since gone: open the default one.
+        if (requestedMap && error instanceof ApiError && error.status === 404) return getWorld(null, signal)
+        throw error
+      }
+    },
+    [requestedMap],
+    { keepPrevious: true },
+  )
+  const openMap = useCallback((mapId: Guid) => {
+    rememberMap(mapId)
+    setRequestedMap(mapId)
+  }, [])
 
   const refreshContent = content.reload
   const reloadWorld = world.reload
@@ -38,8 +57,10 @@ export function ForgeDataProvider({ children }: { children: ReactNode }) {
         inventory.definitions.find((definition) => definition.kind === kind && definition.contentKey === id),
       refreshContent,
       refreshWorld,
+      mapId: world.data.map.id,
+      openMap,
     }
-  }, [content.data, world.data, refreshContent, refreshWorld])
+  }, [content.data, world.data, refreshContent, refreshWorld, openMap])
 
   const error = content.error ?? world.error
   if (error && !value) {
@@ -59,4 +80,22 @@ export function ForgeDataProvider({ children }: { children: ReactNode }) {
   }
 
   return <ForgeDataContext.Provider value={value}>{children}</ForgeDataContext.Provider>
+}
+
+const MapKey = 'forge.mapId'
+
+function readRememberedMap(): Guid | null {
+  try {
+    return window.localStorage.getItem(MapKey)
+  } catch {
+    return null
+  }
+}
+
+function rememberMap(mapId: Guid) {
+  try {
+    window.localStorage.setItem(MapKey, mapId)
+  } catch {
+    // Remembering the map is a convenience only.
+  }
 }

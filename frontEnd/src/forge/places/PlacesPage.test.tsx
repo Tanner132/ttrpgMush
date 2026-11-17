@@ -74,6 +74,7 @@ describe('Places · the map', () => {
       mapX: 0,
       mapY: -1,
       mapLayer: 0,
+      mapId: Ids.seattle,
     })
     expect(api.createExit).toHaveBeenNthCalledWith(1, { sourceRoomId: Ids.downtown, destinationRoomId: 'new-room', direction: 'south', states: [] })
     expect(api.createExit).toHaveBeenNthCalledWith(2, { sourceRoomId: 'new-room', destinationRoomId: Ids.downtown, direction: 'north', states: [] })
@@ -365,5 +366,104 @@ describe('Places · deleting', () => {
     await user.click(within(section).getByRole('button', { name: 'Confirm delete Alley' }))
 
     await waitFor(() => expect(api.deleteRoom).toHaveBeenCalledWith(Ids.alley, Ids.downtown))
+  })
+})
+
+// World Forge phase 2: maps, publishing, moving rooms and travel.
+describe('Places · maps and the room lifecycle', () => {
+  function useDraftAlley() {
+    const graph = world()
+    graph.rooms = graph.rooms.map((room) => (room.id === Ids.alley ? { ...room, isLive: false } : room))
+    graph.map = { ...graph.map, draftRooms: 1 }
+    graph.maps = [graph.map, { id: 'berlin', name: 'Berlin', rooms: 0, draftRooms: 0, createdAtUtc: '2026-11-01T00:00:00Z', version: 'b1' }]
+    useFakeServer(store, graph)
+    return graph
+  }
+
+  it('marks a draft room on the map and says when its changes reach players', async () => {
+    useDraftAlley()
+    const map = await openPlaces(Ids.alley)
+
+    expect(within(map).getByRole('button', { name: 'Alley, draft' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Exits' })).toHaveTextContent('Draft room: players see none of this until the room is published.')
+    expect(screen.getByRole('region', { name: 'In play' })).toHaveTextContent('Draft')
+  })
+
+  it('publishes the open room', async () => {
+    useDraftAlley()
+    vi.mocked(api.publishRooms).mockResolvedValue({ roomIds: [Ids.alley], charactersMoved: 0 })
+    const user = userEvent.setup()
+    await openPlaces(Ids.alley)
+
+    await user.click(screen.getByRole('button', { name: 'Publish room' }))
+
+    await waitFor(() => expect(api.publishRooms).toHaveBeenCalledWith({ roomIds: [Ids.alley] }))
+    expect(await screen.findByText('Alley is in play.')).toBeInTheDocument()
+  })
+
+  it('publishes every draft on the map at once', async () => {
+    useDraftAlley()
+    vi.mocked(api.publishRooms).mockResolvedValue({ roomIds: [Ids.alley], charactersMoved: 0 })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const user = userEvent.setup()
+    await openPlaces()
+
+    await user.click(screen.getByRole('button', { name: 'Publish 1 draft room' }))
+
+    await waitFor(() => expect(api.publishRooms).toHaveBeenCalledWith({ mapId: Ids.seattle }))
+    expect(await screen.findByText('1 room is now in play.')).toBeInTheDocument()
+  })
+
+  it('shows why a room cannot be unpublished', async () => {
+    vi.mocked(api.unpublishRooms).mockRejectedValue(new Error('Jobs use Coffee Shop: Gang Warehouse Retrieval. Take it out of them first.'))
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const user = userEvent.setup()
+    await openPlaces(Ids.coffee)
+
+    await user.click(screen.getByRole('button', { name: 'Unpublish room' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Jobs use Coffee Shop')
+  })
+
+  it('switches to another map', async () => {
+    useDraftAlley()
+    const user = userEvent.setup()
+    await openPlaces()
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Map' }), 'berlin')
+
+    await waitFor(() => expect(api.getWorld).toHaveBeenLastCalledWith('berlin', expect.anything()))
+  })
+
+  it('moves a room by the offset to the cell chosen', async () => {
+    vi.mocked(api.moveRooms).mockResolvedValue({ rooms: [] })
+    const user = userEvent.setup()
+    await openPlaces(Ids.coffee)
+
+    await user.click(screen.getByRole('button', { name: 'Move room' }))
+    const form = screen.getByRole('form', { name: 'Move room' })
+    await user.clear(within(form).getByLabelText('X'))
+    await user.type(within(form).getByLabelText('X'), '4')
+    await user.click(within(form).getByRole('button', { name: 'Move here' }))
+
+    await waitFor(() =>
+      expect(api.moveRooms).toHaveBeenCalledWith({ roomIds: [Ids.coffee], toMapId: null, deltaX: 3, deltaY: 0, deltaLayer: 0 }),
+    )
+  })
+
+  it('offers travel to a named room', async () => {
+    vi.mocked(api.createTravelLink).mockResolvedValue({} as api.WorldTravelLink)
+    const user = userEvent.setup()
+    await openPlaces()
+
+    const travel = screen.getByRole('region', { name: 'Travel' })
+    await user.click(within(travel).getByRole('button', { name: '+ Travel' }))
+    await user.type(within(travel).getByLabelText('Name players type'), 'Uptown')
+    await user.selectOptions(within(travel).getByLabelText('Arrive in'), 'Alley')
+    await user.click(within(travel).getByRole('button', { name: 'Add travel' }))
+
+    await waitFor(() =>
+      expect(api.createTravelLink).toHaveBeenCalledWith({ sourceRoomId: Ids.downtown, destinationRoomId: Ids.alley, name: 'Uptown' }),
+    )
   })
 })

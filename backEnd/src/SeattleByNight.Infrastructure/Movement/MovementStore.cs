@@ -63,7 +63,16 @@ public sealed class MovementStore : IMovementStore
             .Select(e => new MovementExit(e.Id, e.SourceRoomId, e.DestinationRoomId, e.States))
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (exit is null)
+        // WF-70: a travel link is taken like an open door. Instant for now;
+        // phase 8 gives travel a time.
+        exit ??= await _dbContext.TravelLinks
+            .Where(link => link.Id == exitId)
+            .Select(link => new MovementExit(link.Id, link.SourceRoomId, link.DestinationRoomId, Array.Empty<string>()))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // WF-60: a draft room, and every way into it, is out of play.
+        if (exit is null || !await _dbContext.Rooms.AnyAsync(
+                room => room.Id == exit.DestinationRoomId && room.IsLive, cancellationToken))
         {
             await transaction.RollbackAsync(cancellationToken);
             return MovementStoreResult.Failure(MoveCharacterError.ExitNotFound);

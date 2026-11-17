@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button.tsx'
 import type { Guid, WorldRoom } from '../api.ts'
@@ -24,8 +24,13 @@ const HandedOver = 'handed-over'
  * are the map's and are edited in Places.
  */
 export function RoomsStep({ job, mission }: { job: Job; mission: Mission }) {
-  const { world, references } = useForgeData()
+  const { world, references, openMap } = useForgeData()
   const guard = useGuardedClick()
+  // WF-71: the job's rooms may be on another map than the one open; open it.
+  const jobMap = references.rooms.find((room) => room.id === mission.roomIds[0])?.mapId
+  useEffect(() => {
+    if (jobMap && jobMap !== world.map.id) openMap(jobMap)
+  }, [jobMap]) // eslint-disable-line react-hooks/exhaustive-deps
   const anchor = world.rooms.find((room) => room.id === mission.roomIds[0]) ?? world.rooms[0]
   const [selectedId, setSelectedId] = useState<Guid | null>(anchor?.id ?? null)
   const [view, setView] = useState({ x: anchor?.mapX ?? 0, y: anchor?.mapY ?? 0, layer: anchor?.mapLayer ?? 0 })
@@ -38,7 +43,7 @@ export function RoomsStep({ job, mission }: { job: Job; mission: Mission }) {
     .filter((room): room is WorldRoom => room !== undefined)
   const selected = world.rooms.find((room) => room.id === selectedId)
   const npcsHere = references.rooms.find((room) => room.id === selectedId)?.npcs ?? []
-  const roomName = (id: Guid | undefined) => world.rooms.find((room) => room.id === id)?.name ?? 'a room that no longer exists'
+  const roomName = (id: Guid | undefined) => references.rooms.find((room) => room.id === id)?.name ?? 'a room that no longer exists'
 
   function addRoom(room: WorldRoom) {
     setMission((current) => ({ ...current, roomIds: current.roomIds.includes(room.id) ? current.roomIds : [...current.roomIds, room.id] }))
@@ -91,7 +96,7 @@ export function RoomsStep({ job, mission }: { job: Job; mission: Mission }) {
               setSelectedId(room.id)
               setBuild(null)
             }}
-            onBuild={setBuild}
+            onBuild={(spot) => setBuild({ ...spot, mapId: world.map.id })}
             onLayer={(layer) => setView((current) => ({ ...current, layer }))}
             onPan={(dx, dy) => setView((current) => ({ ...current, x: current.x + dx, y: current.y + dy }))}
           />

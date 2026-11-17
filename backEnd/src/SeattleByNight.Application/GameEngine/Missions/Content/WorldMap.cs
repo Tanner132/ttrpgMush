@@ -10,7 +10,11 @@ public sealed record WorldMapRoom(
     // The world NPCs standing in the room.
     IReadOnlyList<WorldMapNpc>? Npcs = null,
     // The inspectables in the room.
-    IReadOnlyList<WorldMapInspectable>? Inspectables = null);
+    IReadOnlyList<WorldMapInspectable>? Inspectables = null,
+    // WF-60: a draft room is out of play; a job cannot go live using one.
+    bool IsLive = true,
+    // WF-41: the map (city) the room is on.
+    Guid? MapId = null);
 
 public sealed record WorldMapInspectable(Guid Id, string Name);
 
@@ -76,6 +80,26 @@ public static class JobMapValidator
         Fail(
             missing.Count > 0,
             $"{where} uses {missing.Count} room(s) that are not on the map. Build them in Places.");
+
+        // WF-60: a job cannot go live while it uses a draft room.
+        if (!mission.IsRetired)
+        {
+            var used = mission.RoomIds
+                .Concat(mission.Objectives.Select(objective => objective.RoomId).OfType<Guid>())
+                .Concat(mission.Triggers.Select(trigger => trigger.RoomId))
+                .Concat(mission.Items.Select(item => item.RoomId).OfType<Guid>())
+                .Concat(mission.NpcIds.Select(npcId => map.FindNpcRoom(npcId)?.Id).OfType<Guid>())
+                .Distinct()
+                .Select(roomId => map.Rooms.GetValueOrDefault(roomId))
+                .OfType<WorldMapRoom>()
+                .Where(room => !room.IsLive)
+                .Select(room => room.Name)
+                .Order(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            Fail(
+                used.Count > 0,
+                $"{where} uses draft rooms: {string.Join(", ", used)}. Publish them in Places first.");
+        }
 
         foreach (var npcId in mission.NpcIds)
         {

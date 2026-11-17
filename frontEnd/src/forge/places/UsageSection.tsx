@@ -35,8 +35,9 @@ export function UsageSection({ room, here, onDeleted }: { room: WorldRoom; here?
   const action = useAction()
   const usage = check.data
 
+  // WF-60: nobody is put in a draft room.
   const others = world.rooms
-    .filter((candidate) => candidate.id !== room.id)
+    .filter((candidate) => candidate.id !== room.id && candidate.isLive)
     .map((candidate) => ({ id: candidate.id, displayName: candidate.name }))
 
   async function remove() {

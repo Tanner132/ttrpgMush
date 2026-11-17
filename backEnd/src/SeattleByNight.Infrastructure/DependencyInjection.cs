@@ -65,6 +65,7 @@ public static class DependencyInjection
         services.AddScoped<IJobItemStore, JobItemStore>();
         services.AddScoped<IWorldNpcStore, WorldNpcStore>();
         services.AddScoped<IWorldEditorStore, WorldEditorStore>();
+        services.AddScoped<IWorldMapStore, WorldMapStore>();
         services.AddSingleton<IDiceRandom, CryptographicDiceRandom>();
         services.AddSingleton<IDiceEngine, DiceEngine>();
         services.AddScoped<ICharacterRuntimeStateStore, CharacterRuntimeStateStore>();

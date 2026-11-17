@@ -50,8 +50,8 @@ function JobEditor({ id }: { id: string }) {
   }, [mission, pitch, prompt, job.scenes, references, world.rooms])
 
   const checks = useMemo(
-    () => (mission ? jobChecks(mission, job.pitchId ? pitch : null, job.johnsons, world, job.johnsonBlock) : []),
-    [mission, pitch, job.pitchId, job.johnsons, world, job.johnsonBlock],
+    () => (mission ? jobChecks(mission, job.pitchId ? pitch : null, job.johnsons, world, job.johnsonBlock, references.rooms) : []),
+    [mission, pitch, job.pitchId, job.johnsons, world, job.johnsonBlock, references.rooms],
   )
 
   const back = (

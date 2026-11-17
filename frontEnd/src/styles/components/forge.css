@@ -1358,3 +1358,33 @@ button.forge__row-link {
   padding-bottom: 0.6rem;
   font-weight: 700;
 }
+
+/* WF-60: a draft room is drawn dashed and dim until it is published. */
+.forge-map__room--draft {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.forge-map__swatch--draft {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+/* WF-60: says when a section's changes reach players. */
+.forge__reach {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--sb-text-muted, inherit);
+}
+
+.forge__reach--draft {
+  color: var(--sb-warning, inherit);
+}
+
+/* WF-41: the map switcher above Places. */
+.forge__mapbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px 12px;
+}

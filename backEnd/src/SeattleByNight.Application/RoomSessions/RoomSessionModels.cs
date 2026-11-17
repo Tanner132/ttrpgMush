@@ -23,6 +23,10 @@ public sealed record RoomExitSummary(
     // private. Hidden doors are not listed at all until found.
     IReadOnlyList<string> States);
 
+// WF-70: travel a room offers, to a named room on this map or another. Taken
+// with the same hub call as an exit.
+public sealed record RoomTravelSummary(Guid Id, string Name, Guid DestinationRoomId, string DestinationRoomName, string MapName);
+
 public sealed record RoomMessage(
     Guid Id,
     Guid RoomId,
@@ -55,4 +59,5 @@ public sealed record RoomSession(
     // Workstream 8 phase 3: what a job finished here has left behind, by the
     // hours since it was finished. When jobs share the room, the one finished
     // most recently (8.5).
-    string? Aftermath = null);
+    string? Aftermath = null,
+    IReadOnlyList<RoomTravelSummary>? Travel = null);

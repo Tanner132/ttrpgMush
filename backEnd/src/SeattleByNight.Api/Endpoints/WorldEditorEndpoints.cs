@@ -12,7 +12,9 @@ public sealed record CreateWorldRoomRequest(
     string? AccessType,
     long? MapX,
     long? MapY,
-    long? MapLayer);
+    long? MapLayer,
+    // WF-41: the map to build on; Seattle when left out.
+    Guid? MapId = null);
 
 public sealed record UpdateWorldRoomRequest(
     string? Name,
@@ -36,6 +38,16 @@ public sealed record UpdateWorldExitRequest(
     string[]? States,
     Guid Version);
 
+// World Forge phase 2.
+public sealed record WorldMapRequest(string? Name, Guid? Version = null);
+
+// The rooms named, or (with MapId) every room on a map.
+public sealed record RoomSelectionRequest(Guid[]? RoomIds, Guid? MapId);
+
+public sealed record MoveRoomsRequest(Guid[]? RoomIds, Guid? ToMapId, int DeltaX, int DeltaY, int DeltaLayer);
+
+public sealed record TravelLinkRequest(Guid SourceRoomId, Guid DestinationRoomId, string? Name);
+
 public static class WorldEditorEndpoints
 {
     public static IEndpointRouteBuilder MapWorldEditorEndpoints(this IEndpointRouteBuilder endpoints)
@@ -53,18 +65,86 @@ public static class WorldEditorEndpoints
         group.MapPut("/exits/{exitId:guid}", UpdateExitAsync).RequireAntiforgery();
         group.MapDelete("/exits/{exitId:guid}", DeleteExitAsync).RequireAntiforgery();
 
+        // World Forge phase 2: maps, publishing, moving, travel links.
+        group.MapGet("/maps", ListMapsAsync);
+        group.MapPost("/maps", CreateMapAsync).RequireAntiforgery();
+        group.MapPut("/maps/{mapId:guid}", RenameMapAsync).RequireAntiforgery();
+        group.MapPost("/rooms/publish", PublishRoomsAsync).RequireAntiforgery();
+        group.MapPost("/rooms/unpublish", UnpublishRoomsAsync).RequireAntiforgery();
+        group.MapPost("/rooms/move", MoveRoomsAsync).RequireAntiforgery();
+        group.MapPost("/travel", CreateTravelLinkAsync).RequireAntiforgery();
+        group.MapDelete("/travel/{linkId:guid}", DeleteTravelLinkAsync).RequireAntiforgery();
+
         return endpoints;
     }
 
-    private static async Task<IResult> GetGraphAsync(IMediator mediator)
+    // WF-71: one map at a time; Seattle when no map is named.
+    private static async Task<IResult> GetGraphAsync(Guid? mapId, IMediator mediator, IWorldMapStore maps)
     {
-        var graph = await mediator.Send(new GetWorldGraphQuery());
+        var graph = await mediator.Send(new GetWorldGraphQuery(mapId));
+        if (graph is not null)
+        {
+            return Results.Ok(graph);
+        }
 
-        return graph is null
+        var known = await maps.ListMapsAsync();
+        return known.Any(map => map.Id == (mapId ?? Domain.Entities.CityMap.SeattleId))
             ? Results.Problem(
                 statusCode: StatusCodes.Status413PayloadTooLarge,
-                title: "The world graph exceeds the editor response limit.")
-            : Results.Ok(graph);
+                title: "The map exceeds the editor response limit.")
+            : Results.NotFound();
+    }
+
+    private static async Task<IResult> ListMapsAsync(IWorldMapStore maps, CancellationToken cancellationToken) =>
+        Results.Ok(await maps.ListMapsAsync(cancellationToken));
+
+    private static Task<IResult> CreateMapAsync(
+        WorldMapRequest request, UserManager<ApplicationUser> userManager, IWorldMapStore maps, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(await maps.CreateMapAsync(actor, request.Name ?? string.Empty),
+                value => Results.Created($"/api/admin/world/?mapId={value.Id}", value)));
+
+    private static Task<IResult> RenameMapAsync(
+        Guid mapId, WorldMapRequest request, UserManager<ApplicationUser> userManager, IWorldMapStore maps, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(await maps.RenameMapAsync(actor, mapId, request.Version ?? Guid.Empty, request.Name ?? string.Empty), Results.Ok));
+
+    private static Task<IResult> PublishRoomsAsync(
+        RoomSelectionRequest request, UserManager<ApplicationUser> userManager, IWorldMapStore maps, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(await maps.PublishAsync(actor, new RoomSelection(request.RoomIds, request.MapId)), Results.Ok));
+
+    private static Task<IResult> UnpublishRoomsAsync(
+        RoomSelectionRequest request, UserManager<ApplicationUser> userManager, IWorldMapStore maps, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(await maps.UnpublishAsync(actor, new RoomSelection(request.RoomIds, request.MapId)), Results.Ok));
+
+    private static Task<IResult> MoveRoomsAsync(
+        MoveRoomsRequest request, UserManager<ApplicationUser> userManager, IWorldMapStore maps, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(
+                await maps.MoveRoomsAsync(actor, new MoveRoomsMutation(
+                    request.RoomIds ?? [], request.ToMapId, request.DeltaX, request.DeltaY, request.DeltaLayer)),
+                Results.Ok));
+
+    private static Task<IResult> CreateTravelLinkAsync(
+        TravelLinkRequest request, UserManager<ApplicationUser> userManager, IWorldMapStore maps, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(
+                await maps.CreateTravelLinkAsync(actor, new TravelLinkMutation(
+                    request.SourceRoomId, request.DestinationRoomId, request.Name ?? string.Empty)),
+                value => Results.Created($"/api/admin/world/rooms/{value.SourceRoomId}", value)));
+
+    private static Task<IResult> DeleteTravelLinkAsync(
+        Guid linkId, UserManager<ApplicationUser> userManager, IWorldMapStore maps, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(await maps.DeleteTravelLinkAsync(actor, linkId), _ => Results.NoContent()));
+
+    private static async Task<IResult> AsActorAsync(
+        UserManager<ApplicationUser> userManager, HttpContext httpContext, Func<Guid, Task<IResult>> action)
+    {
+        var actor = await userManager.GetUserAsync(httpContext.User);
+        return actor is null ? Results.Unauthorized() : await action(actor.Id);
     }
 
     private static async Task<IResult> GetRoomDetailsAsync(Guid roomId, IMediator mediator)
@@ -92,7 +172,8 @@ public static class WorldEditorEndpoints
             request.AccessType,
             request.MapX,
             request.MapY,
-            request.MapLayer);
+            request.MapLayer,
+            request.MapId);
         var result = await mediator.Send(new CreateRoomCommand(actor.Id, mutation));
 
         return MutationResult(result, value => Results.Created($"/api/admin/world/rooms/{value.Id}", value));

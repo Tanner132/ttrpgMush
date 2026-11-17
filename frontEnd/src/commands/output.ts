@@ -33,6 +33,11 @@ export function renderLook(
     lines.push(`Exits: ${session.exits.map((exit) => exit.direction).join(', ')}`)
   }
 
+  // WF-70: travel offered from here.
+  if (session.travel && session.travel.length > 0) {
+    lines.push(`Travel: ${session.travel.map((link) => link.name).join(', ')} (/travel <name>)`)
+  }
+
   if (occupants.length > 0) {
     const onlineIds = new Set(onlineCharacters.map((character) => character.id))
     const occupantText = occupants

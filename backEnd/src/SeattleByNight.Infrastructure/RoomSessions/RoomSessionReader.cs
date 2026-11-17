@@ -80,7 +80,8 @@ public sealed class RoomSessionReader : IRoomSessionReader
             .Where(e => e.SourceRoomId == character.CurrentRoomId && !e.States.Contains(ExitStates.Hidden))
             .OrderBy(e => e.Direction)
             .Join(
-                _dbContext.Rooms.AsNoTracking(),
+                // WF-60: a door into a draft room is out of play.
+                _dbContext.Rooms.AsNoTracking().Where(r => r.IsLive),
                 e => e.DestinationRoomId,
                 r => r.Id,
                 (e, r) => new RoomExitSummary(e.Id, e.Direction, e.DestinationRoomId, r.Name, e.States))
@@ -93,6 +94,14 @@ public sealed class RoomSessionReader : IRoomSessionReader
                 ? exit with { States = ExitStates.Normalize([.. exit.States, ExitStates.Restricted]) }
                 : exit)
             .ToList();
+
+        var travel = await (from link in _dbContext.TravelLinks.AsNoTracking()
+                join destination in _dbContext.Rooms.AsNoTracking() on link.DestinationRoomId equals destination.Id
+                join map in _dbContext.Maps.AsNoTracking() on destination.MapId equals map.Id
+                where link.SourceRoomId == character.CurrentRoomId && destination.IsLive
+                orderby link.Name
+                select new RoomTravelSummary(link.Id, link.Name, destination.Id, destination.Name, map.Name))
+            .ToListAsync(cancellationToken);
 
         var occupants = await _dbContext.Characters
             .AsNoTracking()
@@ -142,7 +151,8 @@ public sealed class RoomSessionReader : IRoomSessionReader
             messages,
             olderCursor,
             _combatTracker.Get(character.CurrentRoomId) is { } combat ? CombatView.From(combat) : null,
-            await ReadAftermathAsync(character.CurrentRoomId, cancellationToken));
+            await ReadAftermathAsync(character.CurrentRoomId, cancellationToken),
+            travel);
     }
 
     // Workstream 8 phase 3 (8.1 "Aftermath text"): derived from the completion

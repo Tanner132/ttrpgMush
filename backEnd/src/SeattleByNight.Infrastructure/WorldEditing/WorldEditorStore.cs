@@ -44,8 +44,20 @@ public sealed class WorldEditorStore : IWorldEditorStore
         var mapX = (int)mutation.MapX!.Value;
         var mapY = (int)mutation.MapY!.Value;
         var mapLayer = (int)mutation.MapLayer!.Value;
+        var mapId = mutation.MapId ?? CityMap.SeattleId;
+
+        // WF-41: a room is built on a map that exists.
+        if (!await _db.Maps.AnyAsync(map => map.Id == mapId, cancellationToken))
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return WorldMutationResult<WorldRoom>.Invalid(new Dictionary<string, string[]>
+            {
+                ["mapId"] = ["That map does not exist."]
+            });
+        }
 
         if (await _db.Rooms.AnyAsync(candidate =>
+                candidate.MapId == mapId &&
                 candidate.MapX == mapX && candidate.MapY == mapY && candidate.MapLayer == mapLayer,
                 cancellationToken))
         {
@@ -54,7 +66,7 @@ public sealed class WorldEditorStore : IWorldEditorStore
         }
 
         var neighbors = await _db.Rooms
-            .Where(candidate => candidate.MapLayer == mapLayer &&
+            .Where(candidate => candidate.MapId == mapId && candidate.MapLayer == mapLayer &&
                 (long)candidate.MapX >= (long)mapX - 1 && (long)candidate.MapX <= (long)mapX + 1 &&
                 (long)candidate.MapY >= (long)mapY - 1 && (long)candidate.MapY <= (long)mapY + 1)
             .ToListAsync(cancellationToken);
@@ -71,6 +83,9 @@ public sealed class WorldEditorStore : IWorldEditorStore
             MapX = mapX,
             MapY = mapY,
             MapLayer = mapLayer,
+            MapId = mapId,
+            // WF-60: a new room is a draft until it is published.
+            IsLive = false,
             CreatedAtUtc = now,
             Version = Guid.NewGuid()
         };
@@ -393,7 +408,7 @@ public sealed class WorldEditorStore : IWorldEditorStore
             visit => visit.RoomId == roomId, cancellationToken);
 
         var isStartingRoom = roomId == WorldOptions.DefaultStartingRoomId;
-        var jobs = JobsUsing(roomId, await _db.NpcInstances
+        var jobs = WorldRoomUsage.JobsUsing(_gameContent.Current, roomId, await _db.NpcInstances
                 .Where(npc => npc.RoomId == roomId)
                 .Select(npc => npc.Id)
                 .ToListAsync(cancellationToken))
@@ -431,19 +446,6 @@ public sealed class WorldEditorStore : IWorldEditorStore
             HasRoomEvents: hasRoomEvents);
     }
 
-    // Workstream 8: every way a job can depend on a room — it happens there,
-    // listens there, puts an item there, sends runners there, or uses an NPC
-    // standing there (who would go with the room).
-    private IEnumerable<string> JobsUsing(Guid roomId, IReadOnlyCollection<Guid> npcsHere) =>
-        _gameContent.Current.Missions
-            .Where(mission =>
-                mission.RoomIds.Contains(roomId)
-                || mission.Triggers.Any(trigger => trigger.RoomId == roomId)
-                || mission.Items.Any(item => item.RoomId == roomId)
-                || mission.Objectives.Any(objective => objective.RoomId == roomId)
-                || mission.NpcIds.Any(npcsHere.Contains))
-            .Select(mission => mission.DisplayName);
-
     public async Task<WorldMutationResult<RoomDeletionCheck>> DeleteRoomAsync(
         Guid actorUserId,
         Guid roomId,
@@ -475,14 +477,15 @@ public sealed class WorldEditorStore : IWorldEditorStore
                 });
             }
 
+            // WF-60: nobody is put in a draft room.
             var destinationExists = await _db.Rooms.AnyAsync(
-                candidate => candidate.Id == destination, cancellationToken);
+                candidate => candidate.Id == destination && candidate.IsLive, cancellationToken);
             if (!destinationExists)
             {
                 return WorldMutationResult<RoomDeletionCheck>.Success(check with
                 {
                     CanDelete = false,
-                    Reason = "The relocation target is not a room on the map.",
+                    Reason = "Characters can only be moved to a live room.",
                 });
             }
 
@@ -577,7 +580,7 @@ public sealed class WorldEditorStore : IWorldEditorStore
         return WorldMutationResult<RoomDeletionCheck>.Success(check with { CanDelete = true, Reason = null });
     }
 
-    private static WorldRoom ToWorldRoom(Room room) => new(
+    internal static WorldRoom ToWorldRoom(Room room) => new(
         room.Id,
         room.Name,
         room.Description,
@@ -586,7 +589,9 @@ public sealed class WorldEditorStore : IWorldEditorStore
         room.MapY,
         room.MapLayer,
         room.CreatedAtUtc,
-        room.Version);
+        room.Version,
+        room.MapId,
+        room.IsLive);
 
     private static WorldExit ToWorldExit(RoomExit exit, Room source, Room destination) => new(
         exit.Id,
@@ -607,6 +612,8 @@ public sealed class WorldEditorStore : IWorldEditorStore
             ["mapX"] = room.MapX.ToString(),
             ["mapY"] = room.MapY.ToString(),
             ["mapLayer"] = room.MapLayer.ToString(),
+            ["mapId"] = room.MapId.ToString(),
+            ["isLive"] = room.IsLive.ToString(),
             ["version"] = room.Version.ToString()
         };
 

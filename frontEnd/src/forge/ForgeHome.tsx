@@ -83,15 +83,22 @@ export default function ForgeHome() {
       <h1 className="visually-hidden">World Forge</h1>
       <div className="forge__home-grid">
         <Section title="Places">
-          <div className="forge__stats">
-            <Stat value={world.rooms.length} label="Rooms" />
-            <Stat value={exits} label="Exits" />
-          </div>
-          <div className="forge__actions">
-            <Link className="ui-button ui-button--primary" to="/admin/forge/places" onClick={guard}>
-              Open map
-            </Link>
-          </div>
+          {/* WF-71: counts per map; each map opens on its own. */}
+          <ul className="forge__rows" aria-label="Maps">
+            {world.maps.map((map) => (
+              <li key={map.id} className="forge__row">
+                <b className="forge__row-name">{map.name}</b>
+                <span className="forge__muted">
+                  {map.rooms} {map.rooms === 1 ? 'room' : 'rooms'}
+                  {map.id === world.map.id ? `, ${exits} exits` : ''}
+                </span>
+                {map.draftRooms > 0 && <Chip tone="draft">{map.draftRooms} draft</Chip>}
+                <Link className="ui-button" to={`/admin/forge/places?map=${map.id}`} onClick={guard} aria-label={`Open ${map.name}`}>
+                  Open
+                </Link>
+              </li>
+            ))}
+          </ul>
         </Section>
 
         <Section title="Jobs">

@@ -23,6 +23,7 @@ export const COMMANDS: CommandMetadata[] = [
   { name: 'look', usage: '/look', description: 'Describe the current room.' },
   { name: 'character', usage: '/character', description: 'Open your character sheet.' },
   { name: 'go', usage: '/go <direction>', description: 'Move through a visible exit.', requiresArgument: true },
+  { name: 'travel', usage: '/travel [destination]', description: 'List where you can travel from here, or travel there.' },
 ]
 
 export function usageFor(name: string): string {

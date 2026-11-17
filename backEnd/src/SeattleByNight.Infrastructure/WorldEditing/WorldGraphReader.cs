@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.WorldEditing;
+using SeattleByNight.Domain.Entities;
 using SeattleByNight.Infrastructure.Persistence;
 
 namespace SeattleByNight.Infrastructure.WorldEditing;
@@ -16,13 +17,19 @@ public sealed class WorldGraphReader : IWorldGraphReader
         _db = db;
     }
 
-    public async Task<WorldGraph?> GetGraphAsync(CancellationToken cancellationToken)
+    public async Task<WorldGraph?> GetGraphAsync(Guid? mapId, CancellationToken cancellationToken)
     {
-        // WF-25: the editor edits the shared map. A run's copies sit on the
-        // map's coordinates too, so including them would stack a copy on top
-        // of every job-site room.
+        // WF-71: one map at a time.
+        var maps = await ListMapsAsync(_db, cancellationToken);
+        var map = maps.FirstOrDefault(candidate => candidate.Id == (mapId ?? CityMap.SeattleId));
+        if (map is null)
+        {
+            return null;
+        }
+
         var rooms = await _db.Rooms
             .AsNoTracking()
+            .Where(room => room.MapId == map.Id)
             .OrderBy(room => room.Name)
             .ThenBy(room => room.Id)
             .Take(MaxRooms + 1)
@@ -35,7 +42,9 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 room.MapY,
                 room.MapLayer,
                 room.CreatedAtUtc,
-                room.Version))
+                room.Version,
+                room.MapId,
+                room.IsLive))
             .ToListAsync(cancellationToken);
 
         if (rooms.Count > MaxRooms)
@@ -43,9 +52,12 @@ public sealed class WorldGraphReader : IWorldGraphReader
             return null;
         }
 
+        // Exits that start or end on this map; one that leaves it still
+        // names the room it reaches.
         var exits = await (from exit in _db.RoomExits.AsNoTracking()
             join source in _db.Rooms.AsNoTracking() on exit.SourceRoomId equals source.Id
             join destination in _db.Rooms.AsNoTracking() on exit.DestinationRoomId equals destination.Id
+            where source.MapId == map.Id || destination.MapId == map.Id
             orderby source.Name, exit.Direction, exit.Id
             select new WorldExit(
                 exit.Id,
@@ -60,8 +72,60 @@ public sealed class WorldGraphReader : IWorldGraphReader
             .Take(MaxExits + 1)
             .ToListAsync(cancellationToken);
 
-        return exits.Count > MaxExits ? null : new WorldGraph(rooms, exits);
+        if (exits.Count > MaxExits)
+        {
+            return null;
+        }
+
+        var travel = await TravelLinksAsync(
+            _db, link => _db.Rooms.Any(room => room.Id == link.SourceRoomId && room.MapId == map.Id), cancellationToken);
+
+        return new WorldGraph(rooms, exits, map, maps, travel);
     }
+
+    internal static async Task<IReadOnlyList<WorldMapSummary>> ListMapsAsync(
+        SeattleByNightDbContext db, CancellationToken cancellationToken)
+    {
+        var counts = await db.Rooms
+            .AsNoTracking()
+            .GroupBy(room => room.MapId)
+            .Select(group => new { MapId = group.Key, Rooms = group.Count(), Drafts = group.Count(room => !room.IsLive) })
+            .ToDictionaryAsync(row => row.MapId, cancellationToken);
+
+        var maps = await db.Maps.AsNoTracking().OrderBy(map => map.Name).ToListAsync(cancellationToken);
+        return maps
+            .Select(map => new WorldMapSummary(
+                map.Id,
+                map.Name,
+                counts.TryGetValue(map.Id, out var count) ? count.Rooms : 0,
+                counts.TryGetValue(map.Id, out var drafts) ? drafts.Drafts : 0,
+                map.CreatedAtUtc,
+                map.Version))
+            .ToList();
+    }
+
+    internal static async Task<IReadOnlyList<WorldTravelLink>> TravelLinksAsync(
+        SeattleByNightDbContext db,
+        System.Linq.Expressions.Expression<Func<TravelLink, bool>> filter,
+        CancellationToken cancellationToken) =>
+        await (from link in db.TravelLinks.AsNoTracking().Where(filter)
+            join source in db.Rooms.AsNoTracking() on link.SourceRoomId equals source.Id
+            join destination in db.Rooms.AsNoTracking() on link.DestinationRoomId equals destination.Id
+            join map in db.Maps.AsNoTracking() on destination.MapId equals map.Id
+            orderby source.Name, link.Name
+            select new WorldTravelLink(
+                link.Id,
+                link.SourceRoomId,
+                source.Name,
+                link.DestinationRoomId,
+                destination.Name,
+                map.Id,
+                map.Name,
+                destination.IsLive,
+                link.Name,
+                link.CreatedAtUtc,
+                link.Version))
+            .ToListAsync(cancellationToken);
 
     public async Task<WorldRoomDetails?> GetRoomDetailsAsync(
         Guid roomId,
@@ -79,7 +143,9 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 candidate.MapY,
                 candidate.MapLayer,
                 candidate.CreatedAtUtc,
-                candidate.Version))
+                candidate.Version,
+                candidate.MapId,
+                candidate.IsLive))
             .SingleOrDefaultAsync(cancellationToken);
 
         if (room is null)

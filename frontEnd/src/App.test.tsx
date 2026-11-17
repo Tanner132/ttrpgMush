@@ -55,7 +55,13 @@ vi.mock('./forge/api.ts', async (importOriginal) => ({
     sceneEffectKinds: [], sceneDamageTypes: [], triggerEventKinds: [], triggerReactionKinds: [], exitDirections: [],
   }),
   getReferences: vi.fn().mockResolvedValue({ encounters: [], missions: [], scenes: [], tests: [], npcTemplates: [], places: [], rooms: [] }),
-  getWorld: vi.fn().mockResolvedValue({ rooms: [], exits: [] }),
+  getWorld: vi.fn().mockResolvedValue({
+    rooms: [],
+    exits: [],
+    map: { id: 'map-1', name: 'Seattle', rooms: 0, draftRooms: 0, createdAtUtc: '2026-11-01T00:00:00Z', version: 'v1' },
+    maps: [{ id: 'map-1', name: 'Seattle', rooms: 0, draftRooms: 0, createdAtUtc: '2026-11-01T00:00:00Z', version: 'v1' }],
+    travelLinks: [],
+  }),
 }))
 
 const account: Account = { id: 'user-1', email: 'dev@example.com', userName: 'devuser', roles: [] }

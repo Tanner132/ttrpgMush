@@ -240,6 +240,35 @@ export function useGameplayCommands(options: UseGameplayCommandsOptions): UseGam
           }
           break
         }
+        case 'travel': {
+          if (!joined) {
+            appendLocal('error', 'You are not connected.')
+            return false
+          }
+
+          const offered = session?.travel ?? []
+          if (parsed.destination.length === 0) {
+            appendLocal(
+              'info',
+              offered.length === 0
+                ? 'There is no travel from here.'
+                : `You can travel to: ${offered.map((link) => `${link.name} (${link.destinationRoomName}, ${link.mapName})`).join('; ')}.`,
+            )
+            return true
+          }
+
+          const wanted = parsed.destination.toLowerCase()
+          const exact = offered.filter((link) => link.name.toLowerCase() === wanted)
+          const matches = exact.length > 0 ? exact : offered.filter((link) => link.name.toLowerCase().startsWith(wanted))
+          if (matches.length === 1) return moveThroughExit(matches[0].id)
+          appendLocal(
+            'error',
+            matches.length > 1
+              ? `Which did you mean? Matches: ${matches.map((link) => link.name).join(', ')}.`
+              : 'You cannot travel there from here. Type /travel to see where you can go.',
+          )
+          return false
+        }
         case 'test': {
           if (!joined) {
             appendLocal('error', 'You are not connected.')

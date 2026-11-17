@@ -25,7 +25,7 @@ v1 is ten workstreams:
 | 7 | [Private and owned rooms](#7-private-and-owned-rooms) | Needs design decisions; blocked on 6. 8 fixes how a private room is marked |
 | 8 | [One shared world](#8-one-shared-world) | Phases 1 and 2 merged to `main` (`c6964f6`); phases 3 (the job clock), 4 (fights restrict rooms) and 5 (crews) built 2026-11-17, not committed. Left: the acceptance run (1.4) |
 | 9 | [Room images](#9-room-images) | Decided 2026-11-12; ready to build, independent of the rest |
-| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Phase 1 (seven defects) built 2026-11-17, not committed; phase 2 after workstream 8 (order in 10.5) |
+| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Phase 1 (seven defects) committed (`7281b7e`); phase 2 (maps, room lifecycle, moving rooms, travel links, one map at a time) built 2026-11-17, not committed; phase 3 next |
 
 Workstream 8 replaces how jobs run today (1.3) and changes the questions in 3
 and 7; read it before picking either of those up.
@@ -37,15 +37,13 @@ should be built until those are answered and the answers are recorded (rules in
 
 **Where things stand (2026-11-17).** Workstream 8 phases 1 and 2 and a
 reply's own roll (10.3) are merged to `main` (`c6964f6`). Workstream 10
-phase 1 (the seven defects) and workstream 8 phases 3–5 are built and not
-committed.
+phase 1 (the seven defects) and workstream 8 phases 3–5 are committed
+(`7281b7e`). Workstream 10 phase 2 is built and not committed.
 
-**Suggested order.** Commit workstream 10 phase 1 and workstream 8 phases
-3–5, which come before
-the acceptance run in 1.4 (8 changes what a job is) and before workstream 10
-phase 2 (both migrate rooms and jobs). Then workstream 10 in the order of
-10.5, with 2.3 purchases before personal vehicles. Workstream 9 is independent
-and can go anywhere.
+**Suggested order.** Workstream 10 phase 3, with phase 4 alongside it (10.5),
+then phases 5 to 8, with 2.3 purchases before personal vehicles. The
+acceptance run in 1.4 can go any time now that workstream 8 is built.
+Workstream 9 is independent and can go anywhere.
 
 ## Delivery rules
 
@@ -1560,7 +1558,7 @@ Phase 9 is the Forge side of other workstreams.
 
 Wrong behaviour seen in the walkthrough. Two of them lose work.
 
-**Status 2026-11-17: built, not committed.** All seven are fixed with tests;
+**Status 2026-11-17: committed (`7281b7e`).** All seven are fixed with tests;
 not yet tried in the running app. What was built:
 
 - **WF-30.** `POST /api/admin/world/exits` takes `bothWays` and
@@ -1608,6 +1606,38 @@ not yet tried in the running app. What was built:
 | WF-36 | Accessibility, styling | Checkboxes in the exit and reply dialogs are all named "on"; the "NPCs the job uses" fieldset is unstyled; the job's room list draws names on grey bars; "05 Objectives · Pay" wraps at 1024 px; headings upper-case `ß` to `SS`. | Label the inputs; style the fieldset and rows; fix the step label; do not upper-case authored names. |
 
 #### Phase 2 — Maps and the room lifecycle
+
+**Status 2026-11-17: built, not committed.** All five items with tests
+(`WorldMapTests`, the Places and command tests); not yet tried in the
+running app, which needs the `MapsAndRoomLifecycle` migration. What was built:
+
+- **WF-41.** `CityMap` (`maps`), `Room.MapId`, coordinates unique per map and
+  layer; every existing room is on Seattle. The Forge's Places tab has a map
+  switcher and "New map"; its title names the map. Building, the exit dialog's
+  new room and auto-joined neighbours stay on the open map.
+- **WF-60.** `Room.IsLive`. The room screen's *In play* section publishes or
+  unpublishes the room; the map bar publishes every draft on the map. Drafts
+  are drawn dashed. Each section says when its changes reach players. Movement
+  and the room view leave out exits and travel into a draft room; the delete
+  dialog only relocates to live rooms. Go live refuses a job that uses a
+  draft room (`JobMapValidator`, and the job's own Rooms check in the Forge).
+  Unpublishing follows 10.2 exactly; refusals name each room and why.
+- **WF-46.** `POST /api/admin/world/rooms/move` moves a selection by an
+  offset, optionally to another map, onto free cells or not at all; each room
+  is audited (`RoomMoved`). The room screen moves one room to a cell and map;
+  multi-select is WF-72 (phase 3). The walkthrough's Berlin rooms can be moved
+  to a Berlin map this way (10.7).
+- **WF-70.** `TravelLink` (`travel_links`): a named link from a room to a room
+  on any map, made and removed on the room screen's *Travel* section. Players
+  see it in `/look` and take it with `/travel <name>`; it goes through the
+  same hub call as an exit, and is instant.
+- **WF-71.** `GET /api/admin/world?mapId=` returns one map: its rooms, the
+  exits that start or end on it, its travel links, and every map with its
+  room and draft counts. Home lists the maps with their counts. One
+  divergence: the references endpoint still lists every room (names, map,
+  live or draft, and who stands there) so a job's rooms on any map can be
+  named and checked; the heavy map data is per map.
+- `ForgeContract.Version` is 2.
 
 | ID | Item | Shape |
 | --- | --- | --- |

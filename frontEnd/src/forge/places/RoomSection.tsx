@@ -7,6 +7,7 @@ import { useForgeData } from '../forgeContext.ts'
 import { useAction, useDirty } from '../hooks.ts'
 import { joinRooms } from './exits.ts'
 import type { BuildSpot } from './MapGrid.tsx'
+import { ReachNote } from './reach.tsx'
 
 /**
  * The room's name and description. Saved straight to the map. Workstream 8:
@@ -46,6 +47,7 @@ export function RoomSection({ room }: { room: WorldRoom }) {
           void save()
         }}
       >
+        <ReachNote room={room} />
         <TextInput label="Name" value={name} maxLength={120} onChange={setName} />
         <TextBox label="Description" value={description} rows={4} onChange={setDescription} />
         {action.error && (
@@ -102,6 +104,7 @@ export function BuildRoomForm({
         mapX: spot.x,
         mapY: spot.y,
         mapLayer: spot.layer,
+        mapId: spot.mapId,
       })
       if (spot.from) {
         const { room: from, direction } = spot.from
@@ -134,6 +137,7 @@ export function BuildRoomForm({
       <TextInput label="Name" value={name} maxLength={120} autoFocus onChange={setName} />
       <TextBox label="Description" value={description} rows={2} onChange={setDescription} />
       {spot.from && <Check label={`Exit both ways (to and from ${spot.from.room.name})`} checked={bothWays} onChange={setBothWays} />}
+      <p className="forge__hint">The room is built as a draft: players cannot reach it until you publish it.</p>
       {action.error && (
         <StatusBanner tone="danger" role="alert">
           {action.error}

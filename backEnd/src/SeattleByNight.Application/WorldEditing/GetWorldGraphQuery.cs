@@ -2,7 +2,7 @@ using MediatR;
 
 namespace SeattleByNight.Application.WorldEditing;
 
-public sealed record GetWorldGraphQuery : IRequest<WorldGraph?>;
+public sealed record GetWorldGraphQuery(Guid? MapId = null) : IRequest<WorldGraph?>;
 
 public sealed class GetWorldGraphQueryHandler : IRequestHandler<GetWorldGraphQuery, WorldGraph?>
 {
@@ -14,5 +14,5 @@ public sealed class GetWorldGraphQueryHandler : IRequestHandler<GetWorldGraphQue
     }
 
     public Task<WorldGraph?> Handle(GetWorldGraphQuery request, CancellationToken cancellationToken)
-        => _reader.GetGraphAsync(cancellationToken);
+        => _reader.GetGraphAsync(request.MapId, cancellationToken);
 }

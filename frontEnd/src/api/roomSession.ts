@@ -107,6 +107,17 @@ export interface RoomSession {
   combat: CombatView | null
   /** Workstream 8: what a job finished here has left behind, if anything. */
   aftermath?: string | null
+  /** WF-70: travel offered from here, to a named room on this map or another. */
+  travel?: RoomTravelSummary[] | null
+}
+
+/** WF-70: taken with /travel <name>, through the same hub call as an exit. */
+export interface RoomTravelSummary {
+  id: string
+  name: string
+  destinationRoomId: string
+  destinationRoomName: string
+  mapName: string
 }
 
 export async function getRoomSession(cursor?: string, signal?: AbortSignal): Promise<RoomSession> {

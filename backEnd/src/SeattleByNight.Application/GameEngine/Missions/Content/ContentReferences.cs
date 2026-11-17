@@ -53,7 +53,7 @@ public sealed record ContentReferences(
                 .ToArray(),
             map.Rooms.Values
                 .OrderBy(room => room.Name, StringComparer.OrdinalIgnoreCase)
-                .Select(room => new MapRoomReference(room.Id, room.Name, room.Npcs ?? [], room.Inspectables ?? []))
+                .Select(room => new MapRoomReference(room.Id, room.Name, room.Npcs ?? [], room.Inspectables ?? [], room.MapId, room.IsLive))
                 .ToArray());
 }
 
@@ -84,5 +84,13 @@ public sealed record PlaceReference(Guid Id, string DisplayName, bool IsRetired)
 
 // A map room — where a job happens, a room's events or a Johnson goes — with
 // the world NPCs standing in it and its inspectables.
+// WF-71: the map's room data is loaded one map at a time, but references keep
+// every room by name, with its map and whether it is live, so a job's rooms
+// on any map can be named and checked.
 public sealed record MapRoomReference(
-    Guid Id, string Name, IReadOnlyList<WorldMapNpc> Npcs, IReadOnlyList<WorldMapInspectable> Inspectables);
+    Guid Id,
+    string Name,
+    IReadOnlyList<WorldMapNpc> Npcs,
+    IReadOnlyList<WorldMapInspectable> Inspectables,
+    Guid? MapId = null,
+    bool IsLive = true);

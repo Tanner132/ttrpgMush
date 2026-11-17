@@ -33,7 +33,9 @@ public sealed record CreateRoomMutation(
     string? AccessType,
     long? MapX,
     long? MapY,
-    long? MapLayer);
+    long? MapLayer,
+    // WF-41: the map to build on; Seattle when not given.
+    Guid? MapId = null);
 
 public sealed record UpdateRoomMutation(
     string Name,

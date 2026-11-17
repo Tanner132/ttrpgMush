@@ -25,6 +25,10 @@ export interface ForgeData {
   summary: (kind: ContentKind, id: Guid) => ContentSummary | undefined
   refreshContent: () => Promise<void>
   refreshWorld: () => Promise<void>
+  /** WF-71: the map the Forge has open; the world holds that map only. */
+  mapId: Guid
+  /** Opens another map. Resolves once it has loaded. */
+  openMap: (mapId: Guid) => void
 }
 
 export const ForgeDataContext = createContext<ForgeData | null>(null)

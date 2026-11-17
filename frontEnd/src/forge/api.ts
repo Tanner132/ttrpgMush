@@ -102,7 +102,7 @@ export interface ContentPalette {
  * WF-33: bump with `ForgeContract.Version` in the API's GameContentEndpoints.cs
  * whenever a content document or Forge request changes shape.
  */
-export const ForgeContractVersion = 1
+export const ForgeContractVersion = 2
 
 export interface PlacedReference {
   id: Guid
@@ -134,8 +134,19 @@ export interface ContentReferences {
   tests: { id: string; displayName: string; builtIn: boolean; opposed: boolean }[]
   npcTemplates: { id: Guid; displayName: string; isRetired: boolean; hostile: boolean }[]
   places: { id: Guid; displayName: string; isRetired: boolean }[]
-  /** Every room on the map, with who stands in it and what can be inspected there. */
-  rooms: { id: Guid; name: string; npcs: MapNpcReference[]; inspectables: { id: Guid; name: string }[] }[]
+  /**
+   * Every room on every map, with who stands in it and what can be inspected
+   * there. WF-71: the map itself loads one map at a time; these stay
+   * world-wide so a job's rooms on any map can be named and checked.
+   */
+  rooms: {
+    id: Guid
+    name: string
+    npcs: MapNpcReference[]
+    inspectables: { id: Guid; name: string }[]
+    mapId?: Guid | null
+    isLive?: boolean
+  }[]
 }
 
 /** A world NPC as the map lists them: who, on which stat block, holding which conversation. */
@@ -238,6 +249,35 @@ export interface WorldRoom {
   mapLayer: number
   createdAtUtc: string
   version: string
+  /** WF-41: the map (city) the room is on. */
+  mapId: Guid
+  /** WF-60: a draft room, the exits into it and what is in it are out of play. */
+  isLive: boolean
+}
+
+/** WF-41: a map (a city) and how much is on it. */
+export interface WorldMapSummary {
+  id: Guid
+  name: string
+  rooms: number
+  draftRooms: number
+  createdAtUtc: string
+  version: string
+}
+
+/** WF-70: travel offered from a room to a named room on any map. Instant for now. */
+export interface WorldTravelLink {
+  id: Guid
+  sourceRoomId: Guid
+  sourceRoomName: string
+  destinationRoomId: Guid
+  destinationRoomName: string
+  destinationMapId: Guid
+  destinationMapName: string
+  destinationIsLive: boolean
+  name: string
+  createdAtUtc: string
+  version: string
 }
 
 export const ExitDirections = [
@@ -286,9 +326,16 @@ export interface WorldExit {
   version: string
 }
 
+/**
+ * WF-71: one map. Rooms are the map's own; exits start or end on it; travel
+ * links are offered from it. Every map is listed for the switcher and Home.
+ */
 export interface WorldGraph {
   rooms: WorldRoom[]
   exits: WorldExit[]
+  map: WorldMapSummary
+  maps: WorldMapSummary[]
+  travelLinks: WorldTravelLink[]
 }
 
 export interface RoomInput {
@@ -323,11 +370,13 @@ export interface RoomDeletionCheck {
 
 const world = '/api/admin/world'
 
-export function getWorld(signal?: AbortSignal): Promise<WorldGraph> {
-  return apiGet<WorldGraph>(`${world}/`, signal)
+/** One map; Seattle when no map is named. */
+export function getWorld(mapId?: Guid | null, signal?: AbortSignal): Promise<WorldGraph> {
+  return apiGet<WorldGraph>(mapId ? `${world}/?mapId=${mapId}` : `${world}/`, signal)
 }
 
-export function createRoom(input: RoomInput & { mapX: number; mapY: number; mapLayer: number }): Promise<WorldRoom> {
+/** Builds a room, as a draft, on the map named. */
+export function createRoom(input: RoomInput & { mapX: number; mapY: number; mapLayer: number; mapId?: Guid }): Promise<WorldRoom> {
   return apiPost<WorldRoom>(`${world}/rooms`, input)
 }
 
@@ -359,6 +408,56 @@ export function updateExit(exitId: Guid, input: ExitInput & { version: string })
 /** Removes one direction; the way back, if there is one, is its own exit. */
 export function deleteExit(exitId: Guid): Promise<void> {
   return apiDelete<void>(`${world}/exits/${exitId}`)
+}
+
+// --------------------------------------------------- maps and publishing
+
+export function listMaps(signal?: AbortSignal): Promise<WorldMapSummary[]> {
+  return apiGet<WorldMapSummary[]>(`${world}/maps`, signal)
+}
+
+export function createMap(name: string): Promise<WorldMapSummary> {
+  return apiPost<WorldMapSummary>(`${world}/maps`, { name })
+}
+
+export function renameMap(mapId: Guid, name: string, version: string): Promise<WorldMapSummary> {
+  return apiPut<WorldMapSummary>(`${world}/maps/${mapId}`, { name, version })
+}
+
+/** The rooms named, or every room on a map. */
+export type RoomSelection = { roomIds: Guid[]; mapId?: undefined } | { mapId: Guid; roomIds?: undefined }
+
+export interface RoomPublishResult {
+  roomIds: Guid[]
+  charactersMoved: number
+}
+
+/** WF-60: puts draft rooms in play. */
+export function publishRooms(selection: RoomSelection): Promise<RoomPublishResult> {
+  return apiPost<RoomPublishResult>(`${world}/rooms/publish`, selection)
+}
+
+/**
+ * WF-60: takes rooms out of play. Characters inside are put in a live room one
+ * of its exits leads to; refused (in words) when a job uses a room, it is where
+ * new characters start, or someone inside has nowhere to go.
+ */
+export function unpublishRooms(selection: RoomSelection): Promise<RoomPublishResult> {
+  return apiPost<RoomPublishResult>(`${world}/rooms/unpublish`, selection)
+}
+
+/** WF-46: moves rooms by an offset, optionally to another map; exits are kept. */
+export function moveRooms(input: { roomIds: Guid[]; toMapId?: Guid | null; deltaX: number; deltaY: number; deltaLayer: number }): Promise<{ rooms: WorldRoom[] }> {
+  return apiPost<{ rooms: WorldRoom[] }>(`${world}/rooms/move`, input)
+}
+
+/** WF-70: offers travel from one room to a named room on any map. */
+export function createTravelLink(input: { sourceRoomId: Guid; destinationRoomId: Guid; name: string }): Promise<WorldTravelLink> {
+  return apiPost<WorldTravelLink>(`${world}/travel`, input)
+}
+
+export function deleteTravelLink(linkId: Guid): Promise<void> {
+  return apiDelete<void>(`${world}/travel/${linkId}`)
 }
 
 // ----------------------------------------------------- public room content
