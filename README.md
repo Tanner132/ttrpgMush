@@ -186,8 +186,8 @@ authoritative contract. In summary:
 | `/api/game/missions` | The caller's missions, with an open job's deadline | Authenticated |
 | `/api/game/crew` | The caller's crew; invite, join, leave | Authenticated |
 | `/api/admin/users`, `/api/admin/audit` | Role management, audit log | `Administrator` |
-| `/api/admin/world` | One map at a time (`?mapId=`): rooms, exits, travel links; maps, publishing and unpublishing rooms, moving rooms, room deletion, NPC/interactable placement, room environment | `Administrator`, `WorldBuilder` |
-| `/api/admin/content` | World Forge content lifecycle | `Administrator`, `WorldBuilder` |
+| `/api/admin/world` | One map at a time (`?mapId=`): rooms, exits, travel links, districts; maps, publishing and unpublishing rooms, moving, painting and duplicating rooms, the reachability check, the world index and search, room deletion, NPC/interactable placement, room environment | `Administrator`, `WorldBuilder` |
+| `/api/admin/content` | World Forge content lifecycle; draft saves may be version-checked (409 on a stale save) | `Administrator`, `WorldBuilder` |
 | `/api/admin/missions` | List mission definitions, assign a mission to a character | `Administrator`, `WorldBuilder` |
 
 Every state-changing request requires the antiforgery header. IDs the caller

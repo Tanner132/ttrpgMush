@@ -103,6 +103,10 @@ StateChanges, Tests).
   (`JobMapValidator`). Unpublishing is refused while a job uses the room, for
   the starting room, and while someone inside has no exit to a live room
   outside the selection; otherwise they are moved through such an exit.
+- **District** (WF-73, World Forge phase 3) — a named group of rooms on one
+  map, on any layers. A room's description may be blank; the room view shows
+  the district's `DefaultDescription` instead, and publishing refuses a room
+  with neither.
 - **TravelLink** (WF-70) — a named way from a room to a room on any map.
   Instant for now (phase 8 gives travel a time); taken through the same hub
   call as an exit (`MovementStore` falls back to a link id), with `/travel`.
@@ -117,7 +121,8 @@ StateChanges, Tests).
   room. Exits have no names.
 - Coordinates place a room in the editor and seed default adjacency only.
   Creating a room creates both directed exits to each occupied same-layer
-  neighbor on its map; after that, persisted exits are authoritative and may diverge from
+  neighbor on its map whose way back is free, or only to the neighbours named
+  in `Joins` (WF-43; refused whole if one of those is taken); after that, persisted exits are authoritative and may diverge from
   the grid. Vertical exits are always explicit. A manual reverse exit is a
   separate create.
 - Movement names an exit from the character's current room, never a destination
@@ -378,6 +383,20 @@ built follows it; these are the load-bearing rules.
   threshold. A built roll becomes the same `SkillTestDefinition` a Library
   test loads into, so modifiers, limits and Edge work alike. Contested needs a
   conversation bound to a stat block. Event reactions still roll Library tests.
+- **A reply can answer (WF-74).** `answer` on a reply, or on each branch of
+  its roll, is said by the NPC (or narrated) before the next part, so most
+  replies need no part of their own. A part may carry a `name` for the Forge.
+  Conversations live in the Library and can be given to any world NPC built on
+  the stat block they are written for (WF-63).
+- **Character facts (WF-80–83).** A `Fact` is a Library content kind; a
+  character's facts live in `character_facts`, written only by the state
+  change applier in the same commit as their cause. A fact with `runOf`
+  records the run it was set in and counts only while that run is open. Jobs
+  can require or refuse facts before they are offered and set or clear them
+  when done; going live refuses anything that tests a fact nothing sets.
+- **Draft saves are version-checked (WF-61).** A save that sends
+  `expectedUpdatedAtUtc` (or `expectNew`) is refused with 409 when the stored
+  draft has moved on; the Forge autosaves this way.
 - **Compose, don't script.** Event, effect, condition, and objective *kinds* are
   code. Everything built from them is content. A new kind is a small additive
   engine change with tests; there is no scripting language.

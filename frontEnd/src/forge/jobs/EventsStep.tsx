@@ -1,26 +1,30 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Button } from '../../components/ui/Button.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
 import { saveDraft, type Guid } from '../api.ts'
+import { EventTemplates, type EventTemplateId } from '../events/eventTemplates.ts'
 import { ListenerCard } from '../events/ListenerCard.tsx'
 import { Chip, Empty, Section, Select, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { useAction, useLoad } from '../hooks.ts'
 import { newListener, newPrompt, openedSceneIds, toJson, type Listener, type Mission } from '../model.ts'
+import { RoomPicker } from '../RoomPicker.tsx'
 import { ConversationEditor } from './ConversationEditor.tsx'
 import { findPromptUses } from './deletion.ts'
-import { listenerScope, listeningRooms, prompts, sceneScope, type JobContext } from './jobScope.ts'
+import { listenerScope, listeningRooms, prompts, routeOrder, sceneScope, type JobContext } from './jobScope.ts'
 import type { Job } from './useJob.ts'
 
 /**
- * The job's events: pick a room, pick something that happens in it, say what
- * follows. Unlike a room's own events these fire once per run unless told
- * otherwise, and only the runner sees them; anyone else in the room sees the
- * cover line, if there is one.
+ * The job's events, room by room along the route: pick something that happens
+ * in a room and say what follows. Unlike a room's own events these fire once
+ * per run unless told otherwise, and only the runner sees them; anyone else in
+ * the room sees the cover line, if there is one. A prompt an event opens is
+ * written right under that event.
  */
 export function EventsStep({ job, mission, context }: { job: Job; mission: Mission; context: JobContext }) {
   const { refreshContent, definitions, references } = useForgeData()
   const rooms = useMemo(() => listeningRooms(context), [context])
+  const listenable = useMemo(() => new Set(rooms.map((room) => room.id)), [rooms])
   const available = useMemo(() => prompts(context.scenes), [context.scenes])
   const opened = new Set(openedSceneIds(mission))
   // WF-35: the job's own prompts are the ones its events open, plus any made
@@ -43,6 +47,8 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
   const create = useAction()
   const prompt = job.prompt.value
   const promptScope = useMemo(() => (prompt ? sceneScope(prompt, context) : null), [prompt, context])
+  const roomName = (id: Guid | undefined) => references.rooms.find((room) => room.id === id)?.name ?? 'a room that no longer exists'
+  const sceneName = (id: Guid) => context.scenes.find((scene) => scene.id === id)?.displayName ?? 'a prompt that no longer exists'
 
   const setListeners = (update: (listeners: Listener[]) => Listener[]) =>
     job.mission.setValue((current) => ({ ...current, triggers: update(current.triggers) }))
@@ -82,6 +88,107 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
     }
   }
 
+  // The open prompt, written in place. Shown under the first event that
+  // opens it; one no event opens yet is written in the Prompts column.
+  const promptEditor: ReactNode =
+    job.promptId === null ? null : job.prompt.loadError ? (
+      <StatusBanner tone="danger">{job.prompt.loadError}</StatusBanner>
+    ) : !prompt || !promptScope ? (
+      <p className="forge__hint" role="status">
+        Loading the prompt…
+      </p>
+    ) : (
+      <section className="forge__prompt" aria-label={`Prompt · ${prompt.displayName}`}>
+        <div className="forge__actions">
+          <h3 className="forge__subsection-title">Prompt · {prompt.displayName}</h3>
+          <span className="forge__spacer" />
+          <Button onClick={() => void openPrompt(null)}>Close prompt</Button>
+        </div>
+        <TextInput
+          label="Prompt name"
+          value={prompt.displayName}
+          maxLength={120}
+          onChange={(displayName) => job.prompt.setValue((current) => ({ ...current, displayName }))}
+        />
+        <ConversationEditor scene={prompt} scope={promptScope} onChange={job.prompt.setValue} />
+      </section>
+    )
+  const promptHost = mission.triggers.find((listener) => job.promptId !== null && openedSceneIds({ triggers: [listener] }).includes(job.promptId))?.id
+
+  const route = routeOrder(mission, job.johnsons[0]?.roomId)
+  const byRoom = route
+    .map((roomId) => ({ roomId, listeners: mission.triggers.filter((listener) => listener.roomId === roomId) }))
+    .filter((group) => group.listeners.length > 0 || mission.roomIds.includes(group.roomId) || group.roomId === job.johnsons[0]?.roomId)
+  const nowhere = mission.triggers.filter((listener) => listener.roomId === undefined || !route.includes(listener.roomId))
+  const indexOf = (listener: Listener) => mission.triggers.findIndex((existing) => existing.id === listener.id)
+
+  function renderEvent(listener: Listener): ReactNode {
+    const index = indexOf(listener)
+    const opens = openedSceneIds({ triggers: [listener] })
+    return (
+      <div key={listener.id} className="forge__stack">
+        <RoomPicker
+          label={`Where event ${index + 1} happens`}
+          value={listener.roomId}
+          filter={(candidate) => listenable.has(candidate.id)}
+          first={new Set(mission.roomIds)}
+          onChange={(roomId) => setListeners((listeners) => listeners.map((existing) => (existing.id === listener.id ? moveTo(existing, roomId) : existing)))}
+        />
+        <ListenerCard
+          listener={listener}
+          index={index}
+          scope={listenerScope(listener.roomId, context)}
+          onChange={(next) => setListeners((listeners) => listeners.map((existing) => (existing.id === next.id ? next : existing)))}
+          onRemove={() => setListeners((listeners) => listeners.filter((existing) => existing.id !== listener.id))}
+        />
+        {opens.length > 0 && (
+          <div className="forge__outline-nest">
+            {opens.map((sceneId) => (
+              <div key={sceneId} className="forge__row">
+                <Chip tone="info">Opens</Chip>
+                <b className="forge__row-name">{sceneName(sceneId)}</b>
+                {job.promptId !== sceneId && (
+                  <Button aria-label={`Write prompt ${sceneName(sceneId)} here`} onClick={() => void openPrompt(sceneId)}>
+                    Write it here
+                  </Button>
+                )}
+              </div>
+            ))}
+            {promptHost === listener.id && promptEditor}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  function addEvent(roomId: Guid | undefined, listener?: Listener) {
+    setListeners((listeners) => [...listeners, listener ?? { ...newListener('playerEnteredRoom'), roomId }])
+  }
+
+  function roomTemplates(roomId: Guid): ReactNode {
+    const here = references.rooms.find((room) => room.id === roomId)?.npcs ?? []
+    // The job's own NPCs first: they are the ones its reset brings back.
+    const npc = here.find((candidate) => mission.npcIds.includes(candidate.id)) ?? here[0]
+    return (
+      <Select
+        label={`Add an event in ${roomName(roomId)} from a template`}
+        labelHidden
+        value=""
+        placeholder="+ From a template…"
+        options={EventTemplates.map((template) => ({
+          id: template.id,
+          displayName: template.displayName,
+          disabled: npc === undefined,
+          title: npc === undefined ? 'Needs an NPC standing here' : undefined,
+        }))}
+        onChange={(id) => {
+          const template = EventTemplates.find((candidate) => candidate.id === (id as EventTemplateId))
+          if (template && npc) addEvent(roomId, template.make(roomId, { id: npc.id, displayName: npc.name }))
+        }}
+      />
+    )
+  }
+
   return (
     <div className="forge__columns forge__columns--even">
       <div className="forge__column">
@@ -89,31 +196,32 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
           {mission.triggers.length === 0 && (
             <Empty>Nothing happens on this job yet beyond its objectives. Add an event — an ambush on entering a room, a line when the job is taken.</Empty>
           )}
-          {mission.triggers.map((listener, index) => (
-            <div key={listener.id} className="forge__stack">
-              <Select
-                label={`Where event ${index + 1} happens`}
-                value={listener.roomId}
-                options={rooms}
-                placeholder="Choose a room"
-                onChange={(roomId) => setListeners((listeners) => listeners.map((existing) => (existing.id === listener.id ? moveTo(existing, roomId) : existing)))}
-              />
-              <ListenerCard
-                listener={listener}
-                index={index}
-                scope={listenerScope(listener.roomId, context)}
-                onChange={(next) => setListeners((listeners) => listeners.map((existing) => (existing.id === next.id ? next : existing)))}
-                onRemove={() => setListeners((listeners) => listeners.filter((existing) => existing.id !== listener.id))}
-              />
-            </div>
+          <p className="forge__hint">Room by room, in the order a runner meets them: the Johnson, then each objective, then the job's other rooms.</p>
+          {byRoom.map((group, at) => (
+            <section key={group.roomId} className="forge__route-stop" aria-label={`Events in ${roomName(group.roomId)}`}>
+              <div className="forge__actions">
+                <h3 className="forge__subsection-title">
+                  {at + 1}. {roomName(group.roomId)}
+                </h3>
+                {group.roomId === job.johnsons[0]?.roomId && <Chip tone="info">Johnson</Chip>}
+                <span className="forge__spacer" />
+                <Button aria-label={`Add an event in ${roomName(group.roomId)}`} onClick={() => addEvent(group.roomId)}>
+                  + Event here
+                </Button>
+                {roomTemplates(group.roomId)}
+              </div>
+              {group.listeners.length === 0 && <p className="forge__hint">Nothing happens here.</p>}
+              {group.listeners.map(renderEvent)}
+            </section>
           ))}
+          {nowhere.length > 0 && (
+            <section className="forge__route-stop" aria-label="Events in no room">
+              <h3 className="forge__subsection-title">No room yet</h3>
+              {nowhere.map(renderEvent)}
+            </section>
+          )}
           <div>
-            <Button
-              disabled={rooms.length === 0}
-              onClick={() =>
-                setListeners((listeners) => [...listeners, { ...newListener('playerEnteredRoom'), roomId: mission.roomIds[0] ?? rooms[0]?.id }])
-              }
-            >
+            <Button disabled={rooms.length === 0} onClick={() => addEvent(mission.roomIds[0] ?? rooms[0]?.id)}>
               + Event
             </Button>
           </div>
@@ -123,7 +231,10 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
 
       <div className="forge__column">
         <Section title="Prompts">
-          <p className="forge__hint">A prompt is a moment with choices — "Incoming fire. Dodge, or block?" — that an event opens with an Open conversation step.</p>
+          <p className="forge__hint">
+            A prompt is a moment with choices — "Incoming fire. Dodge, or block?" — that an event opens with an Open conversation step. It is written under the event
+            that opens it.
+          </p>
           {own.length === 0 ? (
             <Empty>This job has no prompts yet.</Empty>
           ) : (
@@ -131,7 +242,7 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
               {own.map((scene) => (
                 <li key={scene.id} className="forge__row">
                   <b className="forge__row-name">{scene.displayName}</b>
-                  {opened.has(scene.id) && <Chip tone="info">Opened by this job</Chip>}
+                  {opened.has(scene.id) ? <Chip tone="info">Opened by this job</Chip> : <Chip tone="draft">No event opens it yet</Chip>}
                   {job.promptId === scene.id ? (
                     <Button onClick={() => void openPrompt(null)}>Close</Button>
                   ) : (
@@ -176,27 +287,7 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
           )}
         </Section>
 
-        {job.promptId !== null && (
-          <Section title={prompt ? `Prompt · ${prompt.displayName}` : 'Prompt'} named>
-            {job.prompt.loadError ? (
-              <StatusBanner tone="danger">{job.prompt.loadError}</StatusBanner>
-            ) : !prompt || !promptScope ? (
-              <p className="forge__hint" role="status">
-                Loading the prompt…
-              </p>
-            ) : (
-              <>
-                <TextInput
-                  label="Prompt name"
-                  value={prompt.displayName}
-                  maxLength={120}
-                  onChange={(displayName) => job.prompt.setValue((current) => ({ ...current, displayName }))}
-                />
-                <ConversationEditor scene={prompt} scope={promptScope} onChange={job.prompt.setValue} />
-              </>
-            )}
-          </Section>
-        )}
+        {job.promptId !== null && promptHost === undefined && <Section title="Prompt">{promptEditor}</Section>}
       </div>
     </div>
   )

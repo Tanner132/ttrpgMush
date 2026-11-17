@@ -1,3 +1,4 @@
+using SeattleByNight.Application.GameEngine.Facts;
 using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 
@@ -11,11 +12,16 @@ public sealed class SceneConditionEvaluator
 {
     private readonly IMissionReader missionReader;
     private readonly IGameContentProvider content;
+    private readonly ICharacterFactReader? facts;
 
-    public SceneConditionEvaluator(IMissionReader missionReader, IGameContentProvider content)
+    // WF-81: the fact reader answers factSet / factNotSet. Optional so test
+    // harnesses that never test a fact need not supply one; without it a
+    // character has no facts.
+    public SceneConditionEvaluator(IMissionReader missionReader, IGameContentProvider content, ICharacterFactReader? facts = null)
     {
         this.missionReader = missionReader;
         this.content = content;
+        this.facts = facts;
     }
 
     public async Task<bool> AreSatisfiedAsync(
@@ -43,6 +49,14 @@ public sealed class SceneConditionEvaluator
     {
         switch (condition.Kind)
         {
+            case SceneConditionKind.FactSet:
+            case SceneConditionKind.FactNotSet:
+            {
+                var held = facts is null ? new HashSet<Guid>() : await facts.GetFactsAsync(characterId, cancellationToken);
+                var has = condition.FactId is { } factId && held.Contains(factId);
+                return condition.Kind == SceneConditionKind.FactSet ? has : !has;
+            }
+
             case SceneConditionKind.MissionAvailable:
             {
                 if (condition.MissionId is not { } missionId

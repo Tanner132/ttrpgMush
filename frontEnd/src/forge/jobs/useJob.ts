@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { getDefinition, type ContentRef, type ContentSummary, type Guid } from '../api.ts'
 import { useForgeData } from '../forgeContext.ts'
 import { useLoad } from '../hooks.ts'
-import { newMission, newPrompt, openedSceneIds, parse, sceneEffects, type Mission, type Scene } from '../model.ts'
+import { listenerEffects, newMission, newPrompt, openedSceneIds, parse, sceneEffects, type Mission, type Scene } from '../model.ts'
 import { useContentDraft, type ContentDraft } from '../useContentDraft.ts'
 import type { StepId } from './checks.ts'
 
@@ -57,6 +57,13 @@ export interface Job {
   errorStep: StepId | null
   saveAll: () => Promise<boolean>
   revertAll: () => void
+  /** WF-61: an edit to one of the job's records is about to save itself, or is saving. */
+  autosaving: boolean
+  /** WF-61: one of the job's records was saved somewhere else since it was opened. */
+  stale: boolean
+  reloadAll: () => Promise<void>
+  /** Reads every record's version again after the job went live or was retired as a set. */
+  syncAll: () => Promise<void>
   /** The records that make up the job and go live together: its conversations and the job. */
   publishSet: () => ContentRef[]
 }
@@ -67,6 +74,24 @@ function missionStepFor(message: string): StepId {
   if (/› objective/.test(message) || /› (rewards|repeatability)/.test(message)) return 'objectives'
   if (/› (item|roomIds|npcIds)/.test(message)) return 'rooms'
   return 'review'
+}
+
+/** Every fact a job and its open conversations name. */
+function jobFactIds(mission: Mission, scenes: (Scene | null)[]): Guid[] {
+  const fromEffects = [...mission.triggers.flatMap(listenerEffects), ...scenes.flatMap((scene) => (scene ? sceneEffects(scene) : []))]
+    .map((effect) => effect.factId)
+  const fromConditions = [
+    ...mission.triggers.flatMap((listener) => listener.conditions ?? []),
+    ...scenes.flatMap((scene) => (scene ? scene.nodes.flatMap((node) => node.choices.flatMap((choice) => choice.conditions)) : [])),
+  ].map((condition) => condition.factId)
+  const own = [
+    ...(mission.requiresFacts ?? []),
+    ...(mission.refusesFacts ?? []),
+    ...(mission.completionSetsFacts ?? []),
+    ...(mission.completionClearsFacts ?? []),
+    ...mission.objectives.flatMap((objective) => objective.setsFacts ?? []),
+  ]
+  return [...new Set([...fromEffects, ...fromConditions, ...own].filter((id): id is Guid => id !== undefined))]
 }
 
 function offers(scene: Scene, missionId: Guid): boolean {
@@ -172,6 +197,14 @@ export function useJob(id: Guid): Job {
     for (const draft of drafts) if (draft.dirty) draft.revert()
   }
 
+  const reloadAll = async () => {
+    for (const draft of drafts) if (draft.stale) await draft.reload()
+  }
+
+  const syncAll = async () => {
+    for (const draft of drafts) await draft.sync()
+  }
+
   const publishSet = useCallback((): ContentRef[] => {
     // Everything saved for the job goes in, changed or not: what needs a
     // publish is decided by the server's copy at that moment, not by what
@@ -185,9 +218,13 @@ export function useJob(id: Guid): Job {
     }
     add('Scene', pitchId)
     for (const opened of mission.value ? openedSceneIds(mission.value) : []) add('Scene', opened)
+    // WF-82: a fact the job uses goes live with it, if it is not live yet.
+    for (const factId of mission.value ? jobFactIds(mission.value, [pitch.value, prompt.value]) : []) {
+      if (summary('Fact', factId)?.status !== 'Published') add('Fact', factId)
+    }
     add('Mission', id)
     return items
-  }, [summary, pitchId, mission.value, id])
+  }, [summary, pitchId, mission.value, id, pitch.value, prompt.value])
 
   return {
     id,
@@ -207,6 +244,10 @@ export function useJob(id: Guid): Job {
     errorStep,
     saveAll,
     revertAll,
+    autosaving: drafts.some((draft) => draft.autosaving),
+    stale: drafts.some((draft) => draft.stale),
+    reloadAll,
+    syncAll,
     publishSet,
   }
 }

@@ -33,6 +33,7 @@ public static class GameContentComposer
         GameContentKind.Test => "tests",
         GameContentKind.NpcTemplate => "npcTemplates",
         GameContentKind.Place => "places",
+        GameContentKind.Fact => "facts",
         _ => throw new GameContentException($"Unknown game content kind '{kind}'."),
     };
 

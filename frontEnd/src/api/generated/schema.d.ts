@@ -1621,7 +1621,9 @@ export interface paths {
         post?: never;
         delete: {
             parameters: {
-                query?: never;
+                query?: {
+                    bothWays?: boolean;
+                };
                 header?: never;
                 path: {
                     exitId: string;
@@ -1915,6 +1917,317 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/districts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DistrictRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/districts/{districtId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    districtId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DistrictRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    districtId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/rooms/district": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetDistrictRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/rooms/paint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PaintRoomsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/rooms/{roomId}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    roomId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DuplicateRoomRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/reachability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    mapId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2852,12 +3165,33 @@ export interface components {
             mapLayer: null | number | string;
             /** Format: uuid */
             mapId?: null | string;
+            /** Format: uuid */
+            districtId?: null | string;
+            joins?: null | string[];
         };
         CrewInviteRequest: {
             name: null | string;
         };
+        DistrictRequest: {
+            /** Format: uuid */
+            mapId: null | string;
+            name: null | string;
+            defaultDescription: null | string;
+            /** Format: uuid */
+            version?: null | string;
+        };
+        DuplicateRoomRequest: {
+            /** Format: uuid */
+            mapId: null | string;
+            /** Format: int32 */
+            x: number | string;
+            /** Format: int32 */
+            y: number | string;
+            /** Format: int32 */
+            layer: number | string;
+        };
         /** @enum {unknown} */
-        GameContentKind: "Mission" | "Scene" | "Test" | "NpcTemplate" | "Place";
+        GameContentKind: "Mission" | "Scene" | "Test" | "NpcTemplate" | "Place" | "Fact";
         GameContentSetItem: {
             kind: components["schemas"]["GameContentKind"];
             /** Format: uuid */
@@ -2954,6 +3288,18 @@ export interface components {
         };
         /** @enum {unknown} */
         NpcAwareness: "Unaware" | "Suspicious" | "Alerted" | "Combat" | "Fleeing" | "Pacified" | null;
+        PaintRoomsRequest: {
+            /** Format: uuid */
+            mapId: string;
+            /** Format: int32 */
+            layer: number | string;
+            cells: null | components["schemas"]["RoomCell"][];
+            namePattern: null | string;
+            description: null | string;
+            /** Format: uuid */
+            districtId: null | string;
+            joinNeighbours: boolean;
+        };
         PerformGameActionRequest: {
             /** Format: uuid */
             requestId: null | string;
@@ -3050,13 +3396,29 @@ export interface components {
             /** @default false */
             granted: boolean;
         };
+        RoomCell: {
+            /** Format: int32 */
+            x: number | string;
+            /** Format: int32 */
+            y: number | string;
+        };
         RoomSelectionRequest: {
             roomIds: null | string[];
             /** Format: uuid */
             mapId: null | string;
+            /** Format: uuid */
+            districtId?: null | string;
         };
         SaveGameContentDraftRequest: {
             json: null | string;
+            /** Format: date-time */
+            expectedUpdatedAtUtc?: null | string;
+            expectNew?: null | boolean;
+        };
+        SetDistrictRequest: {
+            roomIds: null | string[];
+            /** Format: uuid */
+            districtId: null | string;
         };
         SetEnvironmentModifierRequest: {
             /** Format: int32 */

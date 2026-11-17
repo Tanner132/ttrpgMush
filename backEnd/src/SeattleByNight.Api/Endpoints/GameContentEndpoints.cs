@@ -55,7 +55,13 @@ public sealed record GameContentDetailResponse(
     string DraftJson,
     string? PublishedJson);
 
-public sealed record SaveGameContentDraftRequest(string? Json);
+// WF-61: ExpectedUpdatedAtUtc is the draft's updatedAtUtc as the editor
+// last read it; with ExpectNew, the editor believes nothing is saved yet.
+// Without either, the save is not version-checked.
+public sealed record SaveGameContentDraftRequest(
+    string? Json,
+    DateTimeOffset? ExpectedUpdatedAtUtc = null,
+    bool? ExpectNew = null);
 
 public sealed record GameContentValidationResponse(bool IsValid, string? Error);
 
@@ -114,7 +120,7 @@ public sealed record GameContentPaletteResponse(
 // file and fails when the two disagree.
 public static class ForgeContract
 {
-    public const int Version = 2;
+    public const int Version = 4;
 }
 
 // Milestone 7 step 3: the World Forge's server surface. Content is stored as
@@ -340,8 +346,19 @@ public static class GameContentEndpoints
                 title: $"The payload declares id '{payloadKey}' but was saved as '{contentKey}'.");
         }
 
-        var saved = await store.SaveDraftAsync(
-            parsed, contentKey, displayName, request.Json, actor.Id, cancellationToken);
+        var expected = request.ExpectedUpdatedAtUtc is { } at
+            ? new DraftVersion(at)
+            : request.ExpectNew == true ? new DraftVersion(null) : null;
+        GameContentDefinitionRecord saved;
+        try
+        {
+            saved = await store.SaveDraftAsync(
+                parsed, contentKey, displayName, request.Json, actor.Id, cancellationToken, expected);
+        }
+        catch (GameContentVersionConflictException conflict)
+        {
+            return Results.Problem(statusCode: StatusCodes.Status409Conflict, title: conflict.Message);
+        }
 
         return Results.Ok(new GameContentDetailResponse(
             ToSummary(saved, null, running: 0, dependents: []), saved.DraftJson, saved.PublishedJson));

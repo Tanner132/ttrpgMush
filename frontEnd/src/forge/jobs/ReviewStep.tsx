@@ -62,6 +62,8 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
       if (job.dirty && !(await job.saveAll())) throw new Error('The job could not be saved, so nothing went live.')
       const result = await publishSet(job.publishSet())
       if (!result.isValid) throw new Error(result.error ?? 'The server refused to put the job live.')
+      // Going live moves each record's version on; the next autosave names the new one.
+      await job.syncAll()
       await refreshContent()
       return true
     })
@@ -73,6 +75,7 @@ export function ReviewStep({ job, mission, checks, onStep }: { job: Job; mission
     const done = await lifecycle.run(async () => {
       const result = await retireDefinition('Mission', job.id)
       if (!result.isValid) throw new Error(result.error ?? 'The server refused to retire the job.')
+      await job.syncAll()
       await refreshContent()
       return true
     })

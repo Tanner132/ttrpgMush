@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Button } from '../../components/ui/Button.tsx'
-import { Modal } from '../../components/ui/Modal.tsx'
 import { ConditionList, EffectList } from '../events/EffectList.tsx'
 import { ConditionWords, EffectWords, type EventScope } from '../events/scope.ts'
 import { Check, Chip, NumberInput, Segmented, Select, TextBox, TextInput } from '../fields.tsx'
@@ -18,29 +17,18 @@ import {
   type SceneNode,
   type SceneOutcome,
 } from '../model.ts'
+import { ConversationGraph } from './ConversationGraph.tsx'
+import { branches, deadEnds, depths, nesting, partLabel, partTitle, targetOf, type Branch } from './conversationShape.ts'
+import { ReplyTemplates, type ReplyTemplateId } from './replyTemplates.ts'
 
 /*
- * A conversation as a script: parts (what is said) and the replies on offer
- * under each. The content model has no names for parts, so they are numbered
- * and shown by their opening words; every id is minted once and never shown.
+ * WF-75: a conversation as an outline. Each part is what is said and the
+ * replies on offer under it; a part only one reply leads to is written right
+ * under that reply, indented, so a branch reads top to bottom. Replies are
+ * edited in place. A reply can answer on the spot (WF-74), so most need no
+ * part of their own; where one does, "A new part" makes it from the reply.
+ * WF-76: the same conversation as a graph, for reading.
  */
-
-function excerpt(text: string, length = 48): string {
-  const flat = text.replace(/\s+/g, ' ').trim()
-  return flat.length <= length ? flat : `${flat.slice(0, length)}…`
-}
-
-function partName(scene: Scene, nodeId: string): string {
-  const index = scene.nodes.findIndex((node) => node.id === nodeId)
-  if (index < 0) return 'a part that no longer exists'
-  return `Part ${index + 1} · ${excerpt(scene.nodes[index].text, 32) || 'no text yet'}`
-}
-
-function describeThen(scene: Scene, outcome: SceneOutcome): string {
-  if (outcome.endsScene) return 'End the conversation'
-  if (outcome.nextNodeId) return `Go to ${partName(scene, outcome.nextNodeId)}`
-  return 'Stay on this part'
-}
 
 function describeEffect(effect: Effect, scope: EventScope): string {
   const word = EffectWords[effect.kind]
@@ -55,7 +43,11 @@ function describeCondition(condition: Condition, scope: EventScope): string {
   return [ConditionWords[condition.kind], item].filter(Boolean).join(' ')
 }
 
-type Then = 'end' | 'stay' | string
+function describeThen(scene: Scene, outcome: SceneOutcome): string {
+  if (outcome.endsScene) return 'End the conversation'
+  if (outcome.nextNodeId) return `Go to ${partLabel(scene, outcome.nextNodeId)}`
+  return 'Same replies again'
+}
 
 const Limits: { id: LimitKind; displayName: string }[] = [
   { id: 'none', displayName: 'No limit' },
@@ -144,17 +136,9 @@ function RollFields({ roll, canContest, onChange }: { roll: ChoiceRoll; canConte
         label="Contested by the NPC"
         checked={contested}
         disabled={!contested && !canContest}
-        onChange={(on) =>
-          onChange(
-            on
-              ? { ...roll, threshold: undefined, opposedPools: [] }
-              : { ...roll, opposedPools: undefined, threshold: 2 },
-          )
-        }
+        onChange={(on) => onChange(on ? { ...roll, threshold: undefined, opposedPools: [] } : { ...roll, opposedPools: undefined, threshold: 2 })}
       />
-      {!canContest && !contested && (
-        <p className="forge__hint">Only a conversation with a Johnson or another NPC can be contested: give it one first.</p>
-      )}
+      {!canContest && !contested && <p className="forge__hint">Only a conversation with a Johnson or another NPC can be contested: give it one first.</p>}
 
       {contested ? (
         <div className="forge__subsection">
@@ -163,18 +147,13 @@ function RollFields({ roll, canContest, onChange }: { roll: ChoiceRoll; canConte
           <p className="forge__hint">Read off the stat block of whoever the runner is talking to. The runner needs more hits.</p>
         </div>
       ) : (
-        <NumberInput
-          label="Hits needed"
-          value={roll.threshold}
-          min={1}
-          max={12}
-          onChange={(threshold) => onChange({ ...roll, threshold: threshold ?? 1 })}
-        />
+        <NumberInput label="Hits needed" value={roll.threshold} min={1} max={12} onChange={(threshold) => onChange({ ...roll, threshold: threshold ?? 1 })} />
       )}
     </div>
   )
 }
 
+/** Whether a reply's roll has everything it needs to go live. */
 function rollReady(choice: SceneChoice): boolean {
   if (choice.testId !== undefined) return choice.testId !== ''
   if (choice.roll === undefined) return true
@@ -182,153 +161,196 @@ function rollReady(choice: SceneChoice): boolean {
   return pool.length > 0 && (opposedPools !== undefined ? opposedPools.length > 0 : (threshold ?? 0) > 0)
 }
 
-function thenOf(outcome: SceneOutcome): Then {
-  return outcome.endsScene ? 'end' : (outcome.nextNodeId ?? 'stay')
-}
+const NewPart = 'new-part'
 
-function withThen<T extends SceneOutcome>(outcome: T, then: Then): T {
+function withThen<T extends SceneOutcome>(outcome: T, then: string): T {
   return { ...outcome, endsScene: then === 'end' ? true : undefined, nextNodeId: then === 'end' || then === 'stay' ? undefined : then }
 }
 
-/** What a reply (or one branch of its roll) does and where the talk goes next. */
+/** An empty answer is no answer: the loader refuses a blank one. */
+function withAnswer<T extends SceneOutcome>(outcome: T, answer: string): T {
+  return { ...outcome, answer: answer.trim() === '' ? undefined : answer }
+}
+
+/** What a reply (or one branch of its roll) says back, does, and where the talk goes next. */
 function OutcomeFields({
   label,
   outcome,
   scene,
   scope,
+  speaker,
   onChange,
+  onNewPart,
 }: {
   label: string
   outcome: SceneOutcome
   scene: Scene
   scope: EventScope
+  speaker: string | undefined
   onChange: (outcome: SceneOutcome) => void
+  /** Makes a part this outcome leads to, and returns its id. */
+  onNewPart: () => string
 }) {
   const thens = [
+    { id: 'stay', displayName: 'Same replies again' },
     { id: 'end', displayName: 'End the conversation' },
-    { id: 'stay', displayName: 'Stay on this part' },
-    ...scene.nodes.map((node) => ({ id: node.id, displayName: `Go to ${partName(scene, node.id)}` })),
+    ...scene.nodes.map((node) => ({ id: node.id, displayName: `Go to ${partTitle(scene, node.id)}` })),
+    { id: NewPart, displayName: 'Go to a new part…' },
   ]
+  const answerLabel = label === 'Reply' ? 'Answer' : `${label} answer`
   return (
     <div className="forge__stack">
+      <TextBox
+        label={answerLabel}
+        value={outcome.answer ?? ''}
+        rows={2}
+        maxLength={2000}
+        placeholder="Optional"
+        hint={`What ${speaker ?? 'the runner reads'}${speaker ? ' says back' : ''}, before the talk moves on. With an answer, most replies need no part of their own.`}
+        onChange={(answer) => onChange(withAnswer(outcome, answer))}
+      />
       <EffectList
         label={`${label} effect`}
         effects={outcome.effects ?? []}
         scope={scope}
         onChange={(effects) => onChange({ ...outcome, effects: effects.length > 0 ? effects : undefined })}
       />
-      <Select label={`${label}: then`} value={thenOf(outcome)} options={thens} onChange={(then) => onChange(withThen(outcome, then))} />
+      <Select
+        label={`${label}: then`}
+        value={targetOf(outcome)}
+        options={thens}
+        onChange={(then) => onChange(withThen(outcome, then === NewPart ? onNewPart() : then))}
+      />
     </div>
   )
 }
 
-function ReplyDialog({
+/** A reply opened for writing, in place under its part. */
+function ReplyFields({
   choice,
   number,
   scene,
   scope,
-  onSave,
-  onClose,
+  speaker,
+  onChange,
+  onNewPart,
+  onDone,
 }: {
   choice: SceneChoice
   number: number
   scene: Scene
   scope: EventScope
-  onSave: (choice: SceneChoice) => void
-  onClose: () => void
+  speaker: string | undefined
+  onChange: (choice: SceneChoice) => void
+  onNewPart: (branch: Branch) => string
+  onDone: () => void
 }) {
-  const [draft, setDraft] = useState(choice)
-  const rolls = rollsFirst(draft)
+  const rolls = rollsFirst(choice)
   const canContest = scope.unnamedNpc !== undefined
   const newRoll = (): ChoiceRoll => ({ pool: [], limit: 'social', ...(canContest ? { opposedPools: [] } : { threshold: 2 }) })
 
   function setRolls(on: boolean) {
     if (on) {
       // Flow moves onto the two branches: a reply with a roll has none of its own.
-      const { nextNodeId, effects, endsScene, ...rest } = draft
-      setDraft({ ...rest, roll: newRoll(), onSuccess: { nextNodeId, effects, endsScene }, onFailure: { endsScene: true } })
+      const { nextNodeId, effects, endsScene, answer, ...rest } = choice
+      onChange({ ...rest, roll: newRoll(), onSuccess: { nextNodeId, effects, endsScene, answer }, onFailure: { endsScene: true } })
     } else {
-      const { testId: _testId, roll: _roll, onSuccess, onFailure: _onFailure, ...rest } = draft
-      setDraft({ ...rest, ...(onSuccess ?? { endsScene: true }) })
+      const { testId: _testId, roll: _roll, onSuccess, onFailure: _onFailure, ...rest } = choice
+      onChange({ ...rest, ...(onSuccess ?? { endsScene: true }) })
     }
   }
 
-  // A roll is built here, or taken from the Library's dice tests.
+  // A roll is built here, or taken from the Library's dice tests. WF-54: a
+  // Library roll starts with no test chosen, rather than the first one.
   function setSource(source: 'build' | 'library') {
-    const { testId: _testId, roll: _roll, ...rest } = draft
-    setDraft(source === 'build' ? { ...rest, roll: newRoll() } : { ...rest, testId: scope.tests[0]?.id ?? '' })
+    const { testId: _testId, roll: _roll, ...rest } = choice
+    onChange(source === 'build' ? { ...rest, roll: newRoll() } : { ...rest, testId: '' })
   }
 
   return (
-    <Modal title={`Reply ${number}`} onClose={onClose} size="wide">
-      <form
-        className="forge__dialog"
-        onSubmit={(event) => {
-          event.preventDefault()
-          onSave({ ...draft, label: draft.label.trim() })
-        }}
-      >
-        <TextInput label="Runner says" value={draft.label} maxLength={200} autoFocus onChange={(label) => setDraft({ ...draft, label })} />
+    <div className="forge__reply-edit" role="group" aria-label={`Reply ${number}`}>
+      <TextInput label="Runner says" value={choice.label} maxLength={200} autoFocus onChange={(label) => onChange({ ...choice, label })} />
 
-        <div className="forge__subsection">
-          <h3 className="forge__subsection-title">Show only if</h3>
-          <ConditionList conditions={draft.conditions} scope={scope} onChange={(conditions) => setDraft({ ...draft, conditions })} />
-        </div>
+      <div className="forge__subsection">
+        <h3 className="forge__subsection-title">Show only if</h3>
+        <ConditionList conditions={choice.conditions} scope={scope} onChange={(conditions) => onChange({ ...choice, conditions })} />
+      </div>
 
-        <Check label="Roll first" checked={rolls} onChange={setRolls} />
+      <Check label="Roll first" checked={rolls} onChange={setRolls} />
 
-        {rolls ? (
-          <>
-            <Segmented
-              label="Roll"
-              value={draft.roll !== undefined ? 'build' : 'library'}
-              options={[
-                { id: 'build', displayName: 'Build a roll' },
-                {
-                  id: 'library',
-                  displayName: 'A Library test',
-                  disabled: scope.tests.length === 0,
-                  title: scope.tests.length === 0 ? 'No dice test in the Library yet' : undefined,
-                },
-              ]}
-              onChange={setSource}
+      {rolls ? (
+        <>
+          <Segmented
+            label="Roll"
+            value={choice.roll !== undefined ? 'build' : 'library'}
+            options={[
+              { id: 'build', displayName: 'Build a roll' },
+              {
+                id: 'library',
+                displayName: 'A Library test',
+                disabled: scope.tests.length === 0,
+                title: scope.tests.length === 0 ? 'No dice test in the Library yet' : undefined,
+              },
+            ]}
+            onChange={setSource}
+          />
+          {choice.roll !== undefined ? (
+            <RollFields roll={choice.roll} canContest={canContest} onChange={(roll) => onChange({ ...choice, roll })} />
+          ) : (
+            <Select
+              label="Test"
+              value={choice.testId}
+              options={scope.tests}
+              placeholder="Choose a test"
+              hint={scope.unnamedNpc ? 'An opposed test rolls against the NPC being talked to. Add your own in the Library.' : 'Add your own in the Library.'}
+              onChange={(testId) => onChange({ ...choice, testId })}
             />
-            {draft.roll !== undefined ? (
-              <RollFields roll={draft.roll} canContest={canContest} onChange={(roll) => setDraft({ ...draft, roll })} />
-            ) : (
-              <Select
-                label="Test"
-                value={draft.testId}
-                options={scope.tests}
-                placeholder="Choose a test"
-                hint={scope.unnamedNpc ? 'An opposed test rolls against the NPC being talked to. Add your own in the Library.' : 'Add your own in the Library.'}
-                onChange={(testId) => setDraft({ ...draft, testId })}
-              />
-            )}
-            <div className="forge__branch">
-              <span className="forge__branch-tag forge__branch-tag--pass">Pass</span>
-              <OutcomeFields label="Pass" outcome={draft.onSuccess ?? {}} scene={scene} scope={scope} onChange={(onSuccess) => setDraft({ ...draft, onSuccess })} />
-            </div>
-            <div className="forge__branch">
-              <span className="forge__branch-tag forge__branch-tag--fail">Fail</span>
-              <OutcomeFields label="Fail" outcome={draft.onFailure ?? {}} scene={scene} scope={scope} onChange={(onFailure) => setDraft({ ...draft, onFailure })} />
-            </div>
-          </>
-        ) : (
-          <div className="forge__subsection">
-            <h3 className="forge__subsection-title">Does</h3>
-            <OutcomeFields label="Reply" outcome={draft} scene={scene} scope={scope} onChange={(outcome) => setDraft({ ...draft, ...outcome })} />
+          )}
+          <div className="forge__branch">
+            <span className="forge__branch-tag forge__branch-tag--pass">Pass</span>
+            <OutcomeFields
+              label="Pass"
+              outcome={choice.onSuccess ?? {}}
+              scene={scene}
+              scope={scope}
+              speaker={speaker}
+              onChange={(onSuccess) => onChange({ ...choice, onSuccess })}
+              onNewPart={() => onNewPart('pass')}
+            />
           </div>
-        )}
+          <div className="forge__branch">
+            <span className="forge__branch-tag forge__branch-tag--fail">Fail</span>
+            <OutcomeFields
+              label="Fail"
+              outcome={choice.onFailure ?? {}}
+              scene={scene}
+              scope={scope}
+              speaker={speaker}
+              onChange={(onFailure) => onChange({ ...choice, onFailure })}
+              onNewPart={() => onNewPart('fail')}
+            />
+          </div>
+        </>
+      ) : (
+        <OutcomeFields
+          label="Reply"
+          outcome={choice}
+          scene={scene}
+          scope={scope}
+          speaker={speaker}
+          onChange={(outcome) => onChange({ ...choice, ...outcome })}
+          onNewPart={() => onNewPart('then')}
+        />
+      )}
 
-        <div className="forge__dialog-actions">
-          <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" intent="primary" disabled={!draft.label.trim() || !rollReady(draft)}>
-            Keep reply
-          </Button>
-        </div>
-      </form>
-    </Modal>
+      <div className="forge__actions">
+        <Button onClick={onDone} aria-label={`Done with reply ${number}`}>
+          Done
+        </Button>
+        {!choice.label.trim() && <span className="forge__hint">A reply needs words before it can go live.</span>}
+        {!rollReady(choice) && <span className="forge__hint">The roll is not finished.</span>}
+      </div>
+    </div>
   )
 }
 
@@ -337,6 +359,7 @@ function OutcomeSummary({ tag, tone, outcome, scene, scope }: { tag: string; ton
     <>
       <dt className={tone ? `forge__reply-tag forge__reply-tag--${tone}` : 'forge__reply-tag'}>{tag}</dt>
       <dd>
+        {outcome.answer && <q className="forge__answer">{outcome.answer}</q>}
         {(outcome.effects ?? []).map((effect, index) => (
           <span key={index} className="forge__does">
             {describeEffect(effect, scope)}
@@ -348,46 +371,12 @@ function OutcomeSummary({ tag, tone, outcome, scene, scope }: { tag: string; ton
   )
 }
 
-function ReplyCard({
-  choice,
-  number,
-  last,
-  scene,
-  scope,
-  onEdit,
-  onMove,
-  onRemove,
-}: {
-  choice: SceneChoice
-  number: number
-  last: boolean
-  scene: Scene
-  scope: EventScope
-  onEdit: () => void
-  onMove: (by: -1 | 1) => void
-  onRemove: () => void
-}) {
+function ReplySummary({ choice, scene, scope }: { choice: SceneChoice; scene: Scene; scope: EventScope }) {
   const test = scope.tests.find((candidate) => candidate.id === choice.testId)
   const terms = useRollTerms()
   return (
-    <li className="forge__reply">
-      <div className="forge__reply-head">
-        <span className="forge__reply-number">{number}</span>
-        <b className="forge__reply-label">{choice.label || 'No words yet'}</b>
-        <Button aria-label={`Move reply ${number} up`} disabled={number === 1} onClick={() => onMove(-1)}>
-          ↑
-        </Button>
-        <Button aria-label={`Move reply ${number} down`} disabled={last} onClick={() => onMove(1)}>
-          ↓
-        </Button>
-        <Button aria-label={`Edit reply ${number}: ${choice.label}`} onClick={onEdit}>
-          Edit
-        </Button>
-        <Button intent="danger" aria-label={`Remove reply ${number}: ${choice.label}`} onClick={onRemove}>
-          Remove
-        </Button>
-      </div>
-      {choice.testId !== undefined && <p className="forge__reply-roll">Roll {test?.displayName ?? 'a test that no longer exists'}</p>}
+    <>
+      {choice.testId !== undefined && <p className="forge__reply-roll">Roll {test?.displayName ?? (choice.testId ? 'a test that no longer exists' : 'no test chosen yet')}</p>}
       {choice.roll !== undefined && <p className="forge__reply-roll">Roll {describeRoll(choice.roll, terms)}</p>}
       <dl className="forge__reply-out">
         {rollsFirst(choice) ? (
@@ -405,15 +394,8 @@ function ReplyCard({
           </>
         )}
       </dl>
-    </li>
+    </>
   )
-}
-
-/** Every reply that leads to a part, so removing it can say what it would strand. */
-function leadsTo(scene: Scene, nodeId: string): number {
-  return scene.nodes
-    .flatMap((node) => node.choices)
-    .filter((choice) => [choice.nextNodeId, choice.onSuccess?.nextNodeId, choice.onFailure?.nextNodeId].includes(nodeId)).length
 }
 
 export function ConversationEditor({
@@ -428,17 +410,48 @@ export function ConversationEditor({
   speaker?: string
   onChange: (update: (scene: Scene) => Scene) => void
 }) {
-  const [editing, setEditing] = useState<{ nodeId: string; choice: SceneChoice; isNew: boolean } | null>(null)
+  const [view, setView] = useState<'outline' | 'graph'>('outline')
+  const [open, setOpen] = useState<string | null>(null)
+  const [jumpTo, setJumpTo] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (view !== 'outline' || jumpTo === null) return
+    const part = document.getElementById(`part-${jumpTo}`)
+    part?.scrollIntoView?.({ block: 'start', behavior: 'smooth' })
+    part?.focus()
+    setJumpTo(null)
+  }, [view, jumpTo])
+
+  const reached = depths(scene)
+  const stuck = deadEnds(scene)
+  const parentOf = nesting(scene)
 
   const setNode = (nodeId: string, update: (node: SceneNode) => SceneNode) =>
     onChange((current) => ({ ...current, nodes: current.nodes.map((node) => (node.id === nodeId ? update(node) : node)) }))
+
+  const setChoice = (nodeId: string, choice: SceneChoice) =>
+    setNode(nodeId, (node) => ({ ...node, choices: node.choices.map((existing) => (existing.id === choice.id ? choice : existing)) }))
+
+  /** A new part, placed right after the part whose reply leads to it, named after the reply. */
+  function newPartAfter(nodeId: string, choice: SceneChoice, branch: Branch): string {
+    const id = newId()
+    const words = choice.label.trim() || 'reply'
+    const name = `After “${words.length > 40 ? `${words.slice(0, 40)}…` : words}”${branch === 'then' ? '' : branch === 'pass' ? ' (pass)' : ' (fail)'}`
+    onChange((current) => {
+      const at = current.nodes.findIndex((node) => node.id === nodeId)
+      const nodes = [...current.nodes]
+      nodes.splice(at + 1, 0, { id, name: name.slice(0, 80), text: '', choices: [] })
+      return { ...current, nodes }
+    })
+    return id
+  }
 
   function removePart(nodeId: string) {
     onChange((current) => ({
       ...current,
       nodes: current.nodes
         .filter((node) => node.id !== nodeId)
-        // A reply that led there now stays put, rather than pointing at nothing.
+        // A reply that led there now offers the same replies again, rather than pointing at nothing.
         .map((node) => ({
           ...node,
           choices: node.choices.map((choice) => ({
@@ -451,96 +464,191 @@ export function ConversationEditor({
     }))
   }
 
+  function addReply(nodeId: string, choice: SceneChoice) {
+    setNode(nodeId, (node) => ({ ...node, choices: [...node.choices, choice] }))
+    setOpen(choice.id)
+  }
+
+  const rendered = new Set<string>()
+
+  function renderPart(node: SceneNode): ReactNode {
+    rendered.add(node.id)
+    const index = scene.nodes.findIndex((candidate) => candidate.id === node.id)
+    const label = partLabel(scene, node.id)
+    const isStart = node.id === scene.startNodeId
+    const unreachable = !reached.has(node.id)
+    return (
+      <article key={node.id} id={`part-${node.id}`} tabIndex={-1} className="forge__part" aria-label={label}>
+        <div className="forge__part-head">
+          <h3 className="forge__part-title">{label}</h3>
+          {isStart && <Chip tone="live">Start</Chip>}
+          {unreachable && <Chip tone="error">Nothing leads here</Chip>}
+          {stuck.has(node.id) && (
+            <Chip tone="error">{node.choices.length === 0 ? 'No replies' : 'Dead end'}</Chip>
+          )}
+          {!isStart && (
+            <>
+              <Button aria-label={`Start the conversation at ${label}`} onClick={() => onChange((current) => ({ ...current, startNodeId: node.id }))}>
+                Make start
+              </Button>
+              <Button intent="danger" aria-label={`Remove ${label}`} onClick={() => removePart(node.id)}>
+                Remove part
+              </Button>
+            </>
+          )}
+        </div>
+
+        <div className="forge__grid forge__grid--2">
+          <TextInput
+            label="Part name"
+            value={node.name ?? ''}
+            maxLength={80}
+            placeholder={`Part ${index + 1}`}
+            hint="For you; runners never see it."
+            onChange={(name) => setNode(node.id, (current) => ({ ...current, name: name.trim() === '' ? undefined : name }))}
+          />
+        </div>
+        <TextBox
+          label={speaker ? `${speaker} says` : 'The runner reads'}
+          value={node.text}
+          rows={3}
+          onChange={(text) => setNode(node.id, (current) => ({ ...current, text }))}
+        />
+        {stuck.has(node.id) && (
+          <p className="forge__hint">
+            {node.choices.length === 0
+              ? 'No replies: the conversation stops here with nothing to choose. Add one that ends it.'
+              : 'No reply here moves on or ends the conversation, so a runner can only go round.'}
+          </p>
+        )}
+
+        <div className="forge__subsection">
+          <h4 className="forge__subsection-title">Replies</h4>
+          <ol className="forge__replies">
+            {node.choices.map((choice, at) => {
+              const number = at + 1
+              const children = branches(choice)
+                .map(({ outcome }) => outcome.nextNodeId)
+                .filter((id): id is string => id !== undefined)
+                .filter((id, position, all) => all.indexOf(id) === position)
+                .map((id) => scene.nodes.find((candidate) => candidate.id === id))
+                .filter((child): child is SceneNode => child !== undefined && parentOf.get(child.id)?.choice.id === choice.id && !rendered.has(child.id))
+              return (
+                <li key={choice.id} className="forge__reply">
+                  <div className="forge__reply-head">
+                    <span className="forge__reply-number">{number}</span>
+                    <b className="forge__reply-label">{choice.label || 'No words yet'}</b>
+                    {!rollReady(choice) && <Chip tone="error">Roll not finished</Chip>}
+                    <Button aria-label={`Move reply ${number} up`} disabled={number === 1} onClick={() => setNode(node.id, (current) => move(current, at, -1))}>
+                      ↑
+                    </Button>
+                    <Button
+                      aria-label={`Move reply ${number} down`}
+                      disabled={number === node.choices.length}
+                      onClick={() => setNode(node.id, (current) => move(current, at, 1))}
+                    >
+                      ↓
+                    </Button>
+                    {open !== choice.id && (
+                      <Button aria-label={`Edit reply ${number}: ${choice.label}`} onClick={() => setOpen(choice.id)}>
+                        Edit
+                      </Button>
+                    )}
+                    <Button
+                      intent="danger"
+                      aria-label={`Remove reply ${number}: ${choice.label}`}
+                      onClick={() => setNode(node.id, (current) => ({ ...current, choices: current.choices.filter((existing) => existing.id !== choice.id) }))}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  {open === choice.id ? (
+                    <ReplyFields
+                      choice={choice}
+                      number={number}
+                      scene={scene}
+                      scope={scope}
+                      speaker={speaker}
+                      onChange={(next) => setChoice(node.id, next)}
+                      onNewPart={(branch) => newPartAfter(node.id, choice, branch)}
+                      onDone={() => setOpen(null)}
+                    />
+                  ) : (
+                    <ReplySummary choice={choice} scene={scene} scope={scope} />
+                  )}
+                  {children.length > 0 && <div className="forge__outline-nest">{children.map(renderPart)}</div>}
+                </li>
+              )
+            })}
+          </ol>
+          <div className="forge__actions">
+            <Button aria-label={`Add a reply to ${label}`} onClick={() => addReply(node.id, { id: newId(), label: '', conditions: [], endsScene: true })}>
+              + Reply
+            </Button>
+            <Select
+              label={`Add a reply to ${label} from a template`}
+              labelHidden
+              value=""
+              placeholder="+ From a template…"
+              options={ReplyTemplates.map((template) => {
+                const why = template.unavailable(scope)
+                return { id: template.id, displayName: template.displayName, disabled: why !== undefined, title: why }
+              })}
+              onChange={(id) => {
+                const template = ReplyTemplates.find((candidate) => candidate.id === (id as ReplyTemplateId))
+                if (template) addReply(node.id, template.make(scope, speaker))
+              }}
+            />
+          </div>
+        </div>
+      </article>
+    )
+  }
+
+  const top = scene.nodes.filter((node) => !parentOf.has(node.id))
+  // The start first, then the rest in the order they were written.
+  const ordered = [...top.filter((node) => node.id === scene.startNodeId), ...top.filter((node) => node.id !== scene.startNodeId)]
+  const outline = ordered.map(renderPart)
+  // Anything not drawn under a reply yet (a reply above it in the outline was
+  // drawn first) stands at the top level, so no part is ever missing.
+  const rest: ReactNode[] = []
+  for (const node of scene.nodes) if (!rendered.has(node.id)) rest.push(renderPart(node))
+
   return (
     <div className="forge__stack">
-      {scene.nodes.map((node, index) => {
-        const isStart = node.id === scene.startNodeId
-        const incoming = leadsTo(scene, node.id)
-        return (
-          <article key={node.id} className="forge__part" aria-label={`Part ${index + 1}`}>
-            <div className="forge__part-head">
-              <h3 className="forge__part-title">Part {index + 1}</h3>
-              {isStart ? (
-                <Chip tone="live">Start</Chip>
-              ) : (
-                <>
-                  {incoming === 0 && <Chip tone="error">Nothing leads here</Chip>}
-                  <Button aria-label={`Start the conversation at part ${index + 1}`} onClick={() => onChange((current) => ({ ...current, startNodeId: node.id }))}>
-                    Make start
-                  </Button>
-                  <Button intent="danger" aria-label={`Remove part ${index + 1}`} onClick={() => removePart(node.id)}>
-                    Remove part
-                  </Button>
-                </>
-              )}
-            </div>
-
-            <TextBox
-              label={speaker ? `${speaker} says` : 'The runner reads'}
-              value={node.text}
-              rows={3}
-              onChange={(text) => setNode(node.id, (current) => ({ ...current, text }))}
-            />
-
-            <div className="forge__subsection">
-              <h4 className="forge__subsection-title">Replies</h4>
-              {node.choices.length === 0 && <p className="forge__hint">No replies: the conversation stops here with nothing to choose.</p>}
-              <ol className="forge__replies">
-                {node.choices.map((choice, at) => (
-                  <ReplyCard
-                    key={choice.id}
-                    choice={choice}
-                    number={at + 1}
-                    last={at === node.choices.length - 1}
-                    scene={scene}
-                    scope={scope}
-                    onEdit={() => setEditing({ nodeId: node.id, choice, isNew: false })}
-                    onMove={(by) =>
-                      setNode(node.id, (current) => {
-                        const choices = [...current.choices]
-                        const [moved] = choices.splice(at, 1)
-                        choices.splice(at + by, 0, moved)
-                        return { ...current, choices }
-                      })
-                    }
-                    onRemove={() => setNode(node.id, (current) => ({ ...current, choices: current.choices.filter((existing) => existing.id !== choice.id) }))}
-                  />
-                ))}
-              </ol>
-              <div>
-                <Button
-                  aria-label={`Add a reply to part ${index + 1}`}
-                  onClick={() => setEditing({ nodeId: node.id, choice: { id: newId(), label: '', conditions: [], endsScene: true }, isNew: true })}
-                >
-                  + Reply
-                </Button>
-              </div>
-            </div>
-          </article>
-        )
-      })}
-
-      <div>
-        <Button onClick={() => onChange((current) => ({ ...current, nodes: [...current.nodes, { id: newId(), text: '', choices: [] }] }))}>+ Part</Button>
-      </div>
-
-      {editing && (
-        <ReplyDialog
-          key={editing.choice.id}
-          choice={editing.choice}
-          number={(scene.nodes.find((node) => node.id === editing.nodeId)?.choices.findIndex((choice) => choice.id === editing.choice.id) ?? -1) + 1 || (scene.nodes.find((node) => node.id === editing.nodeId)?.choices.length ?? 0) + 1}
+      <Segmented
+        label="View"
+        value={view}
+        options={[
+          { id: 'outline', displayName: 'Outline' },
+          { id: 'graph', displayName: 'Graph' },
+        ]}
+        onChange={setView}
+      />
+      {view === 'graph' ? (
+        <ConversationGraph
           scene={scene}
-          scope={scope}
-          onClose={() => setEditing(null)}
-          onSave={(saved) => {
-            setNode(editing.nodeId, (current) => ({
-              ...current,
-              choices: editing.isNew ? [...current.choices, saved] : current.choices.map((existing) => (existing.id === saved.id ? saved : existing)),
-            }))
-            setEditing(null)
+          onJump={(nodeId) => {
+            setView('outline')
+            setJumpTo(nodeId)
           }}
         />
+      ) : (
+        <>
+          {outline}
+          {rest}
+          <div>
+            <Button onClick={() => onChange((current) => ({ ...current, nodes: [...current.nodes, { id: newId(), text: '', choices: [] }] }))}>+ Part</Button>
+          </div>
+        </>
       )}
     </div>
   )
+}
+
+function move(node: SceneNode, at: number, by: -1 | 1): SceneNode {
+  const choices = [...node.choices]
+  const [moved] = choices.splice(at, 1)
+  choices.splice(at + by, 0, moved)
+  return { ...node, choices }
 }

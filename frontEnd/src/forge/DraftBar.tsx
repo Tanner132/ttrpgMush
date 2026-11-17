@@ -36,7 +36,7 @@ export function DraftBar<T>({
     <div className="forge__draftbar">
       <div className="forge__draftbar-row">
         <Chip tone={draft.dirty ? 'draft' : statusTone(draft.summary)}>
-          {draft.dirty ? (draft.isNew ? 'Not saved' : 'Unsaved edits') : statusWord(draft.summary)}
+          {draft.dirty ? (draft.autosaving ? 'Saving…' : draft.isNew ? 'Not saved' : 'Unsaved edits') : statusWord(draft.summary)}
         </Chip>
         {draft.summary?.draftError && !draft.dirty && <Chip tone="error">Can't go live</Chip>}
         <span className="forge__spacer" />
@@ -59,6 +59,14 @@ export function DraftBar<T>({
       {draft.error && (
         <StatusBanner tone="danger" role="alert">
           {draft.error}
+          {draft.stale && (
+            <>
+              {' '}
+              <Button onClick={() => void draft.reload()} disabled={draft.busy}>
+                Load the saved version
+              </Button>
+            </>
+          )}
         </StatusBanner>
       )}
       {draft.notice && <StatusBanner tone="success">{draft.notice}</StatusBanner>}

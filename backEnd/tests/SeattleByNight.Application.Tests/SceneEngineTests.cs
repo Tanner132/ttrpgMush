@@ -241,6 +241,73 @@ public sealed class SceneEngineTests
         return new SwappedContent(current with { Scenes = scenes });
     }
 
+    // WF-74: the Johnson's conversation with an answer on asking about the
+    // work (which still moves on), on a reply that stays put, and on losing
+    // the negotiation.
+    private static IGameContentProvider WithAnswers()
+    {
+        var current = TestGameContent.Provider.Current;
+        var scenes = current.Scenes
+            .Select(scene => scene.Id != JohnsonSceneId ? scene : scene with
+            {
+                Nodes = scene.Nodes
+                    .Select(node => node with
+                    {
+                        Choices = node.Choices
+                            .Select(choice =>
+                                choice.Id == ShippedContentIds.SceneChoices.JohnsonWarehouseJobGreetingAskJob
+                                    ? choice with { Answer = "Keep your voice down." }
+                                    : choice.Id == ShippedContentIds.SceneChoices.JohnsonWarehouseJobJobOfferNegotiate
+                                        ? choice with { OnFailure = new SceneOutcome(Answer: "Don't push it.") }
+                                        : choice)
+                            .ToList(),
+                    })
+                    .ToList(),
+            })
+            .ToList();
+        return new SwappedContent(current with { Scenes = scenes });
+    }
+
+    [Fact]
+    public async Task A_reply_answer_is_said_before_the_next_part()
+    {
+        var harness = new Harness { Content = WithAnswers() };
+        var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.Greeting);
+
+        var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobGreetingAskJob);
+
+        Assert.Equal(GameActionError.None, outcome.Error);
+        var said = harness.Broadcaster.Broadcasts.Where(message => message.Type == ChatMessageType.Say).ToList();
+        Assert.Equal(2, said.Count);
+        Assert.Equal("Keep your voice down.", said[0].Content);
+        Assert.Contains("Two thousand nuyen", said[1].Content);
+        Assert.All(said, message => Assert.Equal(johnson.Id, message.CharacterId));
+    }
+
+    [Fact]
+    public async Task A_roll_branch_that_stays_on_the_part_says_its_answer_and_offers_the_replies_again()
+    {
+        var harness = new Harness { Content = WithAnswers() };
+        var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.JobOffer);
+
+        // One hit versus four: the Johnson wins.
+        harness.Roller.Enqueue(5, 1, 1, 2, 2, 3, 3, 4);
+        harness.Roller.Enqueue(5, 5, 6, 5, 1, 2, 3, 4);
+
+        var outcome = await harness.ChooseAsync(johnson, ShippedContentIds.SceneChoices.JohnsonWarehouseJobJobOfferNegotiate);
+
+        Assert.Equal(GameActionError.None, outcome.Error);
+        // No part of its own: the answer is the only line, and the part's own
+        // line is not said again.
+        var said = Assert.Single(harness.Broadcaster.Broadcasts, message => message.Type == ChatMessageType.Say);
+        Assert.Equal("Don't push it.", said.Content);
+        Assert.Contains("(Type a number to choose.)", outcome.Message);
+        var (_, changes) = Assert.Single(harness.Applier.Applications);
+        Assert.DoesNotContain(changes, change => change is AdvanceSceneChange);
+    }
+
     [Fact]
     public async Task A_reply_roll_reads_the_runner_sheet_and_the_johnson_stat_block()
     {

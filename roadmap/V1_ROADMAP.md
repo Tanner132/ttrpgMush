@@ -25,7 +25,7 @@ v1 is ten workstreams:
 | 7 | [Private and owned rooms](#7-private-and-owned-rooms) | Needs design decisions; blocked on 6. 8 fixes how a private room is marked |
 | 8 | [One shared world](#8-one-shared-world) | Phases 1 and 2 merged to `main` (`c6964f6`); phases 3 (the job clock), 4 (fights restrict rooms) and 5 (crews) built 2026-11-17, not committed. Left: the acceptance run (1.4) |
 | 9 | [Room images](#9-room-images) | Decided 2026-11-12; ready to build, independent of the rest |
-| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Phase 1 (seven defects) committed (`7281b7e`); phase 2 (maps, room lifecycle, moving rooms, travel links, one map at a time) built 2026-11-17, not committed; phase 3 next |
+| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Phases 1 and 2 committed (`7281b7e`, `0506851`); phases 3 (the map editor at scale), 4 (writing conversations, events and jobs) and 5 (character facts) built 2026-11-17, not committed; phase 6 next |
 
 Workstream 8 replaces how jobs run today (1.3) and changes the questions in 3
 and 7; read it before picking either of those up.
@@ -38,10 +38,10 @@ should be built until those are answered and the answers are recorded (rules in
 **Where things stand (2026-11-17).** Workstream 8 phases 1 and 2 and a
 reply's own roll (10.3) are merged to `main` (`c6964f6`). Workstream 10
 phase 1 (the seven defects) and workstream 8 phases 3–5 are committed
-(`7281b7e`). Workstream 10 phase 2 is built and not committed.
+(`7281b7e`), and workstream 10 phase 2 (`0506851`). Workstream 10 phases 3,
+4 and 5 are built and not committed.
 
-**Suggested order.** Workstream 10 phase 3, with phase 4 alongside it (10.5),
-then phases 5 to 8, with 2.3 purchases before personal vehicles. The
+**Suggested order.** Workstream 10 phases 6 to 8, with 2.3 purchases before personal vehicles. The
 acceptance run in 1.4 can go any time now that workstream 8 is built.
 Workstream 9 is independent and can go anywhere.
 
@@ -1607,7 +1607,7 @@ not yet tried in the running app. What was built:
 
 #### Phase 2 — Maps and the room lifecycle
 
-**Status 2026-11-17: built, not committed.** All five items with tests
+**Status 2026-11-17: committed (`0506851`).** All five items with tests
 (`WorldMapTests`, the Places and command tests); not yet tried in the
 running app, which needs the `MapsAndRoomLifecycle` migration. What was built:
 
@@ -1649,6 +1649,54 @@ running app, which needs the `MapsAndRoomLifecycle` migration. What was built:
 
 #### Phase 3 — The map editor at scale
 
+**Status 2026-11-17: built, not committed.** All eight items with tests
+(`WorldForgePhase3Tests`, `MapAtScale.test.tsx`); not yet tried in the
+running app, which needs the `Districts` migration. The 10.7 timings (a
+five-room block and a fetch job; a 100-room layer) are still to be taken in
+the running app. What was built:
+
+- **WF-40.** The map zooms from rooms with their exits (5 × 3, then 11 × 7) to
+  squares (25 × 15, then the whole layer, cropped at 61 × 41). It pans by
+  dragging, goes to a room by name or to `x, y[, layer]`, and only recentres
+  when the room opened is out of view (or *Centre on* is pressed). The job's
+  Rooms step opens on the job's rooms, else its Johnson.
+- **WF-42.** `RoomPicker`: every room on every map, searchable, grouped by
+  map › district › layer with coordinates, a job's rooms first. Used for exit
+  destinations, the Johnson's and an NPC's location, relocation on delete,
+  event rooms and objective rooms. References now carry each room's place
+  and district, and the maps and districts by name.
+- **WF-43.** The build form lists one tick per neighbouring room (both ways),
+  diagonals unticked, a neighbour whose way back is taken disabled with the
+  exit that holds it; the server joins exactly those (`CreateRoomMutation.Joins`,
+  refused whole if one is taken). Removing an exit offers "and the way back",
+  ticked (`DELETE …/exits/{id}?bothWays=true`).
+- **WF-44.** Paint mode: click or drag over empty squares, then one request
+  builds a draft per square from a name pattern (`{n}`, `{x}`, `{y}`),
+  description and district, joined north/south/east/west where both
+  directions are free (`POST …/rooms/paint`, at most 200). *Duplicate* copies a
+  room to a free cell with its NPCs (without a conversation, so a Johnson is
+  not offering one job from two rooms) and inspectables; not its exits,
+  events or job items.
+- **WF-72.** Select mode: pick rooms, then publish, unpublish, move by an
+  offset, set the district, or delete them. Delete runs each room's own check
+  and names any it could not delete (a room with characters in it is deleted
+  on its own, to choose where they go).
+- **WF-73.** `District` (`districts`), `Room.DistrictId`. A room's description
+  may now be blank; the player sees the district's default. Publishing refuses
+  a room with neither. Districts are made, edited, deleted (their rooms keep
+  what they showed) and published from Places; a room's district is set on
+  its screen or for a selection.
+- **WF-45.** Rooms with an exit to a room not drawn next to them show ⇢, rooms
+  with travel ✈. `GET …/reachability` walks from the start room through exits
+  that are not hidden, locked or private, and travel links, into live rooms;
+  Places names any live room it does not reach.
+- **WF-64.** A Forge *Index* tab: rooms per map (sortable; filter by draft, no
+  description, no exits, cannot be reached), NPCs with their stat block and
+  conversation, jobs with their rooms on the map; and one search over rooms,
+  NPCs, inspectables, districts, travel and every content draft
+  (`GET …/search`).
+- `ForgeContract.Version` is 3.
+
 | ID | Item | Shape |
 | --- | --- | --- |
 | WF-40 | **See and move around a large map.** | Zoom levels up to a whole-layer overview; drag to pan; go to a room by name or to a coordinate; selecting a room does not recentre unless asked. The job's Rooms step opens on the job's rooms, else its Johnson. |
@@ -1661,6 +1709,50 @@ running app, which needs the `MapsAndRoomLifecycle` migration. What was built:
 | WF-64 | **A world index.** | Sortable, filterable tables of rooms, NPCs and jobs per map, with flags (no description, no exits, draft), and search over all authored text. |
 
 #### Phase 4 — Writing conversations, events and jobs
+
+**Status 2026-11-17: built, not committed.** All nine items with tests
+(`WritingJobs.test.tsx`; `SceneEngineTests`, `GameContentLoaderTests` and
+`GameContentEndpointTests` for the server side); not yet tried in the running
+app. The 10.7 count (a conversation with three levels of branching and a roll
+at each) is still to be taken. What was built:
+
+- **WF-74.** A reply has an `answer`, and so does each branch of its roll
+  (`SceneOutcome.Answer`, at most 2000 characters, never blank; a reply that
+  rolls answers on its branches only). The NPC says it, or the runner reads
+  it, before the next part; a reply that stays on its part says only its
+  answer and offers the same replies again.
+- **WF-75.** The conversation editor is an outline: a part only one reply leads
+  to is written under that reply, indented; replies are edited in place, not
+  in a dialog; "Go to a new part…" makes the next part from the reply, named
+  after it. Parts have optional names (`SceneNodeDefinition.Name`, at most 80
+  characters, for the Forge only). Parts nobody reaches and parts nothing
+  leaves are marked.
+- **WF-76.** A read-only graph view: parts in columns by distance from the
+  start, unreached parts in a last column, failed rolls dashed, endings
+  dotted; choosing a part jumps to it in the outline.
+- **WF-77.** Reply templates: negotiate pay (Charisma + Negotiation against the
+  NPC's Social, shown only while pay is not yet negotiated; both branches set
+  the pay, so a lost roll settles it at the job's pay and it cannot be rolled
+  again — closing WF-52), hand over the item, ask for details, walk away.
+  Event templates: ambush on entry and guard warning, in a room with an NPC.
+  A new job can be made as a copy of another, with new ids for the job, its
+  objectives, items, events, pitch and prompts (not who says the pitch).
+- **WF-78.** The Events step groups events by room in route order — the
+  Johnson's room, each objective's, then the job's other rooms — and a prompt
+  an event opens is written right under that event.
+- **WF-63.** Library › Conversations: made blank or as a copy, written for a
+  stat block or none, given to (or taken from) any world NPC built on that
+  block, with the same outline editor.
+- **WF-54.** A new Johnson has no default room; a Library roll in a reply or an
+  event has no default test; "Raise pay" says what a won roll pays.
+- **WF-61.** Drafts save themselves 1.5 s after the last edit. Every save from
+  the editor names the version it was edited from
+  (`expectedUpdatedAtUtc`, or `expectNew`), and the server refuses a save over
+  a newer draft with 409 and writes nothing; the editor then stops saving and
+  offers to load the saved version. On Home a job's pitch and prompts count
+  as the job.
+- **WF-67.** The Rooms step says what using a room does (reset, usage, the
+  delete guard) and can pick several rooms on the map and use them at once.
 
 The owner found branching dialogue and events hard to write. The walkthrough
 was too shallow to hit it (one two-part pitch, one single-step event), but
@@ -1683,6 +1775,39 @@ a job's events are one flat list with their prompts written elsewhere.
 | WF-67 | **The Rooms step explains itself.** | Say what putting a room in a job does (reset, usage, the delete guard); pick several rooms at once. |
 
 #### Phase 5 — Character facts
+
+**Status 2026-11-17: built, not committed.** All four items with tests
+(`FactContentTests`, `CharacterFactTests`, `Facts.test.tsx`); not yet tried in
+the running app, which needs the `CharacterFacts` migration. What was built:
+
+- **WF-80.** `Fact` is a content kind (`facts` in the document): a name, a
+  description, and optionally `runOf`, a job whose run it lasts for. Facts
+  are stored per character in `character_facts` (character, fact, and for a
+  run-only fact the run it was set in). A run-only fact counts only while that
+  run is open, so it stops counting however the run ends (turned in, failed,
+  expired, outrun) without anything clearing it; setting one when the
+  character is not on that job does nothing. Facts are written by the state
+  change applier (`SetFactChange`, `ClearFactChange`), in the same commit as
+  the action that caused them, and only ever on the acting character (or,
+  for a job's ending and objectives, on each runner it counts for).
+- **WF-81.** Effects `setFact` and `clearFact`; conditions `factSet` and
+  `factNotSet`. Usable in replies, a job's events and a room's own events, and
+  in listener conditions. An objective can list `setsFacts`, set when it is
+  completed (on each runner of a crew).
+- **WF-82.** Library › Facts: made, named and described there, chosen from a
+  picker everywhere else, each showing what live content sets and tests it
+  (`ContentReferences.Facts`). Going live refuses content that tests
+  `factSet` on, or a job that requires, a fact nothing sets; an unknown fact
+  anywhere is refused. A draft fact a job uses goes live with the job.
+- **WF-83.** A job can `requiresFacts` and `refusesFacts` before it is offered
+  (`missionAvailable`, accepting, and each crew member's accept;
+  `MissionAssignError.FactsNotMet`), and `completionSetsFacts` /
+  `completionClearsFacts` on everyone it pays, in the same commit as the pay.
+- `ForgeContract.Version` is 4.
+
+Decided while building (10.8): "lasting only for the current run of a job" is
+a property of the fact, not of the effect that sets it; a fact's "set by" and
+"tested by" are read from live content only.
 
 | ID | Item | Shape |
 | --- | --- | --- |

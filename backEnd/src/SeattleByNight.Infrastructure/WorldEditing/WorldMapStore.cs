@@ -112,8 +112,33 @@ public sealed class WorldMapStore(
             return error.As<RoomPublishResult>();
         }
 
+        // WF-73: a room shows its own description or its district's; one
+        // with neither would show players nothing.
+        var drafts = rooms.Where(room => !room.IsLive).ToList();
+        var districtIds = drafts.Select(room => room.DistrictId).OfType<Guid>().Distinct().ToList();
+        var districtText = await db.Districts
+            .Where(district => districtIds.Contains(district.Id))
+            .ToDictionaryAsync(district => district.Id, district => district.DefaultDescription, cancellationToken);
+        var blank = drafts
+            .Where(room => string.IsNullOrWhiteSpace(room.Description)
+                && (room.DistrictId is not { } id || string.IsNullOrWhiteSpace(districtText.GetValueOrDefault(id))))
+            .Select(room => room.Name)
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (blank.Count > 0)
+        {
+            return WorldMutationResult<RoomPublishResult>.Invalid(new()
+            {
+                ["rooms"] =
+                [
+                    $"No description, and no district description to fall back on: {string.Join(", ", blank.Take(10))}"
+                        + (blank.Count > 10 ? $" and {blank.Count - 10} more." : "."),
+                ],
+            });
+        }
+
         var changed = new List<Guid>();
-        foreach (var room in rooms.Where(room => !room.IsLive))
+        foreach (var room in drafts)
         {
             room.IsLive = true;
             room.Version = Guid.NewGuid();
@@ -269,6 +294,16 @@ public sealed class WorldMapStore(
     private async Task<(List<Room> Rooms, SelectionError? Error)> SelectAsync(
         RoomSelection selection, CancellationToken cancellationToken)
     {
+        if (selection.DistrictId is { } districtId)
+        {
+            if (!await db.Districts.AnyAsync(district => district.Id == districtId, cancellationToken))
+            {
+                return ([], new SelectionError(WorldMutationError.NotFound, null));
+            }
+
+            return (await db.Rooms.Where(room => room.DistrictId == districtId).ToListAsync(cancellationToken), null);
+        }
+
         if (selection.MapId is { } mapId)
         {
             if (!await db.Maps.AnyAsync(map => map.Id == mapId, cancellationToken))
@@ -497,4 +532,600 @@ public sealed class WorldMapStore(
         ["sourceRoomId"] = link.SourceRoomId.ToString(),
         ["destinationRoomId"] = link.DestinationRoomId.ToString(),
     };
+
+    // ------------------------------------------------------------ districts
+
+    public async Task<WorldMutationResult<WorldDistrict>> CreateDistrictAsync(
+        Guid actorUserId, Guid mapId, DistrictMutation mutation, CancellationToken cancellationToken = default)
+    {
+        if (!await db.Maps.AnyAsync(map => map.Id == mapId, cancellationToken))
+        {
+            return WorldMutationResult<WorldDistrict>.Failure(WorldMutationError.NotFound);
+        }
+
+        if (await CheckDistrictAsync(mapId, null, mutation, cancellationToken) is { } errors)
+        {
+            return WorldMutationResult<WorldDistrict>.Invalid(errors);
+        }
+
+        var district = new District
+        {
+            Id = Guid.NewGuid(),
+            MapId = mapId,
+            Name = mutation.Name.Trim(),
+            DefaultDescription = mutation.DefaultDescription?.Trim() ?? string.Empty,
+            CreatedAtUtc = timeProvider.GetUtcNow(),
+            Version = Guid.NewGuid(),
+        };
+        db.Districts.Add(district);
+        auditWriter.Append(actorUserId, AuditActions.DistrictCreated, AuditTargetTypes.District, district.Id,
+            new Dictionary<string, string> { ["name"] = district.Name, ["mapId"] = mapId.ToString() });
+        await db.SaveChangesAsync(cancellationToken);
+        return WorldMutationResult<WorldDistrict>.Success(await DistrictViewAsync(district.Id, cancellationToken));
+    }
+
+    public async Task<WorldMutationResult<WorldDistrict>> UpdateDistrictAsync(
+        Guid actorUserId, Guid districtId, Guid version, DistrictMutation mutation, CancellationToken cancellationToken = default)
+    {
+        var district = await db.Districts.FirstOrDefaultAsync(candidate => candidate.Id == districtId, cancellationToken);
+        if (district is null)
+        {
+            return WorldMutationResult<WorldDistrict>.Failure(WorldMutationError.NotFound);
+        }
+
+        if (await CheckDistrictAsync(district.MapId, districtId, mutation, cancellationToken) is { } errors)
+        {
+            return WorldMutationResult<WorldDistrict>.Invalid(errors);
+        }
+
+        db.Entry(district).Property(candidate => candidate.Version).OriginalValue = version;
+        district.Name = mutation.Name.Trim();
+        district.DefaultDescription = mutation.DefaultDescription?.Trim() ?? string.Empty;
+        district.Version = Guid.NewGuid();
+        auditWriter.Append(actorUserId, AuditActions.DistrictUpdated, AuditTargetTypes.District, district.Id,
+            new Dictionary<string, string> { ["name"] = district.Name });
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            db.ChangeTracker.Clear();
+            return WorldMutationResult<WorldDistrict>.Failure(WorldMutationError.Conflict);
+        }
+
+        return WorldMutationResult<WorldDistrict>.Success(await DistrictViewAsync(district.Id, cancellationToken));
+    }
+
+    public async Task<WorldMutationResult<WorldDistrict>> DeleteDistrictAsync(
+        Guid actorUserId, Guid districtId, CancellationToken cancellationToken = default)
+    {
+        var district = await db.Districts.FirstOrDefaultAsync(candidate => candidate.Id == districtId, cancellationToken);
+        if (district is null)
+        {
+            return WorldMutationResult<WorldDistrict>.Failure(WorldMutationError.NotFound);
+        }
+
+        var view = await DistrictViewAsync(districtId, cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        var rooms = await db.Rooms.Where(room => room.DistrictId == districtId).ToListAsync(cancellationToken);
+        foreach (var room in rooms)
+        {
+            // What the room showed stays what it shows.
+            if (string.IsNullOrWhiteSpace(room.Description))
+            {
+                room.Description = district.DefaultDescription;
+            }
+
+            room.DistrictId = null;
+            room.Version = Guid.NewGuid();
+        }
+
+        db.Districts.Remove(district);
+        auditWriter.Append(actorUserId, AuditActions.DistrictDeleted, AuditTargetTypes.District, district.Id,
+            new Dictionary<string, string> { ["name"] = district.Name, ["rooms"] = rooms.Count.ToString() });
+        await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return WorldMutationResult<WorldDistrict>.Success(view);
+    }
+
+    public async Task<WorldMutationResult<RoomPublishResult>> SetDistrictAsync(
+        Guid actorUserId, IReadOnlyList<Guid> roomIds, Guid? districtId, CancellationToken cancellationToken = default)
+    {
+        var (rooms, error) = await SelectAsync(new RoomSelection(roomIds, null), cancellationToken);
+        if (error is not null)
+        {
+            return error.As<RoomPublishResult>();
+        }
+
+        District? district = null;
+        if (districtId is { } id)
+        {
+            district = await db.Districts.FirstOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+            if (district is null)
+            {
+                return WorldMutationResult<RoomPublishResult>.Failure(WorldMutationError.NotFound);
+            }
+
+            var elsewhere = rooms.Where(room => room.MapId != district.MapId).Select(room => room.Name).ToList();
+            if (elsewhere.Count > 0)
+            {
+                return WorldMutationResult<RoomPublishResult>.Invalid(new()
+                {
+                    ["rooms"] = [$"{district.Name} is on another map than {string.Join(", ", elsewhere.Take(5))}."],
+                });
+            }
+        }
+
+        var changed = new List<Guid>();
+        foreach (var room in rooms.Where(room => room.DistrictId != districtId))
+        {
+            room.DistrictId = districtId;
+            room.Version = Guid.NewGuid();
+            changed.Add(room.Id);
+            auditWriter.Append(actorUserId, AuditActions.RoomDistrictSet, AuditTargetTypes.Room, room.Id,
+                new Dictionary<string, string> { ["name"] = room.Name, ["district"] = district?.Name ?? string.Empty });
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        return WorldMutationResult<RoomPublishResult>.Success(new RoomPublishResult(changed, 0));
+    }
+
+    private async Task<Dictionary<string, string[]>?> CheckDistrictAsync(
+        Guid mapId, Guid? self, DistrictMutation mutation, CancellationToken cancellationToken)
+    {
+        if (WorldMapRules.CheckName(mutation.Name, WorldMapRules.MaxMapNameLength, "district") is { } problem)
+        {
+            return new() { ["name"] = [problem] };
+        }
+
+        if ((mutation.DefaultDescription?.Length ?? 0) > 4000)
+        {
+            return new() { ["defaultDescription"] = ["A district description is at most 4000 characters."] };
+        }
+
+        var upper = mutation.Name.Trim().ToUpperInvariant();
+        return await db.Districts.AnyAsync(
+                district => district.MapId == mapId && district.Id != self && district.Name.ToUpper() == upper, cancellationToken)
+            ? new() { ["name"] = [$"This map already has a district called {mutation.Name.Trim()}."] }
+            : null;
+    }
+
+    private async Task<WorldDistrict> DistrictViewAsync(Guid districtId, CancellationToken cancellationToken)
+    {
+        var mapId = await db.Districts.Where(district => district.Id == districtId)
+            .Select(district => district.MapId)
+            .SingleAsync(cancellationToken);
+        return (await WorldGraphReader.DistrictsAsync(db, mapId, cancellationToken)).Single(district => district.Id == districtId);
+    }
+
+    // ------------------------------------------------------- building many
+
+    public async Task<WorldMutationResult<BuiltRooms>> BuildRoomsAsync(
+        Guid actorUserId, BuildRoomsMutation mutation, CancellationToken cancellationToken = default)
+    {
+        var cells = mutation.Cells.Distinct().ToList();
+        if (cells.Count == 0)
+        {
+            return WorldMutationResult<BuiltRooms>.Invalid(new() { ["cells"] = ["Paint at least one empty cell."] });
+        }
+
+        if (cells.Count > WorldMapRules.MaxPaint)
+        {
+            return WorldMutationResult<BuiltRooms>.Invalid(new() { ["cells"] = [$"Paint at most {WorldMapRules.MaxPaint} rooms at once."] });
+        }
+
+        if (string.IsNullOrWhiteSpace(mutation.NamePattern) || mutation.NamePattern.Trim().Length > 100)
+        {
+            return WorldMutationResult<BuiltRooms>.Invalid(new() { ["namePattern"] = ["Give the rooms a name, such as Street {n}."] });
+        }
+
+        if ((mutation.Description?.Length ?? 0) > 4000)
+        {
+            return WorldMutationResult<BuiltRooms>.Invalid(new() { ["description"] = ["A description is at most 4000 characters."] });
+        }
+
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await db.Database.ExecuteSqlRawAsync(
+            $"SELECT pg_advisory_xact_lock({TopologyCreationLockKey})", cancellationToken);
+
+        if (!await db.Maps.AnyAsync(map => map.Id == mutation.MapId, cancellationToken))
+        {
+            return WorldMutationResult<BuiltRooms>.Failure(WorldMutationError.NotFound);
+        }
+
+        if (mutation.DistrictId is { } districtId
+            && !await db.Districts.AnyAsync(district => district.Id == districtId && district.MapId == mutation.MapId, cancellationToken))
+        {
+            return WorldMutationResult<BuiltRooms>.Invalid(new() { ["districtId"] = ["That district is not on this map."] });
+        }
+
+        // Every room within one cell of the painted area: what is taken, and
+        // who the new rooms can join.
+        var minX = cells.Min(cell => cell.X) - 1;
+        var maxX = cells.Max(cell => cell.X) + 1;
+        var minY = cells.Min(cell => cell.Y) - 1;
+        var maxY = cells.Max(cell => cell.Y) + 1;
+        var nearby = await db.Rooms
+            .Where(room => room.MapId == mutation.MapId && room.MapLayer == mutation.Layer
+                && room.MapX >= minX && room.MapX <= maxX && room.MapY >= minY && room.MapY <= maxY)
+            .ToListAsync(cancellationToken);
+        var taken = cells.Where(cell => nearby.Any(room => room.MapX == cell.X && room.MapY == cell.Y)).ToList();
+        if (taken.Count > 0)
+        {
+            return WorldMutationResult<BuiltRooms>.Invalid(new()
+            {
+                ["cells"] = [$"There is already a room at {string.Join("; ", taken.Take(5).Select(cell => $"{cell.X}, {cell.Y}"))}."],
+            });
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var built = new List<Room>();
+        for (var index = 0; index < cells.Count; index++)
+        {
+            var cell = cells[index];
+            var name = mutation.NamePattern.Trim()
+                .Replace("{n}", (index + 1).ToString(), StringComparison.Ordinal)
+                .Replace("{x}", cell.X.ToString(), StringComparison.Ordinal)
+                .Replace("{y}", cell.Y.ToString(), StringComparison.Ordinal);
+            var room = new Room
+            {
+                Id = Guid.NewGuid(),
+                Name = name.Length > 120 ? name[..120] : name,
+                Description = mutation.Description?.Trim() ?? string.Empty,
+                AccessType = Domain.Enums.RoomAccessType.Public,
+                MapId = mutation.MapId,
+                MapX = cell.X,
+                MapY = cell.Y,
+                MapLayer = mutation.Layer,
+                DistrictId = mutation.DistrictId,
+                IsLive = false,
+                CreatedAtUtc = now,
+                Version = Guid.NewGuid(),
+            };
+            built.Add(room);
+            db.Rooms.Add(room);
+            auditWriter.Append(actorUserId, AuditActions.RoomCreated, AuditTargetTypes.Room, room.Id,
+                new Dictionary<string, string> { ["name"] = room.Name, ["painted"] = "true" });
+        }
+
+        var exits = 0;
+        if (mutation.JoinNeighbours)
+        {
+            var everyone = nearby.Concat(built).ToList();
+            var ids = everyone.Select(room => room.Id).ToList();
+            var used = (await db.RoomExits
+                    .Where(exit => ids.Contains(exit.SourceRoomId))
+                    .Select(exit => new { exit.SourceRoomId, exit.Direction })
+                    .ToListAsync(cancellationToken))
+                .Select(exit => (exit.SourceRoomId, exit.Direction))
+                .ToHashSet();
+            foreach (var room in built)
+            {
+                foreach (var (dx, dy, direction) in Cardinal)
+                {
+                    var neighbour = everyone.FirstOrDefault(other => other.MapX == room.MapX + dx && other.MapY == room.MapY + dy);
+                    var back = Domain.RoomDirections.Opposite(direction);
+                    if (neighbour is null || used.Contains((room.Id, direction)) || used.Contains((neighbour.Id, back)))
+                    {
+                        continue;
+                    }
+
+                    AddExit(actorUserId, room.Id, neighbour.Id, direction, now);
+                    AddExit(actorUserId, neighbour.Id, room.Id, back, now);
+                    used.Add((room.Id, direction));
+                    used.Add((neighbour.Id, back));
+                    exits += 2;
+                }
+            }
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return WorldMutationResult<BuiltRooms>.Success(
+            new BuiltRooms(built.Select(WorldEditorStore.ToWorldRoom).ToList(), exits));
+    }
+
+    private static readonly (int Dx, int Dy, string Direction)[] Cardinal =
+    [
+        (0, 1, Domain.RoomDirections.North),
+        (1, 0, Domain.RoomDirections.East),
+        (0, -1, Domain.RoomDirections.South),
+        (-1, 0, Domain.RoomDirections.West),
+    ];
+
+    private void AddExit(Guid actorUserId, Guid from, Guid to, string direction, DateTimeOffset now)
+    {
+        var exit = new RoomExit
+        {
+            Id = Guid.NewGuid(),
+            SourceRoomId = from,
+            DestinationRoomId = to,
+            Direction = direction,
+            CreatedAtUtc = now,
+            Version = Guid.NewGuid(),
+        };
+        db.RoomExits.Add(exit);
+        auditWriter.Append(actorUserId, AuditActions.RoomExitCreated, AuditTargetTypes.RoomExit, exit.Id,
+            new Dictionary<string, string>
+            {
+                ["sourceRoomId"] = from.ToString(),
+                ["destinationRoomId"] = to.ToString(),
+                ["direction"] = direction,
+            });
+    }
+
+    public async Task<WorldMutationResult<WorldRoom>> DuplicateRoomAsync(
+        Guid actorUserId, Guid roomId, DuplicateRoomMutation mutation, CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await db.Database.ExecuteSqlRawAsync(
+            $"SELECT pg_advisory_xact_lock({TopologyCreationLockKey})", cancellationToken);
+
+        var source = await db.Rooms.AsNoTracking().FirstOrDefaultAsync(room => room.Id == roomId, cancellationToken);
+        if (source is null)
+        {
+            return WorldMutationResult<WorldRoom>.Failure(WorldMutationError.NotFound);
+        }
+
+        var mapId = mutation.MapId ?? source.MapId;
+        if (!await db.Maps.AnyAsync(map => map.Id == mapId, cancellationToken))
+        {
+            return WorldMutationResult<WorldRoom>.Invalid(new() { ["mapId"] = ["That map does not exist."] });
+        }
+
+        var holder = await db.Rooms.AsNoTracking().FirstOrDefaultAsync(room => room.MapId == mapId
+            && room.MapLayer == mutation.Layer && room.MapX == mutation.X && room.MapY == mutation.Y, cancellationToken);
+        if (holder is not null)
+        {
+            return WorldMutationResult<WorldRoom>.Invalid(new()
+            {
+                ["cell"] = [$"{holder.Name} is already at {mutation.X}, {mutation.Y}, layer {mutation.Layer}."],
+            });
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var copy = new Room
+        {
+            Id = Guid.NewGuid(),
+            Name = (source.Name.Length > 113 ? source.Name[..113] : source.Name) + " (copy)",
+            Description = source.Description,
+            AccessType = source.AccessType,
+            EnvironmentModifier = source.EnvironmentModifier,
+            MapId = mapId,
+            MapX = mutation.X,
+            MapY = mutation.Y,
+            MapLayer = mutation.Layer,
+            // A district is on one map.
+            DistrictId = mapId == source.MapId ? source.DistrictId : null,
+            IsLive = false,
+            CreatedAtUtc = now,
+            Version = Guid.NewGuid(),
+        };
+        db.Rooms.Add(copy);
+
+        // What is in it: its NPCs (without a conversation, so a Johnson does
+        // not offer one job from two rooms) and its inspectables. Exits,
+        // events and job items stay with the original.
+        var npcs = await db.NpcInstances.AsNoTracking().Where(npc => npc.RoomId == roomId).ToListAsync(cancellationToken);
+        foreach (var npc in npcs)
+        {
+            db.NpcInstances.Add(new NpcInstance
+            {
+                Id = Guid.NewGuid(),
+                TemplateId = npc.TemplateId,
+                Name = npc.Name,
+                RoomId = copy.Id,
+                Description = npc.Description,
+                OverridesJson = npc.OverridesJson,
+                Awareness = npc.Awareness,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
+            });
+        }
+
+        var inspectables = await db.RoomInteractables.AsNoTracking().Where(item => item.RoomId == roomId).ToListAsync(cancellationToken);
+        foreach (var inspectable in inspectables)
+        {
+            db.RoomInteractables.Add(new RoomInteractable
+            {
+                Id = Guid.NewGuid(),
+                RoomId = copy.Id,
+                Name = inspectable.Name,
+                Description = inspectable.Description,
+                IsHidden = inspectable.IsHidden,
+                DiscoveryThreshold = inspectable.DiscoveryThreshold,
+                CreatedAtUtc = now,
+            });
+        }
+
+        auditWriter.Append(actorUserId, AuditActions.RoomCreated, AuditTargetTypes.Room, copy.Id,
+            new Dictionary<string, string> { ["name"] = copy.Name, ["duplicateOf"] = roomId.ToString() });
+        await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return WorldMutationResult<WorldRoom>.Success(WorldEditorStore.ToWorldRoom(copy));
+    }
+
+    // ---------------------------------------------------------- reachability
+
+    // WF-45: walk from where new characters start, through exits a player can
+    // use today (not hidden, locked or private) and travel links, into live
+    // rooms only. Restricted doors count: they shut only for a while.
+    public async Task<IReadOnlyList<UnreachableRoom>> FindUnreachableAsync(CancellationToken cancellationToken = default)
+    {
+        var live = await db.Rooms.AsNoTracking()
+            .Where(room => room.IsLive)
+            .Select(room => new { room.Id, room.Name, room.MapId })
+            .ToListAsync(cancellationToken);
+        var liveIds = live.Select(room => room.Id).ToHashSet();
+        string[] closed = [Domain.ExitStates.Hidden, Domain.ExitStates.Locked, Domain.ExitStates.Private];
+        var exits = await db.RoomExits.AsNoTracking()
+            .Select(exit => new { exit.SourceRoomId, exit.DestinationRoomId, exit.States })
+            .ToListAsync(cancellationToken);
+        var links = await db.TravelLinks.AsNoTracking()
+            .Select(link => new { link.SourceRoomId, link.DestinationRoomId })
+            .ToListAsync(cancellationToken);
+        var ways = exits
+            .Where(exit => !exit.States.Any(closed.Contains))
+            .Select(exit => (exit.SourceRoomId, exit.DestinationRoomId))
+            .Concat(links.Select(link => (link.SourceRoomId, link.DestinationRoomId)))
+            .ToLookup(way => way.SourceRoomId, way => way.DestinationRoomId);
+
+        var start = WorldOptions.DefaultStartingRoomId;
+        var reached = new HashSet<Guid>();
+        var queue = new Queue<Guid>();
+        if (liveIds.Contains(start))
+        {
+            reached.Add(start);
+            queue.Enqueue(start);
+        }
+
+        while (queue.Count > 0)
+        {
+            foreach (var next in ways[queue.Dequeue()])
+            {
+                if (liveIds.Contains(next) && reached.Add(next))
+                {
+                    queue.Enqueue(next);
+                }
+            }
+        }
+
+        var mapNames = await db.Maps.AsNoTracking().ToDictionaryAsync(map => map.Id, map => map.Name, cancellationToken);
+        return live
+            .Where(room => !reached.Contains(room.Id))
+            .OrderBy(room => mapNames.GetValueOrDefault(room.MapId))
+            .ThenBy(room => room.Name)
+            .Select(room => new UnreachableRoom(room.Id, room.Name, room.MapId, mapNames.GetValueOrDefault(room.MapId) ?? string.Empty))
+            .ToList();
+    }
+
+    // ----------------------------------------------------------- the index
+
+    public async Task<WorldIndex?> GetIndexAsync(Guid mapId, CancellationToken cancellationToken = default)
+    {
+        if (!await db.Maps.AnyAsync(map => map.Id == mapId, cancellationToken))
+        {
+            return null;
+        }
+
+        var unreachable = (await FindUnreachableAsync(cancellationToken)).Select(room => room.Id).ToHashSet();
+        var districts = await db.Districts.AsNoTracking()
+            .Where(district => district.MapId == mapId)
+            .ToDictionaryAsync(district => district.Id, cancellationToken);
+        var rooms = await db.Rooms.AsNoTracking()
+            .Where(room => room.MapId == mapId)
+            .OrderBy(room => room.Name)
+            .Select(room => new
+            {
+                room.Id,
+                room.Name,
+                room.MapX,
+                room.MapY,
+                room.MapLayer,
+                room.DistrictId,
+                room.IsLive,
+                room.Description,
+                Exits = db.RoomExits.Count(exit => exit.SourceRoomId == room.Id),
+                Npcs = db.NpcInstances.Count(npc => npc.RoomId == room.Id),
+            })
+            .ToListAsync(cancellationToken);
+
+        var indexRooms = rooms.Select(room =>
+        {
+            var district = room.DistrictId is { } id ? districts.GetValueOrDefault(id) : null;
+            return new IndexRoom(
+                room.Id,
+                room.Name,
+                room.MapX,
+                room.MapY,
+                room.MapLayer,
+                district?.Name,
+                room.IsLive,
+                room.Exits,
+                room.Npcs,
+                !string.IsNullOrWhiteSpace(room.Description) || !string.IsNullOrWhiteSpace(district?.DefaultDescription),
+                room.IsLive && unreachable.Contains(room.Id));
+        }).ToList();
+
+        var npcs = await (from npc in db.NpcInstances.AsNoTracking()
+                join room in db.Rooms.AsNoTracking() on npc.RoomId equals room.Id
+                where room.MapId == mapId
+                orderby npc.Name
+                select new IndexNpc(npc.Id, npc.Name, room.Id, room.Name, npc.TemplateId, npc.SceneId))
+            .ToListAsync(cancellationToken);
+
+        return new WorldIndex(indexRooms, npcs);
+    }
+
+    // WF-64: search over every authored text: rooms, NPCs, inspectables,
+    // districts, travel, and every content draft.
+    public async Task<IReadOnlyList<SearchHit>> SearchAsync(string text, CancellationToken cancellationToken = default)
+    {
+        var wanted = text.Trim();
+        if (wanted.Length < 2)
+        {
+            return [];
+        }
+
+        var pattern = "%" + wanted.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_") + "%";
+        var limit = WorldMapRules.MaxSearchHits;
+        var hits = new List<SearchHit>();
+
+        hits.AddRange(await db.Rooms.AsNoTracking()
+            .Where(room => EF.Functions.ILike(room.Name, pattern) || EF.Functions.ILike(room.Description, pattern))
+            .OrderBy(room => room.Name)
+            .Take(limit)
+            .Select(room => new SearchHit(
+                "Room", room.Id, room.Name, EF.Functions.ILike(room.Name, pattern) ? "name" : "description",
+                room.Id, room.MapId, null))
+            .ToListAsync(cancellationToken));
+
+        hits.AddRange(await (from npc in db.NpcInstances.AsNoTracking()
+                join room in db.Rooms.AsNoTracking() on npc.RoomId equals room.Id
+                where EF.Functions.ILike(npc.Name, pattern)
+                    || (npc.Description != null && EF.Functions.ILike(npc.Description, pattern))
+                orderby npc.Name
+                select new SearchHit("NPC", npc.Id, npc.Name, "in " + room.Name, room.Id, room.MapId, null))
+            .Take(limit)
+            .ToListAsync(cancellationToken));
+
+        hits.AddRange(await (from inspectable in db.RoomInteractables.AsNoTracking()
+                join room in db.Rooms.AsNoTracking() on inspectable.RoomId equals room.Id
+                where EF.Functions.ILike(inspectable.Name, pattern) || EF.Functions.ILike(inspectable.Description, pattern)
+                orderby inspectable.Name
+                select new SearchHit("Inspectable", inspectable.Id, inspectable.Name, "in " + room.Name, room.Id, room.MapId, null))
+            .Take(limit)
+            .ToListAsync(cancellationToken));
+
+        hits.AddRange(await db.Districts.AsNoTracking()
+            .Where(district => EF.Functions.ILike(district.Name, pattern) || EF.Functions.ILike(district.DefaultDescription, pattern))
+            .OrderBy(district => district.Name)
+            .Take(limit)
+            .Select(district => new SearchHit("District", district.Id, district.Name, "district", null, district.MapId, null))
+            .ToListAsync(cancellationToken));
+
+        hits.AddRange(await (from link in db.TravelLinks.AsNoTracking()
+                join room in db.Rooms.AsNoTracking() on link.SourceRoomId equals room.Id
+                where EF.Functions.ILike(link.Name, pattern)
+                orderby link.Name
+                select new SearchHit("Travel", link.Id, link.Name, "from " + room.Name, room.Id, room.MapId, null))
+            .Take(limit)
+            .ToListAsync(cancellationToken));
+
+        // Jobs, conversations, room events, stat blocks and dice tests, by
+        // their drafts: what the author is writing.
+        // The draft is jsonb, so it is searched as text.
+        hits.AddRange(await db.GameContentDefinitions
+            .FromSqlInterpolated($"SELECT * FROM game_content_definitions WHERE display_name ILIKE {pattern} OR draft_payload::text ILIKE {pattern}")
+            .AsNoTracking()
+            .OrderBy(definition => definition.DisplayName)
+            .Take(limit)
+            .Select(definition => new SearchHit(
+                "Content", definition.ContentKey, definition.DisplayName,
+                EF.Functions.ILike(definition.DisplayName, pattern) ? "name" : "text", null, null, definition.Kind))
+            .ToListAsync(cancellationToken));
+
+        return hits;
+    }
 }

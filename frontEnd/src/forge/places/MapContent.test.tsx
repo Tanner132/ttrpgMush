@@ -29,6 +29,19 @@ afterEach(() => {
 })
 
 describe('Places · removing an exit', () => {
+  it('removes the way back too when it stays ticked (WF-43)', async () => {
+    const user = userEvent.setup()
+    useFakeServer(store, world())
+    vi.mocked(api.deleteExit).mockResolvedValue(undefined)
+    renderForge(`/admin/forge/places?room=${Ids.downtown}`)
+
+    const exits = await screen.findByRole('region', { name: 'Exits' })
+    await user.click(within(exits).getByRole('button', { name: 'Remove exit east to Coffee Shop' }))
+    await user.click(within(exits).getByRole('button', { name: 'Confirm remove exit east to Coffee Shop' }))
+
+    await waitFor(() => expect(api.deleteExit).toHaveBeenCalledWith(`${Ids.downtown}-east`, true))
+  })
+
   it('asks first, then removes that direction only', async () => {
     const user = userEvent.setup()
     const graph = world()
@@ -41,9 +54,11 @@ describe('Places · removing an exit', () => {
     const exits = await screen.findByRole('region', { name: 'Exits' })
     await user.click(within(exits).getByRole('button', { name: 'Remove exit east to Coffee Shop' }))
     expect(api.deleteExit).not.toHaveBeenCalled()
+    // WF-43: the way back is offered, ticked; untick it to keep it.
+    await user.click(within(exits).getByRole('checkbox', { name: 'and the way back from Coffee Shop' }))
     await user.click(within(exits).getByRole('button', { name: 'Confirm remove exit east to Coffee Shop' }))
 
-    await waitFor(() => expect(api.deleteExit).toHaveBeenCalledWith(`${Ids.downtown}-east`))
+    await waitFor(() => expect(api.deleteExit).toHaveBeenCalledWith(`${Ids.downtown}-east`, false))
     await waitFor(() => expect(within(exits).queryByText('Coffee Shop')).not.toBeInTheDocument())
     // The way back was its own exit, and is now one-way in.
     expect(within(exits).getByText(/One-way in, with no exit back: Coffee Shop \(west\)/)).toBeInTheDocument()

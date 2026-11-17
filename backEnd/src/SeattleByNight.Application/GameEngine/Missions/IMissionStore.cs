@@ -67,6 +67,8 @@ public enum MissionAssignError
     JobFinished,
     // The job changed under this accept (another runner finished it).
     JobRaceLost,
+    // WF-83: the character lacks a fact the job requires, or has one it refuses.
+    FactsNotMet,
 }
 
 public sealed record MissionAssignResult(

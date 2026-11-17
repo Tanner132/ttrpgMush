@@ -263,6 +263,15 @@ public sealed class SceneEffectResolver(
                 break;
             }
 
+            // WF-81: the applier ties a run-only fact to the open run.
+            case SceneEffectKind.SetFact:
+                changes.Add(new SetFactChange(effect.FactId!.Value));
+                break;
+
+            case SceneEffectKind.ClearFact:
+                changes.Add(new ClearFactChange(effect.FactId!.Value));
+                break;
+
             case SceneEffectKind.TakeItem:
             {
                 var owned = await missionReader.GetItemsOwnedByCharacterAsync(characterId, cancellationToken);

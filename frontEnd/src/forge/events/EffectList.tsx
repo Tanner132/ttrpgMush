@@ -1,7 +1,7 @@
 import { Button } from '../../components/ui/Button.tsx'
 import { NumberInput, Segmented, Select } from '../fields.tsx'
 import type { Condition, ConditionKind, Effect, EffectKind } from '../model.ts'
-import { ConditionWords, EffectWords, type EventScope } from './scope.ts'
+import { ConditionWords, EffectWords, negotiatedPayHint, type EventScope } from './scope.ts'
 
 const NpcEffects: EffectKind[] = ['alertNpc', 'pacifyNpc', 'startCombat']
 const MissionEffects: EffectKind[] = ['acceptMission', 'failMission', 'completeObjective', 'failObjective', 'setNegotiatedPay', 'turnInMission']
@@ -18,6 +18,8 @@ function startEffect(kind: EffectKind, scope: EventScope): Effect {
       : { kind, missionId: mission?.id }
   }
   if (ItemEffects.includes(kind)) return { kind, itemId: scope.allItems[0]?.id }
+  // A fact is chosen by the author: the first on the list would be a guess.
+  if (kind === 'setFact' || kind === 'clearFact') return { kind }
   return { kind }
 }
 
@@ -53,6 +55,19 @@ function EffectFields({ effect, scope, onChange }: { effect: Effect; scope: Even
     )
   }
 
+  if (effect.kind === 'setFact' || effect.kind === 'clearFact') {
+    return (
+      <Select
+        label="Which fact"
+        value={effect.factId}
+        options={scope.facts}
+        placeholder={scope.facts.length === 0 ? 'No fact in the Library yet' : 'Choose a fact'}
+        hint={effect.kind === 'setFact' ? 'Recorded on the runner, in the same moment as the rest of this.' : undefined}
+        onChange={(factId) => onChange({ ...effect, factId: factId || undefined })}
+      />
+    )
+  }
+
   if (ItemEffects.includes(effect.kind)) {
     return (
       <Select
@@ -74,7 +89,7 @@ function EffectFields({ effect, scope, onChange }: { effect: Effect; scope: Even
           label="Which job"
           value={effect.missionId}
           options={scope.missions}
-          hint={effect.kind === 'setNegotiatedPay' ? "Raises this job's pay by what the roll won. Only does anything on a roll's pass." : undefined}
+          hint={effect.kind === 'setNegotiatedPay' ? negotiatedPayHint(mission?.nuyen) : undefined}
           placeholder={scope.missions.length === 0 ? 'No live job yet' : 'Choose a job'}
           onChange={(missionId) =>
             onChange({
@@ -146,6 +161,7 @@ export function EffectList({
 function startCondition(kind: ConditionKind, scope: EventScope): Condition {
   if (kind === 'carryingItem' || kind === 'notCarryingItem') return { kind, itemId: scope.allItems[0]?.id }
   if (kind === 'notYetNegotiated') return { kind }
+  if (kind === 'factSet' || kind === 'factNotSet') return { kind }
   return { kind, missionId: scope.missions[0]?.id }
 }
 
@@ -163,6 +179,7 @@ export function ConditionList({
     <div className="forge__stack">
       {conditions.map((condition, index) => {
         const byItem = condition.kind === 'carryingItem' || condition.kind === 'notCarryingItem'
+        const byFact = condition.kind === 'factSet' || condition.kind === 'factNotSet'
         return (
           <div key={index} className="forge__condition">
             <Select
@@ -172,7 +189,17 @@ export function ConditionList({
               options={scope.conditions.map((kind) => ({ id: kind, displayName: ConditionWords[kind] }))}
               onChange={(kind) => onChange(conditions.map((current, at) => (at === index ? startCondition(kind as ConditionKind, scope) : current)))}
             />
-            {condition.kind !== 'notYetNegotiated' && (
+            {byFact && (
+              <Select
+                label={`Condition ${index + 1} fact`}
+                labelHidden
+                value={condition.factId}
+                options={scope.facts}
+                placeholder={scope.facts.length === 0 ? 'No fact in the Library yet' : 'Choose a fact'}
+                onChange={(id) => onChange(conditions.map((current, at) => (at === index ? { ...current, factId: id || undefined } : current)))}
+              />
+            )}
+            {condition.kind !== 'notYetNegotiated' && !byFact && (
               <Select
                 label={byItem ? `Condition ${index + 1} item` : `Condition ${index + 1} job`}
                 labelHidden

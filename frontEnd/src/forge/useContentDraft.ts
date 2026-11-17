@@ -8,8 +8,11 @@ import {
   saveDraft,
   type ContentKind,
   type ContentSummary,
+  type DraftVersion,
   type Guid,
 } from './api.ts'
+import { ApiError, toErrorMessage } from '../api/client.ts'
+import { Autosave } from './autosave.ts'
 import { useForgeData } from './forgeContext.ts'
 import { useAction, useDirty, useLoad } from './hooks.ts'
 import { parse, toJson } from './model.ts'
@@ -35,6 +38,14 @@ export interface ContentDraft<T> {
   retire: () => Promise<boolean>
   remove: () => Promise<boolean>
   revert: () => void
+  /** WF-61: true while an edit is about to save itself, or is saving. */
+  autosaving: boolean
+  /** WF-61: the draft was saved somewhere else since it was opened; nothing saves until it is reloaded. */
+  stale: boolean
+  /** Throws away the edits on screen and loads the draft as it is saved now. */
+  reload: () => Promise<void>
+  /** Reads the saved draft's version again after something else wrote it (going live, retiring). */
+  sync: () => Promise<void>
 }
 
 /**
@@ -65,7 +76,15 @@ export function useContentDraft<T extends { id: Guid | string; displayName: stri
   // the blank it started as — opening a room with no events is not an edit.
   const [baselineJson, setBaselineJson] = useState<string | null>(null)
   const [summary, setSummary] = useState<ContentSummary | null>(null)
+  // What each save says it was edited from; read through a ref so a save in
+  // flight and the next one agree.
+  const summaryRef = useRef<ContentSummary | null>(null)
+  useEffect(() => {
+    summaryRef.current = summary
+  }, [summary])
   const [notice, setNotice] = useState<string | null>(null)
+  const [stale, setStale] = useState(false)
+  const [autosaving, setAutosaving] = useState(false)
   const action = useAction()
   const { setError } = action
   // The blank a never-saved record starts from; read only when needed.
@@ -79,6 +98,7 @@ export function useContentDraft<T extends { id: Guid | string; displayName: stri
   useEffect(() => {
     setNotice(null)
     setError(null)
+    setStale(false)
     if (loaded.loading || !id) {
       setValueState(null)
       return
@@ -106,11 +126,49 @@ export function useContentDraft<T extends { id: Guid | string; displayName: stri
 
   const writeDraft = useCallback(async (draft: T) => {
     const json = toJson(draft)
-    const detail = await saveDraft(kind, draft.id, json)
-    setBaselineJson(json)
-    setSummary(detail.summary)
-    return detail
+    const current = summaryRef.current
+    const version: DraftVersion = current ? { expectedUpdatedAtUtc: current.updatedAtUtc } : { expectNew: true }
+    try {
+      const detail = await saveDraft(kind, draft.id, json, version)
+      summaryRef.current = detail.summary
+      setBaselineJson(json)
+      setSummary(detail.summary)
+      return detail
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.status === 409) setStale(true)
+      throw caught
+    }
   }, [kind])
+
+  // WF-61: an edit saves itself once the author pauses. A refused save stops
+  // it (the reason is on screen) until the next edit; a draft saved somewhere
+  // else stops it until it is reloaded.
+  const failedJson = useRef<string | null>(null)
+  useEffect(() => {
+    if (!dirty || value === null || stale || action.busy || !Number.isFinite(Autosave.delayMs)) return
+    const json = toJson(value)
+    if (json === failedJson.current) return
+    setAutosaving(true)
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          await writeDraft(value)
+          failedJson.current = null
+          setError(null)
+          await refreshContent()
+        } catch (caught) {
+          failedJson.current = json
+          setError(toErrorMessage(caught))
+        } finally {
+          setAutosaving(false)
+        }
+      })()
+    }, Autosave.delayMs)
+    return () => {
+      clearTimeout(timer)
+      setAutosaving(false)
+    }
+  }, [value, dirty, stale, action.busy, writeDraft, refreshContent, setError])
 
   const save = useCallback(async () => {
     if (!value) return false
@@ -188,6 +246,32 @@ export function useContentDraft<T extends { id: Guid | string; displayName: stri
     return removed ?? false
   }, [value, summary, action, kind, refreshContent])
 
+  const reload = useCallback(async () => {
+    if (!id) return
+    await action.run(async () => {
+      const fresh = await findDefinition(kind, id)
+      if (fresh) {
+        const draft = parse<T>(fresh.draftJson)
+        setValueState(draft)
+        setBaselineJson(toJson(draft))
+        setSummary(fresh.summary)
+        summaryRef.current = fresh.summary
+      }
+      setStale(false)
+      setNotice(fresh ? 'Reloaded: this is the draft as it is saved now.' : null)
+      return true
+    })
+  }, [id, kind, action])
+
+  const sync = useCallback(async () => {
+    if (!id) return
+    const fresh = await findDefinition(kind, id)
+    if (fresh) {
+      summaryRef.current = fresh.summary
+      setSummary(fresh.summary)
+    }
+  }, [id, kind])
+
   const revert = useCallback(() => {
     if (baselineJson === null) return
     setValueState(parse<T>(baselineJson))
@@ -212,5 +296,9 @@ export function useContentDraft<T extends { id: Guid | string; displayName: stri
     retire,
     remove,
     revert,
+    autosaving,
+    stale,
+    reload,
+    sync,
   }
 }

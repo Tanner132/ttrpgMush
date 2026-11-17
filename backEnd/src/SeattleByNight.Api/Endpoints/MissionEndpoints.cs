@@ -169,6 +169,9 @@ public static class MissionEndpoints
             MissionAssignError.JobFinished or MissionAssignError.JobRaceLost => Results.Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: "This job has just been finished and is not offered again until it resets."),
+            MissionAssignError.FactsNotMet => Results.Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "This job is not offered to this character: it needs something they have not done, or something they have."),
             MissionAssignError.CooldownActive => Results.Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: $"This mission is on cooldown until {result.CooldownEndsAtUtc:u}."),

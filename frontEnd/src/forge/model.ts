@@ -41,6 +41,8 @@ export type EffectKind =
   | 'failObjective'
   | 'failMission'
   | 'advanceScene'
+  | 'setFact'
+  | 'clearFact'
 
 export type ConditionKind =
   | 'missionAvailable'
@@ -49,6 +51,8 @@ export type ConditionKind =
   | 'carryingItem'
   | 'notCarryingItem'
   | 'notYetNegotiated'
+  | 'factSet'
+  | 'factNotSet'
 
 export type DamageType = 'physical' | 'stun'
 
@@ -64,12 +68,31 @@ export interface Effect {
   damageType?: DamageType
   sceneId?: Guid
   nodeId?: Guid
+  /** setFact / clearFact. */
+  factId?: Guid
 }
 
 export interface Condition {
   kind: ConditionKind
   missionId?: Guid
   itemId?: Guid
+  /** factSet / factNotSet. */
+  factId?: Guid
+}
+
+/**
+ * WF-80: a named fact recorded against a character ("Helped the Ancients").
+ * With `runOf` it lasts only for the character's current run of that job.
+ */
+export interface Fact {
+  id: Guid
+  displayName: string
+  description: string
+  runOf?: Guid
+}
+
+export function newFact(): Fact {
+  return { id: newId(), displayName: 'New fact', description: '' }
 }
 
 export interface TestOutcome {
@@ -137,6 +160,8 @@ export interface Objective {
   itemId?: Guid
   /** reachRoom: the map room to walk into. */
   roomId?: Guid
+  /** WF-81: facts set on the runner when the objective is completed. */
+  setsFacts?: Guid[]
 }
 
 export type RepeatKind = 'oneTime' | 'cooldown' | 'unlimited'
@@ -161,6 +186,12 @@ export interface Mission {
   deadlineHours?: number
   /** Workstream 8: what the job's rooms show after it is done, by hours since. */
   aftermath?: AftermathStage[]
+  /** WF-83: facts a runner must have, and must not have, to be offered the job. */
+  requiresFacts?: Guid[]
+  refusesFacts?: Guid[]
+  /** WF-83: what finishing the job records on everyone it pays. */
+  completionSetsFacts?: Guid[]
+  completionClearsFacts?: Guid[]
 }
 
 /** "From hour X, show this" in the job's rooms; the job resets at hour 24. */
@@ -177,6 +208,8 @@ export interface SceneOutcome {
   nextNodeId?: Guid
   effects?: Effect[]
   endsScene?: boolean
+  /** WF-74: what the NPC says back (or the runner reads), before the talk moves on. */
+  answer?: string
 }
 
 /** One thing the runner can say. With a test, flow lives on the two branches. */
@@ -215,6 +248,8 @@ export interface SceneNode {
   id: Guid
   text: string
   choices: SceneChoice[]
+  /** WF-75: the author's name for the part. Runners never see it. */
+  name?: string
 }
 
 /**
@@ -391,6 +426,35 @@ export function newPitch(displayName: string, missionId: Guid): Scene {
       },
     ],
   }
+}
+
+/** WF-63: a Library conversation any world NPC can be given: a greeting and a way out. */
+export function newConversation(displayName: string, npcTemplateId?: Guid): Scene {
+  const start = newId()
+  return {
+    id: newId(),
+    displayName,
+    npcTemplateId,
+    startNodeId: start,
+    nodes: [{ id: start, name: 'Greeting', text: '"What do you want?"', choices: [{ id: newId(), label: 'Nothing. See you around.', conditions: [], endsScene: true }] }],
+  }
+}
+
+/** Every id a conversation owns: its own, its parts' and its replies'. */
+export function sceneIds(scene: Scene): Guid[] {
+  return [scene.id, ...scene.nodes.flatMap((node) => [node.id, ...node.choices.map((choice) => choice.id)])]
+}
+
+/**
+ * A copy of a record with every id in `ids` swapped for a fresh one wherever
+ * it appears (WF-62, WF-77): ids are GUIDs, so swapping them as text cannot
+ * hit anything else. Returns the copy and the map of old ids to new.
+ */
+export function withNewIds<T>(value: T, ids: Guid[]): { copy: T; renamed: Map<Guid, Guid> } {
+  const renamed = new Map(ids.map((id) => [id, newId()]))
+  let json = JSON.stringify(value)
+  for (const [from, to] of renamed) json = json.split(from).join(to)
+  return { copy: JSON.parse(json) as T, renamed }
 }
 
 /** A prompt an event opens: one part, one way out. */

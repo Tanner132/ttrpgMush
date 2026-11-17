@@ -6,6 +6,7 @@ import JobEditorPage from '../jobs/JobEditor.tsx'
 import JobsPage from '../jobs/JobsPage.tsx'
 import LibraryPage from '../library/LibraryPage.tsx'
 import PlacesPage from '../places/PlacesPage.tsx'
+import IndexPage from '../index/IndexPage.tsx'
 import { LocationProbe } from './LocationProbe.tsx'
 
 export function renderForge(path: string) {
@@ -15,6 +16,7 @@ export function renderForge(path: string) {
         <Route path="/admin/forge" element={<ForgeShell />}>
           <Route index element={<ForgeHome />} />
           <Route path="places" element={<PlacesPage />} />
+          <Route path="index" element={<IndexPage />} />
           <Route path="jobs" element={<JobsPage />} />
           <Route path="jobs/:id" element={<JobEditorPage />} />
           <Route path="jobs/:id/:step" element={<JobEditorPage />} />
@@ -22,6 +24,10 @@ export function renderForge(path: string) {
           <Route path="library/stat-blocks/:id" element={<LibraryPage shelf="stat-blocks" />} />
           <Route path="library/dice-tests" element={<LibraryPage shelf="dice-tests" />} />
           <Route path="library/dice-tests/:id" element={<LibraryPage shelf="dice-tests" />} />
+          <Route path="library/conversations" element={<LibraryPage shelf="conversations" />} />
+          <Route path="library/conversations/:id" element={<LibraryPage shelf="conversations" />} />
+          <Route path="library/facts" element={<LibraryPage shelf="facts" />} />
+          <Route path="library/facts/:id" element={<LibraryPage shelf="facts" />} />
         </Route>
       </Routes>
       <LocationProbe />

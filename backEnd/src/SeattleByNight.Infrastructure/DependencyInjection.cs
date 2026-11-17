@@ -81,6 +81,7 @@ public static class DependencyInjection
         services.AddScoped<IRoomContentReader, RoomContentStore>();
         services.AddScoped<IRoomContentEditor, RoomContentStore>();
         services.AddScoped<IMissionReader, MissionStore>();
+        services.AddScoped<SeattleByNight.Application.GameEngine.Facts.ICharacterFactReader, CharacterFactReader>();
         services.AddScoped<IMissionAssignmentStore, MissionStore>();
         services.AddScoped<IGameScopeResolver, GameScopeResolver>();
         services.AddScoped<ISceneSessionReader, SceneSessionStore>();

@@ -44,7 +44,8 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 room.CreatedAtUtc,
                 room.Version,
                 room.MapId,
-                room.IsLive))
+                room.IsLive,
+                room.DistrictId))
             .ToListAsync(cancellationToken);
 
         if (rooms.Count > MaxRooms)
@@ -80,8 +81,26 @@ public sealed class WorldGraphReader : IWorldGraphReader
         var travel = await TravelLinksAsync(
             _db, link => _db.Rooms.Any(room => room.Id == link.SourceRoomId && room.MapId == map.Id), cancellationToken);
 
-        return new WorldGraph(rooms, exits, map, maps, travel);
+        var districts = await DistrictsAsync(_db, map.Id, cancellationToken);
+
+        return new WorldGraph(rooms, exits, map, maps, travel, districts);
     }
+
+    internal static async Task<IReadOnlyList<WorldDistrict>> DistrictsAsync(
+        SeattleByNightDbContext db, Guid mapId, CancellationToken cancellationToken) =>
+        await db.Districts
+            .AsNoTracking()
+            .Where(district => district.MapId == mapId)
+            .OrderBy(district => district.Name)
+            .Select(district => new WorldDistrict(
+                district.Id,
+                district.MapId,
+                district.Name,
+                district.DefaultDescription,
+                db.Rooms.Count(room => room.DistrictId == district.Id),
+                district.CreatedAtUtc,
+                district.Version))
+            .ToListAsync(cancellationToken);
 
     internal static async Task<IReadOnlyList<WorldMapSummary>> ListMapsAsync(
         SeattleByNightDbContext db, CancellationToken cancellationToken)
@@ -145,7 +164,8 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 candidate.CreatedAtUtc,
                 candidate.Version,
                 candidate.MapId,
-                candidate.IsLive))
+                candidate.IsLive,
+                candidate.DistrictId))
             .SingleOrDefaultAsync(cancellationToken);
 
         if (room is null)

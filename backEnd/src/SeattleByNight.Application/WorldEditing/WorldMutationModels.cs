@@ -35,7 +35,12 @@ public sealed record CreateRoomMutation(
     long? MapY,
     long? MapLayer,
     // WF-41: the map to build on; Seattle when not given.
-    Guid? MapId = null);
+    Guid? MapId = null,
+    // WF-73: the district the room joins (on the same map).
+    Guid? DistrictId = null,
+    // WF-43: the directions (from the new room) of the neighbours to join,
+    // both ways. Null joins every free neighbour, as before.
+    IReadOnlyList<string>? Joins = null);
 
 public sealed record UpdateRoomMutation(
     string Name,
@@ -96,5 +101,12 @@ public interface IWorldEditorStore
     Task<WorldMutationResult<WorldExit>> DeleteExitAsync(
         Guid actorUserId,
         Guid exitId,
+        CancellationToken cancellationToken = default);
+
+    // WF-43: with bothWays, the exit leading straight back goes too.
+    Task<WorldMutationResult<WorldExit>> DeleteExitAsync(
+        Guid actorUserId,
+        Guid exitId,
+        bool bothWays,
         CancellationToken cancellationToken = default);
 }

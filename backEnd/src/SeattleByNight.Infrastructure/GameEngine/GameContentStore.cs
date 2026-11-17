@@ -73,9 +73,10 @@ public sealed class GameContentStore(
         string displayName,
         string draftJson,
         Guid actorUserId,
-        CancellationToken cancellationToken = default) =>
+        CancellationToken cancellationToken = default,
+        DraftVersion? expected = null) =>
         RunExclusiveAsync(
-            ct => SaveDraftLockedAsync(kind, contentKey, displayName, draftJson, actorUserId, ct),
+            ct => SaveDraftLockedAsync(kind, contentKey, displayName, draftJson, actorUserId, expected, ct),
             cancellationToken);
 
     private async Task<GameContentDefinitionRecord> SaveDraftLockedAsync(
@@ -84,10 +85,27 @@ public sealed class GameContentStore(
         string displayName,
         string draftJson,
         Guid actorUserId,
+        DraftVersion? expected,
         CancellationToken cancellationToken)
     {
         var now = time.GetUtcNow();
         var entity = await FindEntityAsync(kind, contentKey, cancellationToken);
+
+        if (expected is not null)
+        {
+            // Postgres keeps microseconds; compare at that grain so a time
+            // read back from the row matches the one the save returned.
+            static long Micros(DateTimeOffset value) => value.UtcTicks / 10;
+            var current = entity is null ? (long?)null : Micros(entity.UpdatedAtUtc);
+            var wanted = expected.UpdatedAtUtc is { } at ? Micros(at) : (long?)null;
+            if (current != wanted)
+            {
+                throw new GameContentVersionConflictException(entity is null
+                    ? "This was deleted since you opened it. Nothing was saved."
+                    : "This was saved somewhere else since you opened it (another tab or another author). "
+                        + "Nothing was saved: reload it to see that version, then make your edit again.");
+            }
+        }
 
         if (entity is null)
         {

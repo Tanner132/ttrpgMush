@@ -10,6 +10,7 @@ const Tabs = [
   { to: '/admin/forge/places', label: 'Places' },
   { to: '/admin/forge/jobs', label: 'Jobs' },
   { to: '/admin/forge/library', label: 'Library' },
+  { to: '/admin/forge/index', label: 'Index' },
 ]
 
 function ForgeHeader() {

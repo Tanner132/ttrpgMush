@@ -148,6 +148,42 @@ public sealed class GameContentEndpointTests : IClassFixture<ApiTestFactory>
         Assert.Contains(payloadKey.ToString(), await response.Content.ReadAsStringAsync());
     }
 
+    // WF-61: autosave names the version it was edited from; a save over a
+    // newer one is refused and writes nothing.
+    [Fact]
+    public async Task SaveDraft_WithAVersion_IsRefusedWhenTheDraftMovedOnSince()
+    {
+        var admin = await _factory.LoginDevAdminAsync();
+        var key = Guid.NewGuid();
+
+        var first = await admin.PutAsJsonAsync(
+            $"/api/admin/content/Test/{key}", new { json = TestJson(key, threshold: 2), expectNew = true });
+        first.EnsureSuccessStatusCode();
+        var opened = (await first.Content.ReadFromJsonAsync<GameContentDetailResponse>(ApiTestFactory.JsonOptions))!;
+
+        // A second "new" for the same key: it exists now.
+        var again = await admin.PutAsJsonAsync(
+            $"/api/admin/content/Test/{key}", new { json = TestJson(key, threshold: 5), expectNew = true });
+        Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+
+        // Saved from the version it was opened at: fine, and it moves on.
+        var second = await admin.PutAsJsonAsync(
+            $"/api/admin/content/Test/{key}",
+            new { json = TestJson(key, threshold: 3), expectedUpdatedAtUtc = opened.Summary.UpdatedAtUtc });
+        second.EnsureSuccessStatusCode();
+
+        // The same old version again (another tab): refused, nothing written.
+        var stale = await admin.PutAsJsonAsync(
+            $"/api/admin/content/Test/{key}",
+            new { json = TestJson(key, threshold: 4), expectedUpdatedAtUtc = opened.Summary.UpdatedAtUtc });
+        Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+        Assert.Contains("saved somewhere else since you opened it", await stale.Content.ReadAsStringAsync());
+
+        var stored = await admin.GetFromJsonAsync<GameContentDetailResponse>(
+            $"/api/admin/content/Test/{key}", ApiTestFactory.JsonOptions);
+        Assert.Contains("\"threshold\":3", stored!.DraftJson.Replace(" ", string.Empty));
+    }
+
     [Fact]
     public async Task SaveDraft_ThenPublish_PutsAuthoredContentIntoPlayAndIsAudited()
     {

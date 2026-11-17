@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button.tsx'
 import { Chip, Empty, NumberInput, Section, Select, TextBox, TextInput } from '../fields.tsx'
+import { RoomPicker } from '../RoomPicker.tsx'
+import { factOptions } from '../events/scope.ts'
+import { FactList } from '../FactList.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { AftermathHours, DefaultDeadlineHours, newId, sceneEffects, type AftermathStage, type Mission, type Objective, type ObjectiveKind } from '../model.ts'
-import type { Guid } from '../api.ts'
 import type { Job } from './useJob.ts'
 
 const KindWords: Record<ObjectiveKind, { add: string; chip: string; start: string }> = {
@@ -19,20 +21,14 @@ const NeedsItem: ObjectiveKind[] = ['pickUpItem', 'deliverItem']
  * strictly in sequence, so the order here is the order runners meet them in.
  */
 export function ObjectivesStep({ job, mission }: { job: Job; mission: Mission }) {
-  const { world, references } = useForgeData()
   const pitch = job.pitch.value
+  const { references } = useForgeData()
+  const facts = factOptions(references)
+  const setMission = (change: Partial<Mission>) => job.mission.setValue((current) => ({ ...current, ...change }))
   const items = mission.items
   const itemOptions = items.map((item) => ({ id: item.id, displayName: item.name || 'Unnamed item' }))
   // The job's own rooms first; a runner can be sent anywhere on the map.
   const own = new Set(mission.roomIds)
-  const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name)
-  // WF-71: every map's rooms, named with their map when there is more than one.
-  const mapName = (mapId: Guid | null | undefined) =>
-    world.maps.length > 1 ? ` · ${world.maps.find((map) => map.id === mapId)?.name ?? 'another map'}` : ''
-  const roomOptions = [
-    ...references.rooms.filter((room) => own.has(room.id)).sort(byName).map((room) => ({ id: room.id, displayName: `${room.name} · this job` })),
-    ...references.rooms.filter((room) => !own.has(room.id)).sort(byName).map((room) => ({ id: room.id, displayName: `${room.name}${mapName(room.mapId)}` })),
-  ]
   const negotiable = pitch !== null && sceneEffects(pitch).some((effect) => effect.kind === 'setNegotiatedPay')
 
   const setObjectives = (update: (objectives: Objective[]) => Objective[]) =>
@@ -90,15 +86,20 @@ export function ObjectivesStep({ job, mission }: { job: Job; mission: Mission })
                   />
                 )}
                 {objective.kind === 'reachRoom' && (
-                  <Select
+                  <RoomPicker
                     label={`Objective ${at + 1} room`}
                     labelHidden
                     value={objective.roomId}
-                    options={roomOptions}
-                    placeholder="Choose a room"
+                    first={own}
                     onChange={(roomId) => setObjective(objective.id, { roomId: roomId || undefined })}
                   />
                 )}
+                <FactList
+                  label={`Objective ${at + 1} sets`}
+                  value={objective.setsFacts}
+                  options={facts}
+                  onChange={(setsFacts) => setObjective(objective.id, { setsFacts })}
+                />
                 <Button aria-label={`Move objective ${at + 1} up`} disabled={at === 0} onClick={() => move(at, -1)}>
                   ↑
                 </Button>
@@ -152,6 +153,17 @@ export function ObjectivesStep({ job, mission }: { job: Job; mission: Mission })
             <Link to={`/admin/forge/jobs/${job.id}/pitch`}>Pitch</Link>
           </div>
           <p className="forge__hint">Paid once per run, through the career ledger.</p>
+        </Section>
+
+        <Section title="Facts">
+          <p className="forge__hint">
+            Facts are kept on each runner: what they did before decides what they are offered. Make them in the Library.
+          </p>
+          <FactList label="Offered only to runners who have" value={mission.requiresFacts} options={facts} onChange={(requiresFacts) => setMission({ requiresFacts })} />
+          <FactList label="Not offered to runners who have" value={mission.refusesFacts} options={facts} onChange={(refusesFacts) => setMission({ refusesFacts })} />
+          <FactList label="When it is done, sets" value={mission.completionSetsFacts} options={facts} onChange={(completionSetsFacts) => setMission({ completionSetsFacts })} />
+          <FactList label="When it is done, clears" value={mission.completionClearsFacts} options={facts} onChange={(completionClearsFacts) => setMission({ completionClearsFacts })} />
+          <p className="forge__hint">Set and cleared on everyone the job pays, in the same moment as the pay. Going live refuses a job that requires a fact nothing sets.</p>
         </Section>
 
         <ClockSection job={job} mission={mission} />

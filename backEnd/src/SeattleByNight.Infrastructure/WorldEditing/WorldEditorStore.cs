@@ -65,6 +65,17 @@ public sealed class WorldEditorStore : IWorldEditorStore
             return WorldMutationResult<WorldRoom>.Failure(WorldMutationError.Conflict);
         }
 
+        // WF-73: a district is on the room's own map.
+        if (mutation.DistrictId is { } districtId
+            && !await _db.Districts.AnyAsync(district => district.Id == districtId && district.MapId == mapId, cancellationToken))
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return WorldMutationResult<WorldRoom>.Invalid(new Dictionary<string, string[]>
+            {
+                ["districtId"] = ["That district is not on this map."]
+            });
+        }
+
         var neighbors = await _db.Rooms
             .Where(candidate => candidate.MapId == mapId && candidate.MapLayer == mapLayer &&
                 (long)candidate.MapX >= (long)mapX - 1 && (long)candidate.MapX <= (long)mapX + 1 &&
@@ -84,6 +95,7 @@ public sealed class WorldEditorStore : IWorldEditorStore
             MapY = mapY,
             MapLayer = mapLayer,
             MapId = mapId,
+            DistrictId = mutation.DistrictId,
             // WF-60: a new room is a draft until it is published.
             IsLive = false,
             CreatedAtUtc = now,
@@ -94,11 +106,41 @@ public sealed class WorldEditorStore : IWorldEditorStore
         _auditWriter.Append(actorUserId, AuditActions.RoomCreated, AuditTargetTypes.Room, room.Id,
             RoomDetails(room));
 
+        // WF-43: the neighbours the author ticked (every one, when not
+        // asked), joined both ways. A neighbour whose way back is taken
+        // cannot be joined: say which exit holds it.
+        var joins = mutation.Joins?.ToHashSet(StringComparer.Ordinal);
+        var neighborIds = neighbors.Select(neighbor => neighbor.Id).ToList();
+        var takenBack = await _db.RoomExits
+            .Where(exit => neighborIds.Contains(exit.SourceRoomId))
+            .Select(exit => new { exit.SourceRoomId, exit.Direction })
+            .ToListAsync(cancellationToken);
         foreach (var neighbor in neighbors)
         {
             var direction = DirectionForDelta(neighbor.MapX.CompareTo(mapX), neighbor.MapY.CompareTo(mapY));
+            if (joins is not null && !joins.Contains(direction))
+            {
+                continue;
+            }
+
+            var back = RoomDirections.Opposite(direction);
+            if (takenBack.Any(exit => exit.SourceRoomId == neighbor.Id && exit.Direction == back))
+            {
+                if (joins is null)
+                {
+                    continue;
+                }
+
+                await transaction.RollbackAsync(cancellationToken);
+                _db.ChangeTracker.Clear();
+                return WorldMutationResult<WorldRoom>.Invalid(new Dictionary<string, string[]>
+                {
+                    ["joins"] = [$"{neighbor.Name} already has an exit {back}. Untick it, or free that direction first."]
+                });
+            }
+
             AddGeneratedExit(actorUserId, room.Id, neighbor.Id, direction, now);
-            AddGeneratedExit(actorUserId, neighbor.Id, room.Id, RoomDirections.Opposite(direction), now);
+            AddGeneratedExit(actorUserId, neighbor.Id, room.Id, back, now);
         }
 
         try
@@ -329,9 +371,16 @@ public sealed class WorldEditorStore : IWorldEditorStore
         return WorldMutationResult<WorldExit>.Success(ToWorldExit(exit, rooms.Value.Source, rooms.Value.Destination));
     }
 
+    public Task<WorldMutationResult<WorldExit>> DeleteExitAsync(
+        Guid actorUserId,
+        Guid exitId,
+        CancellationToken cancellationToken = default) =>
+        DeleteExitAsync(actorUserId, exitId, false, cancellationToken);
+
     public async Task<WorldMutationResult<WorldExit>> DeleteExitAsync(
         Guid actorUserId,
         Guid exitId,
+        bool bothWays,
         CancellationToken cancellationToken = default)
     {
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
@@ -356,6 +405,21 @@ public sealed class WorldEditorStore : IWorldEditorStore
         _db.RoomExits.Remove(exit);
         _auditWriter.Append(actorUserId, AuditActions.RoomExitDeleted, AuditTargetTypes.RoomExit, exit.Id,
             ExitDetails(exit));
+
+        // WF-43: "and the way back" — the exit leading straight back, if any.
+        if (bothWays)
+        {
+            var back = await _db.RoomExits.FirstOrDefaultAsync(candidate =>
+                candidate.SourceRoomId == exit.DestinationRoomId && candidate.DestinationRoomId == exit.SourceRoomId,
+                cancellationToken);
+            if (back is not null)
+            {
+                _db.RoomExits.Remove(back);
+                _auditWriter.Append(actorUserId, AuditActions.RoomExitDeleted, AuditTargetTypes.RoomExit, back.Id,
+                    ExitDetails(back));
+            }
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
@@ -591,7 +655,8 @@ public sealed class WorldEditorStore : IWorldEditorStore
         room.CreatedAtUtc,
         room.Version,
         room.MapId,
-        room.IsLive);
+        room.IsLive,
+        room.DistrictId);
 
     private static WorldExit ToWorldExit(RoomExit exit, Room source, Room destination) => new(
         exit.Id,

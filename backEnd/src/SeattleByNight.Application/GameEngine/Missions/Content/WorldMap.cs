@@ -14,7 +14,17 @@ public sealed record WorldMapRoom(
     // WF-60: a draft room is out of play; a job cannot go live using one.
     bool IsLive = true,
     // WF-41: the map (city) the room is on.
-    Guid? MapId = null);
+    Guid? MapId = null,
+    // WF-42: where it is, for the one room picker.
+    int MapX = 0,
+    int MapY = 0,
+    int MapLayer = 0,
+    Guid? DistrictId = null);
+
+// WF-42: maps and districts by name, for the room picker's groups.
+public sealed record WorldMapName(Guid Id, string Name);
+
+public sealed record WorldDistrictName(Guid Id, Guid MapId, string Name);
 
 public sealed record WorldMapInspectable(Guid Id, string Name);
 
@@ -25,6 +35,9 @@ public sealed record WorldMapNpc(Guid Id, string Name, Guid? TemplateId = null, 
 
 public sealed record WorldMap(IReadOnlyDictionary<Guid, WorldMapRoom> Rooms)
 {
+    public IReadOnlyList<WorldMapName> Maps { get; init; } = [];
+    public IReadOnlyList<WorldDistrictName> Districts { get; init; } = [];
+
     public static WorldMap Empty { get; } = new(new Dictionary<Guid, WorldMapRoom>());
 
     public WorldMapRoom? FindNpcRoom(Guid npcId) =>

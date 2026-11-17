@@ -36,6 +36,7 @@ public sealed class SeattleByNightDbContext : IdentityDbContext<ApplicationUser,
     public DbSet<RoomInteractable> RoomInteractables => Set<RoomInteractable>();
     public DbSet<CharacterDiscovery> CharacterDiscoveries => Set<CharacterDiscovery>();
     public DbSet<MissionInstance> MissionInstances => Set<MissionInstance>();
+    public DbSet<CharacterFact> CharacterFacts => Set<CharacterFact>();
     public DbSet<JobState> JobStates => Set<JobState>();
     public DbSet<Crew> Crews => Set<Crew>();
     public DbSet<CrewInvitation> CrewInvitations => Set<CrewInvitation>();
@@ -45,6 +46,7 @@ public sealed class SeattleByNightDbContext : IdentityDbContext<ApplicationUser,
     public DbSet<TriggerFire> TriggerFires => Set<TriggerFire>();
     public DbSet<CityMap> Maps => Set<CityMap>();
     public DbSet<TravelLink> TravelLinks => Set<TravelLink>();
+    public DbSet<District> Districts => Set<District>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

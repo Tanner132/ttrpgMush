@@ -101,7 +101,7 @@ function JobEditor({ id }: { id: string }) {
           <h1 className="forge__title">{mission.displayName || 'Unnamed job'}</h1>
         </div>
         <div className="forge__titlebar-side forge__actions">
-          <Chip tone={job.dirty ? 'draft' : statusTone(listed)}>{job.dirty ? 'Unsaved edits' : statusWord(listed)}</Chip>
+          <Chip tone={job.dirty ? 'draft' : statusTone(listed)}>{job.dirty ? (job.autosaving ? 'Saving…' : 'Unsaved edits') : statusWord(listed)}</Chip>
           {listed && listed.runningInstances > 0 && <Chip>{listed.runningInstances} running</Chip>}
           {job.dirty && (
             <Button onClick={job.revertAll} disabled={job.busy}>
@@ -137,6 +137,14 @@ function JobEditor({ id }: { id: string }) {
       {job.error && (
         <StatusBanner tone="danger" role="alert">
           {job.error}
+          {job.stale && (
+            <>
+              {' '}
+              <Button onClick={() => void job.reloadAll()} disabled={job.busy}>
+                Load the saved version
+              </Button>
+            </>
+          )}
           {job.errorStep && job.errorStep !== step && (
             <>
               {' '}

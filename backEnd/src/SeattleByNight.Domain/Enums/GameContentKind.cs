@@ -21,4 +21,8 @@ public enum GameContentKind
     // key. Drafted and published like every other kind, so a half-written
     // ambience event never fires on the live street.
     Place,
+    // WF-80: a named fact recorded against a character ("helped the Ancients",
+    // "Kane owes them"), set and tested by content. Facts are created and
+    // named in the Library so nothing can test a fact nothing sets.
+    Fact,
 }

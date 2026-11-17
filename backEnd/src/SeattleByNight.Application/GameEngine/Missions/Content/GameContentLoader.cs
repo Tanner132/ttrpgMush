@@ -46,7 +46,15 @@ public static class GameContentLoader
         IReadOnlyList<RawScene>? Scenes,
         IReadOnlyList<RawTest>? Tests,
         IReadOnlyList<RawNpcTemplate>? NpcTemplates,
-        IReadOnlyList<RawPlace>? Places = null);
+        IReadOnlyList<RawPlace>? Places = null,
+        IReadOnlyList<RawFact>? Facts = null);
+
+    // WF-80: a named fact. RunOf names the job whose run it lasts for.
+    private sealed record RawFact(
+        Guid? Id,
+        string? DisplayName,
+        string? Description,
+        Guid? RunOf = null);
 
     // WF-20/WF-26: a map room's own events. Id is the room's id.
     private sealed record RawPlace(
@@ -119,7 +127,12 @@ public static class GameContentLoader
         IReadOnlyList<RawTrigger>? Triggers,
         // Workstream 8 phase 3.
         int? DeadlineHours = null,
-        IReadOnlyList<AftermathStage>? Aftermath = null);
+        IReadOnlyList<AftermathStage>? Aftermath = null,
+        // WF-83.
+        IReadOnlyList<Guid>? RequiresFacts = null,
+        IReadOnlyList<Guid>? RefusesFacts = null,
+        IReadOnlyList<Guid>? CompletionSetsFacts = null,
+        IReadOnlyList<Guid>? CompletionClearsFacts = null);
 
     // Everything a trigger or scene may point at, gathered once so the
     // cross-reference checks read as questions about the whole content set
@@ -133,6 +146,9 @@ public static class GameContentLoader
         // the cross-reference pass can check effects that name a node inside
         // a scene rather than just the scene.
         public IReadOnlyList<SceneDefinition> Scenes { get; init; } = [];
+
+        // WF-80: the facts content may set and test.
+        public IReadOnlySet<Guid> FactIds { get; init; } = new HashSet<Guid>();
 
         public bool IsJobItem(Guid itemId) => Missions.Any(mission => mission.FindItem(itemId) is not null);
     }
@@ -181,6 +197,10 @@ public static class GameContentLoader
         var tests = (raw.Tests ?? []).Select(ValidateTest).ToArray();
         RequireUnique(tests.Select(test => test.TestId.ToLowerInvariant()), "test id");
 
+        var facts = (raw.Facts ?? []).Select(ValidateFact).ToArray();
+        RequireUnique(facts.Select(fact => fact.Id), "fact id");
+        var factIds = facts.Select(fact => fact.Id).ToHashSet();
+
         var testIds = tests.Select(test => test.TestId)
             .Concat(DevelopmentGameTests.All.Keys)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -200,8 +220,14 @@ public static class GameContentLoader
             .ToHashSet();
 
         var missions = (raw.Missions ?? [])
-            .Select(mission => ValidateMission(mission, sceneIds, testIds))
+            .Select(mission => ValidateMission(mission, sceneIds, testIds, factIds))
             .ToArray();
+        foreach (var fact in facts.Where(fact => fact.RunOf is not null))
+        {
+            Require(
+                missions.Any(mission => mission.Id == fact.RunOf),
+                $"Fact '{fact.DisplayName}' lasts for a run of a job that does not exist.");
+        }
         RequireUnique(missions.Select(mission => mission.Id), "job id");
         RequireUnique(missions.SelectMany(mission => mission.Objectives.Select(objective => objective.Id)), "objective id");
         RequireItemsBelongToOneJob(missions);
@@ -216,7 +242,7 @@ public static class GameContentLoader
                 .Select(trigger => trigger.Id),
             "listener id");
 
-        var references = new ReferenceSet(sceneIds, missions, testsById);
+        var references = new ReferenceSet(sceneIds, missions, testsById) { FactIds = factIds };
         var scenes = (raw.Scenes ?? [])
             .Select(scene => ValidateScene(scene, references, testIds, npcTemplateIds))
             .ToArray();
@@ -254,11 +280,90 @@ public static class GameContentLoader
             ValidateSceneReferences(scene, references);
         }
 
+        RequireEveryTestedFactCanBeSet(facts, missions, scenes, places);
+
         return new GameContentDocument(
             raw.ContentId!, raw.Version!, missions, scenes, tests, npcTemplates)
         {
             Places = places,
+            Facts = facts,
         };
+    }
+
+    // WF-80: a fact is a name and a line saying what it means.
+    internal const int MaxFactNameLength = 120;
+
+    private static FactDefinition ValidateFact(RawFact raw)
+    {
+        Require(raw.Id is { } given && given != Guid.Empty, "Every fact must declare an id.");
+        Require(
+            !string.IsNullOrWhiteSpace(raw.DisplayName) && raw.DisplayName.Length <= MaxFactNameLength,
+            $"Fact {raw.Id} must declare a displayName of at most {MaxFactNameLength} characters.");
+        return new FactDefinition(raw.Id!.Value, raw.DisplayName!, raw.Description ?? string.Empty, raw.RunOf);
+    }
+
+    private static void RequireFacts(IEnumerable<Guid> factIds, IReadOnlySet<Guid> known, string where)
+    {
+        foreach (var factId in factIds)
+        {
+            Require(known.Contains(factId), $"{where} names a fact that does not exist.");
+        }
+    }
+
+    // WF-82: go live refuses content that tests a fact nothing can set — a
+    // condition on it could never be true, and a job requiring it could never
+    // be offered. Testing that a fact is NOT set is fine: it simply always is.
+    private static void RequireEveryTestedFactCanBeSet(
+        IReadOnlyList<FactDefinition> facts,
+        IReadOnlyList<MissionDefinition> missions,
+        IReadOnlyList<SceneDefinition> scenes,
+        IReadOnlyList<PlaceDefinition> places)
+    {
+        if (facts.Count == 0)
+        {
+            return;
+        }
+
+        var triggers = missions.SelectMany(mission => mission.Triggers.Select(trigger => (Trigger: trigger, Owner: Owner(mission))))
+            .Concat(places.SelectMany(place => place.Triggers.Select(trigger => (Trigger: trigger, Owner: $"Room events '{place.DisplayName}'"))))
+            .ToList();
+        var choices = scenes.SelectMany(scene => scene.Nodes.SelectMany(node => node.Choices.Select(choice => (Choice: choice, Owner: $"Scene '{scene.DisplayName}'"))))
+            .ToList();
+
+        var effects = triggers
+            .SelectMany(entry => entry.Trigger.Reactions.SelectMany(reaction => (reaction.Effects ?? [])
+                .Concat(reaction.OnSuccess?.Effects ?? [])
+                .Concat(reaction.OnFailure?.Effects ?? [])))
+            .Concat(choices.SelectMany(entry => (entry.Choice.Rolls
+                    ? new[] { entry.Choice.OnSuccess!, entry.Choice.OnFailure! }
+                    : [entry.Choice.OwnOutcome])
+                .SelectMany(outcome => outcome.Effects ?? [])));
+        var set = effects
+            .Where(effect => effect.Kind == SceneEffectKind.SetFact && effect.FactId is not null)
+            .Select(effect => effect.FactId!.Value)
+            .Concat(missions.SelectMany(mission => mission.CompletionSetsFacts))
+            .Concat(missions.SelectMany(mission => mission.Objectives.SelectMany(objective => objective.SetsFacts ?? [])))
+            .ToHashSet();
+
+        string Name(Guid factId) => facts.FirstOrDefault(fact => fact.Id == factId)?.DisplayName ?? factId.ToString();
+
+        foreach (var mission in missions)
+        {
+            var missing = mission.RequiresFacts.FirstOrDefault(factId => !set.Contains(factId));
+            Require(
+                missing == Guid.Empty,
+                $"{Owner(mission)} requires fact '{Name(missing)}', but nothing sets it, so the job could never be offered.");
+        }
+
+        var tests = triggers.SelectMany(entry => (entry.Trigger.Conditions ?? []).Select(condition => (condition, entry.Owner)))
+            .Concat(choices.SelectMany(entry => entry.Choice.Conditions.Select(condition => (condition, entry.Owner))));
+        foreach (var (condition, owner) in tests)
+        {
+            if (condition.Kind == SceneConditionKind.FactSet && condition.FactId is { } factId)
+            {
+                Require(set.Contains(factId), $"{owner} tests fact '{Name(factId)}', but nothing sets it, so the test could never pass.");
+            }
+        }
     }
 
     // Milestone 7 section 4: the base stat block as content. Every number here
@@ -424,7 +529,8 @@ public static class GameContentLoader
     private static MissionDefinition ValidateMission(
         RawMission raw,
         IReadOnlySet<Guid> sceneIds,
-        IReadOnlySet<string> testIds)
+        IReadOnlySet<string> testIds,
+        IReadOnlySet<Guid> factIds)
     {
         Require(raw.Id is { } given && given != Guid.Empty, "Every job must declare an id.");
         Require(!string.IsNullOrWhiteSpace(raw.DisplayName), $"Job {raw.Id} must declare a displayName.");
@@ -505,6 +611,24 @@ public static class GameContentLoader
         }
 
         RequireUnique(objectives.Select(objective => objective.Id), $"objective in {where}");
+        foreach (var objective in objectives)
+        {
+            RequireFacts(objective.SetsFacts ?? [], factIds, $"{where} objective '{objective.DisplayName}'");
+        }
+
+        // WF-83: what the job asks of a runner before it is offered, and what
+        // finishing it records.
+        var requires = raw.RequiresFacts ?? [];
+        var refuses = raw.RefusesFacts ?? [];
+        var completionSets = raw.CompletionSetsFacts ?? [];
+        var completionClears = raw.CompletionClearsFacts ?? [];
+        RequireFacts(requires.Concat(refuses).Concat(completionSets).Concat(completionClears), factIds, where);
+        Require(
+            !requires.Intersect(refuses).Any(),
+            $"{where} both requires and refuses the same fact, so it could never be offered.");
+        Require(
+            !completionSets.Intersect(completionClears).Any(),
+            $"{where} both sets and clears the same fact when it is completed.");
 
         // WF-26: the job's listeners, each on a room.
         var triggers = (raw.Triggers ?? [])
@@ -542,6 +666,10 @@ public static class GameContentLoader
         {
             DeadlineHours = deadlineHours,
             Aftermath = aftermath,
+            RequiresFacts = requires.Distinct().ToArray(),
+            RefusesFacts = refuses.Distinct().ToArray(),
+            CompletionSetsFacts = completionSets.Distinct().ToArray(),
+            CompletionClearsFacts = completionClears.Distinct().ToArray(),
         };
     }
 
@@ -856,6 +984,8 @@ public static class GameContentLoader
         SceneEffectKind.PacifyNpc,
         SceneEffectKind.TakeItem,
         SceneEffectKind.AdvanceScene,
+        SceneEffectKind.SetFact,
+        SceneEffectKind.ClearFact,
     };
 
     // A job's listeners may also hand over one of its items. Pay negotiation
@@ -874,7 +1004,7 @@ public static class GameContentLoader
 
         foreach (var condition in trigger.Conditions ?? [])
         {
-            ValidateCondition(condition, references.Missions, where);
+            ValidateCondition(condition, references, where);
         }
 
         foreach (var reaction in trigger.Reactions)
@@ -938,6 +1068,9 @@ public static class GameContentLoader
         {
             Require(node.Id != Guid.Empty, $"Scene {id} has a step without an id.");
             Require(!string.IsNullOrWhiteSpace(node.Text), $"Scene {id} step {Short(node.Id)} must declare text.");
+            Require(
+                node.Name is null || (node.Name.Trim().Length > 0 && node.Name.Length <= MaxPartNameLength),
+                $"Scene {id} step {Short(node.Id)} has a name that is blank or longer than {MaxPartNameLength} characters.");
         }
 
         RequireUnique(nodes.Select(node => node.Id), $"step in scene {id}");
@@ -974,6 +1107,7 @@ public static class GameContentLoader
                     Require(
                         choice.NextNodeId is null && choice.Effects is null && !choice.EndsScene,
                         $"{where} has a test — flow belongs on onSuccess/onFailure, not the choice itself.");
+                    Require(choice.Answer is null, $"{where} has a test — its answer belongs on onSuccess/onFailure.");
                     ValidateOutcomeFlow(choice.OnSuccess!, nodeIds, $"{where} onSuccess");
                     ValidateOutcomeFlow(choice.OnFailure!, nodeIds, $"{where} onFailure");
                 }
@@ -982,8 +1116,7 @@ public static class GameContentLoader
                     Require(
                         choice.OnSuccess is null && choice.OnFailure is null,
                         $"{where} declares onSuccess/onFailure without a test.");
-                    ValidateOutcomeFlow(
-                        new SceneOutcome(choice.NextNodeId, choice.Effects, choice.EndsScene), nodeIds, where);
+                    ValidateOutcomeFlow(choice.OwnOutcome, nodeIds, where);
                 }
             }
         }
@@ -1010,7 +1143,7 @@ public static class GameContentLoader
 
                 foreach (var condition in choice.Conditions ?? [])
                 {
-                    ValidateCondition(condition, references.Missions, where);
+                    ValidateCondition(condition, references, where);
                 }
 
                 // An opposed test rolls against the scene's NPC. A scene that
@@ -1036,7 +1169,7 @@ public static class GameContentLoader
 
                 var outcomes = choice.Rolls
                     ? new[] { choice.OnSuccess!, choice.OnFailure! }
-                    : [new SceneOutcome(choice.NextNodeId, choice.Effects, choice.EndsScene)];
+                    : [choice.OwnOutcome];
 
                 foreach (var outcome in outcomes)
                 {
@@ -1114,8 +1247,15 @@ public static class GameContentLoader
         }
     }
 
+    // WF-74/WF-75: an answer is a line or two, a part's name a few words.
+    internal const int MaxAnswerLength = 2000;
+    internal const int MaxPartNameLength = 80;
+
     private static void ValidateOutcomeFlow(SceneOutcome outcome, IReadOnlySet<Guid> nodeIds, string where)
     {
+        Require(
+            outcome.Answer is null || (outcome.Answer.Trim().Length > 0 && outcome.Answer.Length <= MaxAnswerLength),
+            $"{where} has an answer that is blank or longer than {MaxAnswerLength} characters.");
         Require(
             outcome.NextNodeId is null || nodeIds.Contains(outcome.NextNodeId.Value),
             $"{where} continues to a step that is not in this scene.");
@@ -1194,6 +1334,12 @@ public static class GameContentLoader
             case SceneEffectKind.PacifyNpc:
                 ValidateNpcTarget(effect, site, where);
                 break;
+            case SceneEffectKind.SetFact:
+            case SceneEffectKind.ClearFact:
+                Require(
+                    effect.FactId is { } factId && references.FactIds.Contains(factId),
+                    $"{where} effect '{EffectName(effect.Kind)}' names a fact that does not exist.");
+                break;
         }
     }
 
@@ -1230,10 +1376,17 @@ public static class GameContentLoader
     }
 
     private static void ValidateCondition(
-        SceneCondition condition, IReadOnlyList<MissionDefinition> missions, string where)
+        SceneCondition condition, ReferenceSet references, string where)
     {
+        var missions = references.Missions;
         switch (condition.Kind)
         {
+            case SceneConditionKind.FactSet:
+            case SceneConditionKind.FactNotSet:
+                Require(
+                    condition.FactId is { } factId && references.FactIds.Contains(factId),
+                    $"{where} condition '{condition.Kind}' names a fact that does not exist.");
+                break;
             case SceneConditionKind.MissionAvailable:
             case SceneConditionKind.MissionOpen:
             case SceneConditionKind.MissionReadyToTurnIn:

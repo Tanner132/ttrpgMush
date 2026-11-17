@@ -13,7 +13,7 @@ public sealed record CreateRoomExitCommand(
 public sealed record UpdateRoomExitCommand(Guid ActorUserId, Guid ExitId, Guid Version, RoomExitMutation Mutation)
     : IRequest<WorldMutationResult<WorldExit>>;
 
-public sealed record DeleteRoomExitCommand(Guid ActorUserId, Guid ExitId)
+public sealed record DeleteRoomExitCommand(Guid ActorUserId, Guid ExitId, bool BothWays = false)
     : IRequest<WorldMutationResult<WorldExit>>;
 
 public sealed class DeleteRoomExitCommandHandler : IRequestHandler<DeleteRoomExitCommand, WorldMutationResult<WorldExit>>
@@ -23,7 +23,7 @@ public sealed class DeleteRoomExitCommandHandler : IRequestHandler<DeleteRoomExi
     public DeleteRoomExitCommandHandler(IWorldEditorStore store) => _store = store;
 
     public Task<WorldMutationResult<WorldExit>> Handle(DeleteRoomExitCommand request, CancellationToken cancellationToken) =>
-        _store.DeleteExitAsync(request.ActorUserId, request.ExitId, cancellationToken);
+        _store.DeleteExitAsync(request.ActorUserId, request.ExitId, request.BothWays, cancellationToken);
 }
 
 public sealed class CreateRoomExitCommandHandler : IRequestHandler<CreateRoomExitCommand, WorldMutationResult<WorldExit>>

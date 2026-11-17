@@ -5,6 +5,7 @@ import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
 import { listRoomNpcs, placeRoomNpc, saveDraft, updateRoomNpc, type WorldNpc } from '../api.ts'
 import { Chip, Empty, NumberInput, Section, Segmented, Select, TextBox, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
+import { RoomPicker } from '../RoomPicker.tsx'
 import { useAction } from '../hooks.ts'
 import { newPitch, toJson, type Mission, type RepeatKind } from '../model.ts'
 import { useGuardedClick } from '../navigation.ts'
@@ -34,7 +35,9 @@ function JohnsonForm({ job, pitchId }: { job: Job; pitchId: string }) {
   const [name, setName] = useState('')
   const [templateId, setTemplateId] = useState(templates.find((template) => !template.hostile)?.id ?? templates[0]?.id ?? '')
   const [description, setDescription] = useState('')
-  const [roomId, setRoomId] = useState(publicRooms[0]?.id ?? '')
+  // WF-54: no room is chosen for the author. A Johnson is placed live at
+  // once, so a guessed room put someone on the map where nobody meant them.
+  const [roomId, setRoomId] = useState('')
   const [existingId, setExistingId] = useState(everyone[0]?.id ?? '')
   const action = useAction()
 
@@ -116,11 +119,10 @@ function JohnsonForm({ job, pitchId }: { job: Job; pitchId: string }) {
             />
           </div>
           <TextBox label="Description" value={description} rows={3} placeholder="Defaults to the stat block's description" onChange={setDescription} />
-          <Select
+          <RoomPicker
             label="Location"
             value={roomId}
-            options={publicRooms.map((room) => ({ id: room.id, displayName: room.name }))}
-            placeholder="Choose a room"
+            first={new Set(job.mission.value?.roomIds ?? [])}
             hint="Where they start. They offer the job in whatever room they stand."
             onChange={setRoomId}
           />

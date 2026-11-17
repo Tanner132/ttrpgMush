@@ -15,6 +15,13 @@ public sealed record ContentReferences(
     IReadOnlyList<PlaceReference> Places,
     IReadOnlyList<MapRoomReference> Rooms)
 {
+    // WF-42: map and district names, for the one room picker's groups.
+    public IReadOnlyList<WorldMapName> Maps { get; init; } = [];
+    public IReadOnlyList<WorldDistrictName> Districts { get; init; } = [];
+
+    // WF-82: the Library's facts, with what live content sets and tests each.
+    public IReadOnlyList<FactReference> Facts { get; init; } = [];
+
     public static ContentReferences Build(GameContentDocument document, WorldMap map) =>
         new(
             document.Missions
@@ -53,8 +60,108 @@ public sealed record ContentReferences(
                 .ToArray(),
             map.Rooms.Values
                 .OrderBy(room => room.Name, StringComparer.OrdinalIgnoreCase)
-                .Select(room => new MapRoomReference(room.Id, room.Name, room.Npcs ?? [], room.Inspectables ?? [], room.MapId, room.IsLive))
-                .ToArray());
+                .Select(room => new MapRoomReference(room.Id, room.Name, room.Npcs ?? [], room.Inspectables ?? [], room.MapId, room.IsLive,
+                    room.MapX, room.MapY, room.MapLayer, room.DistrictId))
+                .ToArray())
+        {
+            Maps = map.Maps,
+            Districts = map.Districts,
+            Facts = FactUses.Build(document),
+        };
+}
+
+public sealed record FactReference(
+    Guid Id,
+    string DisplayName,
+    string Description,
+    Guid? RunOf,
+    bool IsRetired,
+    IReadOnlyList<string> SetBy,
+    IReadOnlyList<string> TestedBy);
+
+// WF-82: "set by" and "tested by" for each fact, named the way an author
+// finds them: the job, conversation or room events that does it.
+public static class FactUses
+{
+    public static IReadOnlyList<FactReference> Build(GameContentDocument document)
+    {
+        var sets = new List<(Guid Fact, string Where)>();
+        var tests = new List<(Guid Fact, string Where)>();
+
+        void Effects(IEnumerable<SceneEffect>? effects, string where)
+        {
+            foreach (var effect in effects ?? [])
+            {
+                if (effect.FactId is { } factId && effect.Kind == SceneEffectKind.SetFact)
+                {
+                    sets.Add((factId, where));
+                }
+            }
+        }
+
+        void Conditions(IEnumerable<SceneCondition>? conditions, string where)
+        {
+            foreach (var condition in conditions ?? [])
+            {
+                if (condition.FactId is { } factId)
+                {
+                    tests.Add((factId, where));
+                }
+            }
+        }
+
+        void Triggers(IEnumerable<TriggerDefinition> triggers, string where)
+        {
+            foreach (var trigger in triggers)
+            {
+                Conditions(trigger.Conditions, where);
+                foreach (var reaction in trigger.Reactions)
+                {
+                    Effects(reaction.Effects, where);
+                    Effects(reaction.OnSuccess?.Effects, where);
+                    Effects(reaction.OnFailure?.Effects, where);
+                }
+            }
+        }
+
+        foreach (var mission in document.Missions)
+        {
+            var where = $"Job: {mission.DisplayName}";
+            Triggers(mission.Triggers, where);
+            sets.AddRange(mission.CompletionSetsFacts.Select(fact => (fact, $"{where} (when done)")));
+            sets.AddRange(mission.Objectives.SelectMany(objective => (objective.SetsFacts ?? []).Select(fact => (fact, $"{where} (objective {objective.DisplayName})"))));
+            tests.AddRange(mission.RequiresFacts.Concat(mission.RefusesFacts).Select(fact => (fact, $"{where} (before it is offered)")));
+        }
+
+        foreach (var place in document.Places)
+        {
+            Triggers(place.Triggers, $"Room events: {place.DisplayName}");
+        }
+
+        foreach (var scene in document.Scenes)
+        {
+            var where = $"Conversation: {scene.DisplayName}";
+            foreach (var choice in scene.Nodes.SelectMany(node => node.Choices))
+            {
+                Conditions(choice.Conditions, where);
+                foreach (var outcome in choice.Rolls ? new[] { choice.OnSuccess, choice.OnFailure } : [choice.OwnOutcome])
+                {
+                    Effects(outcome?.Effects, where);
+                }
+            }
+        }
+
+        return document.Facts
+            .Select(fact => new FactReference(
+                fact.Id,
+                fact.DisplayName,
+                fact.Description,
+                fact.RunOf,
+                fact.IsRetired,
+                sets.Where(use => use.Fact == fact.Id).Select(use => use.Where).Distinct().ToArray(),
+                tests.Where(use => use.Fact == fact.Id).Select(use => use.Where).Distinct().ToArray()))
+            .ToArray();
+    }
 }
 
 // Something a job places: its id, display name and room (null for an item
@@ -93,4 +200,8 @@ public sealed record MapRoomReference(
     IReadOnlyList<WorldMapNpc> Npcs,
     IReadOnlyList<WorldMapInspectable> Inspectables,
     Guid? MapId = null,
-    bool IsLive = true);
+    bool IsLive = true,
+    int MapX = 0,
+    int MapY = 0,
+    int MapLayer = 0,
+    Guid? DistrictId = null);

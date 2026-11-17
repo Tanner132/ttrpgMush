@@ -155,6 +155,9 @@ export function NumberInput({
 export interface Option {
   id: string
   displayName: string
+  /** Shown but not choosable; `title` says why. */
+  disabled?: boolean
+  title?: string
 }
 
 export function Select({
@@ -181,7 +184,7 @@ export function Select({
         {placeholder !== undefined && <option value="">{placeholder}</option>}
         {!known && <option value={value}>Missing ({value?.slice(0, 8)})</option>}
         {options.map((option) => (
-          <option key={option.id} value={option.id}>
+          <option key={option.id} value={option.id} disabled={option.disabled} title={option.title}>
             {option.displayName}
           </option>
         ))}

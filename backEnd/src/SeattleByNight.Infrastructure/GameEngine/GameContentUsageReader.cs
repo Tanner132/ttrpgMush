@@ -41,6 +41,12 @@ public sealed class GameContentUsageReader(SeattleByNightDbContext db) : IGameCo
             // the corpus points at it, and the session simply ends.
             GameContentKind.Scene => new GameContentUsage(0, "scenes"),
 
+            // WF-80: characters who carry the fact. Deleting it would leave
+            // their record naming nothing.
+            GameContentKind.Fact => new GameContentUsage(
+                await db.CharacterFacts.CountAsync(fact => fact.FactId == contentKey, cancellationToken),
+                "characters who have it"),
+
             _ => new GameContentUsage(0, kind.ToString().ToLowerInvariant()),
         };
 }

@@ -122,6 +122,13 @@ public sealed record GrantItemChange(Guid ItemId) : StateChange;
 public sealed record RecordTriggerFireChange(
     Guid MissionInstanceId, Guid TriggerId) : StateChange;
 
+// WF-81: records a fact against the acting character, or removes it. A fact
+// that lasts for a run of a job is tied to the character's open run of it,
+// and is not set when they have none.
+public sealed record SetFactChange(Guid FactId) : StateChange;
+
+public sealed record ClearFactChange(Guid FactId) : StateChange;
+
 public enum EffectAttachDisposition
 {
     Attached,

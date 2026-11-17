@@ -32,6 +32,11 @@ public static class AuditActions
     public const string RoomMoved = "RoomMoved";
     public const string TravelLinkCreated = "TravelLinkCreated";
     public const string TravelLinkDeleted = "TravelLinkDeleted";
+    // World Forge phase 3: districts.
+    public const string DistrictCreated = "DistrictCreated";
+    public const string DistrictUpdated = "DistrictUpdated";
+    public const string DistrictDeleted = "DistrictDeleted";
+    public const string RoomDistrictSet = "RoomDistrictSet";
 }
 
 public static class AuditTargetTypes
@@ -44,6 +49,7 @@ public static class AuditTargetTypes
     public const string RoomInspectable = "RoomInspectable";
     public const string Map = "Map";
     public const string TravelLink = "TravelLink";
+    public const string District = "District";
 }
 
 public interface IAuditWriter

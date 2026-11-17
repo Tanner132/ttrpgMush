@@ -16,7 +16,7 @@ export type Guid = string
 
 // ------------------------------------------------------------------ content
 
-export type ContentKind = 'Mission' | 'NpcTemplate' | 'Scene' | 'Test' | 'Place'
+export type ContentKind = 'Mission' | 'NpcTemplate' | 'Scene' | 'Test' | 'Place' | 'Fact'
 export type ContentStatus = 'Draft' | 'Published' | 'Retired'
 
 /** Workstream 8: content no longer places anything inside other content, so this is always empty. */
@@ -102,7 +102,7 @@ export interface ContentPalette {
  * WF-33: bump with `ForgeContract.Version` in the API's GameContentEndpoints.cs
  * whenever a content document or Forge request changes shape.
  */
-export const ForgeContractVersion = 2
+export const ForgeContractVersion = 4
 
 export interface PlacedReference {
   id: Guid
@@ -118,6 +118,17 @@ export type RoomAccessType = 'Public'
  * Forge edits drafts, so this answers "what can a picker point at" — the same
  * question a publish is checked against.
  */
+export interface FactReference {
+  id: Guid
+  displayName: string
+  description: string
+  /** Set: the fact lasts only for a run of this job. */
+  runOf: Guid | null
+  isRetired: boolean
+  setBy: string[]
+  testedBy: string[]
+}
+
 export interface ContentReferences {
   missions: {
     id: Guid
@@ -133,6 +144,8 @@ export interface ContentReferences {
   scenes: { id: Guid; displayName: string; isRetired: boolean; npcTemplateId: Guid | null; nodeIds: Guid[] }[]
   tests: { id: string; displayName: string; builtIn: boolean; opposed: boolean }[]
   npcTemplates: { id: Guid; displayName: string; isRetired: boolean; hostile: boolean }[]
+  /** WF-82: the Library's facts, with what live content sets and tests each. */
+  facts?: FactReference[]
   places: { id: Guid; displayName: string; isRetired: boolean }[]
   /**
    * Every room on every map, with who stands in it and what can be inspected
@@ -146,7 +159,15 @@ export interface ContentReferences {
     inspectables: { id: Guid; name: string }[]
     mapId?: Guid | null
     isLive?: boolean
+    /** WF-42: where it is, for the one room picker. */
+    mapX?: number
+    mapY?: number
+    mapLayer?: number
+    districtId?: Guid | null
   }[]
+  /** WF-42: map and district names for the room picker's groups. */
+  maps?: { id: Guid; name: string }[]
+  districts?: { id: Guid; mapId: Guid; name: string }[]
 }
 
 /** A world NPC as the map lists them: who, on which stat block, holding which conversation. */
@@ -191,8 +212,14 @@ export async function findDefinition(kind: ContentKind, id: Guid, signal?: Abort
   }
 }
 
-export function saveDraft(kind: ContentKind, id: Guid, json: string): Promise<ContentDetail> {
-  return apiPut<ContentDetail>(`${content}/${kind}/${id}`, { json })
+/**
+ * WF-61: what a save was edited from — the draft's updatedAtUtc as last read,
+ * or "nothing saved yet". The server refuses (409) a save over a newer draft.
+ */
+export type DraftVersion = { expectedUpdatedAtUtc: string } | { expectNew: true }
+
+export function saveDraft(kind: ContentKind, id: Guid, json: string, version?: DraftVersion): Promise<ContentDetail> {
+  return apiPut<ContentDetail>(`${content}/${kind}/${id}`, { json, ...version })
 }
 
 export function validateDraft(kind: ContentKind, id: Guid): Promise<ContentValidation> {
@@ -253,6 +280,19 @@ export interface WorldRoom {
   mapId: Guid
   /** WF-60: a draft room, the exits into it and what is in it are out of play. */
   isLive: boolean
+  /** WF-73: the room's district, if any. A blank description shows the district's. */
+  districtId?: Guid | null
+}
+
+/** WF-73: a named group of rooms on one map; its rooms inherit its default description. */
+export interface WorldDistrict {
+  id: Guid
+  mapId: Guid
+  name: string
+  defaultDescription: string
+  rooms: number
+  createdAtUtc: string
+  version: string
 }
 
 /** WF-41: a map (a city) and how much is on it. */
@@ -336,6 +376,7 @@ export interface WorldGraph {
   map: WorldMapSummary
   maps: WorldMapSummary[]
   travelLinks: WorldTravelLink[]
+  districts?: WorldDistrict[]
 }
 
 export interface RoomInput {
@@ -375,8 +416,14 @@ export function getWorld(mapId?: Guid | null, signal?: AbortSignal): Promise<Wor
   return apiGet<WorldGraph>(mapId ? `${world}/?mapId=${mapId}` : `${world}/`, signal)
 }
 
-/** Builds a room, as a draft, on the map named. */
-export function createRoom(input: RoomInput & { mapX: number; mapY: number; mapLayer: number; mapId?: Guid }): Promise<WorldRoom> {
+/**
+ * Builds a room, as a draft, on the map named. WF-43: `joins` names the
+ * neighbours (by direction from the new room) to join both ways; left out,
+ * every free neighbour is joined.
+ */
+export function createRoom(
+  input: RoomInput & { mapX: number; mapY: number; mapLayer: number; mapId?: Guid; districtId?: Guid | null; joins?: ExitDirection[] },
+): Promise<WorldRoom> {
   return apiPost<WorldRoom>(`${world}/rooms`, input)
 }
 
@@ -405,9 +452,9 @@ export function updateExit(exitId: Guid, input: ExitInput & { version: string })
   return apiPut<WorldExit>(`${world}/exits/${exitId}`, input)
 }
 
-/** Removes one direction; the way back, if there is one, is its own exit. */
-export function deleteExit(exitId: Guid): Promise<void> {
-  return apiDelete<void>(`${world}/exits/${exitId}`)
+/** Removes one direction; with `bothWays` (WF-43), the exit leading straight back too. */
+export function deleteExit(exitId: Guid, bothWays = false): Promise<void> {
+  return apiDelete<void>(bothWays ? `${world}/exits/${exitId}?bothWays=true` : `${world}/exits/${exitId}`)
 }
 
 // --------------------------------------------------- maps and publishing
@@ -424,8 +471,11 @@ export function renameMap(mapId: Guid, name: string, version: string): Promise<W
   return apiPut<WorldMapSummary>(`${world}/maps/${mapId}`, { name, version })
 }
 
-/** The rooms named, or every room on a map. */
-export type RoomSelection = { roomIds: Guid[]; mapId?: undefined } | { mapId: Guid; roomIds?: undefined }
+/** The rooms named, every room on a map, or (WF-73) every room in a district. */
+export type RoomSelection =
+  | { roomIds: Guid[]; mapId?: undefined; districtId?: undefined }
+  | { mapId: Guid; roomIds?: undefined; districtId?: undefined }
+  | { districtId: Guid; roomIds?: undefined; mapId?: undefined }
 
 export interface RoomPublishResult {
   roomIds: Guid[]
@@ -458,6 +508,93 @@ export function createTravelLink(input: { sourceRoomId: Guid; destinationRoomId:
 
 export function deleteTravelLink(linkId: Guid): Promise<void> {
   return apiDelete<void>(`${world}/travel/${linkId}`)
+}
+
+// ------------------------------------------------- World Forge phase 3
+
+export function createDistrict(input: { mapId: Guid; name: string; defaultDescription: string }): Promise<WorldDistrict> {
+  return apiPost<WorldDistrict>(`${world}/districts`, input)
+}
+
+export function updateDistrict(districtId: Guid, input: { name: string; defaultDescription: string; version: string }): Promise<WorldDistrict> {
+  return apiPut<WorldDistrict>(`${world}/districts/${districtId}`, input)
+}
+
+/** Its rooms stay; a room with a blank description keeps showing the district's text. */
+export function deleteDistrict(districtId: Guid): Promise<void> {
+  return apiDelete<void>(`${world}/districts/${districtId}`)
+}
+
+/** Puts rooms in a district, or (null) out of any. */
+export function setRoomsDistrict(roomIds: Guid[], districtId: Guid | null): Promise<RoomPublishResult> {
+  return apiPost<RoomPublishResult>(`${world}/rooms/district`, { roomIds, districtId })
+}
+
+/** WF-44: one draft room per painted cell, from a template; `{n}`, `{x}` and `{y}` fill the name. */
+export function paintRooms(input: {
+  mapId: Guid
+  layer: number
+  cells: { x: number; y: number }[]
+  namePattern: string
+  description: string
+  districtId: Guid | null
+  joinNeighbours: boolean
+}): Promise<{ rooms: WorldRoom[]; exits: number }> {
+  return apiPost<{ rooms: WorldRoom[]; exits: number }>(`${world}/rooms/paint`, input)
+}
+
+/** WF-44: a draft copy of a room with its NPCs and inspectables, on a free cell. */
+export function duplicateRoom(roomId: Guid, input: { mapId?: Guid; x: number; y: number; layer: number }): Promise<WorldRoom> {
+  return apiPost<WorldRoom>(`${world}/rooms/${roomId}/duplicate`, input)
+}
+
+export interface UnreachableRoom {
+  id: Guid
+  name: string
+  mapId: Guid
+  mapName: string
+}
+
+/** WF-45: live rooms no walk from the start room reaches. */
+export function getUnreachable(signal?: AbortSignal): Promise<UnreachableRoom[]> {
+  return apiGet<UnreachableRoom[]>(`${world}/reachability`, signal)
+}
+
+export interface WorldIndex {
+  rooms: {
+    id: Guid
+    name: string
+    x: number
+    y: number
+    layer: number
+    district: string | null
+    isLive: boolean
+    exits: number
+    npcs: number
+    hasDescription: boolean
+    unreachable: boolean
+  }[]
+  npcs: { id: Guid; name: string; roomId: Guid; roomName: string; templateId: Guid; sceneId: Guid | null }[]
+}
+
+/** WF-64: one map's rooms and NPCs, with flags. */
+export function getWorldIndex(mapId: Guid, signal?: AbortSignal): Promise<WorldIndex> {
+  return apiGet<WorldIndex>(`${world}/index?mapId=${mapId}`, signal)
+}
+
+export interface SearchHit {
+  kind: 'Room' | 'NPC' | 'Inspectable' | 'District' | 'Travel' | 'Content'
+  id: Guid
+  name: string
+  where: string
+  roomId: Guid | null
+  mapId: Guid | null
+  contentKind: ContentKind | null
+}
+
+/** WF-64: search every authored text. */
+export function searchWorld(text: string, signal?: AbortSignal): Promise<SearchHit[]> {
+  return apiGet<SearchHit[]>(`${world}/search?q=${encodeURIComponent(text)}`, signal)
 }
 
 // ----------------------------------------------------- public room content

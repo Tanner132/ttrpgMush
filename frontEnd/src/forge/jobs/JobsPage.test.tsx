@@ -84,6 +84,24 @@ async function openJob(step: string) {
 // run they can pass the default 5 s on CPU alone.
 const SlowDialog = { timeout: 15_000 }
 
+/**
+ * Adds a blank reply to the first part and returns it, open for writing.
+ * Under a full parallel run the editor can still be settling when the button
+ * first shows, and a click on the button it replaced does nothing: click
+ * again until the reply opens.
+ */
+async function addReply(user: ReturnType<typeof userEvent.setup>): Promise<HTMLElement> {
+  await screen.findByRole('button', { name: 'Add a reply to Part 1' })
+  await waitFor(
+    async () => {
+      if (!screen.queryByLabelText('Runner says')) await user.click(screen.getByRole('button', { name: 'Add a reply to Part 1' }))
+      expect(screen.getByLabelText('Runner says')).toBeInTheDocument()
+    },
+    { timeout: 12_000 },
+  )
+  return screen.getByLabelText('Runner says').closest('[role="group"]') as HTMLElement
+}
+
 describe('Jobs · the list', () => {
   it('links every job to its builder', async () => {
     renderForge('/admin/forge/jobs')
@@ -291,8 +309,7 @@ describe('Jobs · pitch', () => {
     const user = userEvent.setup()
     await openJob('pitch')
 
-    await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 12_000 })
+    const dialog = await addReply(user)
     await user.type(within(dialog).getByLabelText('Runner says'), 'I want more money.')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
     await user.click(within(dialog).getByRole('button', { name: 'A Library test' }))
@@ -301,7 +318,7 @@ describe('Jobs · pitch', () => {
     const pass = within(dialog).getByText('Pass').closest('.forge__branch') as HTMLElement
     await user.click(within(pass).getByRole('button', { name: '+ Effect' }))
     await user.selectOptions(within(pass).getByLabelText('Pass effect 1'), 'Raise pay')
-    await user.click(within(dialog).getByRole('button', { name: 'Keep reply' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Done with reply 3' }))
     await user.click(screen.getByRole('button', { name: 'Save job draft' }))
 
     await waitFor(() => expect(api.saveDraft).toHaveBeenCalled())
@@ -323,19 +340,18 @@ describe('Jobs · rolls built on a reply', () => {
     const user = userEvent.setup()
     await openJob('pitch')
 
-    await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 12_000 })
+    const dialog = await addReply(user)
     await user.type(within(dialog).getByLabelText('Runner says'), 'Lean on him.')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
 
     // A conversation with a stat block starts contested; nothing is chosen yet.
     expect(within(dialog).getByRole('checkbox', { name: 'Contested by the NPC' })).toBeChecked()
-    expect(within(dialog).getByRole('button', { name: 'Keep reply' })).toBeDisabled()
+    expect(within(dialog).getByText('The roll is not finished.')).toBeInTheDocument()
     await user.selectOptions(within(dialog).getByLabelText('Runner rolls, first'), 'Charisma')
     await user.selectOptions(within(dialog).getByLabelText('Runner rolls, second'), 'Con (skill)')
     await user.selectOptions(within(dialog).getByLabelText('NPC rolls, first'), 'Social')
     await user.selectOptions(within(dialog).getByLabelText('NPC rolls, second'), 'Willpower')
-    await user.click(within(dialog).getByRole('button', { name: 'Keep reply' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Done with reply 3' }))
 
     expect(await screen.findByText('Roll Charisma + Con vs Social + Willpower')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Save job draft' }))
@@ -354,15 +370,14 @@ describe('Jobs · rolls built on a reply', () => {
     const user = userEvent.setup()
     await openJob('pitch')
 
-    await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 12_000 })
+    const dialog = await addReply(user)
     await user.type(within(dialog).getByLabelText('Runner says'), 'Read the room.')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
     await user.click(within(dialog).getByRole('checkbox', { name: 'Contested by the NPC' }))
     await user.selectOptions(within(dialog).getByLabelText('Runner rolls, first'), 'Intuition')
     await user.clear(within(dialog).getByLabelText('Hits needed'))
     await user.type(within(dialog).getByLabelText('Hits needed'), '3')
-    await user.click(within(dialog).getByRole('button', { name: 'Keep reply' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Done with reply 3' }))
 
     expect(await screen.findByText('Roll Intuition (3)')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Save job draft' }))

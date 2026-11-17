@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import type { WorldRoom } from '../api.ts'
-import { Section } from '../fields.tsx'
+import type { Guid, WorldRoom } from '../api.ts'
+import { Section, Segmented } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { useConfirmLeave } from '../hooks.ts'
+import { DistrictsSection } from './DistrictsSection.tsx'
 import { EventsSection } from './EventsSection.tsx'
 import { ExitsSection } from './ExitsSection.tsx'
 import { MapBar } from './MapBar.tsx'
-import { MapGrid, type BuildSpot } from './MapGrid.tsx'
+import { MapGrid, type BuildSpot, type MapMode } from './MapGrid.tsx'
+import { inView } from './mapView.ts'
+import { PaintForm } from './PaintForm.tsx'
 import { PlacementSection } from './PlacementSection.tsx'
 import { ReachNote } from './reach.tsx'
 import { BuildRoomForm, RoomSection } from './RoomSection.tsx'
+import { SelectionBar } from './SelectionBar.tsx'
 import { TravelSection } from './TravelSection.tsx'
 import { UsageSection } from './UsageSection.tsx'
 import { WorldContents, type HereCounts } from './WorldContents.tsx'
@@ -25,10 +29,17 @@ function defaultRoom(rooms: WorldRoom[]): WorldRoom | undefined {
   )
 }
 
+const Modes: { id: MapMode; displayName: string }[] = [
+  { id: 'open', displayName: 'Open' },
+  { id: 'select', displayName: 'Select' },
+  { id: 'paint', displayName: 'Paint' },
+]
+
 /**
- * Places: the shared map, one room at a time. Everything about a room is on
- * one screen — what it is, where it leads, what stands in it, what happens
- * there, and which jobs depend on it.
+ * Places: one map, one room at a time. Everything about a room is on one
+ * screen — what it is, where it leads, what stands in it, what happens there,
+ * and which jobs depend on it. The map zooms out to a whole layer, picks
+ * several rooms for one action, and paints new rooms (phase 3).
  */
 export default function PlacesPage() {
   const { world, references, openMap } = useForgeData()
@@ -42,20 +53,37 @@ export default function PlacesPage() {
   useEffect(() => {
     if (askedMap && askedMap !== world.map.id && !world.rooms.some((candidate) => candidate.id === asked)) openMap(askedMap)
   }, [askedMap, asked, world.map.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [view, setView] = useState({ x: room?.mapX ?? 0, y: room?.mapY ?? 0, layer: room?.mapLayer ?? 0 })
+  const [zoom, setZoom] = useState(0)
+  const [mode, setMode] = useState<MapMode>('open')
+  const [selected, setSelected] = useState<ReadonlySet<Guid>>(new Set())
+  const [painted, setPainted] = useState<ReadonlySet<string>>(new Set())
   const [build, setBuild] = useState<BuildSpot | null>(null)
   const [here, setHere] = useState<HereCounts | null>(null)
 
-  // Opening a room brings the map to it.
+  // WF-40: opening a room brings the map to it only when it is out of view.
   useEffect(() => {
-    if (room) setView({ x: room.mapX, y: room.mapY, layer: room.mapLayer })
+    if (room && !inView(zoom, view, world.rooms, view.layer, room)) setView({ x: room.mapX, y: room.mapY, layer: room.mapLayer })
     setBuild(null)
   }, [room?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A different map starts with nothing selected or painted.
+  useEffect(() => {
+    setSelected(new Set())
+    setPainted(new Set())
+  }, [world.map.id])
 
   function open(next: WorldRoom) {
     if (next.id === room?.id) return
     if (!confirmLeave()) return
     setParams({ room: next.id, map: next.mapId })
+  }
+
+  function goTo(x: number, y: number, layer: number) {
+    setView({ x, y, layer })
+    const there = world.rooms.find((candidate) => candidate.mapX === x && candidate.mapY === y && candidate.mapLayer === layer)
+    if (there) open(there)
   }
 
   return (
@@ -76,20 +104,68 @@ export default function PlacesPage() {
           {room && <RoomSection key={room.id} room={room} />}
           {room && <PlacementSection key={`placement-${room.id}-${room.version}`} room={room} />}
 
-          <Section title="Map">
+          <Section
+            title="Map"
+            actions={
+              room && (
+                <button
+                  type="button"
+                  className="ui-button"
+                  onClick={() => setView({ x: room.mapX, y: room.mapY, layer: room.mapLayer })}
+                >
+                  Centre on {room.name}
+                </button>
+              )
+            }
+          >
+            <Segmented
+              label="On the map, a click will"
+              value={mode}
+              options={Modes}
+              onChange={(next) => {
+                setMode(next)
+                setBuild(null)
+              }}
+            />
             <MapGrid
               rooms={world.rooms}
               exits={world.exits}
+              travelLinks={world.travelLinks}
               layer={view.layer}
               center={view}
+              zoom={zoom}
+              onZoom={setZoom}
+              onGoTo={goTo}
               selectedId={room?.id ?? null}
               pendingBuild={build}
+              mode={mode}
+              selectedIds={selected}
+              onToggleSelect={(picked) =>
+                setSelected((current) => {
+                  const next = new Set(current)
+                  if (next.has(picked.id)) next.delete(picked.id)
+                  else next.add(picked.id)
+                  return next
+                })
+              }
+              paintCells={painted}
+              onPaint={(x, y, on) =>
+                setPainted((current) => {
+                  const next = new Set(current)
+                  if (on) next.add(`${x}:${y}`)
+                  else next.delete(`${x}:${y}`)
+                  return next
+                })
+              }
               onOpen={open}
               onBuild={(spot) => setBuild({ ...spot, mapId: world.map.id })}
-              onLayer={(layer) => setView((current) => ({ ...current, layer }))}
+              onLayer={(layer) => {
+                setView((current) => ({ ...current, layer }))
+                setPainted(new Set())
+              }}
               onPan={(dx, dy) => setView((current) => ({ ...current, x: current.x + dx, y: current.y + dy }))}
             />
-            {build && (
+            {mode === 'open' && build && (
               <BuildRoomForm
                 key={`${build.x}:${build.y}:${build.layer}`}
                 spot={build}
@@ -98,6 +174,15 @@ export default function PlacesPage() {
                   setBuild(null)
                   setParams({ room: built.id, map: built.mapId })
                 }}
+              />
+            )}
+            {mode === 'select' && <SelectionBar selected={selected} onClear={() => setSelected(new Set())} />}
+            {mode === 'paint' && (
+              <PaintForm
+                cells={painted}
+                layer={view.layer}
+                onClear={() => setPainted(new Set())}
+                onBuilt={() => setPainted(new Set())}
               />
             )}
           </Section>
@@ -114,9 +199,9 @@ export default function PlacesPage() {
           )}
         </div>
 
-        {room && (
-          <div className="forge__column">
-            <EventsSection key={room.id} room={room} />
+        <div className="forge__column">
+          {room && <EventsSection key={room.id} room={room} />}
+          {room && (
             <UsageSection
               key={`usage-${room.id}`}
               room={room}
@@ -126,8 +211,9 @@ export default function PlacesPage() {
                 setParams(next ? { room: next.id, map: next.mapId } : { map: world.map.id })
               }}
             />
-          </div>
-        )}
+          )}
+          <DistrictsSection />
+        </div>
       </div>
     </div>
   )

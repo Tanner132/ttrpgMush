@@ -10,7 +10,9 @@ public static class WorldMutationValidation
         var errors = new Dictionary<string, string[]>();
 
         AddRequiredLength(errors, "name", mutation.Name, 120);
-        AddRequiredLength(errors, "description", mutation.Description, 4000);
+        // WF-73: a room may leave its description blank and show its
+        // district's; publishing refuses a room with neither.
+        AddMaxLength(errors, "description", mutation.Description, 4000);
 
         AddAccessTypeError(errors, mutation.AccessType);
 
@@ -41,7 +43,9 @@ public static class WorldMutationValidation
     {
         var errors = new Dictionary<string, string[]>();
         AddRequiredLength(errors, "name", mutation.Name, 120);
-        AddRequiredLength(errors, "description", mutation.Description, 4000);
+        // WF-73: a room may leave its description blank and show its
+        // district's; publishing refuses a room with neither.
+        AddMaxLength(errors, "description", mutation.Description, 4000);
 
         AddAccessTypeError(errors, mutation.AccessType);
 
@@ -96,6 +100,14 @@ public static class WorldMutationValidation
             errors[field] = ["The field is required."];
         }
         else if (value.Length > maxLength)
+        {
+            errors[field] = [$"The field must not exceed {maxLength} characters."];
+        }
+    }
+
+    private static void AddMaxLength(Dictionary<string, string[]> errors, string field, string? value, int maxLength)
+    {
+        if (value is not null && value.Length > maxLength)
         {
             errors[field] = [$"The field must not exceed {maxLength} characters."];
         }

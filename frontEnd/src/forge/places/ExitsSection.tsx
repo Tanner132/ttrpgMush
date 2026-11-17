@@ -17,9 +17,10 @@ import {
   type WorldRoom,
 } from '../api.ts'
 import { ReachNote } from './reach.tsx'
-import { Check, Chip, Empty, Section, Segmented, Select, TextBox, TextInput } from '../fields.tsx'
+import { Check, Chip, Empty, Section, Segmented, TextBox, TextInput } from '../fields.tsx'
 import { shortDirection, words } from '../format.ts'
 import { useForgeData } from '../forgeContext.ts'
+import { RoomPicker } from '../RoomPicker.tsx'
 import { useAction } from '../hooks.ts'
 import { joinRooms } from './exits.ts'
 
@@ -67,10 +68,6 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
   const offset = DirectionOffset[direction]
   const spot = { x: room.mapX + offset.dx, y: room.mapY + offset.dy, layer: room.mapLayer + offset.dz }
   const occupant = world.rooms.find((candidate) => candidate.mapX === spot.x && candidate.mapY === spot.y && candidate.mapLayer === spot.layer)
-  const destinations = world.rooms
-    .filter((candidate) => candidate.id !== room.id)
-    .sort((a, b) => a.mapLayer - b.mapLayer || a.name.localeCompare(b.name))
-    .map((candidate) => ({ id: candidate.id, displayName: `Layer ${candidate.mapLayer} › ${candidate.name}` }))
 
   async function save() {
     const done = await action.run(async () => {
@@ -170,7 +167,7 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
         )}
 
         {existing || target === 'existing' ? (
-          <Select label="Destination room" value={destinationId} options={destinations} placeholder="Choose a room" onChange={setDestinationId} />
+          <RoomPicker label="Destination room" value={destinationId} filter={(candidate) => candidate.id !== room.id} onChange={setDestinationId} />
         ) : occupant ? (
           <StatusBanner tone="warning">
             {occupant.name} already stands {direction} of here. Choose Existing room to lead the exit to it.
@@ -231,11 +228,14 @@ export function ExitsSection({ room }: { room: WorldRoom }) {
   const { world, refreshWorld } = useForgeData()
   const [editing, setEditing] = useState<Editing | null>(null)
   const [removing, setRemoving] = useState<WorldExit | null>(null)
+  // WF-43: removing an exit offers the way back too, ticked.
+  const [andBack, setAndBack] = useState(true)
   const remove = useAction()
 
   async function confirmRemove(exit: WorldExit) {
+    const back = world.exits.some((candidate) => candidate.sourceRoomId === exit.destinationRoomId && candidate.destinationRoomId === room.id)
     await remove.run(async () => {
-      await deleteExit(exit.id)
+      await deleteExit(exit.id, back && andBack)
       await refreshWorld()
       return true
     })
@@ -266,6 +266,9 @@ export function ExitsSection({ room }: { room: WorldRoom }) {
               <ExitFlags exit={exit} />
               {removing?.id === exit.id ? (
                 <>
+                  {world.exits.some((candidate) => candidate.sourceRoomId === exit.destinationRoomId && candidate.destinationRoomId === room.id) && (
+                    <Check label={`and the way back from ${exit.destinationRoomName}`} checked={andBack} onChange={setAndBack} />
+                  )}
                   <Button intent="danger" busy={remove.busy} aria-label={`Confirm remove exit ${exit.direction} to ${exit.destinationRoomName}`} onClick={() => void confirmRemove(exit)}>
                     Yes, remove
                   </Button>
@@ -283,6 +286,7 @@ export function ExitsSection({ room }: { room: WorldRoom }) {
                     aria-label={`Remove exit ${exit.direction} to ${exit.destinationRoomName}`}
                     onClick={() => {
                       remove.setError(null)
+                      setAndBack(true)
                       setRemoving(exit)
                     }}
                   >

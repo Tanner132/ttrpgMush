@@ -595,6 +595,35 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.ToTable("character_discoveries", (string)null);
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterFact", b =>
+                {
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<Guid>("FactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("fact_id");
+
+                    b.Property<Guid?>("MissionInstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mission_instance_id");
+
+                    b.Property<DateTimeOffset>("SetAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("set_at_utc");
+
+                    b.HasKey("CharacterId", "FactId");
+
+                    b.HasIndex("FactId")
+                        .HasDatabaseName("ix_character_facts_fact_id");
+
+                    b.HasIndex("MissionInstanceId")
+                        .HasDatabaseName("ix_character_facts_mission_instance_id");
+
+                    b.ToTable("character_facts", (string)null);
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterInventoryItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -957,6 +986,46 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.HasIndex("InviterCharacterId");
 
                     b.ToTable("crew_invitations", (string)null);
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.District", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("DefaultDescription")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("default_description");
+
+                    b.Property<Guid>("MapId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("map_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MapId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("ux_districts_map_name");
+
+                    b.ToTable("districts", (string)null);
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.GameContentDefinition", b =>
@@ -1329,6 +1398,10 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("description");
 
+                    b.Property<Guid?>("DistrictId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("district_id");
+
                     b.Property<int>("EnvironmentModifier")
                         .HasColumnType("integer");
 
@@ -1364,6 +1437,9 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnName("version");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DistrictId")
+                        .HasDatabaseName("ix_rooms_district_id");
 
                     b.HasIndex("MapId", "MapLayer", "MapX", "MapY")
                         .IsUnique()
@@ -1921,6 +1997,20 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterFact", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SeattleByNight.Domain.Entities.MissionInstance", null)
+                        .WithMany()
+                        .HasForeignKey("MissionInstanceId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.CharacterInventoryItem", b =>
                 {
                     b.HasOne("SeattleByNight.Domain.Entities.Character", null)
@@ -1997,6 +2087,15 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.District", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.CityMap", null)
+                        .WithMany()
+                        .HasForeignKey("MapId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.GameTestAuditRecord", b =>
                 {
                     b.HasOne("SeattleByNight.Domain.Entities.Character", null)
@@ -2041,6 +2140,11 @@ namespace SeattleByNight.Infrastructure.Migrations
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.Room", b =>
                 {
+                    b.HasOne("SeattleByNight.Domain.Entities.District", null)
+                        .WithMany()
+                        .HasForeignKey("DistrictId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SeattleByNight.Domain.Entities.CityMap", null)
                         .WithMany()
                         .HasForeignKey("MapId")

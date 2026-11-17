@@ -109,19 +109,7 @@ export function PitchStep({ job, context }: { job: Job; context: JobContext }) {
   return (
     <div className="forge__columns forge__columns--wide">
       <div className="forge__column">
-        <Section
-          title={johnson ? `Conversation · ${johnson.name}` : 'Conversation'}
-          actions={
-            <div className="forge__segmented" role="group" aria-label="View">
-              <button type="button" aria-pressed="true">
-                Script
-              </button>
-              <button type="button" aria-pressed="false" disabled title="The graph view isn't built yet">
-                Graph
-              </button>
-            </div>
-          }
-        >
+        <Section title={johnson ? `Conversation · ${johnson.name}` : 'Conversation'}>
           <TextInput
             label="Conversation name"
             value={pitch.displayName}

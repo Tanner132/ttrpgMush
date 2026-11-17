@@ -59,6 +59,18 @@ public sealed class RoomConfiguration : IEntityTypeConfiguration<Room>
             .HasForeignKey(r => r.MapId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // WF-73: a room's district; deleting the district leaves the room.
+        builder.Property(r => r.DistrictId)
+            .HasColumnName("district_id")
+            .HasColumnType("uuid");
+
+        builder.HasIndex(r => r.DistrictId).HasDatabaseName("ix_rooms_district_id");
+
+        builder.HasOne<District>()
+            .WithMany()
+            .HasForeignKey(r => r.DistrictId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // WF-60: draft or live.
         builder.Property(r => r.IsLive)
             .HasColumnName("is_live")

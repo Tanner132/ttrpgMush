@@ -69,7 +69,9 @@ public sealed class WorldMutationEndpointTests : IClassFixture<ApiTestFactory>
         var request = new
         {
             name = new string('n', 121),
-            description = "",
+            // WF-73: a blank description is allowed (the district's shows);
+            // a too-long one is not.
+            description = new string('d', 4001),
             accessType = "Restricted",
             mapX = (long)int.MaxValue + 1,
             mapY = (long)int.MinValue - 1,

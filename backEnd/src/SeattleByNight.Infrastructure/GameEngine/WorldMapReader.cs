@@ -12,7 +12,7 @@ public sealed class WorldMapReader(SeattleByNightDbContext db) : IWorldMapReader
     {
         var rows = await db.Rooms
             .AsNoTracking()
-            .Select(room => new { room.Id, room.Name, room.IsLive, room.MapId })
+            .Select(room => new { room.Id, room.Name, room.IsLive, room.MapId, room.MapX, room.MapY, room.MapLayer, room.DistrictId })
             .ToListAsync(cancellationToken);
 
         var npcs = (await db.NpcInstances.AsNoTracking()
@@ -33,6 +33,16 @@ public sealed class WorldMapReader(SeattleByNightDbContext db) : IWorldMapReader
                 npcs[room.Id].OrderBy(npc => npc.Name).ToArray(),
                 inspectables[room.Id].OrderBy(inspectable => inspectable.Name).ToArray(),
                 room.IsLive,
-                room.MapId)));
+                room.MapId,
+                room.MapX,
+                room.MapY,
+                room.MapLayer,
+                room.DistrictId)))
+        {
+            Maps = await db.Maps.AsNoTracking().OrderBy(map => map.Name)
+                .Select(map => new WorldMapName(map.Id, map.Name)).ToListAsync(cancellationToken),
+            Districts = await db.Districts.AsNoTracking().OrderBy(district => district.Name)
+                .Select(district => new WorldDistrictName(district.Id, district.MapId, district.Name)).ToListAsync(cancellationToken),
+        };
     }
 }

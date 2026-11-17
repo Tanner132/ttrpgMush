@@ -61,7 +61,10 @@ public sealed class RoomSessionReader : IRoomSessionReader
             .Select(r => new RoomSummary(
                 r.Id,
                 r.Name,
-                r.Description,
+                // WF-73: a blank description shows the district's.
+                r.Description != "" || r.DistrictId == null
+                    ? r.Description
+                    : _dbContext.Districts.Where(d => d.Id == r.DistrictId).Select(d => d.DefaultDescription).FirstOrDefault() ?? "",
                 r.AccessType,
                 r.MapX,
                 r.MapY,

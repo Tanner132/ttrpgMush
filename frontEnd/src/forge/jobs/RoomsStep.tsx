@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button.tsx'
 import type { Guid, WorldRoom } from '../api.ts'
-import { Check, Chip, Empty, NumberInput, Section, Select, TextBox, TextInput } from '../fields.tsx'
+import { Check, Chip, Empty, NumberInput, Section, Segmented, Select, TextBox, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { newId, type JobItem, type Mission } from '../model.ts'
 import { useGuardedClick } from '../navigation.ts'
@@ -27,14 +27,20 @@ export function RoomsStep({ job, mission }: { job: Job; mission: Mission }) {
   const { world, references, openMap } = useForgeData()
   const guard = useGuardedClick()
   // WF-71: the job's rooms may be on another map than the one open; open it.
-  const jobMap = references.rooms.find((room) => room.id === mission.roomIds[0])?.mapId
+  // WF-40: it opens on the job's rooms, else on its Johnson.
+  const anchorId = mission.roomIds[0] ?? job.johnsons[0]?.roomId
+  const jobMap = references.rooms.find((room) => room.id === anchorId)?.mapId
   useEffect(() => {
     if (jobMap && jobMap !== world.map.id) openMap(jobMap)
   }, [jobMap]) // eslint-disable-line react-hooks/exhaustive-deps
-  const anchor = world.rooms.find((room) => room.id === mission.roomIds[0]) ?? world.rooms[0]
+  const anchor = world.rooms.find((room) => room.id === anchorId) ?? world.rooms[0]
   const [selectedId, setSelectedId] = useState<Guid | null>(anchor?.id ?? null)
   const [view, setView] = useState({ x: anchor?.mapX ?? 0, y: anchor?.mapY ?? 0, layer: anchor?.mapLayer ?? 0 })
   const [build, setBuild] = useState<BuildSpot | null>(null)
+  const [zoom, setZoom] = useState(0)
+  // WF-67: several rooms are picked on the map and used in one go.
+  const [picking, setPicking] = useState(false)
+  const [picked, setPicked] = useState<ReadonlySet<Guid>>(new Set())
 
   const setMission = (update: (current: Mission) => Mission) => job.mission.setValue(update)
   const inJob = new Set(mission.roomIds)
@@ -46,8 +52,23 @@ export function RoomsStep({ job, mission }: { job: Job; mission: Mission }) {
   const roomName = (id: Guid | undefined) => references.rooms.find((room) => room.id === id)?.name ?? 'a room that no longer exists'
 
   function addRoom(room: WorldRoom) {
-    setMission((current) => ({ ...current, roomIds: current.roomIds.includes(room.id) ? current.roomIds : [...current.roomIds, room.id] }))
+    addRooms([room.id])
   }
+
+  function addRooms(ids: Guid[]) {
+    setMission((current) => ({ ...current, roomIds: [...current.roomIds, ...ids.filter((id) => !current.roomIds.includes(id))] }))
+  }
+
+  function togglePick(room: WorldRoom) {
+    setPicked((current) => {
+      const next = new Set(current)
+      if (next.has(room.id)) next.delete(room.id)
+      else next.add(room.id)
+      return next
+    })
+  }
+
+  const pickedNew = [...picked].filter((id) => !inJob.has(id))
 
   function removeRoom(room: WorldRoom) {
     const standing = new Set((references.rooms.find((candidate) => candidate.id === room.id)?.npcs ?? []).map((npc) => npc.id))
@@ -84,9 +105,48 @@ export function RoomsStep({ job, mission }: { job: Job; mission: Mission }) {
     <div className="forge__columns forge__columns--wide">
       <div className="forge__column">
         <Section title="Map">
+          <Segmented
+            label="On the map, a click will"
+            value={picking ? 'pick' : 'open'}
+            options={[
+              { id: 'open', displayName: 'Open a room' },
+              { id: 'pick', displayName: 'Pick several' },
+            ]}
+            onChange={(next) => {
+              setPicking(next === 'pick')
+              setPicked(new Set())
+              setBuild(null)
+            }}
+          />
+          {picking && (
+            <div className="forge__actions" role="region" aria-label="Picked rooms">
+              <span>
+                {plural(picked.size, 'room')} picked{picked.size > pickedNew.length ? `, ${picked.size - pickedNew.length} already in the job` : ''}.
+              </span>
+              <Button
+                intent="primary"
+                disabled={pickedNew.length === 0}
+                onClick={() => {
+                  addRooms(pickedNew)
+                  setPicked(new Set())
+                }}
+              >
+                Use {plural(pickedNew.length, 'room')} in this job
+              </Button>
+              <Button disabled={picked.size === 0} onClick={() => setPicked(new Set())}>
+                Clear
+              </Button>
+            </div>
+          )}
           <MapGrid
+            mode={picking ? 'select' : 'open'}
+            selectedIds={picking ? picked : undefined}
+            onToggleSelect={togglePick}
             rooms={world.rooms}
             exits={world.exits}
+            travelLinks={world.travelLinks}
+            zoom={zoom}
+            onZoom={setZoom}
             layer={view.layer}
             center={view}
             selectedId={selectedId}
@@ -116,6 +176,21 @@ export function RoomsStep({ job, mission }: { job: Job; mission: Mission }) {
             Choose a room to use it in the job, or an empty square to build one. Every room is part of the shared city: anyone can walk in, on the job or not. New rooms
             are built on the map straight away; which rooms the job uses is saved with the job.
           </p>
+          <div className="forge__subsection" role="note" aria-label="What using a room does">
+            <h3 className="forge__subsection-title">What using a room in a job does</h3>
+            <ul className="forge__plain-list">
+              <li>
+                <b>Reset.</b> When the job resets, its items go back where they were placed (from whoever has them), hidden ones are hidden again, and the NPCs it
+                uses come back unhurt and unaware.
+              </li>
+              <li>
+                <b>Usage.</b> Places lists the job under the room, so whoever edits the room knows the job relies on it.
+              </li>
+              <li>
+                <b>Delete guard.</b> Once the job is live, the room cannot be deleted until it is taken out of the job.
+              </li>
+            </ul>
+          </div>
         </Section>
 
         <Section title={`Items · ${mission.items.length}`}>

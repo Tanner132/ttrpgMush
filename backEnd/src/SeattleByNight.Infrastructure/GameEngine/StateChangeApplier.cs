@@ -84,6 +84,8 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 FailMissionChange fail => await ApplyFailMissionAsync(fail, now, cancellationToken),
                 GrantItemChange grant => await ApplyGrantItemAsync(characterId, grant, now, cancellationToken),
                 RecordTriggerFireChange trigger => await ApplyRecordTriggerFireAsync(characterId, trigger, now, cancellationToken),
+                SetFactChange setFact => new AppliedStateChange("SetFact", await SetFactAsync(characterId, setFact.FactId, now, cancellationToken)),
+                ClearFactChange clearFact => new AppliedStateChange("ClearFact", await ClearFactAsync(characterId, clearFact.FactId, cancellationToken)),
                 _ => throw new NotSupportedException($"State change '{change.GetType().Name}' has no applier."),
             });
         }
@@ -103,6 +105,75 @@ public sealed class StateChangeApplier : IStateChangeApplier
         await transaction.CommitAsync(cancellationToken);
 
         return applied;
+    }
+
+    // WF-81: records a fact on one character. A run-only fact is tied to
+    // their open run of its job, and is not set when they have none.
+    private async Task<string> SetFactAsync(Guid characterId, Guid factId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var definition = gameContent.Current.FindFact(factId)
+            ?? throw new InvalidOperationException($"Fact '{factId}' is missing from the game content.");
+
+        Guid? runId = null;
+        if (definition.RunOf is { } jobId)
+        {
+            runId = await dbContext.MissionInstances
+                .Where(run => run.CharacterId == characterId && run.MissionId == jobId && OpenMissionStatuses.Contains(run.Status))
+                .Select(run => (Guid?)run.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (runId is null)
+            {
+                return $"Fact '{definition.DisplayName}' lasts for a run of a job the character is not on; not set.";
+            }
+        }
+
+        var row = await dbContext.CharacterFacts.FindAsync([characterId, factId], cancellationToken);
+        if (row is null)
+        {
+            dbContext.CharacterFacts.Add(new CharacterFact
+            {
+                CharacterId = characterId,
+                FactId = factId,
+                MissionInstanceId = runId,
+                SetAtUtc = now,
+            });
+        }
+        else
+        {
+            row.MissionInstanceId = runId;
+            row.SetAtUtc = now;
+        }
+
+        return $"Fact set: {definition.DisplayName}.";
+    }
+
+    private async Task<string> ClearFactAsync(Guid characterId, Guid factId, CancellationToken cancellationToken)
+    {
+        var name = gameContent.Current.FindFact(factId)?.DisplayName ?? factId.ToString();
+        var row = await dbContext.CharacterFacts.FindAsync([characterId, factId], cancellationToken);
+        if (row is null)
+        {
+            return $"Fact '{name}' was not set.";
+        }
+
+        dbContext.CharacterFacts.Remove(row);
+        return $"Fact cleared: {name}.";
+    }
+
+    // WF-83: what finishing a job (or one of its objectives) records on a
+    // runner it counts for.
+    private async Task SetAndClearFactsAsync(
+        Guid characterId, IEnumerable<Guid> sets, IEnumerable<Guid> clears, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        foreach (var factId in sets)
+        {
+            await SetFactAsync(characterId, factId, now, cancellationToken);
+        }
+
+        foreach (var factId in clears)
+        {
+            await ClearFactAsync(characterId, factId, cancellationToken);
+        }
     }
 
     private static bool TouchesJobState(DbUpdateException exception) =>
@@ -404,6 +475,10 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 "CompleteObjective", $"Objective '{change.ObjectiveId}' was already complete.");
         }
 
+        var objectiveFacts = gameContent.Current.FindMission(mission.MissionId)?.Objectives
+            .FirstOrDefault(objective => objective.Id == change.ObjectiveId)?.SetsFacts ?? [];
+        await SetAndClearFactsAsync(mission.CharacterId, objectiveFacts, [], now, cancellationToken);
+
         // Workstream 8 phase 5: objectives count for everyone who accepted
         // together, whichever of them does it — a crew's runs move as one.
         var group = await dbContext.MissionInstances
@@ -414,7 +489,10 @@ public sealed class StateChangeApplier : IStateChangeApplier
             .ToListAsync(cancellationToken);
         foreach (var sibling in group)
         {
-            CompleteObjectiveOn(sibling, change.ObjectiveId, now);
+            if (CompleteObjectiveOn(sibling, change.ObjectiveId, now))
+            {
+                await SetAndClearFactsAsync(sibling.CharacterId, objectiveFacts, [], now, cancellationToken);
+            }
         }
 
         return new AppliedStateChange("CompleteObjective", $"Objective complete: {change.ObjectiveId}.");
@@ -598,12 +676,24 @@ public sealed class StateChangeApplier : IStateChangeApplier
         var turnerShare = change.Nuyen - share * paid.Count;
         var granted = await AppendMissionRewardAsync(
             mission.CharacterId, mission.Id, change.Karma, turnerShare, now, cancellationToken);
+        // WF-83: the job's ending records its facts on everyone it pays.
+        var definition = gameContent.Current.FindMission(mission.MissionId);
+        var completionSets = definition?.CompletionSetsFacts ?? [];
+        var completionClears = definition?.CompletionClearsFacts ?? [];
+        if (granted)
+        {
+            await SetAndClearFactsAsync(mission.CharacterId, completionSets, completionClears, now, cancellationToken);
+        }
+
         foreach (var member in paid)
         {
             member.Status = MissionInstanceStatus.Completed.ToString();
             member.CompletedAtUtc = now;
             member.UpdatedAtUtc = now;
-            await AppendMissionRewardAsync(member.CharacterId, member.Id, change.Karma, share, now, cancellationToken);
+            if (await AppendMissionRewardAsync(member.CharacterId, member.Id, change.Karma, share, now, cancellationToken))
+            {
+                await SetAndClearFactsAsync(member.CharacterId, completionSets, completionClears, now, cancellationToken);
+            }
         }
 
         foreach (var member in leftBehind)

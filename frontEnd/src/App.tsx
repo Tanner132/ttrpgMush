@@ -18,6 +18,7 @@ const PlacesPage = lazy(() => import('./forge/places/PlacesPage.tsx'))
 const JobsPage = lazy(() => import('./forge/jobs/JobsPage.tsx'))
 const JobEditorPage = lazy(() => import('./forge/jobs/JobEditor.tsx'))
 const LibraryPage = lazy(() => import('./forge/library/LibraryPage.tsx'))
+const IndexPage = lazy(() => import('./forge/index/IndexPage.tsx'))
 const MethodSelectionPage = lazy(() => import('./components/characterCreation/MethodSelectionPage.tsx'))
 const CreatorShellPage = lazy(() => import('./pages/characterCreation/CreatorShellPage.tsx'))
 const CharacterSheetPage = lazy(() => import('./pages/CharacterSheetPage.tsx'))
@@ -50,6 +51,7 @@ export default function App() {
               <Route path="/admin/forge" element={<ForgeShell />}>
                 <Route index element={<ForgeHome />} />
                 <Route path="places" element={<PlacesPage />} />
+                <Route path="index" element={<IndexPage />} />
                 <Route path="jobs" element={<JobsPage />} />
                 <Route path="jobs/:id" element={<JobEditorPage />} />
                 <Route path="jobs/:id/:step" element={<JobEditorPage />} />
@@ -58,6 +60,10 @@ export default function App() {
                 <Route path="library/stat-blocks/:id" element={<LibraryPage shelf="stat-blocks" />} />
                 <Route path="library/dice-tests" element={<LibraryPage shelf="dice-tests" />} />
                 <Route path="library/dice-tests/:id" element={<LibraryPage shelf="dice-tests" />} />
+                <Route path="library/conversations" element={<LibraryPage shelf="conversations" />} />
+                <Route path="library/conversations/:id" element={<LibraryPage shelf="conversations" />} />
+                <Route path="library/facts" element={<LibraryPage shelf="facts" />} />
+                <Route path="library/facts/:id" element={<LibraryPage shelf="facts" />} />
               </Route>
             </Route>
           </Route>

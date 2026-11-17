@@ -242,7 +242,7 @@ public sealed class SceneEngine
         }
         else
         {
-            outcome = new SceneOutcome(choice.NextNodeId, choice.Effects, choice.EndsScene);
+            outcome = choice.OwnOutcome;
         }
 
         AppliedOutcome applied;
@@ -467,6 +467,12 @@ public sealed class SceneEngine
         SceneOutcome outcome,
         CancellationToken cancellationToken)
     {
+        // WF-74: the answer is said first, as the part's own line would be.
+        if (!string.IsNullOrWhiteSpace(outcome.Answer))
+        {
+            await SayAsync(npc, session, outcome.Answer!, cancellationToken);
+        }
+
         if (outcome.EndsScene)
         {
             return npc is not null
@@ -501,15 +507,7 @@ public sealed class SceneEngine
 
         if (speakNodeText)
         {
-            await broadcaster.BroadcastAsync(
-                npc is not null
-                    ? new RoomMessage(
-                        Guid.NewGuid(), npc.RoomId, npc.Id, npc.Name, node.Text,
-                        ChatMessageType.Say, timeProvider.GetUtcNow())
-                    : new RoomMessage(
-                        Guid.NewGuid(), session.RoomId, Guid.Empty, string.Empty, node.Text,
-                        ChatMessageType.Narration, timeProvider.GetUtcNow()),
-                cancellationToken);
+            await SayAsync(npc, session, node.Text, cancellationToken);
         }
 
         var visible = new List<string>();
@@ -530,6 +528,19 @@ public sealed class SceneEngine
         var lines = visible.Select((label, index) => $"{index + 1}. {label}");
         return $"{string.Join("\n", lines)}\n(Type a number to choose.)";
     }
+
+    // A line of the conversation: said by the NPC, or narrated when nobody
+    // is speaking it.
+    private Task SayAsync(NpcSnapshot? npc, SceneSessionSnapshot session, string text, CancellationToken cancellationToken) =>
+        broadcaster.BroadcastAsync(
+            npc is not null
+                ? new RoomMessage(
+                    Guid.NewGuid(), npc.RoomId, npc.Id, npc.Name, text,
+                    ChatMessageType.Say, timeProvider.GetUtcNow())
+                : new RoomMessage(
+                    Guid.NewGuid(), session.RoomId, Guid.Empty, string.Empty, text,
+                    ChatMessageType.Narration, timeProvider.GetUtcNow()),
+            cancellationToken);
 
     // §24: raises a content event on the room's queue at Depth + 1. The
     // TriggerEngine decides whether any authored trigger cares.

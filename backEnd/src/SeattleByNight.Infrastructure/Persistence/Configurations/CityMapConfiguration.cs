@@ -39,3 +39,20 @@ public sealed class TravelLinkConfiguration : IEntityTypeConfiguration<TravelLin
         builder.HasOne<Room>().WithMany().HasForeignKey(link => link.DestinationRoomId).OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+public sealed class DistrictConfiguration : IEntityTypeConfiguration<District>
+{
+    public void Configure(EntityTypeBuilder<District> builder)
+    {
+        builder.ToTable("districts");
+        builder.HasKey(district => district.Id);
+        builder.Property(district => district.Id).HasColumnName("id").HasColumnType("uuid").ValueGeneratedNever();
+        builder.Property(district => district.MapId).HasColumnName("map_id").HasColumnType("uuid").IsRequired();
+        builder.Property(district => district.Name).HasColumnName("name").HasMaxLength(80).IsRequired();
+        builder.Property(district => district.DefaultDescription).HasColumnName("default_description").HasMaxLength(4000).IsRequired();
+        builder.Property(district => district.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
+        builder.Property(district => district.Version).HasColumnName("version").HasColumnType("uuid").IsConcurrencyToken().ValueGeneratedNever();
+        builder.HasIndex(district => new { district.MapId, district.Name }).IsUnique().HasDatabaseName("ux_districts_map_name");
+        builder.HasOne<CityMap>().WithMany().HasForeignKey(district => district.MapId).OnDelete(DeleteBehavior.Restrict);
+    }
+}

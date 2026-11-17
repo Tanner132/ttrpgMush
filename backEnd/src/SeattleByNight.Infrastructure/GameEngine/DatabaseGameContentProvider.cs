@@ -77,6 +77,7 @@ public sealed class DatabaseGameContentProvider(IServiceScopeFactory scopes) : I
         var scenes = KeysOf(GameContentKind.Scene);
         var templates = KeysOf(GameContentKind.NpcTemplate);
         var places = KeysOf(GameContentKind.Place);
+        var facts = KeysOf(GameContentKind.Fact);
 
         return document with
         {
@@ -91,6 +92,9 @@ public sealed class DatabaseGameContentProvider(IServiceScopeFactory scopes) : I
                 .ToArray(),
             Places = document.Places
                 .Select(entry => entry with { IsRetired = places.Contains(entry.Id) })
+                .ToArray(),
+            Facts = document.Facts
+                .Select(entry => entry with { IsRetired = facts.Contains(entry.Id) })
                 .ToArray(),
         };
     }

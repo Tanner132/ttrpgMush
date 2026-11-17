@@ -622,6 +622,59 @@ public sealed class GameContentLoaderTests
         MessageAssert.Has("binds no stat block, so there is nobody to oppose it", error.Message);
     }
 
+    // WF-74/WF-75: a reply's answer, and a part's name.
+    [Fact]
+    public void A_reply_answers_on_its_own_or_on_its_roll_branches_and_a_part_has_a_name()
+    {
+        var document = GameContentLoader.Load(Document(scenes: """
+            [{
+              "id": "s1", "startNodeId": "n1", "npcTemplateId": "street-ganger",
+              "nodes": [{
+                "nodeId": "n1", "text": "t", "name": "Greeting",
+                "choices": [
+                  { "choiceId": "c1", "label": "Who are you?", "answer": "Nobody you know." },
+                  {
+                    "choiceId": "c2", "label": "Lean on them",
+                    "roll": { "pool": [{ "kind": "attribute", "id": "charisma" }], "opposedPools": ["social"] },
+                    "onSuccess": { "answer": "Fine, fine.", "endsScene": true },
+                    "onFailure": { "answer": "Get lost.", "endsScene": true }
+                  }
+                ]
+              }]
+            }]
+            """));
+
+        var node = Assert.Single(Assert.Single(document.Scenes).Nodes);
+        Assert.Equal("Greeting", node.Name);
+        Assert.Equal("Nobody you know.", node.Choices[0].OwnOutcome.Answer);
+        Assert.Equal("Get lost.", node.Choices[1].OnFailure!.Answer);
+    }
+
+    [Fact]
+    public void A_reply_that_rolls_answers_on_its_branches_not_on_itself()
+    {
+        var error = Assert.Throws<GameContentException>(() => GameContentLoader.Load(Document(scenes: RollScene(
+            """{ "pool": [{ "kind": "attribute", "id": "charisma" }], "opposedPools": ["social"] }""",
+            extra: "\"answer\": \"Hm.\","))));
+        MessageAssert.Has("its answer belongs on onSuccess/onFailure", error.Message);
+    }
+
+    [Fact]
+    public void A_blank_answer_or_part_name_is_refused()
+    {
+        var answer = Assert.Throws<GameContentException>(() => GameContentLoader.Load(Document(scenes: """
+            [{ "id": "s1", "startNodeId": "n1", "nodes": [{ "nodeId": "n1", "text": "t",
+               "choices": [{ "choiceId": "c1", "label": "Well?", "answer": "  ", "endsScene": true }] }] }]
+            """)));
+        MessageAssert.Has("has an answer that is blank or longer than 2000 characters", answer.Message);
+
+        var name = Assert.Throws<GameContentException>(() => GameContentLoader.Load(Document(scenes: """
+            [{ "id": "s1", "startNodeId": "n1", "nodes": [{ "nodeId": "n1", "text": "t", "name": "",
+               "choices": [{ "choiceId": "c1", "label": "Well?", "endsScene": true }] }] }]
+            """)));
+        MessageAssert.Has("has a name that is blank or longer than 80 characters", name.Message);
+    }
+
     private static string RollScene(string roll, string npcTemplate = "\"npcTemplateId\": \"street-ganger\",", string extra = "") => $$"""
         [{
           "id": "s1", "startNodeId": "n1", {{npcTemplate}}

@@ -5,6 +5,7 @@ import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
 import { moveRoomNpc, NpcAwarenessValues, placeRoomNpc, updateRoomNpc, type Guid, type NpcAwareness, type WorldNpc } from '../api.ts'
 import { Select, TextBox, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
+import { RoomPicker } from '../RoomPicker.tsx'
 import { useAction } from '../hooks.ts'
 
 /**
@@ -36,7 +37,6 @@ export function WorldNpcDialog({
 }) {
   const { references } = useForgeData()
   const templates = references.npcTemplates.filter((template) => !template.isRetired || template.id === npc?.templateId)
-  const publicRooms = references.rooms
   const [templateId, setTemplateId] = useState(npc?.templateId ?? templates[0]?.id ?? '')
   const [name, setName] = useState(npc?.name ?? '')
   const [description, setDescription] = useState(npc?.description ?? '')
@@ -106,7 +106,7 @@ export function WorldNpcDialog({
               value={sceneId}
               options={scenes}
               placeholder="None"
-              hint="Johnsons get their conversation when their job is written."
+              hint="Write one in the Library's Conversations. A Johnson's comes with their job."
               onChange={setSceneId}
             />
           )}
@@ -118,10 +118,9 @@ export function WorldNpcDialog({
           />
         </div>
         {npc && (
-          <Select
+          <RoomPicker
             label="Location"
             value={roomId}
-            options={publicRooms.map((candidate) => ({ id: candidate.id, displayName: candidate.name }))}
             hint="Moving keeps who they are: their conversation, damage and history go with them."
             onChange={setRoomId}
           />

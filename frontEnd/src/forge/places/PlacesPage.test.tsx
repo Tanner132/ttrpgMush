@@ -54,7 +54,7 @@ describe('Places · the map', () => {
     expect(screen.getByTestId('location')).toHaveTextContent(`room=${Ids.coffee}`)
   })
 
-  it('builds a room on the square south of the open room, joined both ways', async () => {
+  it('builds a room on the square south of the open room, joining the neighbours ticked (WF-43)', async () => {
     const user = userEvent.setup()
     vi.mocked(api.createRoom).mockImplementation(async (input) => ({ ...Rooms.downtown, ...input, id: 'new-room', version: 'v1' }))
     vi.mocked(api.createExit).mockImplementation(async (input) => ({ ...input, id: 'x', sourceRoomName: '', destinationRoomName: '', createdAtUtc: '', version: 'v' }))
@@ -64,9 +64,13 @@ describe('Places · the map', () => {
     const form = screen.getByRole('form', { name: 'Build a room' })
     await user.type(within(form).getByLabelText('Name'), 'Transit Hub')
     await user.type(within(form).getByLabelText('Description'), 'Turnstiles and rain.')
+    // Downtown is north and ticked; the Coffee Shop, northeast, is a diagonal and starts unticked.
+    expect(within(form).getByRole('checkbox', { name: 'north to Downtown and back' })).toBeChecked()
+    expect(within(form).getByRole('checkbox', { name: 'northeast to Coffee Shop and back' })).not.toBeChecked()
     await user.click(within(form).getByRole('button', { name: 'Create room' }))
 
-    await waitFor(() => expect(api.createExit).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(api.createRoom).toHaveBeenCalledTimes(1))
+    expect(api.createExit).not.toHaveBeenCalled()
     expect(api.createRoom).toHaveBeenCalledWith({
       name: 'Transit Hub',
       description: 'Turnstiles and rain.',
@@ -75,9 +79,9 @@ describe('Places · the map', () => {
       mapY: -1,
       mapLayer: 0,
       mapId: Ids.seattle,
+      districtId: null,
+      joins: ['north'],
     })
-    expect(api.createExit).toHaveBeenNthCalledWith(1, { sourceRoomId: Ids.downtown, destinationRoomId: 'new-room', direction: 'south', states: [] })
-    expect(api.createExit).toHaveBeenNthCalledWith(2, { sourceRoomId: 'new-room', destinationRoomId: Ids.downtown, direction: 'north', states: [] })
   })
 
   it('saves the room with the version it was loaded at', async () => {
@@ -130,7 +134,7 @@ describe('Places · exits', () => {
 
     await user.click(within(dialog).getByRole('button', { name: 'Southwest' }))
     await user.click(within(dialog).getByRole('button', { name: 'Existing room' }))
-    await user.selectOptions(within(dialog).getByLabelText('Destination room'), 'Layer 0 › Loading Dock')
+    await user.selectOptions(within(dialog).getByLabelText('Destination room'), Ids.dock)
     await user.click(within(dialog).getByRole('checkbox', { name: 'Locked' }))
     await user.click(within(dialog).getByRole('button', { name: 'Add exit' }))
 
@@ -150,7 +154,7 @@ describe('Places · exits', () => {
     const dialog = screen.getByRole('dialog', { name: 'Add exit' })
     await user.click(within(dialog).getByRole('button', { name: 'Southwest' }))
     await user.click(within(dialog).getByRole('button', { name: 'Existing room' }))
-    await user.selectOptions(within(dialog).getByLabelText('Destination room'), 'Layer 0 › Loading Dock')
+    await user.selectOptions(within(dialog).getByLabelText('Destination room'), Ids.dock)
 
     expect(within(dialog).getByText(/Loading Dock already has an exit northeast, to Alley/)).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'Add exit' })).toBeDisabled()
@@ -167,7 +171,7 @@ describe('Places · exits', () => {
     const dialog = screen.getByRole('dialog', { name: 'Add exit' })
     await user.click(within(dialog).getByRole('button', { name: 'Southwest' }))
     await user.click(within(dialog).getByRole('button', { name: 'Existing room' }))
-    await user.selectOptions(within(dialog).getByLabelText('Destination room'), 'Layer 0 › Loading Dock')
+    await user.selectOptions(within(dialog).getByLabelText('Destination room'), Ids.dock)
     await user.click(within(dialog).getByRole('checkbox', { name: 'Locked' }))
     await user.click(within(dialog).getByRole('checkbox', { name: 'Restricted' }))
     expect(within(dialog).getByText(/the way back is left free to leave by/)).toBeInTheDocument()

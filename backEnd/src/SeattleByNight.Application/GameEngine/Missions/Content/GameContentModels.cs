@@ -20,6 +20,12 @@ public sealed record GameContentDocument(
     // WF-20/WF-26: a map room's own events, one definition per room.
     public IReadOnlyList<PlaceDefinition> Places { get; init; } = [];
 
+    // WF-80: the named facts content can set and test.
+    public IReadOnlyList<FactDefinition> Facts { get; init; } = [];
+
+    public FactDefinition? FindFact(Guid factId) =>
+        Facts.FirstOrDefault(fact => fact.Id == factId);
+
     // WF-27: every authored record is found by its id; names are display only.
     public PlaceDefinition? FindPlace(Guid roomId) =>
         Places.FirstOrDefault(place => place.Id == roomId);
@@ -89,6 +95,18 @@ public sealed record GameContentDocument(
 // in-flight instances can still resolve what they were built from. The flag is
 // what stops it being offered to anyone new — "gone from the game" and "erased
 // from the record" are different operations, and only the first is routine.
+// WF-80: a fact a character can carry. With RunOf it lasts only for the
+// character's current run of that job: it counts while that run is open and
+// stops counting when the run ends, however it ends.
+public sealed record FactDefinition(
+    Guid Id,
+    string DisplayName,
+    string Description,
+    Guid? RunOf = null) : IRetirableDefinition
+{
+    public bool IsRetired { get; init; }
+}
+
 public interface IRetirableDefinition
 {
     bool IsRetired { get; init; }
@@ -140,6 +158,13 @@ public sealed record MissionDefinition(
 
     // The stage for this many hours since completion: the last one that has
     // begun. Null before the first stage, or with none written.
+    // WF-83: facts the character must have, and must not have, to be offered
+    // the job; and what completing it sets and clears on everyone it pays.
+    public IReadOnlyList<Guid> RequiresFacts { get; init; } = [];
+    public IReadOnlyList<Guid> RefusesFacts { get; init; } = [];
+    public IReadOnlyList<Guid> CompletionSetsFacts { get; init; } = [];
+    public IReadOnlyList<Guid> CompletionClearsFacts { get; init; } = [];
+
     public AftermathStage? AftermathAt(TimeSpan sinceCompletion) =>
         Aftermath.LastOrDefault(stage => sinceCompletion >= TimeSpan.FromHours(stage.FromHour));
 }
@@ -200,7 +225,9 @@ public sealed record MissionObjectiveDefinition(
     MissionObjectiveKind Kind,
     Guid? ItemId = null,
     // reachRoom: the map room to walk into.
-    Guid? RoomId = null);
+    Guid? RoomId = null,
+    // WF-81: facts set on the runner when the objective is completed.
+    IReadOnlyList<Guid>? SetsFacts = null);
 
 // ------------------------------------------------------------------------
 // Scenes (§37, generalized in Milestone 7): a node graph defined as data —
@@ -235,7 +262,10 @@ public sealed record SceneDefinition(
 public sealed record SceneNodeDefinition(
     Guid Id,
     string Text,
-    IReadOnlyList<SceneChoiceDefinition> Choices);
+    IReadOnlyList<SceneChoiceDefinition> Choices,
+    // WF-75: the author's name for the part, for the Forge only. Players
+    // never see it.
+    string? Name = null);
 
 public sealed record SceneChoiceDefinition(
     Guid Id,
@@ -252,8 +282,15 @@ public sealed record SceneChoiceDefinition(
     bool EndsScene = false,
     // A roll written on the reply itself, instead of naming a test. A reply
     // has one or the other, never both.
-    ChoiceRoll? Roll = null)
+    ChoiceRoll? Roll = null,
+    // WF-74: what the NPC says back (or, with nobody speaking, what the
+    // runner reads) when the reply is picked, before the conversation moves
+    // on. A reply with a roll answers on its pass and fail instead.
+    string? Answer = null)
 {
+    // The reply's own outcome, for a reply that does not roll.
+    public SceneOutcome OwnOutcome => new(NextNodeId, Effects, EndsScene, Answer);
+
     // Whether picking the reply rolls dice, and so branches on the result.
     public bool Rolls => TestId is not null || Roll is not null;
 }
@@ -299,7 +336,9 @@ public sealed record ChoiceRoll(
 public sealed record SceneOutcome(
     Guid? NextNodeId = null,
     IReadOnlyList<SceneEffect>? Effects = null,
-    bool EndsScene = false);
+    bool EndsScene = false,
+    // WF-74: the line said in answer, before the next part (if any).
+    string? Answer = null);
 
 // Visibility predicates evaluated per viewer, server-side — the same
 // evaluation that offers a choice validates its submission (§32). Triggers
@@ -319,12 +358,18 @@ public enum SceneConditionKind
     NotCarryingItem,
     // No pay negotiation has happened yet in this conversation.
     NotYetNegotiated,
+    // WF-81: the character has the named fact (a run-only fact only while
+    // that run is open).
+    FactSet,
+    // The character does not have the named fact.
+    FactNotSet,
 }
 
 public sealed record SceneCondition(
     SceneConditionKind Kind,
     Guid? MissionId = null,
-    Guid? ItemId = null);
+    Guid? ItemId = null,
+    Guid? FactId = null);
 
 // What a chosen option or a fired trigger does to the world, resolved into
 // State Changes by the engine so everything commits atomically and lands in
@@ -373,6 +418,11 @@ public enum SceneEffectKind
     // A trigger reaction only: inside a scene, flow belongs on the choice's
     // nextNodeId, and the loader refuses it there.
     AdvanceScene,
+    // WF-81: records the named fact against the acting character, in the
+    // same commit as everything else the choice or event did.
+    SetFact,
+    // Removes the named fact from the acting character.
+    ClearFact,
 }
 
 public enum SceneDamageType
@@ -395,7 +445,9 @@ public sealed record SceneEffect(
     // scene id is a guard — a character has at most one open scene, so the
     // effect does nothing unless that scene is the one named.
     Guid? SceneId = null,
-    Guid? NodeId = null);
+    Guid? NodeId = null,
+    // setFact / clearFact: which fact.
+    Guid? FactId = null);
 
 // ------------------------------------------------------------------------
 // Triggers (Milestone 7): (event, conditions) → reaction sequence. This is

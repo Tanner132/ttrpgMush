@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { Button } from '../../components/ui/Button.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
-import { createMap, publishRooms } from '../api.ts'
+import { createMap, getUnreachable, publishRooms } from '../api.ts'
 import { Select, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
-import { useAction } from '../hooks.ts'
-import { useConfirmLeave } from '../hooks.ts'
+import { useAction, useConfirmLeave, useLoad } from '../hooks.ts'
 
 /**
  * WF-41: which map (city) Places shows, a new map, and (WF-60) putting every
@@ -19,6 +18,14 @@ export function MapBar() {
   const [published, setPublished] = useState<number | null>(null)
   const action = useAction()
   const map = world.map
+  // WF-45: live rooms nobody can walk to from the start room. Read again
+  // whenever the map changes.
+  const unreachable = useLoad(
+    (signal) => getUnreachable(signal),
+    [map.id, map.rooms, map.draftRooms, world.exits.length, world.travelLinks.length],
+    { keepPrevious: true },
+  )
+  const stranded = unreachable.data ?? []
 
   async function addMap() {
     const created = await action.run(() => createMap(name.trim()))
@@ -80,6 +87,16 @@ export function MapBar() {
       {action.error && (
         <StatusBanner tone="danger" role="alert">
           {action.error}
+        </StatusBanner>
+      )}
+      {stranded.length > 0 && (
+        <StatusBanner tone="warning">
+          {stranded.length === 1 ? '1 live room' : `${stranded.length} live rooms`} cannot be reached from the start room:{' '}
+          {stranded
+            .slice(0, 8)
+            .map((room) => (room.mapId === map.id ? room.name : `${room.name} (${room.mapName})`))
+            .join(', ')}
+          {stranded.length > 8 ? ` and ${stranded.length - 8} more` : ''}. Join them with an exit or travel, or unpublish them.
         </StatusBanner>
       )}
       {published !== null && <StatusBanner tone="success">{published === 1 ? '1 room is' : `${published} rooms are`} now in play.</StatusBanner>}

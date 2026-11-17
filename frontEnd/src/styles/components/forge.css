@@ -1388,3 +1388,189 @@ button.forge__row-link {
   align-items: end;
   gap: 8px 12px;
 }
+
+/* WF-40: the wider zooms draw each room as a square. */
+.forge-map__grid--overview {
+  gap: 2px;
+}
+
+.forge-map__dot,
+.forge-map__empty,
+.forge-map__grid--overview .forge-map__build {
+  aspect-ratio: 1;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.forge-map__dot {
+  border: 1px solid var(--sb-border-strong, var(--sb-border));
+  background: var(--sb-surface-raised, var(--sb-bg));
+  cursor: pointer;
+}
+
+.forge-map__dot.forge-map__room--current {
+  background: var(--sb-accent);
+}
+
+.forge-map__empty {
+  display: block;
+}
+
+.forge-map__grid--compact .forge-map__room,
+.forge-map__grid--compact .forge-map__build {
+  min-height: 40px;
+  font-size: 0.6rem;
+}
+
+.forge-map__grid {
+  touch-action: none;
+  user-select: none;
+}
+
+/* WF-72: rooms picked for an action. */
+.forge-map__room--selected {
+  outline: 2px solid var(--sb-warning);
+  outline-offset: -2px;
+}
+
+/* WF-44: cells painted for new rooms. */
+.forge-map__build--painted {
+  border-style: solid;
+  border-color: var(--sb-warning);
+  background: rgba(255, 176, 0, 0.18);
+  color: var(--sb-text);
+}
+
+.forge-map__goto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.forge-map__goto .ui-field__input {
+  flex: 1 1 200px;
+}
+
+/* WF-64: the world index. */
+.forge__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.forge__table th,
+.forge__table td {
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--sb-border);
+  vertical-align: top;
+}
+
+.forge__table th button {
+  all: unset;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.forge__table-wrap {
+  overflow-x: auto;
+}
+
+/* World Forge phase 4: conversations as an outline (WF-75), the graph (WF-76),
+   events along the route (WF-78). */
+.forge__outline-nest {
+  margin-top: var(--sb-space-3);
+  padding-left: var(--sb-space-4);
+  border-left: 2px solid var(--sb-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-3);
+}
+
+.forge__reply-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-3);
+  margin-top: var(--sb-space-2);
+  padding: var(--sb-space-3);
+  background: var(--sb-surface-sunken);
+  border: 1px solid var(--sb-border);
+}
+
+.forge__answer {
+  display: block;
+  font-style: italic;
+  color: var(--sb-text);
+}
+
+.forge__route-stop,
+.forge__prompt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sb-space-3);
+  padding-top: var(--sb-space-3);
+  border-top: 1px solid var(--sb-border);
+}
+
+.forge-graph {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.forge-graph svg {
+  display: block;
+}
+
+.forge-graph__part rect {
+  fill: var(--sb-surface-sunken);
+  stroke: var(--sb-border);
+  stroke-width: 1;
+}
+
+.forge-graph__part {
+  cursor: pointer;
+}
+
+.forge-graph__part:focus-visible rect,
+.forge-graph__part:hover rect {
+  stroke: var(--sb-accent);
+  stroke-width: 2;
+}
+
+.forge-graph__part--start rect {
+  stroke: var(--sb-accent);
+}
+
+.forge-graph__part--bad rect {
+  stroke: var(--sb-warning);
+  stroke-dasharray: 4 3;
+}
+
+.forge-graph__name {
+  fill: var(--sb-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.forge-graph__marks {
+  fill: var(--sb-text-muted);
+  font-size: 11px;
+}
+
+.forge-graph__edge path {
+  fill: none;
+  stroke: var(--sb-text-muted);
+  stroke-width: 1.5;
+}
+
+.forge-graph__edge--fail path {
+  stroke-dasharray: 5 4;
+}
+
+.forge-graph__end,
+.forge-graph marker path {
+  fill: var(--sb-text-muted);
+}

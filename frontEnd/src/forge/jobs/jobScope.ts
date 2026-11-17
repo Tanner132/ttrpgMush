@@ -1,5 +1,5 @@
 import type { ContentReferences, Guid, WorldRoom } from '../api.ts'
-import { PlaceEffects, PlaceEvents, type EventScope } from '../events/scope.ts'
+import { factOptions, PlaceEffects, PlaceEvents, type EventScope } from '../events/scope.ts'
 import type { Option } from '../fields.tsx'
 import type { ConditionKind, EffectKind, Mission, Scene, TriggerEvent } from '../model.ts'
 
@@ -29,7 +29,7 @@ const JobEvents: TriggerEvent[] = ['missionAccepted', ...PlaceEvents, 'itemPicke
 /** A job's listeners may also hand over one of its items (GameContentLoader.JobEffects). */
 const JobEffects: EffectKind[] = [...PlaceEffects, 'giveItem']
 
-const ListenerConditions: ConditionKind[] = ['missionOpen', 'missionReadyToTurnIn', 'missionAvailable', 'carryingItem', 'notCarryingItem']
+const ListenerConditions: ConditionKind[] = ['missionOpen', 'missionReadyToTurnIn', 'missionAvailable', 'carryingItem', 'notCarryingItem', 'factSet', 'factNotSet']
 
 /** What a reply in a conversation may do. Where the talk goes next is the reply's own "Then". */
 const SceneEffectKinds: EffectKind[] = [
@@ -45,6 +45,8 @@ const SceneEffectKinds: EffectKind[] = [
   'completeObjective',
   'failObjective',
   'failMission',
+  'setFact',
+  'clearFact',
 ]
 
 const SceneConditions: ConditionKind[] = [
@@ -54,6 +56,8 @@ const SceneConditions: ConditionKind[] = [
   'carryingItem',
   'notCarryingItem',
   'notYetNegotiated',
+  'factSet',
+  'factNotSet',
 ]
 
 function byName(a: Option, b: Option) {
@@ -67,6 +71,7 @@ function missions(context: JobContext): EventScope['missions'] {
     {
       id: mission.id,
       displayName: `${mission.displayName || 'This job'} (this job)`,
+      nuyen: mission.rewards.nuyen,
       objectives: mission.objectives.map((objective) => ({ id: objective.id, displayName: objective.displayName })),
     },
     ...references.missions
@@ -96,8 +101,8 @@ export function allItems(context: JobContext): Option[] {
   return [...own, ...others]
 }
 
-function tests(context: JobContext, opposed: boolean): Option[] {
-  return context.references.tests
+function tests(references: ContentReferences, opposed: boolean): Option[] {
+  return references.tests
     .filter((test) => opposed || !test.opposed)
     .map((test) => ({
       id: test.id,
@@ -138,8 +143,9 @@ export function listenerScope(roomId: Guid | undefined, context: JobContext): Ev
     conditions: ListenerConditions,
     missions: missions(context),
     allItems: allItems(context),
-    tests: tests(context, false),
+    tests: tests(context.references, false),
     scenes: prompts(context.scenes),
+    facts: factOptions(references),
     canFireOnce: true,
     // Every room is shared: there are always bystanders to show a cover line to.
     canHaveCoverLine: true,
@@ -166,8 +172,63 @@ export function sceneScope(scene: Scene, context: JobContext): EventScope {
     conditions: SceneConditions,
     missions: missions(context),
     allItems: allItems(context),
-    tests: tests(context, hasNpc),
+    tests: tests(context.references, hasNpc),
     scenes: [],
+    facts: factOptions(context.references),
+    canFireOnce: false,
+    canHaveCoverLine: false,
+  }
+}
+
+/**
+ * WF-78: the rooms of a job in the order a runner meets them — the Johnson's,
+ * then each objective's in turn, then the job's other rooms — and after them
+ * any other room one of its events listens in.
+ */
+export function routeOrder(mission: Mission, johnsonRoomId: Guid | undefined): Guid[] {
+  const order: Guid[] = []
+  const add = (roomId: Guid | undefined) => {
+    if (roomId && !order.includes(roomId)) order.push(roomId)
+  }
+  add(johnsonRoomId)
+  for (const objective of mission.objectives) {
+    if (objective.kind === 'reachRoom') add(objective.roomId)
+    else if (objective.kind === 'pickUpItem') add(mission.items.find((item) => item.id === objective.itemId)?.roomId)
+    else add(johnsonRoomId)
+  }
+  mission.roomIds.forEach(add)
+  mission.triggers.forEach((listener) => add(listener.roomId))
+  return order
+}
+
+/**
+ * WF-63: a conversation in the Library, given to whichever world NPCs the
+ * author chooses. It belongs to no job, so it can name any live job and any
+ * job's item.
+ */
+export function libraryScope(scene: Scene, references: ContentReferences): EventScope {
+  const hasNpc = scene.npcTemplateId !== undefined
+  const npcs = mapNpcs(references)
+  return {
+    events: [],
+    npcs: hasNpc ? [] : npcs,
+    alertNpcs: hasNpc ? [] : npcs,
+    unnamedNpc: hasNpc ? 'Whoever the runner is talking to' : undefined,
+    items: [],
+    inspectables: [],
+    effects: hasNpc ? SceneEffectKinds.filter((kind) => kind !== 'giveItem') : SceneEffectKinds.filter((kind) => kind !== 'setNegotiatedPay'),
+    conditions: SceneConditions,
+    missions: references.missions
+      .filter((mission) => !mission.isRetired)
+      .map((mission) => ({
+        id: mission.id,
+        displayName: mission.displayName,
+        objectives: mission.objectives.map((objective) => ({ id: objective.id, displayName: objective.displayName })),
+      })),
+    allItems: references.missions.flatMap((mission) => mission.items.map((item) => ({ id: item.id, displayName: `${item.name} · ${mission.displayName}` }))),
+    tests: tests(references, hasNpc),
+    scenes: [],
+    facts: factOptions(references),
     canFireOnce: false,
     canHaveCoverLine: false,
   }

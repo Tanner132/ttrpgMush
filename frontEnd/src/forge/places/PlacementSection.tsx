@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '../../components/ui/Button.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
-import { moveRooms, publishRooms, unpublishRooms, type WorldRoom } from '../api.ts'
+import { duplicateRoom, moveRooms, publishRooms, setRoomsDistrict, unpublishRooms, type WorldRoom } from '../api.ts'
 import { Chip, NumberInput, Section, Select } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { useAction } from '../hooks.ts'
@@ -16,7 +16,7 @@ const Far = 1_000_000
  */
 export function PlacementSection({ room }: { room: WorldRoom }) {
   const { world, refreshWorld, openMap } = useForgeData()
-  const [moving, setMoving] = useState(false)
+  const [moving, setMoving] = useState<'move' | 'copy' | false>(false)
   const [target, setTarget] = useState({ mapId: room.mapId, x: room.mapX, y: room.mapY, layer: room.mapLayer })
   const [notice, setNotice] = useState<string | null>(null)
   const action = useAction()
@@ -48,7 +48,34 @@ export function PlacementSection({ room }: { room: WorldRoom }) {
     }
   }
 
+  // WF-73: the room's district, if any.
+  async function setDistrict(districtId: string) {
+    setNotice(null)
+    const done = await action.run(async () => {
+      await setRoomsDistrict([room.id], districtId || null)
+      await refreshWorld()
+      return true
+    })
+    if (done) setNotice(districtId ? `${room.name} is in ${world.districts?.find((district) => district.id === districtId)?.name}.` : `${room.name} is in no district.`)
+  }
+
+  // WF-44: a draft copy with its NPCs and inspectables, on the cell chosen.
+  async function duplicate() {
+    setNotice(null)
+    const copy = await action.run(async () => {
+      const made = await duplicateRoom(room.id, { mapId: target.mapId, x: target.x, y: target.y, layer: target.layer })
+      if (target.mapId !== room.mapId) openMap(target.mapId)
+      else await refreshWorld()
+      return made
+    })
+    if (copy) {
+      setMoving(false)
+      setNotice(`${copy.name} built at ${copy.mapX}, ${copy.mapY}, as a draft, with what was in ${room.name}.`)
+    }
+  }
+
   async function move() {
+    if (moving === 'copy') return duplicate()
     setNotice(null)
     const done = await action.run(async () => {
       await moveRooms({
@@ -93,19 +120,37 @@ export function PlacementSection({ room }: { room: WorldRoom }) {
             </Button>
           )}
           <Button
-            aria-expanded={moving}
+            aria-expanded={moving === 'move'}
             onClick={() => {
               setTarget({ mapId: room.mapId, x: room.mapX, y: room.mapY, layer: room.mapLayer })
-              setMoving((open) => !open)
+              setMoving((open) => (open === 'move' ? false : 'move'))
             }}
           >
             Move room
           </Button>
+          <Button
+            aria-expanded={moving === 'copy'}
+            onClick={() => {
+              setTarget({ mapId: room.mapId, x: room.mapX + 1, y: room.mapY, layer: room.mapLayer })
+              setMoving((open) => (open === 'copy' ? false : 'copy'))
+            }}
+          >
+            Duplicate
+          </Button>
         </div>
+        {(world.districts ?? []).length > 0 && (
+          <Select
+            label="District"
+            value={room.districtId ?? ''}
+            placeholder="No district"
+            options={(world.districts ?? []).map((district) => ({ id: district.id, displayName: district.name }))}
+            onChange={(districtId) => void setDistrict(districtId)}
+          />
+        )}
         {moving && (
           <form
             className="forge__stack"
-            aria-label="Move room"
+            aria-label={moving === 'copy' ? 'Duplicate room' : 'Move room'}
             onSubmit={(event) => {
               event.preventDefault()
               void move()
@@ -122,10 +167,14 @@ export function PlacementSection({ room }: { room: WorldRoom }) {
               <NumberInput label="Y" value={target.y} min={-Far} max={Far} onChange={(y) => setTarget((current) => ({ ...current, y: y ?? current.y }))} />
               <NumberInput label="Layer" value={target.layer} min={-Far} max={Far} onChange={(layer) => setTarget((current) => ({ ...current, layer: layer ?? current.layer }))} />
             </div>
-            <p className="forge__hint">The cell must be free. Exits stay as they are, even to rooms that are no longer next door.</p>
+            <p className="forge__hint">
+              {moving === 'copy'
+                ? 'The cell must be free. The copy takes the NPCs (without a conversation) and inspectables; not exits, events or job items.'
+                : 'The cell must be free. Exits stay as they are, even to rooms that are no longer next door.'}
+            </p>
             <div className="forge__actions">
-              <Button type="submit" intent="primary" disabled={unchanged} busy={action.busy}>
-                Move here
+              <Button type="submit" intent="primary" disabled={moving === 'move' && unchanged} busy={action.busy}>
+                {moving === 'copy' ? 'Duplicate here' : 'Move here'}
               </Button>
               <Button onClick={() => setMoving(false)} disabled={action.busy}>
                 Cancel

@@ -15,7 +15,9 @@ public sealed record WorldRoom(
     // WF-41: the map (city) the room is on.
     Guid MapId,
     // WF-60: a draft room is out of play until it is published.
-    bool IsLive);
+    bool IsLive,
+    // WF-73: the room's district, if any.
+    Guid? DistrictId = null);
 
 public sealed record WorldExit(
     Guid Id,
@@ -36,7 +38,19 @@ public sealed record WorldGraph(
     IReadOnlyList<WorldExit> Exits,
     WorldMapSummary? Map = null,
     IReadOnlyList<WorldMapSummary>? Maps = null,
-    IReadOnlyList<WorldTravelLink>? TravelLinks = null);
+    IReadOnlyList<WorldTravelLink>? TravelLinks = null,
+    IReadOnlyList<WorldDistrict>? Districts = null);
+
+// WF-73: a named group of rooms on one map; its default description is shown
+// for a room whose own is blank.
+public sealed record WorldDistrict(
+    Guid Id,
+    Guid MapId,
+    string Name,
+    string DefaultDescription,
+    int Rooms,
+    DateTimeOffset CreatedAtUtc,
+    Guid Version);
 
 // WF-41: a map and how much is on it.
 public sealed record WorldMapSummary(

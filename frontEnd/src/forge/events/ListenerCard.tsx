@@ -22,7 +22,8 @@ function startStep(kind: ReactionKind, scope: EventScope): Reaction {
     case 'npcEmotes':
       return { kind, npcId: scope.npcs[0]?.id, text: '' }
     case 'runTest':
-      return { kind, testId: scope.tests[0]?.id, onSuccess: {}, onFailure: {} }
+      // WF-54: no test is chosen for the author; the first on the list was a guess.
+      return { kind, onSuccess: {}, onFailure: {} }
     case 'applyEffects':
       return { kind, effects: [] }
     case 'openScene':

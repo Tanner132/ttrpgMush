@@ -150,9 +150,26 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
             return false;
         }
 
+        if (!await MeetsFactsAsync(characterId, definition, cancellationToken))
+        {
+            return false;
+        }
+
         var (error, _) = await CheckRepeatabilityAsync(
             characterId, definition, timeProvider.GetUtcNow(), cancellationToken);
         return error == MissionAssignError.None;
+    }
+
+    // WF-83: every fact the job requires, none it refuses.
+    private async Task<bool> MeetsFactsAsync(Guid characterId, MissionDefinition definition, CancellationToken cancellationToken)
+    {
+        if (definition.RequiresFacts.Count == 0 && definition.RefusesFacts.Count == 0)
+        {
+            return true;
+        }
+
+        var held = await CharacterFactReader.HeldAsync(dbContext, characterId, cancellationToken);
+        return definition.RequiresFacts.All(held.Contains) && !definition.RefusesFacts.Any(held.Contains);
     }
 
     public Task<MissionAssignResult> AssignAsync(
@@ -193,6 +210,13 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
         if (await IsInAftermathAsync(definition.Id, cancellationToken))
         {
             return new MissionAssignResult(MissionAssignError.JobFinished);
+        }
+
+        // WF-83: a job may need the runner to have done something before, or
+        // not to have.
+        if (!await MeetsFactsAsync(characterId, definition, cancellationToken))
+        {
+            return new MissionAssignResult(MissionAssignError.FactsNotMet);
         }
 
         var (repeatabilityError, cooldownEndsAtUtc) = await CheckRepeatabilityAsync(

@@ -8,14 +8,18 @@ import { Chip, Empty, Section, Segmented, Select, TextInput } from '../fields.ts
 import { statusTone, statusWord } from '../format.ts'
 import { useForgeData } from '../forgeContext.ts'
 import { useAction } from '../hooks.ts'
-import { newDiceTest, newId, newStatBlock, parse, toJson, type DiceTest, type StatBlock } from '../model.ts'
+import { newConversation, newDiceTest, newFact, newId, newStatBlock, parse, sceneIds, toJson, withNewIds, type DiceTest, type Fact, type Scene, type StatBlock } from '../model.ts'
 import { useForgeNavigate, useGuardedClick } from '../navigation.ts'
 import { DiceTestEditor } from './DiceTestEditor.tsx'
+import { ConversationLibraryEditor } from './ConversationLibraryEditor.tsx'
+import { FactEditor } from './FactEditor.tsx'
 import { StatBlockEditor } from './StatBlockEditor.tsx'
 
-type Shelf = 'stat-blocks' | 'dice-tests'
+type Shelf = 'stat-blocks' | 'dice-tests' | 'conversations' | 'facts'
 
-const ShelfKind: Record<Shelf, ContentKind> = { 'stat-blocks': 'NpcTemplate', 'dice-tests': 'Test' }
+const ShelfKind: Record<Shelf, ContentKind> = { 'stat-blocks': 'NpcTemplate', 'dice-tests': 'Test', conversations: 'Scene', facts: 'Fact' }
+const Noun: Record<Shelf, string> = { 'stat-blocks': 'stat block', 'dice-tests': 'dice test', conversations: 'conversation', facts: 'fact' }
+const Title: Record<Shelf, string> = { 'stat-blocks': 'Stat blocks', 'dice-tests': 'Dice tests', conversations: 'Conversations', facts: 'Facts' }
 
 /** "Start from": a blank record or a copy of one already in the Library. */
 function NewDialog({ shelf, onClose }: { shelf: Shelf; onClose: () => void }) {
@@ -26,15 +30,27 @@ function NewDialog({ shelf, onClose }: { shelf: Shelf; onClose: () => void }) {
   const [copyOf, setCopyOf] = useState(existing[0]?.contentKey ?? '')
   const [name, setName] = useState('')
   const action = useAction()
-  const noun = shelf === 'stat-blocks' ? 'stat block' : 'dice test'
+  const noun = Noun[shelf]
 
   async function create() {
     const id = await action.run(async () => {
-      let record: StatBlock | DiceTest =
-        shelf === 'stat-blocks' ? newStatBlock(palette.npcPools.map((pool) => pool.id)) : newDiceTest()
+      let record: StatBlock | DiceTest | Scene | Fact =
+        shelf === 'stat-blocks'
+          ? newStatBlock(palette.npcPools.map((pool) => pool.id))
+          : shelf === 'dice-tests'
+            ? newDiceTest()
+            : shelf === 'facts'
+              ? newFact()
+              : newConversation(name.trim())
       if (from === 'copy' && copyOf) {
         const source = await getDefinition(ShelfKind[shelf], copyOf)
-        record = { ...parse<StatBlock | DiceTest>(source.draftJson), id: newId() }
+        if (shelf === 'conversations') {
+          // A conversation's parts and replies have ids of their own, unique across all content.
+          const scene = parse<Scene>(source.draftJson)
+          record = withNewIds(scene, sceneIds(scene)).copy
+        } else {
+          record = { ...parse<StatBlock | DiceTest | Fact>(source.draftJson), id: newId() }
+        }
       }
       record = { ...record, displayName: name.trim() }
       // Saved straight away, so it is in the list and can be left and found again.
@@ -101,9 +117,17 @@ function ShelfList({ shelf, selected }: { shelf: Shelf; selected: string | undef
   const records = definitions(ShelfKind[shelf])
     .filter((summary) => summary.displayName.toLowerCase().includes(search.trim().toLowerCase()))
     .sort((a, b) => a.displayName.localeCompare(b.displayName))
-  const title = shelf === 'stat-blocks' ? 'Stat blocks' : 'Dice tests'
+  const title = Title[shelf]
 
   function detail(summary: ContentSummary) {
+    if (shelf === 'facts') {
+      const uses = (references.facts ?? []).find((fact) => fact.id === summary.contentKey)
+      return uses ? `Set by ${uses.setBy.length}, tested by ${uses.testedBy.length}` : 'Not live yet'
+    }
+    if (shelf === 'conversations') {
+      const said = references.rooms.reduce((count, room) => count + room.npcs.filter((npc) => npc.sceneId === summary.contentKey).length, 0)
+      return said > 0 ? `Said by ${said} NPC${said === 1 ? '' : 's'}` : 'Nobody says it'
+    }
     if (shelf === 'stat-blocks') {
       const world = references.rooms.reduce((count, room) => count + room.npcs.filter((npc) => npc.templateId === summary.contentKey).length, 0)
       const used = summary.dependentPlacements + world
@@ -134,7 +158,7 @@ function ShelfList({ shelf, selected }: { shelf: Shelf; selected: string | undef
       </ul>
       <div className="forge__actions">
         <Button intent="primary" onClick={() => setCreating(true)}>
-          + New {shelf === 'stat-blocks' ? 'stat block' : 'dice test'}
+          + New {Noun[shelf]}
         </Button>
       </div>
       {shelf === 'dice-tests' && palette.builtInTests.length > 0 && (
@@ -153,7 +177,7 @@ function ShelfList({ shelf, selected }: { shelf: Shelf; selected: string | undef
   )
 }
 
-/** The Library: stat blocks and dice tests, shared by every place and job. */
+/** The Library: stat blocks, dice tests and conversations, shared by every place and job. */
 export default function LibraryPage({ shelf }: { shelf: Shelf }) {
   const { id } = useParams()
   const guard = useGuardedClick()
@@ -164,7 +188,7 @@ export default function LibraryPage({ shelf }: { shelf: Shelf }) {
     <div className="forge__page">
       <div className="forge__titlebar">
         <div className="forge__titlebar-main">
-          <p className="forge__eyebrow">Library · {shelf === 'stat-blocks' ? 'stat blocks' : 'dice tests'}</p>
+          <p className="forge__eyebrow">Library · {Title[shelf].toLowerCase()}</p>
           <h1 className="forge__title">{current?.displayName ?? 'Library'}</h1>
         </div>
         <nav className="forge__subnav" aria-label="Library sections">
@@ -174,15 +198,25 @@ export default function LibraryPage({ shelf }: { shelf: Shelf }) {
           <NavLink to="/admin/forge/library/dice-tests" onClick={guard} className={({ isActive }) => (isActive ? 'forge__subtab forge__subtab--active' : 'forge__subtab')}>
             Dice tests
           </NavLink>
+          <NavLink to="/admin/forge/library/conversations" onClick={guard} className={({ isActive }) => (isActive ? 'forge__subtab forge__subtab--active' : 'forge__subtab')}>
+            Conversations
+          </NavLink>
+          <NavLink to="/admin/forge/library/facts" onClick={guard} className={({ isActive }) => (isActive ? 'forge__subtab forge__subtab--active' : 'forge__subtab')}>
+            Facts
+          </NavLink>
         </nav>
       </div>
       <div className="forge__columns forge__columns--library">
         <ShelfList shelf={shelf} selected={id} />
         <div className="forge__column">
           {!id ? (
-            <Empty>Choose a {shelf === 'stat-blocks' ? 'stat block' : 'dice test'} to edit, or make a new one.</Empty>
+            <Empty>Choose a {Noun[shelf]} to edit, or make a new one.</Empty>
           ) : shelf === 'stat-blocks' ? (
             <StatBlockEditor key={id} id={id} />
+          ) : shelf === 'conversations' ? (
+            <ConversationLibraryEditor key={id} id={id} />
+          ) : shelf === 'facts' ? (
+            <FactEditor key={id} id={id} />
           ) : (
             <DiceTestEditor key={id} id={id} />
           )}

@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Button } from '../../components/ui/Button.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
 import { deleteRoom, getRoomDeletion, type WorldRoom } from '../api.ts'
-import { Chip, Empty, Section, Select } from '../fields.tsx'
+import { Chip, Empty, Section } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
+import { RoomPicker } from '../RoomPicker.tsx'
 import { useAction, useLoad } from '../hooks.ts'
 import type { HereCounts } from './WorldContents.tsx'
 
@@ -35,10 +36,7 @@ export function UsageSection({ room, here, onDeleted }: { room: WorldRoom; here?
   const action = useAction()
   const usage = check.data
 
-  // WF-60: nobody is put in a draft room.
-  const others = world.rooms
-    .filter((candidate) => candidate.id !== room.id && candidate.isLive)
-    .map((candidate) => ({ id: candidate.id, displayName: candidate.name }))
+  // WF-60: nobody is put in a draft room (the picker's filter).
 
   async function remove() {
     const result = await action.run(() => deleteRoom(room.id, usage?.charactersPresent ? relocateTo : undefined))
@@ -92,11 +90,10 @@ export function UsageSection({ room, here, onDeleted }: { room: WorldRoom; here?
               .
             </p>
             {usage.charactersPresent > 0 && (
-              <Select
+              <RoomPicker
                 label={`${plural(usage.charactersPresent, 'character')} standing here will move to`}
                 value={relocateTo}
-                options={others}
-                placeholder="Choose a room"
+                filter={(candidate) => candidate.id !== room.id && candidate.isLive !== false}
                 onChange={setRelocateTo}
               />
             )}

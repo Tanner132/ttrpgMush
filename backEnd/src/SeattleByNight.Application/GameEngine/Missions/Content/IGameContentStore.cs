@@ -29,6 +29,10 @@ public sealed record GameContentDefinitionRecord(
 // The database-backed content store behind the builder. Reads are what the
 // provider composes the live document from; writes are the draft/publish
 // lifecycle. Retire and hard delete arrive with the lifecycle step.
+// WF-61: what a draft save was edited from. UpdatedAtUtc null means "a
+// definition that is not saved yet".
+public sealed record DraftVersion(DateTimeOffset? UpdatedAtUtc);
+
 public interface IGameContentStore
 {
     // Every definition, whatever its status — the builder's dashboard view.
@@ -53,13 +57,19 @@ public interface IGameContentStore
     // Every write names its actor: content edits are admin mutations and are
     // audited in the same transaction that makes them, the way world rooms
     // and exits already are.
+    //
+    // WF-61: given `expectedUpdatedAtUtc`, the save is refused with a
+    // GameContentVersionConflictException unless the stored draft was last
+    // written at that moment (or, given null with `expectNew`, does not
+    // exist yet). Autosave sends it on every save.
     Task<GameContentDefinitionRecord> SaveDraftAsync(
         GameContentKind kind,
         Guid contentKey,
         string displayName,
         string draftJson,
         Guid actorUserId,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        DraftVersion? expected = null);
 
     // Promotes the draft payload to published. Callers must have validated
     // the composed corpus first — this is the write half of the publish gate,

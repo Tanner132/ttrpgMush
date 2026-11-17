@@ -18,6 +18,9 @@ public sealed class Room
     // WF-60: a draft room, the exits into it and what is in it are out of
     // play. The Forge builds rooms as drafts; seeded rooms are live.
     public bool IsLive { get; set; } = true;
+    // WF-73: the district the room belongs to, if any. A blank description
+    // shows the district's default.
+    public Guid? DistrictId { get; set; }
     // Collapsed SR5 environment tables (dev decision
     // combat.collapsed-environment-modifier): one dice-pool delta applied to
     // ranged attacks made in this room, both directions. 0 = neutral.

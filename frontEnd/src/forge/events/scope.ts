@@ -28,12 +28,14 @@ export interface EventScope {
   effects: EffectKind[]
   conditions: ConditionKind[]
   /** Jobs an effect or condition can name, with their objectives. */
-  missions: { id: Guid; displayName: string; objectives: Option[] }[]
+  missions: { id: Guid; displayName: string; objectives: Option[]; /** The job's pay, where it is known (WF-54). */ nuyen?: number }[]
   /** Items anywhere, for take-item effects and carrying conditions. */
   allItems: Option[]
   /** Tests a roll can use: built-in by name, authored by id. Never opposed — a room has nobody to roll against. */
   tests: Option[]
   scenes: Option[]
+  /** WF-81: facts an effect can set or clear and a condition can test. */
+  facts: Option[]
   /** Only a job's events fire once; a room's own fire every time. */
   canFireOnce: boolean
   /** A job's events in a public room show the rest of the room a cover line. */
@@ -79,6 +81,8 @@ export const EffectWords: Record<EffectKind, string> = {
   setNegotiatedPay: 'Raise pay',
   turnInMission: 'Turn in job',
   advanceScene: 'Jump conversation',
+  setFact: 'Set fact',
+  clearFact: 'Clear fact',
 }
 
 export const ConditionWords: Record<ConditionKind, string> = {
@@ -88,6 +92,19 @@ export const ConditionWords: Record<ConditionKind, string> = {
   carryingItem: 'Runner carries',
   notCarryingItem: "Runner doesn't carry",
   notYetNegotiated: 'Pay not yet negotiated',
+  factSet: 'Runner has fact',
+  factNotSet: "Runner doesn't have fact",
+}
+
+/** WF-82: the Library's facts for a picker; one that lasts for a run says so. */
+export function factOptions(references: ContentReferences): Option[] {
+  return (references.facts ?? [])
+    .filter((fact) => !fact.isRetired)
+    .map((fact) => {
+      const job = fact.runOf ? references.missions.find((mission) => mission.id === fact.runOf)?.displayName : undefined
+      return { id: fact.id, displayName: job ? `${fact.displayName} (for a run of ${job})` : fact.displayName }
+    })
+    .sort((a, b) => a.displayName.localeCompare(b.displayName))
 }
 
 /** The events a room's own content can hear (GameContentLoader.PlaceEvents). */
@@ -114,6 +131,8 @@ export const PlaceEffects: EffectKind[] = [
   'failObjective',
   'failMission',
   'acceptMission',
+  'setFact',
+  'clearFact',
 ]
 
 export const PlaceConditions: ConditionKind[] = [
@@ -122,6 +141,8 @@ export const PlaceConditions: ConditionKind[] = [
   'missionReadyToTurnIn',
   'carryingItem',
   'notCarryingItem',
+  'factSet',
+  'factNotSet',
 ]
 
 /**
@@ -153,7 +174,20 @@ export function placeScope(roomId: Guid, references: ContentReferences): EventSc
     scenes: references.scenes
       .filter((scene) => !scene.isRetired && scene.npcTemplateId === null)
       .map((scene) => ({ id: scene.id, displayName: scene.displayName })),
+    facts: factOptions(references),
     canFireOnce: false,
     canHaveCoverLine: false,
   }
+}
+
+/** Mirrors SceneEffectResolver: 200¥ per net hit, at most five. */
+const NuyenPerNetHit = 200
+const MaxNetHits = 5
+
+/** WF-54: what a won (or lost) negotiation pays. */
+export function negotiatedPayHint(nuyen: number | undefined): string {
+  const most = (nuyen ?? 0) + NuyenPerNetHit * MaxNetHits
+  return nuyen === undefined
+    ? `Sets the job's pay from the roll: its pay plus ${NuyenPerNetHit}¥ per net hit, up to ${NuyenPerNetHit * MaxNetHits}¥ more. A lost roll settles it at the job's pay.`
+    : `A won roll pays ${nuyen.toLocaleString('en-US')}¥ + ${NuyenPerNetHit}¥ per net hit, up to ${most.toLocaleString('en-US')}¥ at ${MaxNetHits} net hits. A lost roll settles it at ${nuyen.toLocaleString('en-US')}¥. Either way, a reply shown only while pay is not yet negotiated is not offered again.`
 }
