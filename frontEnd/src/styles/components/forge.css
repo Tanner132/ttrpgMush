@@ -165,13 +165,14 @@
   color: var(--sb-text-muted);
 }
 
+/* WF-36: the title is nearly always an authored name; it is shown as written,
+   since upper-casing turns "Straße" into "STRASSE". */
 .forge__title {
   margin: 0;
   font-family: var(--sb-font-heading);
   font-weight: 700;
   font-size: 1.65rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--sb-text);
 }
 
@@ -245,6 +246,11 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--sb-text-muted);
+}
+
+.forge__section-title--named {
+  text-transform: none;
+  letter-spacing: 0.04em;
 }
 
 .forge__section-title::before {
@@ -534,20 +540,23 @@
   gap: var(--sb-space-2) var(--sb-space-4);
 }
 
-.forge__check {
+/* A labelled checkbox. Its own class: .forge__check is a Go live row (WF-36). */
+.forge__checkbox {
   display: inline-flex;
   align-items: center;
   gap: var(--sb-space-2);
   min-height: 40px;
   font-family: var(--sb-font-data);
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
   color: var(--sb-text-muted);
+}
+
+.forge__checkbox label {
   cursor: pointer;
 }
 
-.forge__check input {
+.forge__checkbox input {
   width: 16px;
   height: 16px;
   accent-color: var(--sb-accent);
@@ -560,6 +569,16 @@
   display: flex;
   flex-direction: column;
   gap: var(--sb-space-2);
+}
+
+.forge__fieldset--boxed {
+  padding: var(--sb-space-2) var(--sb-space-3) var(--sb-space-3);
+  border: 1px solid var(--sb-border);
+  background: var(--sb-surface);
+}
+
+.forge__fieldset--boxed > legend {
+  padding: 0 var(--sb-space-1);
 }
 
 /* Dialogs. */
@@ -1000,6 +1019,17 @@
   color: var(--sb-accent);
 }
 
+/* WF-36: a row link that is a button draws as text, not on the button's grey bar. */
+button.forge__row-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
 .forge__row-link:hover {
   text-decoration: underline;
 }
@@ -1020,7 +1050,9 @@
   font-family: var(--sb-font-data);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  /* WF-36: tight enough that "05 Objectives · Pay" fits on one line at 1024px. */
+  letter-spacing: 0.08em;
+  white-space: nowrap;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--sb-text-muted);

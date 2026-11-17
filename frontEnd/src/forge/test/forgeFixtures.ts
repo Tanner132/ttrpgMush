@@ -124,6 +124,7 @@ export const palette: ContentPalette = {
   triggerEventKinds: [],
   triggerReactionKinds: [],
   exitDirections: [],
+  contractVersion: api.ForgeContractVersion,
 }
 
 export function references(): ContentReferences {

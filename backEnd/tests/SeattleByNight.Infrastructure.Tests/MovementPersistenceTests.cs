@@ -1,5 +1,6 @@
 using SeattleByNight.Domain;
 using Microsoft.EntityFrameworkCore;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Application.RoomChat;
@@ -37,6 +38,31 @@ public sealed class MovementPersistenceTests : IAsyncLifetime
     public async Task DisposeAsync()
     {
         await _container.DisposeAsync();
+    }
+
+    // Workstream 8 phase 4: a fight restricts the room it is in — nobody new
+    // gets in, anyone inside can still leave — and only while it lasts.
+    [Fact]
+    public async Task Move_IntoARoomWithAFight_IsRestricted_LeavingItIsNot()
+    {
+        var outside = await CreateActiveSessionInRoomAsync(DevelopmentDataSeeder.DowntownStreetId);
+        var inside = await CreateActiveSessionInRoomAsync(DevelopmentDataSeeder.CoffeeShopId);
+        var combat = new InMemoryCombatTracker();
+        combat.Start(new CombatState { RoomId = DevelopmentDataSeeder.CoffeeShopId, Participants = [] });
+        var now = DateTimeOffset.UtcNow;
+
+        var shut = await new MovementStore(CreateDbContext(), new TestTimeProvider(now), combat)
+            .MoveAsync(outside.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
+        var leaving = await new MovementStore(CreateDbContext(), new TestTimeProvider(now), combat)
+            .MoveAsync(inside.UserId, DevelopmentDataSeeder.CoffeeToDowntownExitId, TimeSpan.FromHours(1));
+        combat.End(DevelopmentDataSeeder.CoffeeShopId);
+        var afterwards = await new MovementStore(CreateDbContext(), new TestTimeProvider(now), combat)
+            .MoveAsync(outside.UserId, DevelopmentDataSeeder.DowntownToCoffeeExitId, TimeSpan.FromHours(1));
+
+        Assert.False(shut.IsSuccess);
+        Assert.Equal(MoveCharacterError.ExitRestricted, shut.Error);
+        Assert.True(leaving.IsSuccess);
+        Assert.True(afterwards.IsSuccess);
     }
 
     [Fact]

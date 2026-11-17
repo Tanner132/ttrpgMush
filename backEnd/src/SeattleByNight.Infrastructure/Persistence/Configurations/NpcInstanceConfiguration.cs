@@ -18,6 +18,9 @@ public sealed class NpcInstanceConfiguration : IEntityTypeConfiguration<NpcInsta
         builder.Property(npc => npc.PhysicalDamage).HasColumnName("physical_damage").IsRequired();
         builder.Property(npc => npc.StunDamage).HasColumnName("stun_damage").IsRequired();
         builder.Property(npc => npc.Awareness).HasColumnName("awareness").HasMaxLength(50).IsRequired();
+        builder.Property(npc => npc.DefeatedAtUtc).HasColumnName("defeated_at_utc").HasColumnType("timestamp with time zone");
+        builder.Property(npc => npc.ReturnDueAtUtc).HasColumnName("return_due_at_utc").HasColumnType("timestamp with time zone");
+        builder.Property(npc => npc.ReturnDelays).HasColumnName("return_delays").HasDefaultValue(0).IsRequired();
         // Milestone 7 section 4: the placement's overrides. Nullable because
         // absent means "whatever the template says", which is not the same as
         // an empty override.

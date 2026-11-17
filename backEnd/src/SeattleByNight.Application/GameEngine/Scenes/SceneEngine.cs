@@ -7,6 +7,7 @@ using SeattleByNight.Application.GameEngine.Characters;
 using SeattleByNight.Application.GameEngine.Decisions;
 using SeattleByNight.Application.GameEngine.Dice;
 using SeattleByNight.Application.GameEngine.Missions.Content;
+using SeattleByNight.Application.GameEngine.Missions;
 using SeattleByNight.Application.GameEngine.Modifiers;
 using SeattleByNight.Application.GameEngine.Notifications;
 using SeattleByNight.Application.GameEngine.Npcs;
@@ -74,6 +75,8 @@ public sealed class SceneEngine
     private readonly PlaySessionOptions playSessionOptions;
     private readonly TimeProvider timeProvider;
 
+    private readonly IJobNotices? jobNotices;
+
     public SceneEngine(
         ISceneSessionReader sessionReader,
         IGameContentProvider content,
@@ -90,8 +93,10 @@ public sealed class SceneEngine
         IGameCommandQueue queue,
         IGameScopeResolver scopeResolver,
         PlaySessionOptions playSessionOptions,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IJobNotices? jobNotices = null)
     {
+        this.jobNotices = jobNotices;
         this.sessionReader = sessionReader;
         this.content = content;
         this.conditions = conditions;
@@ -240,8 +245,26 @@ public sealed class SceneEngine
             outcome = new SceneOutcome(choice.NextNodeId, choice.Effects, choice.EndsScene);
         }
 
-        var applied = await ApplyOutcomeAsync(
-            context, session, npc, outcome, resolution, testChanges, cancellationToken);
+        AppliedOutcome applied;
+        try
+        {
+            applied = await ApplyOutcomeAsync(
+                context, session, npc, outcome, resolution, testChanges, cancellationToken);
+        }
+        catch (JobRaceLostException lost)
+        {
+            // Workstream 8 phase 3: another runner moved the job on first.
+            // Nothing committed; the conversation stays where it was.
+            return GameActionOutcome.Final(null, lost.Message);
+        }
+
+        if (jobNotices is not null)
+        {
+            foreach (var notice in applied.Applied.SelectMany(change => change.Notices ?? []))
+            {
+                await jobNotices.TellAsync(notice.CharacterIds, notice.Text, cancellationToken);
+            }
+        }
 
         await AppendAuditAsync(context, resolution, applied.Applied, cancellationToken);
 

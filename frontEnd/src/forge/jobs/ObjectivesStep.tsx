@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button.tsx'
-import { Chip, Empty, NumberInput, Section, Select, TextInput } from '../fields.tsx'
+import { Chip, Empty, NumberInput, Section, Select, TextBox, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
-import { newId, sceneEffects, type Mission, type Objective, type ObjectiveKind } from '../model.ts'
+import { AftermathHours, DefaultDeadlineHours, newId, sceneEffects, type AftermathStage, type Mission, type Objective, type ObjectiveKind } from '../model.ts'
 import type { Job } from './useJob.ts'
 
 const KindWords: Record<ObjectiveKind, { add: string; chip: string; start: string }> = {
@@ -149,7 +149,71 @@ export function ObjectivesStep({ job, mission }: { job: Job; mission: Mission })
           </div>
           <p className="forge__hint">Paid once per run, through the career ledger.</p>
         </Section>
+
+        <ClockSection job={job} mission={mission} />
       </div>
     </div>
+  )
+}
+
+/**
+ * Workstream 8: the job's one clock. It starts when the first runner accepts;
+ * everyone who accepts later works to the same deadline. Done in time, the
+ * Johnson stops offering it and its rooms show the aftermath for 24 hours,
+ * then it resets. Not done in time, every run fails and it resets at once.
+ */
+function ClockSection({ job, mission }: { job: Job; mission: Mission }) {
+  const stages = mission.aftermath ?? []
+  const setStages = (update: (stages: AftermathStage[]) => AftermathStage[]) =>
+    job.mission.setValue((current) => ({ ...current, aftermath: update(current.aftermath ?? []) }))
+  const setStage = (at: number, change: Partial<AftermathStage>) =>
+    setStages((current) => current.map((stage, index) => (index === at ? { ...stage, ...change } : stage)))
+  const nextHour = stages.length === 0 ? 0 : Math.min(AftermathHours - 1, stages[stages.length - 1].fromHour + 2)
+  const outOfOrder = stages.some((stage, at) => at > 0 && stage.fromHour <= stages[at - 1].fromHour)
+
+  return (
+    <Section title="Deadline · Aftermath">
+      <NumberInput
+        label="Hours to finish, from the first accept"
+        value={mission.deadlineHours ?? DefaultDeadlineHours}
+        min={1}
+        max={72}
+        onChange={(hours) => job.mission.setValue((current) => ({ ...current, deadlineHours: hours ?? DefaultDeadlineHours }))}
+      />
+      <p className="forge__hint">
+        One clock for everyone on the job. If nobody finishes in time, every run fails and the job resets at once.
+      </p>
+
+      <h3 className="forge__subsection-title">After it is done</h3>
+      {stages.length === 0 && <Empty>The job's rooms look as they always do. Add a stage to show what the run left behind.</Empty>}
+      <ol className="forge__objectives">
+        {stages.map((stage, at) => (
+          <li key={at} className="forge__stack">
+            <div className="forge__actions">
+              <NumberInput
+                label={`Stage ${at + 1} from hour`}
+                value={stage.fromHour}
+                min={0}
+                max={AftermathHours - 1}
+                onChange={(fromHour) => setStage(at, { fromHour: fromHour ?? 0 })}
+              />
+              <Button intent="danger" aria-label={`Remove stage ${at + 1}`} onClick={() => setStages((current) => current.filter((_, index) => index !== at))}>
+                Remove
+              </Button>
+            </div>
+            <TextBox label={`Stage ${at + 1} text`} value={stage.text} rows={2} onChange={(text) => setStage(at, { text })} />
+          </li>
+        ))}
+      </ol>
+      {outOfOrder && <p className="forge__hint">Each stage must start at a later hour than the one before.</p>}
+      <div className="forge__actions">
+        <Button disabled={stages.length >= 12} onClick={() => setStages((current) => [...current, { fromHour: nextHour, text: '' }])}>
+          + Stage
+        </Button>
+      </div>
+      <p className="forge__hint">
+        Shown in each of the job's rooms after the room's description, from its hour until the next stage. At hour {AftermathHours} the job resets: its NPCs come back unhurt and unaware, its item goes back where it lies, and the Johnson offers it again.
+      </p>
+    </Section>
   )
 }

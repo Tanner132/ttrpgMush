@@ -17,6 +17,14 @@ public sealed class MissionInstance
     // means the definition's base reward applies.
     public int? NegotiatedNuyen { get; set; }
     public DateTimeOffset AcceptedAtUtc { get; set; }
+
+    // Workstream 8: everyone who accepted together (a crew, phase 5) shares
+    // this id; a lone runner's group is their own.
+    public Guid AcceptGroupId { get; set; }
+
+    // The crew the accepting character was in when the job was accepted, if
+    // any. Pay at turn-in goes to that crew's members still in it.
+    public Guid? CrewId { get; set; }
     public DateTimeOffset? CompletedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
 }

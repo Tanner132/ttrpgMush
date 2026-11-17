@@ -129,7 +129,45 @@ public sealed record MissionDefinition(
 {
     public bool IsRetired { get; init; }
 
+    // Workstream 8 phase 3: one clock per job, started by the first accept.
+    public int DeadlineHours { get; init; } = JobClockRules.DefaultDeadlineHours;
+
+    // Shown in the job's rooms after it is completed, chosen by the hours
+    // since completion; the job resets at JobClockRules.AftermathHours.
+    public IReadOnlyList<AftermathStage> Aftermath { get; init; } = [];
+
     public JobItemDefinition? FindItem(Guid itemId) => Items.FirstOrDefault(item => item.Id == itemId);
+
+    // The stage for this many hours since completion: the last one that has
+    // begun. Null before the first stage, or with none written.
+    public AftermathStage? AftermathAt(TimeSpan sinceCompletion) =>
+        Aftermath.LastOrDefault(stage => sinceCompletion >= TimeSpan.FromHours(stage.FromHour));
+}
+
+// Workstream 8 phase 3 (8.1 "Aftermath text"): "from hour X, show this".
+public sealed record AftermathStage(int FromHour, string Text);
+
+// Workstream 8 phase 3: the job clock's fixed numbers (owner, 8.1 and 8.5).
+public static class JobClockRules
+{
+    // Used when a job does not say. The owner expects 2–4 hours; a game-design
+    // default, not an SR5 rule.
+    public const int DefaultDeadlineHours = 3;
+    public const int MaxDeadlineHours = 72;
+
+    // A completed job's aftermath lasts this long, then it resets.
+    public const int AftermathHours = 24;
+
+    // An NPC no job uses returns this long after it was defeated.
+    public const int NpcReturnHours = 24;
+
+    // A return put off by a watching character or a fight is tried again
+    // after this long; a watcher can put it off at most MaxWatchedDelays times.
+    public static readonly TimeSpan ReturnRetry = TimeSpan.FromHours(1);
+    public const int MaxWatchedDelays = 2;
+
+    public const int MaxAftermathStages = 12;
+    public const int MaxAftermathTextLength = 2000;
 }
 
 public enum MissionRepeatabilityKind

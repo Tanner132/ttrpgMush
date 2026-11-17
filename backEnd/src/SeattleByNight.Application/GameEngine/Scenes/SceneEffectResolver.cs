@@ -437,6 +437,16 @@ public sealed class SceneEffectResolver(
             return null;
         }
 
+        var karma = definition.Rewards.Karma;
+        var nuyen = instance.NegotiatedNuyen ?? definition.Rewards.Nuyen;
+
+        // Workstream 8 phase 5: a job with nothing to hand over completes when
+        // its objectives are done and anyone on it speaks to the Johnson.
+        if (definition.Objectives.All(objective => objective.Kind != MissionObjectiveKind.DeliverItem))
+        {
+            return [new CompleteMissionChange(instance.Id, karma, nuyen)];
+        }
+
         var deliverObjective = definition.Objectives.FirstOrDefault(objective =>
             objective.Kind == MissionObjectiveKind.DeliverItem
             && instance.FindObjective(objective.Id) is { Status: MissionObjectiveStatus.Active });
@@ -452,9 +462,6 @@ public sealed class SceneEffectResolver(
         {
             return null;
         }
-
-        var karma = definition.Rewards.Karma;
-        var nuyen = instance.NegotiatedNuyen ?? definition.Rewards.Nuyen;
 
         return
         [

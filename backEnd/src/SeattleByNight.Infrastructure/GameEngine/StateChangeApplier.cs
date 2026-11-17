@@ -17,6 +17,13 @@ namespace SeattleByNight.Infrastructure.GameEngine;
 // code that mutates runtime state or active effects.
 public sealed class StateChangeApplier : IStateChangeApplier
 {
+    private static readonly string[] OpenMissionStatuses =
+    [
+        MissionInstanceStatus.Accepted.ToString(),
+        MissionInstanceStatus.InProgress.ToString(),
+        MissionInstanceStatus.ReadyToTurnIn.ToString(),
+    ];
+
     private readonly SeattleByNightDbContext dbContext;
     private readonly IGameContentProvider gameContent;
     private readonly IMissionAssignmentStore missionAssignment;
@@ -64,6 +71,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 SetNpcDamageChange npcDamage => await ApplySetNpcDamageAsync(npcDamage, now, cancellationToken),
                 ClearCharacterDamageChange clearDamage => await ApplyClearCharacterDamageAsync(clearDamage, now, cancellationToken),
                 PickUpItemChange pickUp => await ApplyPickUpItemAsync(characterId, pickUp, now, cancellationToken),
+                GiveItemChange give => await ApplyGiveItemAsync(characterId, give, now, cancellationToken),
                 CompleteObjectiveChange objective => await ApplyCompleteObjectiveAsync(objective, now, cancellationToken),
                 FailObjectiveChange failObjective => await ApplyFailObjectiveAsync(failObjective, now, cancellationToken),
                 CompleteMissionChange mission => await ApplyCompleteMissionAsync(mission, now, cancellationToken),
@@ -80,11 +88,25 @@ public sealed class StateChangeApplier : IStateChangeApplier
             });
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (TouchesJobState(exception))
+        {
+            // Workstream 8 phase 3: another runner moved the job on between
+            // this read and this commit (a turn-in, an accept, the sweep).
+            dbContext.ChangeTracker.Clear();
+            throw new JobRaceLostException("Someone else got there first. Nothing changed; look again.");
+        }
+
         await transaction.CommitAsync(cancellationToken);
 
         return applied;
     }
+
+    private static bool TouchesJobState(DbUpdateException exception) =>
+        exception.Entries.Any(entry => entry.Entity is JobState);
 
     private async Task<AppliedStateChange> ApplySpendEdgeAsync(
         Guid characterId,
@@ -277,6 +299,16 @@ public sealed class StateChangeApplier : IStateChangeApplier
         npc.StunDamage = change.StunDamage;
         npc.UpdatedAtUtc = now;
 
+        // Workstream 8 phase 3 (8.1): a defeated NPC stays down until a job
+        // that uses it resets, or 24 hours, whichever comes first. The job
+        // clock sweep brings it back; a reset only ever moves this earlier.
+        if (change.Defeated && npc.DefeatedAtUtc is null)
+        {
+            npc.DefeatedAtUtc = now;
+            npc.ReturnDueAtUtc = now + TimeSpan.FromHours(JobClockRules.NpcReturnHours);
+            npc.ReturnDelays = 0;
+        }
+
         return new AppliedStateChange(
             "SetNpcDamage",
             $"{change.Reason} — {npc.Name} at physical {change.PhysicalDamage}, stun {change.StunDamage}.");
@@ -320,6 +352,39 @@ public sealed class StateChangeApplier : IStateChangeApplier
         return new AppliedStateChange("PickUpItem", $"Picked up: {item.DisplayName}.");
     }
 
+    // Workstream 8 phase 5: a handover between two characters in one room.
+    // Checked again here, inside the commit: the giver must still carry it and
+    // the receiver must still be standing with them.
+    private async Task<AppliedStateChange> ApplyGiveItemAsync(
+        Guid characterId,
+        GiveItemChange change,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var item = await dbContext.WorldItemInstances
+            .FirstOrDefaultAsync(row => row.Id == change.ItemId, cancellationToken)
+            ?? throw new InvalidOperationException($"World item '{change.ItemId}' does not exist.");
+        if (item.OwnerCharacterId != characterId)
+        {
+            throw new InvalidOperationException($"{item.DisplayName} is not carried by the giver.");
+        }
+
+        var rooms = await dbContext.Characters
+            .Where(character => character.Id == characterId || character.Id == change.ToCharacterId)
+            .Select(character => character.CurrentRoomId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        if (rooms.Count != 1)
+        {
+            throw new InvalidOperationException("The receiver is no longer in the giver's room.");
+        }
+
+        item.OwnerCharacterId = change.ToCharacterId;
+        item.UpdatedAtUtc = now;
+
+        return new AppliedStateChange("GiveItem", $"{item.DisplayName} handed to '{change.ToCharacterId}'.");
+    }
+
     // §35: complete one objective and activate the next Inactive one (dev
     // decision mission.sequential-objectives). The first completion also
     // moves an Accepted mission to InProgress.
@@ -333,18 +398,44 @@ public sealed class StateChangeApplier : IStateChangeApplier
             ?? throw new InvalidOperationException(
                 $"Mission instance '{change.MissionInstanceId}' does not exist.");
 
+        if (!CompleteObjectiveOn(mission, change.ObjectiveId, now))
+        {
+            return new AppliedStateChange(
+                "CompleteObjective", $"Objective '{change.ObjectiveId}' was already complete.");
+        }
+
+        // Workstream 8 phase 5: objectives count for everyone who accepted
+        // together, whichever of them does it — a crew's runs move as one.
+        var group = await dbContext.MissionInstances
+            .Where(row => row.MissionId == mission.MissionId
+                && row.AcceptGroupId == mission.AcceptGroupId
+                && row.Id != mission.Id
+                && OpenMissionStatuses.Contains(row.Status))
+            .ToListAsync(cancellationToken);
+        foreach (var sibling in group)
+        {
+            CompleteObjectiveOn(sibling, change.ObjectiveId, now);
+        }
+
+        return new AppliedStateChange("CompleteObjective", $"Objective complete: {change.ObjectiveId}.");
+    }
+
+    // One run's objective: complete it, activate the next, and work out
+    // whether the run is now waiting on the Johnson. False when it was
+    // already complete.
+    private bool CompleteObjectiveOn(MissionInstance mission, Guid objectiveId, DateTimeOffset now)
+    {
         var objectives = MissionSerialization.DeserializeObjectives(mission.ObjectivesJson).ToList();
-        var index = objectives.FindIndex(objective => objective.ObjectiveId == change.ObjectiveId);
+        var index = objectives.FindIndex(objective => objective.ObjectiveId == objectiveId);
         if (index < 0)
         {
             throw new InvalidOperationException(
-                $"Mission instance '{mission.Id}' has no objective '{change.ObjectiveId}'.");
+                $"Mission instance '{mission.Id}' has no objective '{objectiveId}'.");
         }
 
         if (objectives[index].Status == MissionObjectiveStatus.Completed)
         {
-            return new AppliedStateChange(
-                "CompleteObjective", $"Objective '{change.ObjectiveId}' was already complete.");
+            return false;
         }
 
         objectives[index] = objectives[index] with { Status = MissionObjectiveStatus.Completed };
@@ -361,25 +452,29 @@ public sealed class StateChangeApplier : IStateChangeApplier
         }
 
         // §35 (Milestone 6): when everything left to do is delivery, the
-        // mission is waiting on the mission giver.
+        // mission is waiting on the mission giver. Workstream 8 phase 5: a job
+        // with nothing to hand over waits on the Johnson once every objective
+        // is done, and any runner on it can speak to him.
         var definition = gameContent.Current.FindMission(mission.MissionId);
-        if (definition is not null && nextIndex >= 0)
+        if (definition is not null)
         {
             var remaining = objectives
                 .Where(objective => objective.Status is MissionObjectiveStatus.Active or MissionObjectiveStatus.Inactive)
                 .Select(objective => definition.Objectives.FirstOrDefault(candidate =>
                     candidate.Id == objective.ObjectiveId))
                 .ToList();
-            if (remaining.Count > 0
-                && remaining.All(objective => objective?.Kind == MissionObjectiveKind.DeliverItem))
+            var waitingOnDelivery = remaining.Count > 0
+                && remaining.All(objective => objective?.Kind == MissionObjectiveKind.DeliverItem);
+            var nothingToHandOver = remaining.Count == 0
+                && definition.Objectives.All(objective => objective.Kind != MissionObjectiveKind.DeliverItem);
+            if (waitingOnDelivery || nothingToHandOver)
             {
                 mission.Status = MissionInstanceStatus.ReadyToTurnIn.ToString();
             }
         }
 
         mission.UpdatedAtUtc = now;
-
-        return new AppliedStateChange("CompleteObjective", $"Objective complete: {change.ObjectiveId}.");
+        return true;
     }
 
     // Milestone 7: the failure half of the objective palette. Marks the named
@@ -439,18 +534,114 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 "CompleteMission", "The mission was already complete; nothing granted.");
         }
 
+        // Workstream 8 phase 3: only the first to finish completes the job.
+        // The job row is taken under its version, so two runners turning in
+        // from different rooms cannot both win.
+        var job = await dbContext.JobStates
+            .FirstOrDefaultAsync(row => row.MissionId == mission.MissionId, cancellationToken);
+        if (job is not null && job.Status != nameof(JobStatus.Open))
+        {
+            throw new JobRaceLostException("Someone else got there first. The job is already done.");
+        }
+
         mission.Status = MissionInstanceStatus.Completed.ToString();
         mission.CompletedAtUtc = now;
         mission.UpdatedAtUtc = now;
 
+        if (job is not null)
+        {
+            job.Status = nameof(JobStatus.Aftermath);
+            job.CompletedAtUtc = now;
+            job.CompletedByCharacterId = mission.CharacterId;
+            job.DeadlineAtUtc = null;
+            job.Version = Guid.NewGuid();
+            job.UpdatedAtUtc = now;
+        }
+
+        // Everyone else on the job is told someone got there first; their
+        // runs end with no penalty. The winner's own accept group is settled
+        // below.
+        var outrun = await dbContext.MissionInstances
+            .Where(row => row.MissionId == mission.MissionId
+                && row.Id != mission.Id
+                && row.AcceptGroupId != mission.AcceptGroupId
+                && OpenMissionStatuses.Contains(row.Status))
+            .ToListAsync(cancellationToken);
+        foreach (var other in outrun)
+        {
+            other.Status = MissionInstanceStatus.Failed.ToString();
+            other.UpdatedAtUtc = now;
+        }
+
+        // Workstream 8 phase 5 (8.1 "Pay"): the winner's accept group. Members
+        // still in the crew the job was accepted in each get the full Karma
+        // and an even share of the nuyen (the turner keeps any remainder); a
+        // member who has left the crew is not paid, and their run ends.
+        var group = await dbContext.MissionInstances
+            .Where(row => row.MissionId == mission.MissionId
+                && row.Id != mission.Id
+                && row.AcceptGroupId == mission.AcceptGroupId
+                && OpenMissionStatuses.Contains(row.Status))
+            .ToListAsync(cancellationToken);
+        var groupCharacterIds = group.Select(row => row.CharacterId).ToArray();
+        var stillInCrew = mission.CrewId is { } crewId
+            ? (await dbContext.Characters
+                    .Where(character => groupCharacterIds.Contains(character.Id) && character.CrewId == crewId)
+                    .Select(character => character.Id)
+                    .ToListAsync(cancellationToken))
+                .ToHashSet()
+            : [];
+        var paid = group.Where(row => stillInCrew.Contains(row.CharacterId)).ToList();
+        var leftBehind = group.Where(row => !stillInCrew.Contains(row.CharacterId)).ToList();
+
+        var share = change.Nuyen / (paid.Count + 1);
+        var turnerShare = change.Nuyen - share * paid.Count;
         var granted = await AppendMissionRewardAsync(
-            mission.CharacterId, mission.Id, change.Karma, change.Nuyen, now, cancellationToken);
+            mission.CharacterId, mission.Id, change.Karma, turnerShare, now, cancellationToken);
+        foreach (var member in paid)
+        {
+            member.Status = MissionInstanceStatus.Completed.ToString();
+            member.CompletedAtUtc = now;
+            member.UpdatedAtUtc = now;
+            await AppendMissionRewardAsync(member.CharacterId, member.Id, change.Karma, share, now, cancellationToken);
+        }
+
+        foreach (var member in leftBehind)
+        {
+            member.Status = MissionInstanceStatus.Failed.ToString();
+            member.UpdatedAtUtc = now;
+        }
+
+        var jobName = gameContent.Current.FindMission(mission.MissionId)?.DisplayName ?? "the job";
+        var notices = new List<StateChangeNotice>();
+        if (outrun.Count > 0)
+        {
+            notices.Add(new StateChangeNotice(
+                outrun.Select(row => row.CharacterId).Distinct().ToArray(),
+                $"Someone else finished {jobName} first. Your run is over, with no penalty."));
+        }
+
+        if (paid.Count > 0)
+        {
+            notices.Add(new StateChangeNotice(
+                paid.Select(row => row.CharacterId).ToArray(),
+                $"Your crew finished {jobName}. You are paid {change.Karma} Karma and {share} nuyen."));
+        }
+
+        if (leftBehind.Count > 0)
+        {
+            notices.Add(new StateChangeNotice(
+                leftBehind.Select(row => row.CharacterId).ToArray(),
+                $"Your old crew finished {jobName}. You had left it, so you are not paid."));
+        }
 
         return new AppliedStateChange(
             "CompleteMission",
             granted
-                ? $"Mission complete. Granted {change.Karma} Karma and {change.Nuyen} nuyen."
-                : "Mission complete. Rewards were already granted.");
+                ? $"Mission complete. Granted {change.Karma} Karma and {turnerShare} nuyen."
+                    + (paid.Count > 0 ? $" The crew's {paid.Count} other member(s) get {change.Karma} Karma and {share} nuyen each." : string.Empty)
+                : "Mission complete. Rewards were already granted.",
+            Notices: notices);
     }
 
     // The mission-reward ledger append (§39): same row shapes and versioning
@@ -611,26 +802,75 @@ public sealed class StateChangeApplier : IStateChangeApplier
             ?? throw new InvalidOperationException(
                 $"Mission definition '{change.MissionId}' is missing from the game content.");
 
-        var result = await missionAssignment.AssignAsync(characterId, definition, cancellationToken);
+        // Workstream 8 phase 5: a crew member's accept puts the whole crew on
+        // the job, each with their own acceptance in one accept group.
+        var crewId = await dbContext.Characters
+            .Where(character => character.Id == characterId)
+            .Select(character => character.CrewId)
+            .SingleOrDefaultAsync(cancellationToken);
+        var acceptGroupId = Guid.NewGuid();
+        var result = crewId is null
+            ? await missionAssignment.AssignAsync(characterId, definition, cancellationToken)
+            : await missionAssignment.AssignAsync(characterId, definition, acceptGroupId, crewId, cancellationToken);
+        if (result.Error is MissionAssignError.JobFinished or MissionAssignError.JobRaceLost)
+        {
+            throw new JobRaceLostException("Someone else has just finished that job.");
+        }
+
         if (!result.IsSuccess)
         {
             throw new InvalidOperationException(
                 $"Mission '{change.MissionId}' could not be accepted: {result.Error}.");
         }
 
+        var row = await dbContext.MissionInstances
+            .FirstAsync(instance => instance.Id == result.Instance!.Id, cancellationToken);
         if (change.NegotiatedNuyen is int nuyen)
         {
-            var row = await dbContext.MissionInstances
-                .FirstAsync(instance => instance.Id == result.Instance!.Id, cancellationToken);
             row.NegotiatedNuyen = nuyen;
             row.UpdatedAtUtc = now;
         }
 
+        var joined = new List<Guid>();
+        var skipped = new List<string>();
+        if (crewId is not null)
+        {
+            var others = await dbContext.Characters
+                .Where(character => character.CrewId == crewId
+                    && character.Id != characterId
+                    && character.LifecycleState == CharacterLifecycleState.Finalized)
+                .Select(character => new { character.Id, character.Name })
+                .ToListAsync(cancellationToken);
+            foreach (var member in others)
+            {
+                var memberResult = await missionAssignment.AssignAsync(
+                    member.Id, definition, acceptGroupId, crewId, cancellationToken);
+                if (memberResult.IsSuccess)
+                {
+                    // The bargained pay is the crew's, not just the speaker's.
+                    var memberRow = await dbContext.MissionInstances
+                        .FirstAsync(instance => instance.Id == memberResult.Instance!.Id, cancellationToken);
+                    memberRow.NegotiatedNuyen = change.NegotiatedNuyen;
+                    joined.Add(member.Id);
+                }
+                else
+                {
+                    skipped.Add(member.Name);
+                }
+            }
+        }
+
+        var crewNote = skipped.Count == 0
+            ? string.Empty
+            : $" Not on it: {string.Join(", ", skipped)} (already on it, or not allowed to take it again yet).";
         return new AppliedStateChange(
             "AcceptMission",
-            change.NegotiatedNuyen is int negotiated
+            (change.NegotiatedNuyen is int negotiated
                 ? $"Accepted '{definition.DisplayName}' at a negotiated {negotiated} nuyen."
-                : $"Accepted '{definition.DisplayName}'.");
+                : $"Accepted '{definition.DisplayName}'.") + crewNote,
+            Notices: joined.Count == 0
+                ? null
+                : [new StateChangeNotice(joined, $"Your crew has taken {definition.DisplayName}. You are on it too: /missions shows the deadline.")]);
     }
 
     // §38: the item leaves the world (handed over at turn-in). The audit

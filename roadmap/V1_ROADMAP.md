@@ -23,9 +23,9 @@ v1 is ten workstreams:
 | 5 | [Matrix in play](#5-matrix-in-play) | Needs rules clarification from the owner |
 | 6 | [Auth hardening](#6-auth-hardening) | Needs a delivery decision; prerequisite of 7 |
 | 7 | [Private and owned rooms](#7-private-and-owned-rooms) | Needs design decisions; blocked on 6. 8 fixes how a private room is marked |
-| 8 | [One shared world](#8-one-shared-world) | Phase 1 (exit states) committed in `7f06716`; phase 2 (remove the copies) built 2026-11-16 on branch `ws8-shared-world`, not committed; phases 3–5 next, in the order given in 8.4 |
+| 8 | [One shared world](#8-one-shared-world) | Phases 1 and 2 merged to `main` (`c6964f6`); phases 3 (the job clock), 4 (fights restrict rooms) and 5 (crews) built 2026-11-17, not committed. Left: the acceptance run (1.4) |
 | 9 | [Room images](#9-room-images) | Decided 2026-11-12; ready to build, independent of the rest |
-| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Nothing built: phase 1 (seven defects) not started and ready to build; phase 2 after workstream 8 (order in 10.5) |
+| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Phase 1 (seven defects) built 2026-11-17, not committed; phase 2 after workstream 8 (order in 10.5) |
 
 Workstream 8 replaces how jobs run today (1.3) and changes the questions in 3
 and 7; read it before picking either of those up.
@@ -35,12 +35,13 @@ Workstreams 2, 8, 9 and 10 are specified well enough to build now. Workstreams
 should be built until those are answered and the answers are recorded (rules in
 `SR5_RULE_DECISIONS.md`, architecture in `PROJECT_CONTEXT.md`).
 
-**Where things stand (2026-11-17).** Workstream 8 phase 1 is committed
-(`7f06716`). Workstream 8 phase 2 and a reply's own roll (10.3) are built on
-`ws8-shared-world` and not committed. Nothing in workstream 10 is built.
+**Where things stand (2026-11-17).** Workstream 8 phases 1 and 2 and a
+reply's own roll (10.3) are merged to `main` (`c6964f6`). Workstream 10
+phase 1 (the seven defects) and workstream 8 phases 3–5 are built and not
+committed.
 
-**Suggested order.** Commit workstream 8 phase 2. Workstream 10 phase 1
-(defects) can go at any time. Then workstream 8 phases 3–5, which come before
+**Suggested order.** Commit workstream 10 phase 1 and workstream 8 phases
+3–5, which come before
 the acceptance run in 1.4 (8 changes what a job is) and before workstream 10
 phase 2 (both migrate rooms and jobs). Then workstream 10 in the order of
 10.5, with 2.3 purchases before personal vehicles. Workstream 9 is independent
@@ -1166,6 +1167,51 @@ built in order on one branch and released together.
      timer.
    - Forge: deadline and aftermath stages on the job; play: the deadline in the
      job tracker.
+
+   **Done 2026-11-17** (on `main`'s working tree, not committed):
+   - `JobState` (`job_states`, one row per job, keyed by the job id, with a
+     version): status `Available` / `Open` / `Aftermath`, opened, deadline and
+     completed times, who completed it, and the first accept group.
+     `MissionInstance.AcceptGroupId` (a lone runner's is their own run's id;
+     crews share one in phase 5). `NpcInstance` gains `DefeatedAtUtc`,
+     `ReturnDueAtUtc` and `ReturnDelays`. Migration `JobClock` gives every
+     existing acceptance its own group and gives jobs already being run an open
+     clock with three hours from the upgrade. `JobItemSync` makes an
+     `Available` row for every job, so two first accepts race on a version,
+     not an insert.
+   - Content: a job has `deadlineHours` (1–72; **3 when absent**, an
+     engineering default inside the owner's "expected 2–4") and `aftermath`, a
+     list of `{ fromHour, text }` stages (0–23, in order, at most 12).
+   - Accept (`MissionStore.AssignAsync`, used by conversations and the admin
+     assign) opens the job and starts its deadline, or joins it; a job in
+     aftermath refuses (`JobFinished`), and the Johnson stops offering it.
+   - Turn-in completes the job under its version, fails every other open run
+     on it (another accept group's) and tells those runners privately
+     ("Someone else finished … first", `IJobNotices`). A turn-in or accept
+     that loses the race is rolled back and answered "Someone else got there
+     first" (`JobRaceLostException`, caught by `SceneEngine`).
+   - `JobClockService` sweeps every 30 seconds (`JobClockSweeper`): an open
+     job past its deadline fails every run on it, tells the runners, and
+     resets at once; a completed job resets 24 hours after completion. A
+     reset puts the job's item back in its authored room from wherever it is,
+     forgets who found the job's hidden items, and makes the NPCs it uses due
+     back now. A combat hit that downs an NPC makes it due back in 24 hours.
+     A due NPC returns (unhurt, unaware) unless its room has a fight (put off
+     an hour, every time) or an online character (put off an hour, at most
+     twice) — the 8.5 working rules, built as proposed.
+   - Aftermath: the room view carries `aftermath`, the stage for the hours
+     since the most recently completed job that uses the room; `/look` shows
+     it after the description. `/missions` shows the time left on an open job.
+     The Forge's Objectives · Pay step has a **Deadline · Aftermath** section.
+   - Not built: the failure penalty (8.2, undefined; `FirstAcceptGroupId` is
+     there for it). Doors never change in play, so a reset has none to put
+     back.
+   - Tests: Infrastructure `JobClockTests` (10: the clock row, open and join,
+     first to finish wins and the rival is ended and unpaid, two turn-ins on
+     one read of the job, a finished job not offered, expiry at the deadline,
+     the 24-hour reset with item, NPC and discoveries, a defeated NPC due in
+     24 hours, a watcher's two delays, a fight's unlimited delays);
+     Application `JobClockContentTests` (8); front end `output.test.ts`.
 4. **Fights in shared rooms, without changing combat.** Two things only:
    - `MovementStore` treats a room's inbound exits as restricted while the
      combat tracker holds a fight there. It reads the tracker; combat code is
@@ -1173,6 +1219,14 @@ built in order on one branch and released together.
    - Done in phase 2: `CombatEngine` no longer queues `mission-defeat`; a
      downed runner stays in the room and their run is not failed.
    Dispositions, death and group fights are the combat milestone (8.1).
+
+   **Done 2026-11-17** (not committed): `MovementStore` takes the combat
+   tracker and refuses entry (`ExitRestricted`, "You can't get in that way
+   right now.") through any door into a room the tracker holds a fight in;
+   the way out is its own exit and stays open, so chases work. The room view
+   adds `restricted` to the states of such doors while the fight lasts, so
+   play shows them shut. Nothing is stored. Combat code is untouched. Test:
+   `MovementPersistenceTests.Move_IntoARoomWithAFight_IsRestricted_LeavingItIsNot`.
 5. **Crews.** Crew table and membership endpoints (leave always; join refused
    while any member has an open job); accepting stamps every member with the
    same accept group; objective progress is mirrored across the group; turn-in
@@ -1180,6 +1234,48 @@ built in order on one branch and released together.
    member, nuyen split between members still in the crew; a new give-item
    action between characters in the same room. The failure penalty reads the
    job's first accept group when it is built.
+
+   **Done 2026-11-17** (not committed):
+   - `crews` (id, name, created) and `Character.CrewId` (set null if the
+     crew goes); `crew_invitations` (inviter, invitee, expiry 10 minutes);
+     `MissionInstance.CrewId`, the crew at acceptance. Migration `Crews`.
+   - Slash commands, through `/api/game/crew` (`CrewEndpoints`,
+     `CrewStore`): `/crew` shows it; `/crew invite <name>` needs the invitee
+     in the same room and in no crew, and the crew under 5; `/crew join`
+     takes the newest live invitation, starting "<inviter>'s crew" if the
+     inviter had none, and is refused while any member has a job open;
+     `/crew leave` always works, keeps any acceptance, and deletes an empty
+     crew. The other side is told privately.
+   - A member's accept puts every member on the job: one acceptance each, one
+     accept group, the crew recorded, the bargained pay copied. A member who
+     cannot take it (already on it, cooldown, one-time) is skipped and named
+     in the accept's note; the others are told they are on it.
+   - An objective done by anyone in the accept group is done for all of them,
+     including a member who has since left the crew (still on the run).
+   - Turn-in: the turner gets the full Karma; so does each member of the
+     group still in the crew, and the nuyen is split evenly between them
+     (the turner keeps the remainder). A member who left is not paid; their
+     run ends and they are told. Turn-in still needs whoever turns in to hold
+     the item; **a job with no deliver objective** is now ready to turn in
+     once its objectives are done, and anyone on it can turn it in by
+     speaking to the Johnson (the loader no longer refuses `turnInMission`
+     on such a job).
+   - **Give.** A new `give-item` action: for each item carried and each other
+     character in the room, the action list offers "Give <item> to <name>"
+     (an id derived from the pair, as scene choices do), so `/do give
+     package to tess` works. The handover is checked again in the commit
+     (the giver still carries it, the receiver is still there); the room
+     sees an emote and the receiver a private line.
+   - Not built: the failure penalty (8.2). Giving nuyen (Not in v1).
+   - Tests: Infrastructure `CrewTests` (8: invite and join, same room, five
+     at most, no joining mid-job and leaving keeps the run, one accept puts
+     the crew on in one group, shared objectives, pay with a leaver, giving
+     an item); front end parser tests for `/crew`.
+   - Known: three conversation-editor tests in `JobsPage.test.tsx` were seen
+     to time out now and then in a full parallel run (they pass alone every
+     time); their timeouts are raised to 15 s. One of them failed once even
+     with that, the reply dialog not opening, and passed on the next three
+     full runs. Not investigated further.
 
 **Tests that are rewritten, not just adjusted:** `WarehousePlaythroughTests`,
 `JobSiteMapRoomTests`, `JobSiteMapValidatorTests`, `MissionEngineTests`,
@@ -1307,8 +1403,9 @@ Forge, and the design underneath can grow to the end goal in 10.1 without
 being rebuilt. The work is cut into phases that each ship on their own.
 
 **State:** designed 2026-11-17 from a UI walkthrough (2026-11-16) and the
-owner's end goal and decisions. Nothing is built. Phase 1 can start now; each
-later phase lists what it still needs settled (10.8).
+owner's end goal and decisions. Phase 1 is built (2026-11-17, not
+committed); the rest is not. Each later phase lists what it still needs
+settled (10.8).
 
 This replaces the first version of this workstream (2026-11-16), which listed
 the walkthrough's findings only. Its item numbers WF-30 to WF-67 are kept.
@@ -1463,15 +1560,42 @@ Phase 9 is the Forge side of other workstreams.
 
 Wrong behaviour seen in the walkthrough. Two of them lose work.
 
-**Status 2026-11-17: not started.** Checked against the working tree on
-`ws8-shared-world`: none of the seven is fixed. The two-way exit to an
-existing room is still two separate requests (`ExitsSection.tsx`); the API
-client has no 401 handling and still shows "Request failed (n)"; the delete
-summary reloads only when exits, rooms or the room's version change, not when
-an NPC or inspectable is added; Home sends a conversation to the Jobs list;
-the Events step lists every conversation without an NPC as the job's
-prompts. (Not to be confused with workstream 1, "World Forge fixes and
-gaps", which is built.)
+**Status 2026-11-17: built, not committed.** All seven are fixed with tests;
+not yet tried in the running app. What was built:
+
+- **WF-30.** `POST /api/admin/world/exits` takes `bothWays` and
+  `returnStates` and makes both directions in one transaction, or neither. A
+  way back that already leads to the source is kept. A taken direction is now
+  a validation error that names the exit holding it (`direction` or
+  `bothWays`), not the concurrency message, which is kept for a real race.
+  The dialog warns before submit and refreshes the map after any failure.
+- **WF-31.** The Here section reports what it shows; the delete summary uses
+  those counts and reads the server check again whenever they change.
+- **WF-32.** The API client holds a request that comes back 401, opens a
+  sign-in prompt over the Forge (`SignInPrompt.tsx`), then sends it again
+  with a fresh antiforgery token. The antiforgery middleware now answers a
+  stale token with a problem body and `X-Request-Token-Invalid`, and the
+  client fetches a new token and retries once. Every status has a sentence;
+  no screen shows "Request failed (n)".
+- **WF-33.** `GameContentErrorLocator` turns a serializer refusal into the
+  record and field ("Conversation “Hallway Ambush” › part 2 › reply 2 “Ask
+  for more” has a field the server does not know: “roll”"). The job editor
+  links the refusal to the step that holds it. The palette carries
+  `contractVersion` (`ForgeContract.Version` in the API, `ForgeContractVersion`
+  in the Forge, kept equal by `contract.test.ts`); the Forge says so at load
+  when they differ. Bump both when a content document or Forge request
+  changes shape.
+- **WF-34.** Home reads the recent conversations' drafts and opens a pitch on
+  its job's Pitch step and a prompt on the Events step of the job that opens
+  it.
+- **WF-35.** The Events step lists the job's own prompts (opened by its
+  events, or made or picked this visit). Others are offered in a picker that
+  names who uses each one, reusing the job-delete check.
+- **WF-36.** Checkboxes have their own class and an explicit label (the class
+  `forge__check` was shared with Go live rows); the "NPCs the job uses"
+  fieldset is boxed; the job's room links draw as text; step labels no
+  longer wrap; titles, authored section titles and checkbox labels are not
+  upper-cased.
 
 | ID | Area | Problem | Fix shape |
 | --- | --- | --- | --- |

@@ -727,6 +727,64 @@
         }
       }
     },
+    "/api/game/crew": {
+      "get": {
+        "tags": [
+          "CrewEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/game/crew/invite": {
+      "post": {
+        "tags": [
+          "CrewEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrewInviteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/game/crew/join": {
+      "post": {
+        "tags": [
+          "CrewEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/game/crew/leave": {
+      "post": {
+        "tags": [
+          "CrewEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/users": {
       "get": {
         "tags": [
@@ -2358,6 +2416,21 @@
             "items": {
               "type": "string"
             }
+          },
+          "bothWays": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "returnStates": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -2416,6 +2489,20 @@
               "string"
             ],
             "format": "int64"
+          }
+        }
+      },
+      "CrewInviteRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3519,6 +3606,9 @@
     },
     {
       "name": "MissionEndpoints"
+    },
+    {
+      "name": "CrewEndpoints"
     },
     {
       "name": "AdminEndpoints"

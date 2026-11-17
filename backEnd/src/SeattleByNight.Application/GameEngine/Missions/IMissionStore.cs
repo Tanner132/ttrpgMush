@@ -33,6 +33,17 @@ public interface IMissionReader
     Task<IReadOnlyList<WorldItemSnapshot>> GetItemsOwnedByCharacterAsync(
         Guid characterId, CancellationToken cancellationToken);
 
+    // Workstream 8 phase 5: the characters standing in a room, someone to
+    // give an item to. A default so test doubles need not know about it.
+    Task<IReadOnlyList<RoomCharacter>> GetCharactersInRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<RoomCharacter>>([]);
+
+    // Workstream 8 phase 3: the deadline of each of these jobs that is open.
+    // A default so test doubles need not know about the job clock.
+    Task<IReadOnlyDictionary<Guid, DateTimeOffset>> GetJobDeadlinesAsync(
+        IReadOnlyCollection<Guid> missionIds, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyDictionary<Guid, DateTimeOffset>>(new Dictionary<Guid, DateTimeOffset>());
+
     // §34: whether the character could take this mission right now — no open
     // instance, repeatability rules pass. The same rules assignment enforces;
     // scene offers use this so "Ask about work" disappears exactly when
@@ -51,6 +62,11 @@ public enum MissionAssignError
     // Milestone 7 section 5: the mission has been taken out of play. Runs
     // already in flight finish; nobody new is offered it.
     Retired,
+    // Workstream 8 phase 3: the job was finished and is in its aftermath;
+    // the Johnson offers it again when it resets.
+    JobFinished,
+    // The job changed under this accept (another runner finished it).
+    JobRaceLost,
 }
 
 public sealed record MissionAssignResult(
@@ -67,4 +83,25 @@ public interface IMissionAssignmentStore
 {
     Task<MissionAssignResult> AssignAsync(
         Guid characterId, MissionDefinition definition, CancellationToken cancellationToken);
+
+    // Workstream 8 phase 5: an acceptance that belongs to an accept group
+    // (everyone a crew member's accept put on the job) and records the crew.
+    Task<MissionAssignResult> AssignAsync(
+        Guid characterId,
+        MissionDefinition definition,
+        Guid acceptGroupId,
+        Guid? crewId,
+        CancellationToken cancellationToken);
+}
+
+public sealed record RoomCharacter(Guid Id, Guid UserId, string Name);
+
+// Workstream 8 phase 5: a give-item affordance's target, derived from the item
+// and the character it goes to, so the offer rides the ordinary affordance
+// machinery (offer list, submission check, /do matching) like scene choices.
+public static class GiveItemIds
+{
+    public static Guid Derive(Guid itemId, Guid toCharacterId) =>
+        new(System.Security.Cryptography.MD5.HashData(
+            System.Text.Encoding.UTF8.GetBytes($"give-item:{itemId:N}:{toCharacterId:N}")));
 }

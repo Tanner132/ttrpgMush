@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SeattleByNight.Application.Auditing;
 using SeattleByNight.Application.Characters;
+using SeattleByNight.Application.Crews;
 using SeattleByNight.Application.CharacterCareer;
 using SeattleByNight.Application.CharacterCreation.Drafts;
 using SeattleByNight.Application.Dice;
@@ -30,6 +31,7 @@ using SeattleByNight.Infrastructure.Dice;
 using SeattleByNight.Infrastructure.GameEngine;
 using SeattleByNight.Infrastructure.Identity;
 using SeattleByNight.Infrastructure.Movement;
+using SeattleByNight.Infrastructure.Crews;
 using SeattleByNight.Infrastructure.Persistence;
 using SeattleByNight.Infrastructure.PlaySessions;
 using SeattleByNight.Infrastructure.RoleAdmin;
@@ -70,6 +72,11 @@ public static class DependencyInjection
         services.AddSingleton<ISeedSource, CryptographicSeedSource>();
         services.AddScoped<IActiveEffectReader, ActiveEffectStore>();
         services.AddScoped<IStateChangeApplier, StateChangeApplier>();
+        // Workstream 8 phase 3: the job clock.
+        services.AddScoped<IJobNotices, JobNotices>();
+        services.AddScoped<IJobClockSweeper, JobClockSweeper>();
+        // Workstream 8 phase 5: crews.
+        services.AddScoped<ICrewStore, CrewStore>();
         services.AddScoped<IRoomContentReader, RoomContentStore>();
         services.AddScoped<IRoomContentEditor, RoomContentStore>();
         services.AddScoped<IMissionReader, MissionStore>();

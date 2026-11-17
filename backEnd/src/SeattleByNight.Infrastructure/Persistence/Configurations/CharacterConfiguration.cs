@@ -53,6 +53,18 @@ public sealed class CharacterConfiguration : IEntityTypeConfiguration<Character>
             .HasColumnName("created_at_utc")
             .HasColumnType("timestamp with time zone");
 
+        builder.Property(c => c.CrewId)
+            .HasColumnName("crew_id")
+            .HasColumnType("uuid");
+
+        builder.HasIndex(c => c.CrewId)
+            .HasDatabaseName("ix_characters_crew_id");
+
+        builder.HasOne<Crew>()
+            .WithMany()
+            .HasForeignKey(c => c.CrewId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(c => c.CurrentRoomId)
             .HasDatabaseName("ix_characters_current_room_id");
 

@@ -25,6 +25,8 @@ export interface MissionInstanceSummary {
   objectives: MissionObjectiveSummary[]
   acceptedAtUtc: string
   completedAtUtc: string | null
+  /** Workstream 8: the job's one clock, while the run is open. */
+  deadlineAtUtc?: string | null
 }
 
 export async function listMissions(signal?: AbortSignal): Promise<MissionInstanceSummary[]> {

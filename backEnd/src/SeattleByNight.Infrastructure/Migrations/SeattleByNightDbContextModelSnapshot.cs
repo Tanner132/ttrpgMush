@@ -233,6 +233,10 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at_utc");
 
+                    b.Property<Guid?>("CrewId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("crew_id");
+
                     b.Property<Guid>("CurrentRoomId")
                         .HasColumnType("uuid")
                         .HasColumnName("current_room_id");
@@ -264,6 +268,9 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CrewId")
+                        .HasDatabaseName("ix_characters_crew_id");
 
                     b.HasIndex("CurrentRoomId")
                         .HasDatabaseName("ix_characters_current_room_id");
@@ -869,6 +876,59 @@ namespace SeattleByNight.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.Crew", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("crews", (string)null);
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CrewInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at_utc");
+
+                    b.Property<Guid>("InviteeCharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invitee_character_id");
+
+                    b.Property<Guid>("InviterCharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("inviter_character_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InviteeCharacterId")
+                        .HasDatabaseName("ix_crew_invitations_invitee");
+
+                    b.HasIndex("InviterCharacterId");
+
+                    b.ToTable("crew_invitations", (string)null);
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.GameContentDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -986,11 +1046,67 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.ToTable("game_test_audit_records", (string)null);
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.JobState", b =>
+                {
+                    b.Property<Guid>("MissionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mission_id");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at_utc");
+
+                    b.Property<Guid?>("CompletedByCharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("completed_by_character_id");
+
+                    b.Property<DateTimeOffset?>("DeadlineAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deadline_at_utc");
+
+                    b.Property<Guid?>("FirstAcceptGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("first_accept_group_id");
+
+                    b.Property<DateTimeOffset?>("OpenedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("opened_at_utc");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid")
+                        .HasColumnName("version");
+
+                    b.HasKey("MissionId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_job_states_status");
+
+                    b.ToTable("job_states", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_job_states_status", "status IN ('Available','Open','Aftermath')");
+                        });
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.MissionInstance", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("AcceptGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("accept_group_id");
 
                     b.Property<DateTimeOffset>("AcceptedAtUtc")
                         .HasColumnType("timestamp with time zone")
@@ -1003,6 +1119,10 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("CompletedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("completed_at_utc");
+
+                    b.Property<Guid?>("CrewId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("crew_id");
 
                     b.Property<Guid>("MissionId")
                         .HasColumnType("uuid")
@@ -1032,6 +1152,9 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.HasIndex("CharacterId", "MissionId")
                         .HasDatabaseName("ix_mission_instances_character_mission");
 
+                    b.HasIndex("MissionId", "Status")
+                        .HasDatabaseName("ix_mission_instances_mission_status");
+
                     b.ToTable("mission_instances", (string)null);
                 });
 
@@ -1051,6 +1174,10 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at_utc");
 
+                    b.Property<DateTimeOffset?>("DefeatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("defeated_at_utc");
+
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
@@ -1069,6 +1196,16 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.Property<int>("PhysicalDamage")
                         .HasColumnType("integer")
                         .HasColumnName("physical_damage");
+
+                    b.Property<int>("ReturnDelays")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("return_delays");
+
+                    b.Property<DateTimeOffset?>("ReturnDueAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("return_due_at_utc");
 
                     b.Property<Guid>("RoomId")
                         .HasColumnType("uuid")
@@ -1633,6 +1770,11 @@ namespace SeattleByNight.Infrastructure.Migrations
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.Character", b =>
                 {
+                    b.HasOne("SeattleByNight.Domain.Entities.Crew", null)
+                        .WithMany()
+                        .HasForeignKey("CrewId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SeattleByNight.Domain.Entities.Room", null)
                         .WithMany()
                         .HasForeignKey("CurrentRoomId")
@@ -1758,6 +1900,21 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.CrewInvitation", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("InviteeCharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("InviterCharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

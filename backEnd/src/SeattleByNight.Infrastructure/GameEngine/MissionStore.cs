@@ -111,6 +111,29 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
         return rows.Select(ToSnapshot).ToArray();
     }
 
+    public async Task<IReadOnlyList<RoomCharacter>> GetCharactersInRoomAsync(
+        Guid roomId, CancellationToken cancellationToken) =>
+        await dbContext.Characters
+            .AsNoTracking()
+            .Where(character => character.CurrentRoomId == roomId
+                && character.LifecycleState == CharacterLifecycleState.Finalized)
+            .OrderBy(character => character.Name)
+            .Select(character => new RoomCharacter(character.Id, character.UserId, character.Name))
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyDictionary<Guid, DateTimeOffset>> GetJobDeadlinesAsync(
+        IReadOnlyCollection<Guid> missionIds, CancellationToken cancellationToken)
+    {
+        var rows = await dbContext.JobStates
+            .AsNoTracking()
+            .Where(job => missionIds.Contains(job.MissionId)
+                && job.Status == nameof(JobStatus.Open)
+                && job.DeadlineAtUtc != null)
+            .Select(job => new { job.MissionId, job.DeadlineAtUtc })
+            .ToListAsync(cancellationToken);
+        return rows.ToDictionary(row => row.MissionId, row => row.DeadlineAtUtc!.Value);
+    }
+
     public async Task<bool> IsMissionAvailableAsync(
         Guid characterId, MissionDefinition definition, CancellationToken cancellationToken)
     {
@@ -122,13 +145,34 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
             return false;
         }
 
+        if (await IsInAftermathAsync(definition.Id, cancellationToken))
+        {
+            return false;
+        }
+
         var (error, _) = await CheckRepeatabilityAsync(
             characterId, definition, timeProvider.GetUtcNow(), cancellationToken);
         return error == MissionAssignError.None;
     }
 
-    public async Task<MissionAssignResult> AssignAsync(
-        Guid characterId, MissionDefinition definition, CancellationToken cancellationToken)
+    public Task<MissionAssignResult> AssignAsync(
+        Guid characterId, MissionDefinition definition, CancellationToken cancellationToken) =>
+        AssignCoreAsync(characterId, definition, acceptGroupId: null, crewId: null, cancellationToken);
+
+    public Task<MissionAssignResult> AssignAsync(
+        Guid characterId,
+        MissionDefinition definition,
+        Guid acceptGroupId,
+        Guid? crewId,
+        CancellationToken cancellationToken) =>
+        AssignCoreAsync(characterId, definition, acceptGroupId, crewId, cancellationToken);
+
+    private async Task<MissionAssignResult> AssignCoreAsync(
+        Guid characterId,
+        MissionDefinition definition,
+        Guid? acceptGroupId,
+        Guid? crewId,
+        CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();
 
@@ -143,6 +187,12 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
         if (!characterExists)
         {
             return new MissionAssignResult(MissionAssignError.CharacterNotFound);
+        }
+
+        // Workstream 8 phase 3: a finished job is not offered until it resets.
+        if (await IsInAftermathAsync(definition.Id, cancellationToken))
+        {
+            return new MissionAssignResult(MissionAssignError.JobFinished);
         }
 
         var (repeatabilityError, cooldownEndsAtUtc) = await CheckRepeatabilityAsync(
@@ -160,6 +210,7 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
 
         var row = new MissionInstance
         {
+            Id = Guid.NewGuid(),
             MissionId = definition.Id,
             CharacterId = characterId,
             Status = MissionInstanceStatus.Accepted.ToString(),
@@ -167,12 +218,59 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
             AcceptedAtUtc = now,
             UpdatedAtUtc = now,
         };
+        // A lone runner's accept group is their own; a crew's accept shares one.
+        row.AcceptGroupId = acceptGroupId ?? row.Id;
+        row.CrewId = crewId;
 
         dbContext.MissionInstances.Add(row);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await OpenOrJoinJobAsync(definition, row.AcceptGroupId, now, cancellationToken);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (exception.Entries.Any(entry => entry.Entity is JobState))
+        {
+            // Another runner moved the job on between the read and the save.
+            dbContext.ChangeTracker.Clear();
+            return new MissionAssignResult(MissionAssignError.JobRaceLost);
+        }
 
         return new MissionAssignResult(MissionAssignError.None, ToSnapshot(row));
     }
+
+    // Workstream 8 phase 3 (8.1): the first accept opens the job and starts
+    // its one clock; later accepts join it and work to the same deadline. A
+    // join still takes the row's version, so an accept racing a turn-in is
+    // decided by the database rather than leaving a run open on a done job.
+    private async Task OpenOrJoinJobAsync(
+        MissionDefinition definition, Guid acceptGroupId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var job = await dbContext.JobStates
+            .FirstOrDefaultAsync(row => row.MissionId == definition.Id, cancellationToken);
+        if (job is null)
+        {
+            job = new JobState { MissionId = definition.Id, Status = nameof(JobStatus.Available) };
+            dbContext.JobStates.Add(job);
+        }
+
+        if (job.Status == nameof(JobStatus.Available))
+        {
+            job.Status = nameof(JobStatus.Open);
+            job.OpenedAtUtc = now;
+            job.DeadlineAtUtc = now + TimeSpan.FromHours(definition.DeadlineHours);
+            job.CompletedAtUtc = null;
+            job.CompletedByCharacterId = null;
+            job.FirstAcceptGroupId = acceptGroupId;
+        }
+
+        job.Version = Guid.NewGuid();
+        job.UpdatedAtUtc = now;
+    }
+
+    private Task<bool> IsInAftermathAsync(Guid missionId, CancellationToken cancellationToken) =>
+        dbContext.JobStates.AsNoTracking().AnyAsync(
+            job => job.MissionId == missionId && job.Status == nameof(JobStatus.Aftermath), cancellationToken);
 
     // §34/§39 economy safeguard: repeatability rules exist from day one and
     // gate both assignment and scene offers.

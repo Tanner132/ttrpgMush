@@ -889,7 +889,8 @@ public sealed class CombatEngine
                 var reason = $"{weapon.DisplayName} hit from {attacker.Participant.DisplayName}";
                 changes.Add(defender.Participant.IsNpc
                     ? new SetNpcDamageChange(
-                        defender.Participant.ActorId, outcome.Physical, outcome.Stun, reason)
+                        defender.Participant.ActorId, outcome.Physical, outcome.Stun, reason,
+                        Defeated: outcome.Incapacitated(defender.PhysicalMonitor, defender.StunMonitor))
                     : new SetCharacterDamageChange(
                         defender.Participant.ActorId, outcome.Physical, outcome.Stun, reason));
 

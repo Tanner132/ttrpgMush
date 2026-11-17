@@ -1,8 +1,13 @@
+using SeattleByNight.Domain;
 using MediatR;
 
 namespace SeattleByNight.Application.WorldEditing;
 
-public sealed record CreateRoomExitCommand(Guid ActorUserId, RoomExitMutation Mutation)
+public sealed record CreateRoomExitCommand(
+    Guid ActorUserId,
+    RoomExitMutation Mutation,
+    bool BothWays = false,
+    IReadOnlyList<string>? ReturnStates = null)
     : IRequest<WorldMutationResult<WorldExit>>;
 
 public sealed record UpdateRoomExitCommand(Guid ActorUserId, Guid ExitId, Guid Version, RoomExitMutation Mutation)
@@ -30,8 +35,15 @@ public sealed class CreateRoomExitCommandHandler : IRequestHandler<CreateRoomExi
     public Task<WorldMutationResult<WorldExit>> Handle(CreateRoomExitCommand request, CancellationToken cancellationToken)
     {
         var errors = WorldMutationValidation.ValidateExit(request.Mutation, false, Guid.Empty);
+        var unknown = (request.ReturnStates ?? []).Where(state => !ExitStates.IsValid(state)).ToArray();
+        if (unknown.Length > 0)
+        {
+            errors["returnStates"] = [$"Unknown door state: {string.Join(", ", unknown)}."];
+        }
+
+        var returnStates = request.BothWays ? request.ReturnStates ?? [] : null;
         return errors.Count == 0
-            ? _store.CreateExitAsync(request.ActorUserId, request.Mutation, cancellationToken)
+            ? _store.CreateExitAsync(request.ActorUserId, request.Mutation, returnStates, cancellationToken)
             : Task.FromResult(WorldMutationResult<WorldExit>.Invalid(errors));
     }
 }

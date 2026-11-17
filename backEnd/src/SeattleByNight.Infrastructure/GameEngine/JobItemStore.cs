@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Domain.Entities;
+using SeattleByNight.Domain.Enums;
 using SeattleByNight.Infrastructure.Persistence;
 
 namespace SeattleByNight.Infrastructure.GameEngine;
@@ -56,6 +57,25 @@ public sealed class JobItemStore(SeattleByNightDbContext db, TimeProvider timePr
                 IsHidden = entry.Item.IsHidden,
                 DiscoveryThreshold = entry.Item.DiscoveryThreshold,
                 CreatedAtUtc = now,
+                UpdatedAtUtc = now,
+            });
+        }
+
+        // Workstream 8 phase 3: every job has its clock row before anyone
+        // accepts it, so two first accepts race on a version, not an insert.
+        var missionIds = document.Missions.Select(mission => mission.Id).ToArray();
+        var clocked = (await db.JobStates
+                .Where(job => missionIds.Contains(job.MissionId))
+                .Select(job => job.MissionId)
+                .ToListAsync(cancellationToken))
+            .ToHashSet();
+        foreach (var missionId in missionIds.Where(id => !clocked.Contains(id)))
+        {
+            db.JobStates.Add(new JobState
+            {
+                MissionId = missionId,
+                Status = nameof(JobStatus.Available),
+                Version = Guid.NewGuid(),
                 UpdatedAtUtc = now,
             });
         }

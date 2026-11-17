@@ -3,7 +3,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import * as api from '../api.ts'
 import type { Place } from '../model.ts'
-import { ContentStore, Ids, Rooms, useFakeServer } from '../test/forgeFixtures.ts'
+import { ContentStore, exit, Ids, Rooms, useFakeServer, world } from '../test/forgeFixtures.ts'
 import { renderForge } from '../test/renderForge.tsx'
 
 vi.mock('../api.ts', async (importOriginal) => {
@@ -133,9 +133,28 @@ describe('Places · exits', () => {
     await user.click(within(dialog).getByRole('checkbox', { name: 'Locked' }))
     await user.click(within(dialog).getByRole('button', { name: 'Add exit' }))
 
-    await waitFor(() => expect(api.createExit).toHaveBeenCalledTimes(2))
-    expect(api.createExit).toHaveBeenNthCalledWith(1, { sourceRoomId: Ids.downtown, destinationRoomId: Ids.dock, direction: 'southwest', states: ['locked'] })
-    expect(api.createExit).toHaveBeenNthCalledWith(2, { sourceRoomId: Ids.dock, destinationRoomId: Ids.downtown, direction: 'northeast', states: ['locked'] })
+    // WF-30: one request; the server makes both directions or neither.
+    await waitFor(() => expect(api.createExit).toHaveBeenCalledTimes(1))
+    expect(api.createExit).toHaveBeenCalledWith({ sourceRoomId: Ids.downtown, destinationRoomId: Ids.dock, direction: 'southwest', states: ['locked'] }, ['locked'])
+  })
+
+  it('says before submit when the way back is taken, and by which exit (WF-30)', async () => {
+    const user = userEvent.setup()
+    const graph = world()
+    graph.exits.push(exit(Rooms.dock, Rooms.alley, 'northeast'))
+    vi.mocked(api.getWorld).mockImplementation(async () => graph)
+    await openPlaces()
+
+    await user.click(within(screen.getByRole('region', { name: 'Exits' })).getByRole('button', { name: '+ Exit' }))
+    const dialog = screen.getByRole('dialog', { name: 'Add exit' })
+    await user.click(within(dialog).getByRole('button', { name: 'Southwest' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Existing room' }))
+    await user.selectOptions(within(dialog).getByLabelText('Destination room'), 'Layer 0 › Loading Dock')
+
+    expect(within(dialog).getByText(/Loading Dock already has an exit northeast, to Alley/)).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Add exit' })).toBeDisabled()
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Both ways' }))
+    expect(within(dialog).getByRole('button', { name: 'Add exit' })).toBeEnabled()
   })
 
   it('leaves the way back out of a restricted door open when adding it both ways', async () => {
@@ -153,9 +172,8 @@ describe('Places · exits', () => {
     expect(within(dialog).getByText(/the way back is left free to leave by/)).toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: 'Add exit' }))
 
-    await waitFor(() => expect(api.createExit).toHaveBeenCalledTimes(2))
-    expect(api.createExit).toHaveBeenNthCalledWith(1, { sourceRoomId: Ids.downtown, destinationRoomId: Ids.dock, direction: 'southwest', states: ['locked', 'restricted'] })
-    expect(api.createExit).toHaveBeenNthCalledWith(2, { sourceRoomId: Ids.dock, destinationRoomId: Ids.downtown, direction: 'northeast', states: ['locked'] })
+    await waitFor(() => expect(api.createExit).toHaveBeenCalledTimes(1))
+    expect(api.createExit).toHaveBeenCalledWith({ sourceRoomId: Ids.downtown, destinationRoomId: Ids.dock, direction: 'southwest', states: ['locked', 'restricted'] }, ['locked'])
   })
 
   it('restricts the way into a room, one direction only, and says what that means', async () => {

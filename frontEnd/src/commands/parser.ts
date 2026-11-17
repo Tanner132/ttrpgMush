@@ -14,6 +14,7 @@ export type ParsedCommand =
   | { kind: 'run' }
   | { kind: 'surge' }
   | { kind: 'missions' }
+  | { kind: 'crew'; verb: 'show' | 'invite' | 'join' | 'leave'; name?: string }
   // A numbered option pick. fallbackToChat is true when the input was a bare
   // number (no slash): if no numbered options are on offer, it goes to chat.
   | { kind: 'option-select'; number: number; fallbackToChat: boolean; rawText: string }
@@ -63,6 +64,16 @@ export function parseCommand(raw: string): ParsedCommand {
       }
     }
     return { kind: command }
+  }
+
+  // Workstream 8: /crew, /crew invite <name>, /crew join, /crew leave.
+  if (command === 'crew') {
+    const [verb, ...rest] = argument.split(/\s+/).filter(Boolean)
+    const word = (verb ?? '').toLowerCase()
+    if (word === '') return { kind: 'crew', verb: 'show' }
+    if ((word === 'join' || word === 'leave') && rest.length === 0) return { kind: 'crew', verb: word }
+    if (word === 'invite' && rest.length > 0) return { kind: 'crew', verb: 'invite', name: rest.join(' ') }
+    return { kind: 'usage-error', command, message: `Usage: ${usageFor(command)}` }
   }
 
   if (command === 'say') {

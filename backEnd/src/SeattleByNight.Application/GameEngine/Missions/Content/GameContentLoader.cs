@@ -116,7 +116,10 @@ public static class GameContentLoader
         MissionRepeatability? Repeatability,
         MissionRewards? Rewards,
         IReadOnlyList<MissionObjectiveDefinition>? Objectives,
-        IReadOnlyList<RawTrigger>? Triggers);
+        IReadOnlyList<RawTrigger>? Triggers,
+        // Workstream 8 phase 3.
+        int? DeadlineHours = null,
+        IReadOnlyList<AftermathStage>? Aftermath = null);
 
     // Everything a trigger or scene may point at, gathered once so the
     // cross-reference checks read as questions about the whole content set
@@ -156,7 +159,8 @@ public static class GameContentLoader
         }
         catch (JsonException exception)
         {
-            throw new GameContentException($"The game content document is not valid JSON: {exception.Message}", exception);
+            // WF-33: name the record and the field, not the .NET member.
+            throw new GameContentException(GameContentErrorLocator.Describe(json, exception), exception);
         }
 
         if (raw is null)
@@ -507,9 +511,38 @@ public static class GameContentLoader
             .Select(trigger => ValidateJobTrigger(trigger, items, sceneIds, testIds, where))
             .ToArray();
 
+        // Workstream 8 phase 3: the job's clock and what its rooms show after.
+        var deadlineHours = raw.DeadlineHours ?? JobClockRules.DefaultDeadlineHours;
+        Require(
+            deadlineHours is >= 1 and <= JobClockRules.MaxDeadlineHours,
+            $"{where} deadline must be 1–{JobClockRules.MaxDeadlineHours} hours.");
+
+        var aftermath = raw.Aftermath ?? [];
+        Require(
+            aftermath.Count <= JobClockRules.MaxAftermathStages,
+            $"{where} has more than {JobClockRules.MaxAftermathStages} aftermath stages.");
+        for (var index = 0; index < aftermath.Count; index++)
+        {
+            var stage = aftermath[index];
+            Require(stage is not null, $"{where} has an empty aftermath stage.");
+            Require(
+                stage!.FromHour >= 0 && stage.FromHour < JobClockRules.AftermathHours,
+                $"{where} aftermath stage {index + 1} must start from hour 0–{JobClockRules.AftermathHours - 1}; the job resets at hour {JobClockRules.AftermathHours}.");
+            Require(
+                !string.IsNullOrWhiteSpace(stage.Text) && stage.Text.Length <= JobClockRules.MaxAftermathTextLength,
+                $"{where} aftermath stage {index + 1} needs text of at most {JobClockRules.MaxAftermathTextLength} characters.");
+            Require(
+                index == 0 || stage.FromHour > aftermath[index - 1].FromHour,
+                $"{where} aftermath stages must start at later hours in order.");
+        }
+
         return new MissionDefinition(
             raw.Id!.Value, raw.DisplayName!, raw.Description!, roomIds, npcIds, items,
-            raw.Repeatability, raw.Rewards, objectives, triggers);
+            raw.Repeatability, raw.Rewards, objectives, triggers)
+        {
+            DeadlineHours = deadlineHours,
+            Aftermath = aftermath,
+        };
     }
 
     // Shape checks a trigger can pass on its own: the event's required
@@ -1076,10 +1109,8 @@ public static class GameContentLoader
                 $"{where} effect 'turnInMission' needs a 'missionReadyToTurnIn' condition for "
                     + $"'{mission.DisplayName}' on the same choice — without it the choice is offered "
                     + "when the turn-in cannot succeed.");
-            Require(
-                mission.Objectives.Any(objective => objective.Kind == MissionObjectiveKind.DeliverItem),
-                $"{where} effect 'turnInMission' names job '{mission.DisplayName}', which declares no "
-                    + "deliverItem objective — there is nothing to hand over.");
+            // Workstream 8 phase 5 (8.1): a job with nothing to hand over is
+            // turned in by speaking to the Johnson once its objectives are done.
         }
     }
 

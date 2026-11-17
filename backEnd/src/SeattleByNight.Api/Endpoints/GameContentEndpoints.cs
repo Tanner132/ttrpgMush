@@ -104,7 +104,18 @@ public sealed record GameContentPaletteResponse(
     // The exit directions the loader accepts, which are the same ones the
     // room_exits check constraint accepts — the encounter editor offers these
     // rather than a free-text box.
-    IReadOnlyList<PaletteOption> ExitDirections);
+    IReadOnlyList<PaletteOption> ExitDirections,
+    // WF-33: the Forge compares this with its own at load and asks for a
+    // reload when they differ.
+    int ContractVersion = ForgeContract.Version);
+
+// WF-33: bump with frontEnd/src/forge/api.ts `ForgeContractVersion` whenever a
+// content document or Forge request changes shape. A Forge test reads this
+// file and fails when the two disagree.
+public static class ForgeContract
+{
+    public const int Version = 1;
+}
 
 // Milestone 7 step 3: the World Forge's server surface. Content is stored as
 // per-definition JSON fragments, so one set of endpoints serves every editor

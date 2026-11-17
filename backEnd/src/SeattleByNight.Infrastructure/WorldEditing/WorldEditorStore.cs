@@ -147,6 +147,7 @@ public sealed class WorldEditorStore : IWorldEditorStore
     public async Task<WorldMutationResult<WorldExit>> CreateExitAsync(
         Guid actorUserId,
         RoomExitMutation mutation,
+        IReadOnlyList<string>? returnStates = null,
         CancellationToken cancellationToken = default)
     {
         await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
@@ -158,6 +159,27 @@ public sealed class WorldEditorStore : IWorldEditorStore
             return WorldMutationResult<WorldExit>.Failure(WorldMutationError.NotFound);
         }
 
+        var (source, destination) = rooms.Value;
+        var endpoints = new[] { source.Id, destination.Id };
+        var nearby = await _db.RoomExits
+            .Where(candidate => endpoints.Contains(candidate.SourceRoomId))
+            .ToListAsync(cancellationToken);
+
+        // WF-30: a direction already in use is the author's to fix, not a
+        // concurrency conflict. Say which exit holds it.
+        var forwardHolder = nearby.FirstOrDefault(candidate =>
+            candidate.SourceRoomId == source.Id && candidate.Direction == mutation.Direction);
+        if (forwardHolder is not null)
+        {
+            var message = await TakenMessageAsync(source, forwardHolder, cancellationToken);
+            await transaction.RollbackAsync(cancellationToken);
+            return WorldMutationResult<WorldExit>.Invalid(new Dictionary<string, string[]>
+            {
+                ["direction"] = [message]
+            });
+        }
+
+        var now = GetDatabaseTimestamp();
         var exit = new RoomExit
         {
             Id = Guid.NewGuid(),
@@ -165,13 +187,58 @@ public sealed class WorldEditorStore : IWorldEditorStore
             DestinationRoomId = mutation.DestinationRoomId,
             Direction = mutation.Direction,
             States = ExitStates.Normalize(mutation.States),
-            CreatedAtUtc = GetDatabaseTimestamp(),
+            CreatedAtUtc = now,
             Version = Guid.NewGuid()
         };
+
+        // WF-30: the way back is created in the same transaction, so a
+        // two-way exit is made whole or not at all. A way back that already
+        // exists is kept as it is.
+        RoomExit? back = null;
+        if (returnStates is not null && source.Id != destination.Id)
+        {
+            var hasWayBack = nearby.Any(candidate =>
+                candidate.SourceRoomId == destination.Id && candidate.DestinationRoomId == source.Id);
+            if (!hasWayBack)
+            {
+                var backDirection = RoomDirections.Opposite(mutation.Direction);
+                var backHolder = nearby.FirstOrDefault(candidate =>
+                    candidate.SourceRoomId == destination.Id && candidate.Direction == backDirection);
+                if (backHolder is not null)
+                {
+                    var message = await TakenMessageAsync(destination, backHolder, cancellationToken);
+                    await transaction.RollbackAsync(cancellationToken);
+                    return WorldMutationResult<WorldExit>.Invalid(new Dictionary<string, string[]>
+                    {
+                        ["bothWays"] =
+                        [
+                            $"{message} Untick Both ways, or free that direction first. Nothing was created."
+                        ]
+                    });
+                }
+
+                back = new RoomExit
+                {
+                    Id = Guid.NewGuid(),
+                    SourceRoomId = destination.Id,
+                    DestinationRoomId = source.Id,
+                    Direction = backDirection,
+                    States = ExitStates.Normalize(returnStates),
+                    CreatedAtUtc = now,
+                    Version = Guid.NewGuid()
+                };
+            }
+        }
 
         _db.RoomExits.Add(exit);
         _auditWriter.Append(actorUserId, AuditActions.RoomExitCreated, AuditTargetTypes.RoomExit, exit.Id,
             ExitDetails(exit));
+        if (back is not null)
+        {
+            _db.RoomExits.Add(back);
+            _auditWriter.Append(actorUserId, AuditActions.RoomExitCreated, AuditTargetTypes.RoomExit, back.Id,
+                ExitDetails(back));
+        }
 
         try
         {
@@ -180,12 +247,22 @@ public sealed class WorldEditorStore : IWorldEditorStore
         }
         catch (DbUpdateException exception) when (IsUniqueViolation(exception))
         {
+            // Another editor took a direction between the check and the save.
             await transaction.RollbackAsync(cancellationToken);
             _db.ChangeTracker.Clear();
             return WorldMutationResult<WorldExit>.Failure(WorldMutationError.Conflict);
         }
 
-        return WorldMutationResult<WorldExit>.Success(ToWorldExit(exit, rooms.Value.Source, rooms.Value.Destination));
+        return WorldMutationResult<WorldExit>.Success(ToWorldExit(exit, source, destination));
+    }
+
+    private async Task<string> TakenMessageAsync(Room room, RoomExit holder, CancellationToken cancellationToken)
+    {
+        var leadsTo = await _db.Rooms
+            .Where(candidate => candidate.Id == holder.DestinationRoomId)
+            .Select(candidate => candidate.Name)
+            .SingleOrDefaultAsync(cancellationToken);
+        return $"{room.Name} already has an exit {holder.Direction}, to {leadsTo ?? "another room"}.";
     }
 
     public async Task<WorldMutationResult<WorldExit>> UpdateExitAsync(

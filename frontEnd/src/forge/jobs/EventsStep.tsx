@@ -5,9 +5,10 @@ import { saveDraft, type Guid } from '../api.ts'
 import { ListenerCard } from '../events/ListenerCard.tsx'
 import { Chip, Empty, Section, Select, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
-import { useAction } from '../hooks.ts'
+import { useAction, useLoad } from '../hooks.ts'
 import { newListener, newPrompt, openedSceneIds, toJson, type Listener, type Mission } from '../model.ts'
 import { ConversationEditor } from './ConversationEditor.tsx'
+import { findPromptUses } from './deletion.ts'
 import { listenerScope, listeningRooms, prompts, sceneScope, type JobContext } from './jobScope.ts'
 import type { Job } from './useJob.ts'
 
@@ -18,10 +19,26 @@ import type { Job } from './useJob.ts'
  * cover line, if there is one.
  */
 export function EventsStep({ job, mission, context }: { job: Job; mission: Mission; context: JobContext }) {
-  const { refreshContent } = useForgeData()
+  const { refreshContent, definitions, references } = useForgeData()
   const rooms = useMemo(() => listeningRooms(context), [context])
   const available = useMemo(() => prompts(context.scenes), [context.scenes])
   const opened = new Set(openedSceneIds(mission))
+  // WF-35: the job's own prompts are the ones its events open, plus any made
+  // or picked here this visit. Others are offered through a picker that says
+  // who else uses them, not listed as if they were this job's.
+  const [adopted, setAdopted] = useState<Guid[]>([])
+  const own = available.filter((scene) => opened.has(scene.id) || adopted.includes(scene.id) || scene.id === job.promptId)
+  const others = available.filter((scene) => !own.some((mine) => mine.id === scene.id))
+  const otherIds = others.map((scene) => scene.id)
+  const uses = useLoad(
+    (signal) => findPromptUses(otherIds, context.scenes, { jobId: job.id, definitions, references }, signal),
+    [otherIds, job.id],
+  )
+  const otherOptions = others.map((scene) => {
+    const usedBy = uses.data?.find((use) => use.id === scene.id)?.usedBy
+    const who = usedBy === undefined ? '' : usedBy.length === 0 ? ' — not used yet' : ` — used by ${usedBy.join(', ')}`
+    return { id: scene.id, displayName: `${scene.displayName}${who}` }
+  })
   const [newName, setNewName] = useState('')
   const create = useAction()
   const prompt = job.prompt.value
@@ -60,6 +77,7 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
     })
     if (id) {
       setNewName('')
+      setAdopted((current) => [...current, id])
       await openPrompt(id)
     }
   }
@@ -106,11 +124,11 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
       <div className="forge__column">
         <Section title="Prompts">
           <p className="forge__hint">A prompt is a moment with choices — "Incoming fire. Dodge, or block?" — that an event opens with an Open conversation step.</p>
-          {available.length === 0 ? (
-            <Empty>No prompts yet.</Empty>
+          {own.length === 0 ? (
+            <Empty>This job has no prompts yet.</Empty>
           ) : (
             <ul className="forge__rows">
-              {available.map((scene) => (
+              {own.map((scene) => (
                 <li key={scene.id} className="forge__row">
                   <b className="forge__row-name">{scene.displayName}</b>
                   {opened.has(scene.id) && <Chip tone="info">Opened by this job</Chip>}
@@ -124,6 +142,20 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
                 </li>
               ))}
             </ul>
+          )}
+          {others.length > 0 && (
+            <Select
+              label="Use a prompt from elsewhere"
+              hint="Editing a shared prompt changes it everywhere it is used."
+              value=""
+              options={otherOptions}
+              placeholder={`Choose one of ${others.length}`}
+              onChange={(id) => {
+                if (!id) return
+                setAdopted((current) => [...current, id])
+                void openPrompt(id)
+              }}
+            />
           )}
           <form
             className="forge__condition"
@@ -145,7 +177,7 @@ export function EventsStep({ job, mission, context }: { job: Job; mission: Missi
         </Section>
 
         {job.promptId !== null && (
-          <Section title={prompt ? `Prompt · ${prompt.displayName}` : 'Prompt'}>
+          <Section title={prompt ? `Prompt · ${prompt.displayName}` : 'Prompt'} named>
             {job.prompt.loadError ? (
               <StatusBanner tone="danger">{job.prompt.loadError}</StatusBanner>
             ) : !prompt || !promptScope ? (

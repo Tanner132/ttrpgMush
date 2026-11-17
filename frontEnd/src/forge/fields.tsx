@@ -230,11 +230,13 @@ export function Segmented<T extends string>({
 }
 
 export function Check({ label, checked, onChange, disabled }: { label: string; checked: boolean; onChange: (value: boolean) => void; disabled?: boolean }) {
+  const id = useId()
   return (
-    <label className="forge__check">
-      <input type="checkbox" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
-      <span>{label}</span>
-    </label>
+    // WF-36: named by an explicit label, so assistive tech reads the label, never "on".
+    <span className="forge__checkbox">
+      <input id={id} type="checkbox" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
+      <label htmlFor={id}>{label}</label>
+    </span>
   )
 }
 
@@ -242,13 +244,28 @@ export function Chip({ tone, children }: { tone?: StatusTone | 'error' | 'info';
   return <span className={['forge__chip', tone ? `forge__chip--${tone}` : null].filter(Boolean).join(' ')}>{children}</span>
 }
 
-/** A titled section of a Forge screen. */
-export function Section({ title, actions, children, className }: { title: string; actions?: ReactNode; children: ReactNode; className?: string }) {
+/**
+ * A titled section of a Forge screen. `named` marks a title that is an
+ * authored name, which is shown as written, not upper-cased (WF-36: `ß`).
+ */
+export function Section({
+  title,
+  actions,
+  children,
+  className,
+  named,
+}: {
+  title: string
+  actions?: ReactNode
+  children: ReactNode
+  className?: string
+  named?: boolean
+}) {
   const id = useId()
   return (
     <section className={['forge__section', className].filter(Boolean).join(' ')} aria-labelledby={id}>
       <div className="forge__section-head">
-        <h2 id={id} className="forge__section-title">
+        <h2 id={id} className={named ? 'forge__section-title forge__section-title--named' : 'forge__section-title'}>
           {title}
         </h2>
         {actions}

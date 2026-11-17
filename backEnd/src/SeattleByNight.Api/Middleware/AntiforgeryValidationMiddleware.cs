@@ -21,8 +21,14 @@ public sealed class AntiforgeryValidationMiddleware
     {
         if (context.Features.Get<IAntiforgeryValidationFeature>() is { IsValid: false })
         {
+            // WF-32: say so, and mark it, so the client can fetch a new token
+            // (the session changed under it) and send the request again.
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            return Task.CompletedTask;
+            context.Response.Headers["X-Request-Token-Invalid"] = "1";
+            return context.Response.WriteAsJsonAsync(
+                new { title = "The request token no longer matches your session. Reload the page.", status = 400 },
+                options: null,
+                contentType: "application/problem+json");
         }
 
         return _next(context);

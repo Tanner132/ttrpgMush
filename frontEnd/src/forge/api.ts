@@ -94,7 +94,15 @@ export interface ContentPalette {
   triggerEventKinds: PaletteOption[]
   triggerReactionKinds: PaletteOption[]
   exitDirections: PaletteOption[]
+  /** WF-33: the server's content contract; compared with ForgeContractVersion at load. */
+  contractVersion?: number
 }
+
+/**
+ * WF-33: bump with `ForgeContract.Version` in the API's GameContentEndpoints.cs
+ * whenever a content document or Forge request changes shape.
+ */
+export const ForgeContractVersion = 1
 
 export interface PlacedReference {
   id: Guid
@@ -336,8 +344,12 @@ export function deleteRoom(roomId: Guid, relocateTo?: Guid): Promise<RoomDeletio
   return apiDelete<RoomDeletionCheck>(`${world}/rooms/${roomId}${query}`)
 }
 
-export function createExit(input: ExitInput): Promise<WorldExit> {
-  return apiPost<WorldExit>(`${world}/exits`, input)
+/**
+ * Creates an exit. With `returnStates`, the way back is created in the same
+ * transaction (or kept, if one already leads back): both or neither (WF-30).
+ */
+export function createExit(input: ExitInput, returnStates: ExitState[] | null = null): Promise<WorldExit> {
+  return apiPost<WorldExit>(`${world}/exits`, returnStates === null ? input : { ...input, bothWays: true, returnStates })
 }
 
 export function updateExit(exitId: Guid, input: ExitInput & { version: string }): Promise<WorldExit> {

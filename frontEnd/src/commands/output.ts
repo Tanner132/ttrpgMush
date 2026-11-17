@@ -23,6 +23,12 @@ export function renderLook(
     lines.push(description)
   }
 
+  // Workstream 8: a job finished here has left its mark for a while.
+  const aftermath = session.aftermath?.trim()
+  if (aftermath) {
+    lines.push(aftermath)
+  }
+
   if (session.exits.length > 0) {
     lines.push(`Exits: ${session.exits.map((exit) => exit.direction).join(', ')}`)
   }
@@ -70,7 +76,17 @@ export function renderAffordances(actions: GameActionSummary[]): string {
   ].join('\n')
 }
 
-export function renderMissions(missions: MissionInstanceSummary[]): string {
+/** Workstream 8: how long is left on a job's clock, in words. */
+export function describeTimeLeft(deadlineUtc: string, now: Date = new Date()): string {
+  const minutes = Math.floor((new Date(deadlineUtc).getTime() - now.getTime()) / 60000)
+  if (minutes <= 0) return 'time is up'
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  if (hours === 0) return `${rest} min left`
+  return rest === 0 ? `${hours} h left` : `${hours} h ${rest} min left`
+}
+
+export function renderMissions(missions: MissionInstanceSummary[], now: Date = new Date()): string {
   if (missions.length === 0) {
     return 'No missions yet.'
   }
@@ -84,7 +100,7 @@ export function renderMissions(missions: MissionInstanceSummary[]): string {
 
   const lines: string[] = ['Missions:']
   for (const mission of missions) {
-    lines.push(`${mission.displayName} — ${mission.status}`)
+    lines.push(`${mission.displayName} — ${mission.status}${mission.deadlineAtUtc ? ` (${describeTimeLeft(mission.deadlineAtUtc, now)})` : ''}`)
     for (const objective of mission.objectives) {
       lines.push(`  ${objectiveMark(objective.status)} ${objective.displayName}`)
     }

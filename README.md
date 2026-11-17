@@ -20,11 +20,11 @@ build the world and its missions from inside the running game.
 | Play | Realtime room chat (speech, emotes, dice), presence, arrivals/departures, session-scoped transcript, idle expiry. |
 | Rules engine | SR5 tests (success, threshold, opposed) built from the real sheet, limits, wound modifiers, Edge (Push the Limit, Second Chance), active effects, seeded and audited dice. |
 | NPCs and combat | Placed NPCs with awareness states, room interactables with discovery, and structured-time combat: initiative passes, action economy, ranged and melee attacks, defense, soak, condition monitors, NPC turns, turn timers. |
-| Missions | Private instanced encounters, objectives, mission items, Johnson dialogue with negotiation, and Karma/nuyen rewards granted exactly once through the career ledger. One player per instance. |
+| Missions | Jobs on the one shared map: objectives, the job's one item, Johnson dialogue with negotiation, and Karma/nuyen rewards granted exactly once through the career ledger. One clock per job: a deadline from the first accept, first to finish wins, a 24-hour aftermath shown in the job's rooms, then a reset (NPCs back, item back). Crews of up to five take jobs together and split the pay. |
 | World Forge | Staff content builder at `/admin/forge`: missions, encounters, NPC templates and placements, scenes/dialogue, triggers, and test definitions with a draft → validate → publish → retire lifecycle. |
 | Administration | User role management, append-only audit log, coordinate world editor at `/admin/world`. |
 
-Not built yet: spellcasting, Matrix actions, rigging, group missions, non-public
+Not built yet: spellcasting, Matrix actions, rigging, group combat, non-public
 rooms, quality/magic career advancement, nuyen purchases, moderation tools, and
 email confirmation/password reset. See the roadmap.
 
@@ -158,7 +158,8 @@ Type plain text to speak. Commands:
 | `/do [name] [edge]` | Perform any action currently available to you (for example `/do sneak past razor`), or list them. |
 | `/run` | Toggle running. |
 | `/edge <yes\|no>`, `/defend <standard\|full>` | Answer a pending Edge or defense decision. |
-| `/missions` | Show your missions and objectives. |
+| `/missions` | Show your missions, their objectives and the time left on an open job. |
+| `/crew [invite <name> \| join \| leave]` | Show your crew, invite someone in the room, accept an invitation, or leave. |
 | `<number>` | Pick a numbered dialogue or scene choice. |
 
 `/surge` is a development-only test effect.
@@ -181,7 +182,8 @@ authoritative contract. In summary:
 | `/api/characters` | List, delete, career sheet, advancements | Authenticated owner |
 | `/api/play-session` | Start/resume, current room session, activity renewal | Authenticated |
 | `/api/game/actions`, `/api/game/decisions` | List/perform game actions, answer decisions | Authenticated |
-| `/api/game/missions` | The caller's missions | Authenticated |
+| `/api/game/missions` | The caller's missions, with an open job's deadline | Authenticated |
+| `/api/game/crew` | The caller's crew; invite, join, leave | Authenticated |
 | `/api/admin/users`, `/api/admin/audit` | Role management, audit log | `Administrator` |
 | `/api/admin/world` | Rooms, exits, room deletion, NPC/interactable placement, room environment | `Administrator`, `WorldBuilder` |
 | `/api/admin/content` | World Forge content lifecycle | `Administrator`, `WorldBuilder` |

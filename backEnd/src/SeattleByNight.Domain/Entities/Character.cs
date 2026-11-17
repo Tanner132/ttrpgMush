@@ -9,6 +9,9 @@ public sealed class Character
     public string Name { get; set; } = string.Empty;
     public string NormalizedName { get; set; } = string.Empty;
     public Guid CurrentRoomId { get; set; }
+
+    // Workstream 8 phase 5: a character belongs to at most one crew.
+    public Guid? CrewId { get; set; }
     public CharacterLifecycleState LifecycleState { get; set; } = CharacterLifecycleState.Finalized;
     public DateTimeOffset? FinalizedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;

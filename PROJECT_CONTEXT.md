@@ -95,6 +95,8 @@ StateChanges, Tests).
   `restricted`, `private`; empty is an open door, workstream 8). Hidden,
   locked and restricted refuse entry; restricted sits on the doors into a room,
   so leaving is never refused; private refuses entry until player homes exist.
+  A room with a fight in progress counts as restricted on every door into it,
+  read off the in-memory combat tracker and never stored (workstream 8 phase 4).
   Door state is shared world state. At most one exit per direction per source
   room. Exits have no names.
 - Coordinates place a room in the editor and seed default adjacency only.
@@ -317,6 +319,28 @@ built follows it; these are the load-bearing rules.
   conversation.
 - **Rewards.** Karma and nuyen are granted through the career ledger, keyed by
   mission instance, exactly once.
+- **The job clock (workstream 8 phase 3).** One `JobState` row per job
+  (`Available` → `Open` → `Aftermath` → `Available`), taken under its version
+  by accept (`MissionStore.AssignAsync`), turn-in (`StateChangeApplier`) and
+  the sweep (`JobClockSweeper`, run every 30 s by `JobClockService`), so
+  runners racing one job from different rooms are decided by the database;
+  the loser gets `JobRaceLostException`'s sentence and nothing commits. The
+  first accept sets the deadline (`deadlineHours`, default 3); turn-in fails
+  every other accept group's run; the deadline fails every run and resets at
+  once; a completed job resets 24 hours later (item back to its room,
+  discoveries of its hidden items forgotten, its NPCs due back). Defeated
+  NPCs come back when due, put off an hour while their room has a fight
+  (always) or an online character (twice at most). The room view's
+  `aftermath` is the stage for the hours since the most recent completion of
+  a job that uses the room. Lines to other runners go out after the commit
+  through `IJobNotices`.
+- **Crews (workstream 8 phase 5).** `Character.CrewId`, up to five members,
+  invitations to someone in the same room (`CrewStore`, `/api/game/crew`).
+  A member's accept gives every member their own acceptance in one accept
+  group (`MissionInstance.AcceptGroupId`, `CrewId`); objectives done by one
+  are done for the group; turn-in pays the full Karma to each member still in
+  the crew and splits the nuyen. `give-item` hands a carried item to anyone in
+  the room.
 - The action and test catalogs are still partly code-defined
   (`DevelopmentGameActions`, `DevelopmentGameTests`); `/surge` is a development
   effect.

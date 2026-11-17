@@ -272,6 +272,27 @@ public sealed class AffordanceService
                 take.Description,
                 take.Kind));
         }
+
+        // Workstream 8 phase 5: anything carried can be handed to anyone here.
+        var carried = await missionReader.GetItemsOwnedByCharacterAsync(characterId, cancellationToken);
+        if (carried.Count > 0)
+        {
+            var give = DevelopmentGameActions.All[DevelopmentGameActions.GiveItemActionId];
+            var others = (await missionReader.GetCharactersInRoomAsync(roomId, cancellationToken))
+                .Where(character => character.Id != characterId);
+            foreach (var other in others)
+            {
+                foreach (var item in carried)
+                {
+                    affordances.Add(new GameAffordance(
+                        give.ActionId,
+                        GiveItemIds.Derive(item.Id, other.Id),
+                        $"{give.DisplayName} {item.DisplayName} to {other.Name}",
+                        give.Description,
+                        give.Kind));
+                }
+            }
+        }
     }
 
     private static void AddNpcAffordance(List<GameAffordance> affordances, string actionId, NpcSnapshot npc)

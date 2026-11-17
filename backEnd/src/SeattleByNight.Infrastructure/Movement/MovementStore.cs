@@ -1,5 +1,6 @@
 using SeattleByNight.Domain;
 using Microsoft.EntityFrameworkCore;
+using SeattleByNight.Application.GameEngine.Combat;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Domain.Entities;
 using SeattleByNight.Domain.Enums;
@@ -11,11 +12,13 @@ public sealed class MovementStore : IMovementStore
 {
     private readonly SeattleByNightDbContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly ICombatTracker? _combat;
 
-    public MovementStore(SeattleByNightDbContext dbContext, TimeProvider timeProvider)
+    public MovementStore(SeattleByNightDbContext dbContext, TimeProvider timeProvider, ICombatTracker? combat = null)
     {
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _combat = combat;
     }
 
     public async Task<MovementStoreResult> MoveAsync(
@@ -82,7 +85,10 @@ public sealed class MovementStore : IMovementStore
 
         // Workstream 8: restricted stops entry only. Exits are one-way rows,
         // so it sits on the doors INTO a room and never on the way out.
-        if (exit.Has(ExitStates.Restricted))
+        // Phase 4: a room with a fight in progress is restricted too. Combat
+        // lives in memory, so this is read off the tracker, never stored: a
+        // restart mid-fight cannot leave a door shut for ever.
+        if (exit.Has(ExitStates.Restricted) || _combat?.Get(exit.DestinationRoomId) is not null)
         {
             await transaction.RollbackAsync(cancellationToken);
             return exit.SourceRoomId == character.CurrentRoomId

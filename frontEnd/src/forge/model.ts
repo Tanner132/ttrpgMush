@@ -157,7 +157,20 @@ export interface Mission {
   objectives: Objective[]
   /** The job's events: each names a room and something that happens in it. */
   triggers: Listener[]
+  /** Workstream 8: hours from the first accept until the job expires. The server uses 3 when absent. */
+  deadlineHours?: number
+  /** Workstream 8: what the job's rooms show after it is done, by hours since. */
+  aftermath?: AftermathStage[]
 }
+
+/** "From hour X, show this" in the job's rooms; the job resets at hour 24. */
+export interface AftermathStage {
+  fromHour: number
+  text: string
+}
+
+export const DefaultDeadlineHours = 3
+export const AftermathHours = 24
 
 /** Where a reply leads and what it does. */
 export interface SceneOutcome {
@@ -337,6 +350,7 @@ export function newMission(id: Guid, displayName: string): Mission {
     rewards: { karma: 2, nuyen: 2000 },
     objectives: [],
     triggers: [],
+    deadlineHours: DefaultDeadlineHours,
   }
 }
 

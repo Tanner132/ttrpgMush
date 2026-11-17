@@ -7,6 +7,7 @@ import { useTranscript } from '../hooks/useTranscript.ts'
 import { useRoomChat } from '../realtime/useRoomChat.ts'
 import { useGameplayCommands } from '../commands/useGameplayCommands.ts'
 import { listGameActions, performGameAction, respondToDecision } from '../api/gameActions.ts'
+import { crewCommand } from '../api/crew.ts'
 import { listMissions } from '../api/missions.ts'
 import type { PendingDecisionInfo } from '../api/gameActions.ts'
 import type { CombatView, RoomSession } from '../api/roomSession.ts'
@@ -129,6 +130,7 @@ export default function GameplayPage() {
     queryOnlineCharacters,
     listGameActions,
     listMissions,
+    crewCommand,
     performGameAction,
     respondToDecision,
     appendLocal,

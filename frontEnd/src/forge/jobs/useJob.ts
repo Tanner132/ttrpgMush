@@ -4,6 +4,7 @@ import { useForgeData } from '../forgeContext.ts'
 import { useLoad } from '../hooks.ts'
 import { newMission, newPrompt, openedSceneIds, parse, sceneEffects, type Mission, type Scene } from '../model.ts'
 import { useContentDraft, type ContentDraft } from '../useContentDraft.ts'
+import type { StepId } from './checks.ts'
 
 /**
  * A world NPC who offers this job: the job's Johnson. They offer it wherever
@@ -52,10 +53,20 @@ export interface Job {
   busy: boolean
   /** The first refusal among the job's records, in the server's words. */
   error: string | null
+  /** WF-33: the step that holds what the refusal names, to link to it. */
+  errorStep: StepId | null
   saveAll: () => Promise<boolean>
   revertAll: () => void
   /** The records that make up the job and go live together: its conversations and the job. */
   publishSet: () => ContentRef[]
+}
+
+/** WF-33: the server names the part of a job it refused ("Job “X” › objective 2 › …"). */
+function missionStepFor(message: string): StepId {
+  if (/› (event|effect|condition)/.test(message)) return 'events'
+  if (/› objective/.test(message) || /› (rewards|repeatability)/.test(message)) return 'objectives'
+  if (/› (item|roomIds|npcIds)/.test(message)) return 'rooms'
+  return 'review'
 }
 
 function offers(scene: Scene, missionId: Guid): boolean {
@@ -144,7 +155,9 @@ export function useJob(id: Guid): Job {
   const drafts = [mission, pitch, prompt]
   const dirty = drafts.some((draft) => draft.dirty)
   const busy = drafts.some((draft) => draft.busy)
-  const error = drafts.find((draft) => draft.error)?.error ?? null
+  const failed = drafts.find((draft) => draft.error)
+  const error = failed?.error ?? null
+  const errorStep = failed === undefined ? null : failed === pitch ? 'pitch' : failed === prompt ? 'events' : missionStepFor(failed.error ?? '')
 
   const saveAll = async () => {
     // Conversations first: the job opens them, and the audit log reads
@@ -191,6 +204,7 @@ export function useJob(id: Guid): Job {
     dirty,
     busy,
     error,
+    errorStep,
     saveAll,
     revertAll,
     publishSet,

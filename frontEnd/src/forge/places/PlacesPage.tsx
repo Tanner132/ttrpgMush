@@ -9,7 +9,7 @@ import { ExitsSection } from './ExitsSection.tsx'
 import { MapGrid, type BuildSpot } from './MapGrid.tsx'
 import { BuildRoomForm, RoomSection } from './RoomSection.tsx'
 import { UsageSection } from './UsageSection.tsx'
-import { WorldContents } from './WorldContents.tsx'
+import { WorldContents, type HereCounts } from './WorldContents.tsx'
 
 /** Where Places opens with no room chosen: the downtown street, else the first room. */
 const DefaultRoomId = '11111111-1111-1111-1111-111111111111'
@@ -33,6 +33,7 @@ export default function PlacesPage() {
   const room = world.rooms.find((candidate) => candidate.id === params.get('room')) ?? defaultRoom(world.rooms)
   const [view, setView] = useState({ x: room?.mapX ?? 0, y: room?.mapY ?? 0, layer: room?.mapLayer ?? 0 })
   const [build, setBuild] = useState<BuildSpot | null>(null)
+  const [here, setHere] = useState<HereCounts | null>(null)
 
   // Opening a room brings the map to it.
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function PlacesPage() {
 
           {room && (
             <Section title="Here">
-              <WorldContents key={room.id} room={room} />
+              <WorldContents key={room.id} room={room} onCounts={setHere} />
             </Section>
           )}
         </div>
@@ -102,6 +103,7 @@ export default function PlacesPage() {
             <UsageSection
               key={`usage-${room.id}`}
               room={room}
+              here={here?.roomId === room.id ? here : null}
               onDeleted={() => {
                 const next = defaultRoom(world.rooms.filter((candidate) => candidate.id !== room.id))
                 setParams(next ? { room: next.id } : {})

@@ -71,6 +71,7 @@ public sealed class MissionEngine
         {
             DevelopmentGameActions.TakeItemActionId => TakeItemAsync(context, cancellationToken),
             DevelopmentGameActions.ReachRoomActionId => ReachRoomAsync(context, cancellationToken),
+            DevelopmentGameActions.GiveItemActionId => GiveItemAsync(context, cancellationToken),
             _ => Task.FromResult(GameActionOutcome.Failure(GameActionError.ActionNotFound)),
         };
 
@@ -125,6 +126,56 @@ public sealed class MissionEngine
             itemId: item.ItemId, cancellationToken: cancellationToken);
 
         return GameActionOutcome.Final(null, $"You take the {item.DisplayName}.{objectiveNote}");
+    }
+
+    // Workstream 8 phase 5 (8.1): a character hands an item they carry to
+    // another character in the same room. This is how a crew member can pass
+    // the job's item to a rival who has accepted the same job.
+    private async Task<GameActionOutcome> GiveItemAsync(
+        MissionActionContext context, CancellationToken cancellationToken)
+    {
+        var session = context.Session;
+        if (context.Request.TargetId is not Guid targetId)
+        {
+            return GameActionOutcome.Failure(GameActionError.TargetNotFound);
+        }
+
+        var carried = await missionReader.GetItemsOwnedByCharacterAsync(session.CharacterId, cancellationToken);
+        var here = await missionReader.GetCharactersInRoomAsync(session.CurrentRoomId, cancellationToken);
+        WorldItemSnapshot? item = null;
+        RoomCharacter? receiver = null;
+        foreach (var candidate in carried)
+        {
+            foreach (var other in here.Where(other => other.Id != session.CharacterId))
+            {
+                if (GiveItemIds.Derive(candidate.Id, other.Id) == targetId)
+                {
+                    item = candidate;
+                    receiver = other;
+                }
+            }
+        }
+
+        if (item is null || receiver is null)
+        {
+            return GameActionOutcome.Failure(GameActionError.TargetNotFound);
+        }
+
+        var applied = await stateChangeApplier.ApplyAsync(
+            session.CharacterId, [new GiveItemChange(item.Id, receiver.Id)], cancellationToken);
+        await AppendAuditAsync(context, applied, cancellationToken);
+
+        await SendPlayerEmoteAsync(
+            context.Request.UserId, $"gives the {item.DisplayName} to {receiver.Name}.", cancellationToken);
+        await broadcaster.SendToUserAsync(
+            receiver.UserId,
+            new RoomMessage(
+                Guid.NewGuid(), session.CurrentRoomId, Guid.Empty, string.Empty,
+                $"{session.CharacterName} gives you the {item.DisplayName}.",
+                ChatMessageType.Narration, DateTimeOffset.UtcNow),
+            cancellationToken);
+
+        return GameActionOutcome.Final(null, $"You give the {item.DisplayName} to {receiver.Name}.");
     }
 
     // Workstream 8: movement raises this on the arrival room's queue, ahead of

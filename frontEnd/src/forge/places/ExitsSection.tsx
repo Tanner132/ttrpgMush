@@ -99,26 +99,29 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
             bothWays ? { sourceRoomId: created.id, destinationRoomId: room.id, direction: OppositeDirection[direction], states: returnStates(states) } : null,
           )
         } else {
-          await createExit({ sourceRoomId: room.id, destinationRoomId: destinationId, direction, states })
-          const reverseExists = world.exits.some((exit) => exit.sourceRoomId === destinationId && exit.destinationRoomId === room.id)
-          if (bothWays && !reverseExists) {
-            await createExit({
-              sourceRoomId: destinationId,
-              destinationRoomId: room.id,
-              direction: OppositeDirection[direction],
-              states: returnStates(states),
-            })
-          }
+          // WF-30: one request; the server makes both directions or neither.
+          await createExit({ sourceRoomId: room.id, destinationRoomId: destinationId, direction, states }, bothWays ? returnStates(states) : null)
         }
       }
       await refreshWorld()
       return true
     })
     if (done) onClose()
+    // Whatever half-happened, the map shows what is really there now.
+    else await refreshWorld().catch(() => undefined)
   }
+
+  // WF-30: say before submit when the way back is already taken, and by what.
+  const reverseExists = world.exits.some((exit) => exit.sourceRoomId === destinationId && exit.destinationRoomId === room.id)
+  const backHolder =
+    !existing && target === 'existing' && bothWays && destinationId !== '' && !reverseExists
+      ? world.exits.find((exit) => exit.sourceRoomId === destinationId && exit.direction === OppositeDirection[direction])
+      : undefined
+  const destinationName = world.rooms.find((candidate) => candidate.id === destinationId)?.name
 
   const ready =
     !taken.has(direction) &&
+    !backHolder &&
     (existing || target === 'existing' ? destinationId !== '' : newName.trim() !== '' && newDescription.trim() !== '')
 
   return (
@@ -193,6 +196,11 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
         </p>
         {!existing && bothWays && returnStates(states).length !== states.length && (
           <p className="forge__hint">Restricted and Private go on this direction only; the way back is left free to leave by.</p>
+        )}
+        {backHolder && (
+          <StatusBanner tone="warning">
+            {destinationName} already has an exit {OppositeDirection[direction]}, to {backHolder.destinationRoomName}. Untick Both ways, or free that direction first.
+          </StatusBanner>
         )}
         {existing && <p className="forge__hint">Only this direction changes; the way back, if there is one, is its own exit.</p>}
 

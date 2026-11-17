@@ -1,8 +1,10 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
+import { ForgeContractVersion } from './api.ts'
 import { ForgeDataProvider } from './ForgeData.tsx'
 import { useForgeData } from './forgeContext.ts'
 import { DirtyContext, useDirtyRegistry } from './hooks.ts'
 import { useGuardedClick } from './navigation.ts'
+import { SignInPrompt } from './SignInPrompt.tsx'
 
 const Tabs = [
   { to: '/admin/forge/places', label: 'Places' },
@@ -11,7 +13,7 @@ const Tabs = [
 ]
 
 function ForgeHeader() {
-  const { inventory } = useForgeData()
+  const { inventory, palette } = useForgeData()
   const guard = useGuardedClick()
   const drafts = inventory.definitions.filter((definition) => definition.status === 'Draft' || definition.hasPendingEdits).length
   const errors = inventory.definitions.filter((definition) => definition.draftError).length
@@ -40,6 +42,11 @@ function ForgeHeader() {
           </NavLink>
         ))}
       </nav>
+      {palette.contractVersion !== ForgeContractVersion && (
+        <p className="forge__corpus-error" role="alert">
+          This Forge and the server are different versions, so saves may be refused. Reload the page; if this stays, the server needs updating.
+        </p>
+      )}
       {inventory.corpusError && (
         <p className="forge__corpus-error" role="alert">
           What the game is serving no longer loads: {inventory.corpusError}
@@ -59,6 +66,7 @@ export default function ForgeShell() {
           <div className="forge__body">
             <Outlet />
           </div>
+          <SignInPrompt />
         </ForgeDataProvider>
       </div>
     </DirtyContext.Provider>

@@ -104,6 +104,7 @@ builder.Services.AddSignalR().AddJsonProtocol(options =>
 
 builder.Services.AddHostedService<PlaySessionExpirationService>();
 builder.Services.AddHostedService<StructuredTimeService>();
+builder.Services.AddHostedService<JobClockService>();
 
 builder.Services.AddApplicationAuthorization();
 
@@ -227,6 +228,7 @@ app.MapCharacterCreationEndpoints();
 app.MapPlaySessionEndpoints();
 app.MapGameActionEndpoints();
 app.MapMissionEndpoints();
+app.MapCrewEndpoints();
 app.MapAdminEndpoints();
 app.MapWorldEditorEndpoints();
 app.MapRoomContentAdminEndpoints();

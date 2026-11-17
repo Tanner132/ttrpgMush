@@ -203,7 +203,7 @@ export function RoomsStep({ job, mission }: { job: Job; mission: Mission }) {
           </ul>
         </Section>
 
-        <Section title={selected ? selected.name : 'Room'}>
+        <Section title={selected ? selected.name : 'Room'} named={selected !== undefined && selected !== null}>
           {!selected ? (
             <Empty>Choose a room on the map.</Empty>
           ) : (
@@ -223,8 +223,8 @@ export function RoomsStep({ job, mission }: { job: Job; mission: Mission }) {
                   {npcsHere.length === 0 ? (
                     <Empty>Nobody stands here. Place NPCs in Places.</Empty>
                   ) : (
-                    <fieldset className="forge__stack">
-                      <legend>NPCs the job uses</legend>
+                    <fieldset className="forge__fieldset forge__fieldset--boxed">
+                      <legend className="ui-field__label">NPCs the job uses</legend>
                       {npcsHere.map((npc) => (
                         <Check key={npc.id} label={npc.name} checked={mission.npcIds.includes(npc.id)} onChange={(on) => toggleNpc(npc.id, on)} />
                       ))}

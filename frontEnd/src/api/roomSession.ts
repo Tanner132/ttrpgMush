@@ -105,6 +105,8 @@ export interface RoomSession {
   // Non-null only while this room has an active encounter, so a client
   // joining mid-combat renders it without waiting for a push.
   combat: CombatView | null
+  /** Workstream 8: what a job finished here has left behind, if anything. */
+  aftermath?: string | null
 }
 
 export async function getRoomSession(cursor?: string, signal?: AbortSignal): Promise<RoomSession> {

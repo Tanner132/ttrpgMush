@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '../../components/ui/Button.tsx'
 import { Modal } from '../../components/ui/Modal.tsx'
@@ -96,10 +96,25 @@ function InspectableDialog({
  * What stands in a public room: world NPCs (Johnsons and regulars) and
  * inspectables. These are map content and save at once; there is no draft.
  */
-export function WorldContents({ room }: { room: WorldRoom }) {
+/** What the Here section shows, counted, so the delete summary can say the same (WF-31). */
+export interface HereCounts {
+  roomId: string
+  npcs: number
+  inspectables: number
+  items: number
+}
+
+export function WorldContents({ room, onCounts }: { room: WorldRoom; onCounts?: (counts: HereCounts) => void }) {
   const { references, refreshWorld } = useForgeData()
   const npcs = useLoad((signal) => listRoomNpcs(room.id, signal), [room.id])
   const inspectables = useLoad((signal) => listRoomInspectables(room.id, signal), [room.id])
+  const npcCount = npcs.data?.length
+  const inspectableCount = inspectables.data?.length
+  const itemCount = references.missions.reduce((total, mission) => total + mission.items.filter((item) => item.roomId === room.id).length, 0)
+  useEffect(() => {
+    if (npcCount === undefined || inspectableCount === undefined) return
+    onCounts?.({ roomId: room.id, npcs: npcCount, inspectables: inspectableCount, items: itemCount })
+  }, [room.id, npcCount, inspectableCount, itemCount, onCounts])
   const [dialog, setDialog] = useState<{ npc: WorldNpc | null } | { inspectable: WorldInspectable | null } | null>(null)
   const [removing, setRemoving] = useState<WorldNpc | null>(null)
   const [removingInspectable, setRemovingInspectable] = useState<WorldInspectable | null>(null)

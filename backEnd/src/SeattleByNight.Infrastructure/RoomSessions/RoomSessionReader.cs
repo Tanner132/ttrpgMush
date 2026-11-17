@@ -1,6 +1,7 @@
 using SeattleByNight.Domain;
 using Microsoft.EntityFrameworkCore;
 using SeattleByNight.Application.GameEngine.Combat;
+using SeattleByNight.Application.GameEngine.Missions.Content;
 using SeattleByNight.Application.Movement;
 using SeattleByNight.Application.RoomSessions;
 using SeattleByNight.Domain.Enums;
@@ -12,11 +13,19 @@ public sealed class RoomSessionReader : IRoomSessionReader
 {
     private readonly SeattleByNightDbContext _dbContext;
     private readonly ICombatTracker _combatTracker;
+    private readonly IGameContentProvider? _content;
+    private readonly TimeProvider _timeProvider;
 
-    public RoomSessionReader(SeattleByNightDbContext dbContext, ICombatTracker combatTracker)
+    public RoomSessionReader(
+        SeattleByNightDbContext dbContext,
+        ICombatTracker combatTracker,
+        IGameContentProvider? content = null,
+        TimeProvider? timeProvider = null)
     {
         _dbContext = dbContext;
         _combatTracker = combatTracker;
+        _content = content;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task<RoomSession?> GetByPlaySessionIdAsync(
@@ -77,6 +86,14 @@ public sealed class RoomSessionReader : IRoomSessionReader
                 (e, r) => new RoomExitSummary(e.Id, e.Direction, e.DestinationRoomId, r.Name, e.States))
             .ToListAsync(cancellationToken);
 
+        // Workstream 8 phase 4: a door into a room with a fight in progress
+        // shows as restricted for as long as the fight lasts.
+        exits = exits
+            .Select(exit => _combatTracker.Get(exit.DestinationRoomId) is not null && !exit.States.Contains(ExitStates.Restricted)
+                ? exit with { States = ExitStates.Normalize([.. exit.States, ExitStates.Restricted]) }
+                : exit)
+            .ToList();
+
         var occupants = await _dbContext.Characters
             .AsNoTracking()
             .Where(c => c.CurrentRoomId == character.CurrentRoomId
@@ -124,7 +141,36 @@ public sealed class RoomSessionReader : IRoomSessionReader
             interactables,
             messages,
             olderCursor,
-            _combatTracker.Get(character.CurrentRoomId) is { } combat ? CombatView.From(combat) : null);
+            _combatTracker.Get(character.CurrentRoomId) is { } combat ? CombatView.From(combat) : null,
+            await ReadAftermathAsync(character.CurrentRoomId, cancellationToken));
+    }
+
+    // Workstream 8 phase 3 (8.1 "Aftermath text"): derived from the completion
+    // time, so it needs no timer.
+    private async Task<string?> ReadAftermathAsync(Guid roomId, CancellationToken cancellationToken)
+    {
+        if (_content is null)
+        {
+            return null;
+        }
+
+        var finished = await _dbContext.JobStates
+            .AsNoTracking()
+            .Where(job => job.Status == nameof(JobStatus.Aftermath) && job.CompletedAtUtc != null)
+            .OrderByDescending(job => job.CompletedAtUtc)
+            .Select(job => new { job.MissionId, job.CompletedAtUtc })
+            .ToListAsync(cancellationToken);
+
+        var now = _timeProvider.GetUtcNow();
+        foreach (var job in finished)
+        {
+            if (_content.Current.FindMission(job.MissionId) is { } definition && definition.RoomIds.Contains(roomId))
+            {
+                return definition.AftermathAt(now - job.CompletedAtUtc!.Value)?.Text;
+            }
+        }
+
+        return null;
     }
 
     private async Task<(IReadOnlyList<RoomMessage> Messages, string? OlderCursor)> LoadMessagesAsync(

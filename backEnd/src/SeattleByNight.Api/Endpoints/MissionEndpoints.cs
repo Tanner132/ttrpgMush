@@ -22,7 +22,9 @@ public sealed record MissionInstanceSummary(
     MissionInstanceStatus Status,
     IReadOnlyList<MissionObjectiveSummary> Objectives,
     DateTimeOffset AcceptedAtUtc,
-    DateTimeOffset? CompletedAtUtc);
+    DateTimeOffset? CompletedAtUtc,
+    // Workstream 8 phase 3: the job's one clock, while the run is open.
+    DateTimeOffset? DeadlineAtUtc = null);
 
 public sealed record MissionDefinitionSummary(
     Guid Id,
@@ -78,8 +80,23 @@ public static class MissionEndpoints
         var instances = await missionReader.ListInstancesForCharacterAsync(
             session.CharacterId, cancellationToken);
 
+        var deadlines = await missionReader.GetJobDeadlinesAsync(
+            instances.Where(instance => instance.Status is MissionInstanceStatus.Accepted
+                    or MissionInstanceStatus.InProgress or MissionInstanceStatus.ReadyToTurnIn)
+                .Select(instance => instance.MissionId)
+                .Distinct()
+                .ToArray(),
+            cancellationToken);
+
         var summaries = instances
-            .Select(instance => ToSummary(instance, content.Current))
+            .Select(instance => ToSummary(instance, content.Current) with
+            {
+                DeadlineAtUtc = instance.Status is MissionInstanceStatus.Accepted
+                        or MissionInstanceStatus.InProgress or MissionInstanceStatus.ReadyToTurnIn
+                    && deadlines.TryGetValue(instance.MissionId, out var deadline)
+                        ? deadline
+                        : null,
+            })
             .ToList();
 
         return Results.Ok(summaries);
@@ -149,6 +166,9 @@ public static class MissionEndpoints
             MissionAssignError.NotRepeatable => Results.Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: "This mission was already completed and cannot be repeated."),
+            MissionAssignError.JobFinished or MissionAssignError.JobRaceLost => Results.Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "This job has just been finished and is not offered again until it resets."),
             MissionAssignError.CooldownActive => Results.Problem(
                 statusCode: StatusCodes.Status409Conflict,
                 title: $"This mission is on cooldown until {result.CooldownEndsAtUtc:u}."),

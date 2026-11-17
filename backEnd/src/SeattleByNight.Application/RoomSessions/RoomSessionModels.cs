@@ -51,4 +51,8 @@ public sealed record RoomSession(
     string? OlderMessagesCursor,
     // Non-null only while this room has an active encounter (§38); a client
     // joining mid-combat renders from this instead of waiting for a push.
-    CombatView? Combat);
+    CombatView? Combat,
+    // Workstream 8 phase 3: what a job finished here has left behind, by the
+    // hours since it was finished. When jobs share the room, the one finished
+    // most recently (8.5).
+    string? Aftermath = null);

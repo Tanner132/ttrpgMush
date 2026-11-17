@@ -5,6 +5,7 @@ import { deleteRoom, getRoomDeletion, type WorldRoom } from '../api.ts'
 import { Chip, Empty, Section, Select } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { useAction, useLoad } from '../hooks.ts'
+import type { HereCounts } from './WorldContents.tsx'
 
 function plural(count: number, one: string, many = `${one}s`) {
   return `${count} ${count === 1 ? one : many}`
@@ -16,9 +17,19 @@ function plural(count: number, one: string, many = `${one}s`) {
  * listens in it, puts an item in it, sends runners to it or uses an NPC
  * standing in it — exactly what stops a delete.
  */
-export function UsageSection({ room, onDeleted }: { room: WorldRoom; onDeleted: () => void }) {
+export function UsageSection({ room, here, onDeleted }: { room: WorldRoom; here?: HereCounts | null; onDeleted: () => void }) {
   const { world, refreshWorld } = useForgeData()
-  const check = useLoad((signal) => getRoomDeletion(room.id, signal), [room.id, room.version, world.exits.length, world.rooms.length])
+  // WF-31: the check is read again whenever what Here shows changes, and the
+  // counts come from what Here shows, so the two never disagree.
+  const check = useLoad((signal) => getRoomDeletion(room.id, signal), [
+    room.id,
+    room.version,
+    world.exits.length,
+    world.rooms.length,
+    here?.npcs,
+    here?.inspectables,
+    here?.items,
+  ])
   const [confirming, setConfirming] = useState(false)
   const [relocateTo, setRelocateTo] = useState('')
   const action = useAction()
@@ -69,9 +80,9 @@ export function UsageSection({ room, onDeleted }: { room: WorldRoom; onDeleted: 
               Deleting removes the room and everything in it:{' '}
               {[
                 plural(usage.incomingExits + usage.outgoingExits, 'exit'),
-                plural(usage.npcsRemoved, 'NPC'),
-                plural(usage.itemsRemoved, 'item'),
-                plural(usage.inspectablesRemoved, 'inspectable'),
+                plural(here?.npcs ?? usage.npcsRemoved, 'NPC'),
+                plural(here?.items ?? usage.itemsRemoved, 'item'),
+                plural(here?.inspectables ?? usage.inspectablesRemoved, 'inspectable'),
                 usage.hasRoomEvents ? 'its events' : null,
                 usage.chatMessages > 0 ? plural(usage.chatMessages, 'chat message') : null,
               ]

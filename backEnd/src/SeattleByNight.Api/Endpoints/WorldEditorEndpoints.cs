@@ -24,7 +24,10 @@ public sealed record CreateWorldExitRequest(
     Guid SourceRoomId,
     Guid DestinationRoomId,
     string? Direction,
-    string[]? States);
+    string[]? States,
+    // WF-30: also create the way back, in the same transaction.
+    bool? BothWays = null,
+    string[]? ReturnStates = null);
 
 public sealed record UpdateWorldExitRequest(
     Guid SourceRoomId,
@@ -163,7 +166,8 @@ public static class WorldEditorEndpoints
 
         var mutation = ToMutation(request.SourceRoomId, request.DestinationRoomId,
             request.Direction, request.States);
-        var result = await mediator.Send(new CreateRoomExitCommand(actor.Id, mutation));
+        var result = await mediator.Send(new CreateRoomExitCommand(
+            actor.Id, mutation, request.BothWays ?? false, request.ReturnStates));
 
         return MutationResult(result,
             value => Results.Created($"/api/admin/world/rooms/{value.SourceRoomId}", value));

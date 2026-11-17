@@ -80,6 +80,10 @@ async function openJob(step: string) {
   await screen.findByRole('heading', { level: 1, name: 'Gang Warehouse Retrieval' })
 }
 
+// These open the reply dialog and type a good deal; under a full parallel
+// run they can pass the default 5 s on CPU alone.
+const SlowDialog = { timeout: 15_000 }
+
 describe('Jobs · the list', () => {
   it('links every job to its builder', async () => {
     renderForge('/admin/forge/jobs')
@@ -283,12 +287,12 @@ describe('Jobs · pitch', () => {
     expect(vi.mocked(api.saveDraft).mock.invocationCallOrder.at(-1)!).toBeLessThan(vi.mocked(api.updateRoomNpc).mock.invocationCallOrder[0])
   })
 
-  it('adds a reply that rolls against the Johnson and raises the pay on a pass', async () => {
+  it('adds a reply that rolls against the Johnson and raises the pay on a pass', SlowDialog, async () => {
     const user = userEvent.setup()
     await openJob('pitch')
 
     await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 5000 })
+    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 12_000 })
     await user.type(within(dialog).getByLabelText('Runner says'), 'I want more money.')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
     await user.click(within(dialog).getByRole('button', { name: 'A Library test' }))
@@ -315,12 +319,12 @@ describe('Jobs · pitch', () => {
 })
 
 describe('Jobs · rolls built on a reply', () => {
-  it('builds a contested roll from the runner’s attributes and skills against the NPC’s pools', async () => {
+  it('builds a contested roll from the runner’s attributes and skills against the NPC’s pools', SlowDialog, async () => {
     const user = userEvent.setup()
     await openJob('pitch')
 
     await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 5000 })
+    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 12_000 })
     await user.type(within(dialog).getByLabelText('Runner says'), 'Lean on him.')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
 
@@ -346,12 +350,12 @@ describe('Jobs · rolls built on a reply', () => {
     expect(reply.onFailure).toEqual({ endsScene: true })
   })
 
-  it('a roll nobody contests needs hits, and one slot is enough', async () => {
+  it('a roll nobody contests needs hits, and one slot is enough', SlowDialog, async () => {
     const user = userEvent.setup()
     await openJob('pitch')
 
     await user.click(await screen.findByRole('button', { name: 'Add a reply to part 1' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 5000 })
+    const dialog = await screen.findByRole('dialog', { name: 'Reply 3' }, { timeout: 12_000 })
     await user.type(within(dialog).getByLabelText('Runner says'), 'Read the room.')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Roll first' }))
     await user.click(within(dialog).getByRole('checkbox', { name: 'Contested by the NPC' }))

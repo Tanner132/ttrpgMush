@@ -40,7 +40,10 @@ public sealed record SetNpcDamageChange(
     Guid NpcId,
     int PhysicalDamage,
     int StunDamage,
-    string Reason) : StateChange;
+    string Reason,
+    // Workstream 8 phase 3: the hit put the NPC down, which starts its way
+    // back (its job's reset, or 24 hours).
+    bool Defeated = false) : StateChange;
 
 // Development rest heal (§44): clears both damage tracks so a defeated
 // character becomes playable again. Real SR5 healing is a later milestone.
@@ -48,6 +51,10 @@ public sealed record ClearCharacterDamageChange(Guid CharacterId) : StateChange;
 
 // §38: the acting character takes a placed item — RoomId clears, owner set.
 public sealed record PickUpItemChange(Guid ItemId) : StateChange;
+
+// Workstream 8 phase 5: the acting character hands an item they carry to a
+// character in the same room.
+public sealed record GiveItemChange(Guid ItemId, Guid ToCharacterId) : StateChange;
 
 // §35: marks one objective Completed and activates the next Inactive one
 // (dev decision mission.sequential-objectives). Emitted alongside the change
@@ -127,7 +134,17 @@ public enum EffectAttachDisposition
 public sealed record AppliedStateChange(
     string Kind,
     string Description,
-    EffectAttachDisposition? Disposition = null);
+    EffectAttachDisposition? Disposition = null,
+    // Workstream 8: lines for other characters, sent after the commit — a run
+    // another runner ended, a crew put on a job, a share of the pay.
+    IReadOnlyList<StateChangeNotice>? Notices = null);
+
+public sealed record StateChangeNotice(IReadOnlyList<Guid> CharacterIds, string Text);
+
+// Workstream 8 phase 3: a runner lost a race for a job to someone on another
+// queue (the job was finished, or changed, between reading and committing).
+// The whole change list is rolled back and the message is the player's answer.
+public sealed class JobRaceLostException(string message) : InvalidOperationException(message);
 
 // Applies a whole change list in one database transaction (§47): either every
 // change commits or none do. Audit/chat writes happen after the commit — they

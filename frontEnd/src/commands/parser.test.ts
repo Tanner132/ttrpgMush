@@ -233,3 +233,18 @@ describe('parseCommand', () => {
     expect(parseCommand('wait /help')).toEqual({ kind: 'speech', text: 'wait /help' })
   })
 })
+
+describe('/crew (workstream 8)', () => {
+  it('shows, invites by name, joins and leaves', () => {
+    expect(parseCommand('/crew')).toEqual({ kind: 'crew', verb: 'show' })
+    expect(parseCommand('/crew invite Two Bit Tess')).toEqual({ kind: 'crew', verb: 'invite', name: 'Two Bit Tess' })
+    expect(parseCommand('/crew JOIN')).toEqual({ kind: 'crew', verb: 'join' })
+    expect(parseCommand('/crew leave')).toEqual({ kind: 'crew', verb: 'leave' })
+  })
+
+  it('says how to use it when the words do not fit', () => {
+    expect(parseCommand('/crew invite').kind).toBe('usage-error')
+    expect(parseCommand('/crew kick Tess').kind).toBe('usage-error')
+    expect(parseCommand('/crew join now').kind).toBe('usage-error')
+  })
+})

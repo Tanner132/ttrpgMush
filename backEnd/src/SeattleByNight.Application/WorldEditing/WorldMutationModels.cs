@@ -61,9 +61,13 @@ public interface IWorldEditorStore
         UpdateRoomMutation mutation,
         CancellationToken cancellationToken = default);
 
+    // WF-30: with return states, the way back is created in the same
+    // transaction (or kept, if one already leads back), so a two-way exit
+    // is made whole or not at all.
     Task<WorldMutationResult<WorldExit>> CreateExitAsync(
         Guid actorUserId,
         RoomExitMutation mutation,
+        IReadOnlyList<string>? returnStates = null,
         CancellationToken cancellationToken = default);
 
     // Milestone 7 section 5: the referential guard in front of deleting a

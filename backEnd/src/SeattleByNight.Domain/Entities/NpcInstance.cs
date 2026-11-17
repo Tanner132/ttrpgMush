@@ -26,6 +26,13 @@ public sealed class NpcInstance
     public int PhysicalDamage { get; set; }
     public int StunDamage { get; set; }
     public string Awareness { get; set; } = string.Empty;
+
+    // Workstream 8 phase 3: when the NPC went down, and when it is next due
+    // back unhurt and unaware. A return put off by a watching character
+    // counts its delays (8.5: at most two).
+    public DateTimeOffset? DefeatedAtUtc { get; set; }
+    public DateTimeOffset? ReturnDueAtUtc { get; set; }
+    public int ReturnDelays { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
 }

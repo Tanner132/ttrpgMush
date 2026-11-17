@@ -38,6 +38,9 @@ public enum GameActionTargetKind
     // character, and a world item instance in the current room.
     MissionInstance,
     Item,
+    // Workstream 8 phase 5: an item the actor carries and a character in the
+    // room to give it to, as one id derived from the pair (GiveItemIds).
+    ItemHandover,
     // Milestone 6 (§37): a scene choice, identified by a deterministic id
     // derived from (npc, node, choice) — resolved by the SceneEngine from
     // the character's open conversation.
@@ -85,6 +88,9 @@ public static class DevelopmentGameActions
     // raised by movement as mission-reach-room.
     public const string TakeItemActionId = "take-item";
     public const string ReachRoomActionId = "mission-reach-room";
+
+    // Workstream 8 phase 5 (8.1 "Handing an item to another character").
+    public const string GiveItemActionId = "give-item";
 
     // Milestone 6 conversation verbs (§36/§37).
     public const string TalkNpcActionId = "talk-npc";
@@ -207,6 +213,16 @@ public static class DevelopmentGameActions
             "Pick up an item and carry it with you.",
             GameActionKind.Mission,
             TargetKind: GameActionTargetKind.Item);
+
+        // Workstream 8 phase 5: hand something you carry to a character in the
+        // same room. One affordance per (item, character); the MissionEngine
+        // maps the derived id back.
+        actions[GiveItemActionId] = new GameActionDefinition(
+            GiveItemActionId,
+            "Give",
+            "Hand something you carry to someone here.",
+            GameActionKind.Mission,
+            TargetKind: GameActionTargetKind.ItemHandover);
 
         // Reaction (§24), workstream 8: movement raises this on the arrival
         // room's queue so a reachRoom objective completes before any listener

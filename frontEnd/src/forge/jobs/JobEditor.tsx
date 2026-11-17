@@ -137,6 +137,12 @@ function JobEditor({ id }: { id: string }) {
       {job.error && (
         <StatusBanner tone="danger" role="alert">
           {job.error}
+          {job.errorStep && job.errorStep !== step && (
+            <>
+              {' '}
+              <Link to={`/admin/forge/jobs/${id}/${job.errorStep}`}>Go to {Steps.find((candidate) => candidate.id === job.errorStep)?.label}</Link>
+            </>
+          )}
         </StatusBanner>
       )}
 

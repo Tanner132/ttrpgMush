@@ -157,8 +157,70 @@ public sealed class WorldEditorStoreTests : IAsyncLifetime
 
         Assert.Equal(WorldMutationError.None, down.Error);
         Assert.Equal(WorldMutationError.None, up.Error);
-        Assert.Equal(WorldMutationError.Conflict, duplicate.Error);
+        // WF-30: a taken direction is the author's to fix, named, not a concurrency conflict.
+        Assert.Equal(WorldMutationError.Validation, duplicate.Error);
+        Assert.Contains("Source already has an exit down, to Destination.", duplicate.ValidationErrors["direction"][0]);
         Assert.Equal(2, await db.RoomExits.CountAsync(exit => exit.Id == down.Value!.Id || exit.Id == up.Value!.Id));
+    }
+
+    [Fact]
+    public async Task CreateExit_BothWays_CreatesBothInOneTransaction()
+    {
+        await using var db = CreateDbContext();
+        var store = CreateStore(db);
+        var a = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
+            new CreateRoomMutation("Two-way A", "Room", "Public", 1200, 1200, 70))).Value!;
+        var b = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
+            new CreateRoomMutation("Two-way B", "Room", "Public", 1300, 1300, 70))).Value!;
+
+        var result = await store.CreateExitAsync(DevelopmentDataSeeder.DevUserId,
+            new RoomExitMutation(a.Id, b.Id, RoomDirections.West, [ExitStates.Locked]), [ExitStates.Locked]);
+
+        Assert.Equal(WorldMutationError.None, result.Error);
+        var back = await db.RoomExits.SingleAsync(exit => exit.SourceRoomId == b.Id && exit.DestinationRoomId == a.Id);
+        Assert.Equal(RoomDirections.East, back.Direction);
+        Assert.Equal([ExitStates.Locked], back.States);
+    }
+
+    [Fact]
+    public async Task CreateExit_BothWays_WhenTheWayBackIsTaken_CreatesNothingAndNamesTheHolder()
+    {
+        await using var db = CreateDbContext();
+        var store = CreateStore(db);
+        var a = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
+            new CreateRoomMutation("Kottbusser Tor", "Room", "Public", 1400, 1400, 71))).Value!;
+        var b = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
+            new CreateRoomMutation("Downtown Street", "Room", "Public", 1500, 1500, 71))).Value!;
+        var c = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
+            new CreateRoomMutation("Corner Shop", "Room", "Public", 1600, 1600, 71))).Value!;
+        await store.CreateExitAsync(DevelopmentDataSeeder.DevUserId,
+            new RoomExitMutation(b.Id, c.Id, RoomDirections.East, null));
+
+        var result = await store.CreateExitAsync(DevelopmentDataSeeder.DevUserId,
+            new RoomExitMutation(a.Id, b.Id, RoomDirections.West, null), []);
+
+        Assert.Equal(WorldMutationError.Validation, result.Error);
+        Assert.Contains("Downtown Street already has an exit east, to Corner Shop.", result.ValidationErrors["bothWays"][0]);
+        Assert.False(await db.RoomExits.AnyAsync(exit => exit.SourceRoomId == a.Id));
+    }
+
+    [Fact]
+    public async Task CreateExit_BothWays_KeepsAWayBackThatAlreadyExists()
+    {
+        await using var db = CreateDbContext();
+        var store = CreateStore(db);
+        var a = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
+            new CreateRoomMutation("Keep A", "Room", "Public", 1700, 1700, 72))).Value!;
+        var b = (await store.CreateRoomAsync(DevelopmentDataSeeder.DevUserId,
+            new CreateRoomMutation("Keep B", "Room", "Public", 1800, 1800, 72))).Value!;
+        await store.CreateExitAsync(DevelopmentDataSeeder.DevUserId,
+            new RoomExitMutation(b.Id, a.Id, RoomDirections.Up, null));
+
+        var result = await store.CreateExitAsync(DevelopmentDataSeeder.DevUserId,
+            new RoomExitMutation(a.Id, b.Id, RoomDirections.North, null), []);
+
+        Assert.Equal(WorldMutationError.None, result.Error);
+        Assert.Equal(1, await db.RoomExits.CountAsync(exit => exit.SourceRoomId == b.Id && exit.DestinationRoomId == a.Id));
     }
 
     [Fact]
