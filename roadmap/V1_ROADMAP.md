@@ -25,7 +25,7 @@ v1 is ten workstreams:
 | 7 | [Private and owned rooms](#7-private-and-owned-rooms) | Needs design decisions; blocked on 6. 8 fixes how a private room is marked |
 | 8 | [One shared world](#8-one-shared-world) | Phases 1 and 2 merged to `main` (`c6964f6`); phases 3 (the job clock), 4 (fights restrict rooms) and 5 (crews) built 2026-11-17, not committed. Left: the acceptance run (1.4) |
 | 9 | [Room images](#9-room-images) | Decided 2026-11-12; ready to build, independent of the rest |
-| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Phases 1 and 2 committed (`7281b7e`, `0506851`), phases 3–5 committed (`3ed8d05`); phase 6 (things in rooms) built 2026-11-17, not committed; phase 7 next |
+| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Phases 1 and 2 committed (`7281b7e`, `0506851`), phases 3–5 committed (`3ed8d05`); phases 6 (things in rooms) and 7 (objectives) built 2026-11-17, not committed; phase 8 next |
 
 Workstream 8 replaces how jobs run today (1.3) and changes the questions in 3
 and 7; read it before picking either of those up.
@@ -39,9 +39,9 @@ should be built until those are answered and the answers are recorded (rules in
 reply's own roll (10.3) are merged to `main` (`c6964f6`). Workstream 10
 phase 1 (the seven defects) and workstream 8 phases 3–5 are committed
 (`7281b7e`), workstream 10 phase 2 (`0506851`), and phases 3–5
-(`3ed8d05`). Workstream 10 phase 6 is built and not committed.
+(`3ed8d05`). Workstream 10 phases 6 and 7 are built and not committed.
 
-**Suggested order.** Workstream 10 phases 7 and 8, with 2.3 purchases before personal vehicles. The
+**Suggested order.** Workstream 10 phase 8, with 2.3 purchases before personal vehicles. The
 acceptance run in 1.4 can go any time now that workstream 8 is built.
 Workstream 9 is independent and can go anywhere.
 
@@ -1865,6 +1865,33 @@ the `ThingsInRooms` migration. What was built:
 | WF-51 | **Go live checks that the job can be done.** | A route from the Johnson to every objective room and item through doors that can be opened, shown in Go live. |
 
 #### Phase 7 — Objectives
+
+**Status 2026-11-17: built, not committed.** WF-66 (all but defeating an NPC),
+WF-88 and WF-89 with tests (`ObjectiveContentTests`, the ending test in
+`SceneEngineTests`, `OptionalSpyingGoalPlaythroughTests`,
+`SeenPlaythroughTests`, `Objectives.test.tsx`); not yet tried in the running
+app, which needs the `JobEndings` migration. What was built:
+
+- **WF-66.** New kinds of objective: `talkTo` (an NPC), `observe` (a
+  successful observation of an NPC, or inspecting an inspectable), `witness`
+  (one of the job's own events firing for the runner) and `plantItem` (an
+  item put down in a room — runners can now put down what they carry). They
+  complete in the trigger engine, the moment the event happens. Not built:
+  kill or defeat an NPC as a goal, which waits on the combat milestone as the
+  item says.
+- **WF-88.** An objective can be optional: open from the start, never holding
+  up the turn-in, paying its bonus karma and nuyen at the turn-in if it was
+  done. Required objectives still open in order. A job can name ways to fail
+  (`failsWhen`): a runner seen sneaking past one of its NPCs (or a named one),
+  one of its NPCs alerted, or a named NPC defeated; the run fails at once and
+  the runner is told why. Decided while building (10.8): "killed" is read as
+  "defeated" until the combat milestone settles what defeat means.
+- **WF-89.** A job can have named endings with their own pay and facts
+  (`endings`); a hand-over reply names the ending it brings about
+  (`turnInMission.endingId`), and Go live refuses one that does not. What a
+  negotiation won is added to the ending's pay. The run records its ending
+  (`mission_instances.ending_id`).
+- `ForgeContract.Version` is 6.
 
 | ID | Item | Shape |
 | --- | --- | --- |

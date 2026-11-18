@@ -85,6 +85,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 GrantItemChange grant => await ApplyGrantItemAsync(characterId, grant, now, cancellationToken),
                 RecordTriggerFireChange trigger => await ApplyRecordTriggerFireAsync(characterId, trigger, now, cancellationToken),
                 SetFactChange setFact => new AppliedStateChange("SetFact", await SetFactAsync(characterId, setFact.FactId, now, cancellationToken)),
+                DropItemChange drop => await ApplyDropItemAsync(characterId, drop, now, cancellationToken),
                 ForgetDiscoveryChange forget => await ApplyForgetDiscoveryAsync(characterId, forget, cancellationToken),
                 ClearFactChange clearFact => new AppliedStateChange("ClearFact", await ClearFactAsync(characterId, clearFact.FactId, cancellationToken)),
                 _ => throw new NotSupportedException($"State change '{change.GetType().Name}' has no applier."),
@@ -159,6 +160,27 @@ public sealed class StateChangeApplier : IStateChangeApplier
 
         dbContext.CharacterFacts.Remove(row);
         return $"Fact cleared: {name}.";
+    }
+
+    // WF-66: put down where the character stands.
+    private async Task<AppliedStateChange> ApplyDropItemAsync(
+        Guid characterId, DropItemChange change, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var item = await dbContext.WorldItemInstances.FirstOrDefaultAsync(row => row.Id == change.ItemId, cancellationToken)
+            ?? throw new InvalidOperationException($"World item '{change.ItemId}' does not exist.");
+        if (item.OwnerCharacterId != characterId)
+        {
+            throw new InvalidOperationException($"{item.DisplayName} is not carried by this character.");
+        }
+
+        var roomId = await dbContext.Characters.Where(row => row.Id == characterId).Select(row => row.CurrentRoomId).SingleAsync(cancellationToken);
+        item.OwnerCharacterId = null;
+        item.RoomId = roomId;
+        item.ContainerId = null;
+        // Put down where anyone can see it, whatever it was before.
+        item.IsHidden = false;
+        item.UpdatedAtUtc = now;
+        return new AppliedStateChange("DropItem", $"Put down: {item.DisplayName}.");
     }
 
     private async Task<AppliedStateChange> ApplyForgetDiscoveryAsync(
@@ -540,7 +562,12 @@ public sealed class StateChangeApplier : IStateChangeApplier
         }
 
         objectives[index] = objectives[index] with { Status = MissionObjectiveStatus.Completed };
-        var nextIndex = objectives.FindIndex(objective => objective.Status == MissionObjectiveStatus.Inactive);
+        var definition = gameContent.Current.FindMission(mission.MissionId);
+        bool Optional(Guid id) => definition?.Objectives.FirstOrDefault(candidate => candidate.Id == id)?.IsOptional ?? false;
+        // WF-88: completing an optional objective moves nothing along.
+        var nextIndex = Optional(objectiveId)
+            ? -1
+            : objectives.FindIndex(objective => objective.Status == MissionObjectiveStatus.Inactive && !Optional(objective.ObjectiveId));
         if (nextIndex >= 0)
         {
             objectives[nextIndex] = objectives[nextIndex] with { Status = MissionObjectiveStatus.Active };
@@ -556,11 +583,11 @@ public sealed class StateChangeApplier : IStateChangeApplier
         // mission is waiting on the mission giver. Workstream 8 phase 5: a job
         // with nothing to hand over waits on the Johnson once every objective
         // is done, and any runner on it can speak to him.
-        var definition = gameContent.Current.FindMission(mission.MissionId);
         if (definition is not null)
         {
             var remaining = objectives
                 .Where(objective => objective.Status is MissionObjectiveStatus.Active or MissionObjectiveStatus.Inactive)
+                .Where(objective => !Optional(objective.ObjectiveId))
                 .Select(objective => definition.Objectives.FirstOrDefault(candidate =>
                     candidate.Id == objective.ObjectiveId))
                 .ToList();
@@ -568,6 +595,12 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 && remaining.All(objective => objective?.Kind == MissionObjectiveKind.DeliverItem);
             var nothingToHandOver = remaining.Count == 0
                 && definition.Objectives.All(objective => objective.Kind != MissionObjectiveKind.DeliverItem);
+            // An optional goal done after the run is already waiting on the
+            // Johnson leaves it waiting.
+            if (mission.Status == MissionInstanceStatus.ReadyToTurnIn.ToString())
+            {
+                waitingOnDelivery = waitingOnDelivery || remaining.Count == 0;
+            }
             if (waitingOnDelivery || nothingToHandOver)
             {
                 mission.Status = MissionInstanceStatus.ReadyToTurnIn.ToString();
@@ -700,9 +733,12 @@ public sealed class StateChangeApplier : IStateChangeApplier
         var granted = await AppendMissionRewardAsync(
             mission.CharacterId, mission.Id, change.Karma, turnerShare, now, cancellationToken);
         // WF-83: the job's ending records its facts on everyone it pays.
+        // WF-89: a named ending has facts of its own.
         var definition = gameContent.Current.FindMission(mission.MissionId);
-        var completionSets = definition?.CompletionSetsFacts ?? [];
-        var completionClears = definition?.CompletionClearsFacts ?? [];
+        var ending = definition?.FindEnding(change.EndingId);
+        var completionSets = ending is not null ? ending.SetsFacts ?? [] : definition?.CompletionSetsFacts ?? [];
+        var completionClears = ending is not null ? ending.ClearsFacts ?? [] : definition?.CompletionClearsFacts ?? [];
+        mission.EndingId = ending?.Id;
         if (granted)
         {
             await SetAndClearFactsAsync(mission.CharacterId, completionSets, completionClears, now, cancellationToken);
@@ -713,6 +749,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
             member.Status = MissionInstanceStatus.Completed.ToString();
             member.CompletedAtUtc = now;
             member.UpdatedAtUtc = now;
+            member.EndingId = ending?.Id;
             if (await AppendMissionRewardAsync(member.CharacterId, member.Id, change.Karma, share, now, cancellationToken))
             {
                 await SetAndClearFactsAsync(member.CharacterId, completionSets, completionClears, now, cancellationToken);

@@ -75,6 +75,8 @@ export interface Effect {
   factId?: Guid
   /** WF-50: unlockExit / lockExit — which exit, for the runner it happens to. */
   exitId?: Guid
+  /** WF-89: turnInMission — which of the job's endings. */
+  endingId?: Guid
 }
 
 export interface Condition {
@@ -156,7 +158,7 @@ export interface JobItem {
 
 // ------------------------------------------------------------------- jobs
 
-export type ObjectiveKind = 'reachRoom' | 'pickUpItem' | 'deliverItem'
+export type ObjectiveKind = 'reachRoom' | 'pickUpItem' | 'deliverItem' | 'talkTo' | 'observe' | 'witness' | 'plantItem'
 
 export interface Objective {
   id: Guid
@@ -167,6 +169,33 @@ export interface Objective {
   roomId?: Guid
   /** WF-81: facts set on the runner when the objective is completed. */
   setsFacts?: Guid[]
+  /** WF-66: talkTo / observe — the NPC; observe may name an inspectable instead. */
+  npcId?: Guid
+  interactableId?: Guid
+  /** WF-66: witness — one of the job's own events. */
+  listenerId?: Guid
+  /** WF-88: open from the start, never holds up the turn-in, pays a bonus when done. */
+  isOptional?: boolean
+  bonusKarma?: number
+  bonusNuyen?: number
+}
+
+/** WF-88: what blows a job. */
+export type FailKind = 'seen' | 'alarmRaised' | 'npcKilled'
+
+export interface FailRule {
+  kind: FailKind
+  /** The NPC it is about; for seen and alarmRaised, empty means any the job uses. */
+  npcId?: Guid
+}
+
+/** WF-89: one named way the job ends, with its own pay and facts. */
+export interface Ending {
+  id: Guid
+  displayName: string
+  rewards: { karma: number; nuyen: number }
+  setsFacts?: Guid[]
+  clearsFacts?: Guid[]
 }
 
 export type RepeatKind = 'oneTime' | 'cooldown' | 'unlimited'
@@ -197,6 +226,10 @@ export interface Mission {
   /** WF-83: what finishing the job records on everyone it pays. */
   completionSetsFacts?: Guid[]
   completionClearsFacts?: Guid[]
+  /** WF-88. */
+  failsWhen?: FailRule[]
+  /** WF-89: named endings; a turn-in reply names one. */
+  endings?: Ending[]
 }
 
 /** "From hour X, show this" in the job's rooms; the job resets at hour 24. */

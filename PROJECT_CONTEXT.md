@@ -402,6 +402,12 @@ built follows it; these are the load-bearing rules.
   search (containers) or use (raises `interactableUsed`). Map items
   (`map_items`) are unique or come back after a set time; a deleted
   character's carried items drop in their last room.
+- **Objectives (WF-66, WF-88, WF-89).** Besides reach / get / deliver, a goal
+  can be talk to, observe, be there for one of the job's events, or plant an
+  item; these complete in the trigger engine when the event happens. Optional
+  goals are open from the start and pay a bonus. A job can fail when a runner
+  is seen, an alarm is raised or a named NPC is defeated, and can end in named
+  ways with their own pay and facts, chosen by the hand-over reply.
 - **Draft saves are version-checked (WF-61).** A save that sends
   `expectedUpdatedAtUtc` (or `expectNew`) is refused with 409 when the stored
   draft has moved on; the Forge autosaves this way.

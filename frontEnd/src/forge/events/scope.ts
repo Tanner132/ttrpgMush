@@ -28,7 +28,15 @@ export interface EventScope {
   effects: EffectKind[]
   conditions: ConditionKind[]
   /** Jobs an effect or condition can name, with their objectives. */
-  missions: { id: Guid; displayName: string; objectives: Option[]; /** The job's pay, where it is known (WF-54). */ nuyen?: number }[]
+  missions: {
+    id: Guid
+    displayName: string
+    objectives: Option[]
+    /** The job's pay, where it is known (WF-54). */
+    nuyen?: number
+    /** WF-89: its named endings, where they are known. */
+    endings?: Option[]
+  }[]
   /** Items anywhere, for take-item effects and carrying conditions. */
   allItems: Option[]
   /** Tests a roll can use: built-in by name, authored by id. Never opposed — a room has nobody to roll against. */

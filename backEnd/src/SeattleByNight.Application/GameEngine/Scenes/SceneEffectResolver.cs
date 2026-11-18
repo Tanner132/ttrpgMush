@@ -130,7 +130,7 @@ public sealed class SceneEffectResolver(
             case SceneEffectKind.TurnInMission:
             {
                 var turnIn = await BuildTurnInChangesAsync(
-                    characterId, effect.MissionId!.Value, context.SceneNpc, cancellationToken);
+                    characterId, effect.MissionId!.Value, context.SceneNpc, cancellationToken, effect.EndingId);
                 if (turnIn is null)
                 {
                     throw new InvalidOperationException(
@@ -440,7 +440,8 @@ public sealed class SceneEffectResolver(
         Guid characterId,
         Guid missionId,
         NpcSnapshot? npc,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? endingId = null)
     {
         var definition = content.Current.FindMission(missionId);
         if (definition is null)
@@ -456,14 +457,22 @@ public sealed class SceneEffectResolver(
             return null;
         }
 
-        var karma = definition.Rewards.Karma;
-        var nuyen = instance.NegotiatedNuyen ?? definition.Rewards.Nuyen;
+        // WF-89: the ending's own pay, or the job's. What a negotiation won
+        // is added on top of whichever it is. WF-88: each optional objective
+        // done pays its bonus.
+        var ending = definition.FindEnding(endingId);
+        var raise = (instance.NegotiatedNuyen ?? definition.Rewards.Nuyen) - definition.Rewards.Nuyen;
+        var bonuses = definition.Objectives
+            .Where(objective => objective.IsOptional && instance.FindObjective(objective.Id) is { Status: MissionObjectiveStatus.Completed })
+            .ToList();
+        var karma = (ending?.Rewards.Karma ?? definition.Rewards.Karma) + bonuses.Sum(objective => objective.BonusKarma);
+        var nuyen = (ending?.Rewards.Nuyen ?? definition.Rewards.Nuyen) + raise + bonuses.Sum(objective => objective.BonusNuyen);
 
         // Workstream 8 phase 5: a job with nothing to hand over completes when
         // its objectives are done and anyone on it speaks to the Johnson.
         if (definition.Objectives.All(objective => objective.Kind != MissionObjectiveKind.DeliverItem))
         {
-            return [new CompleteMissionChange(instance.Id, karma, nuyen)];
+            return [new CompleteMissionChange(instance.Id, karma, nuyen, ending?.Id)];
         }
 
         var deliverObjective = definition.Objectives.FirstOrDefault(objective =>
@@ -486,7 +495,7 @@ public sealed class SceneEffectResolver(
         [
             new CompleteObjectiveChange(instance.Id, deliverObjective.Id),
             new RemoveItemChange(item.Id, $"delivered to {npc?.Name ?? "the client"}."),
-            new CompleteMissionChange(instance.Id, karma, nuyen),
+            new CompleteMissionChange(instance.Id, karma, nuyen, ending?.Id),
         ];
     }
 }

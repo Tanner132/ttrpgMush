@@ -149,21 +149,125 @@ public sealed class TriggerEngine
         }
 
         var candidates = await FindMatchingTriggersAsync(context, payload, cancellationToken);
-        if (candidates.Count == 0)
-        {
-            return GameActionOutcome.Final(null, "No content reacted.");
-        }
-
         var fired = 0;
+        var firedListeners = new List<(Guid RunId, Guid ListenerId)>();
         foreach (var candidate in candidates)
         {
             if (await RunAsync(context, candidate, stale, cancellationToken))
             {
                 fired++;
+                if (candidate.MissionInstanceId is Guid runId)
+                {
+                    firedListeners.Add((runId, candidate.Trigger.Id));
+                }
             }
         }
 
+        // World Forge phase 7: the event moves the runner's jobs on (WF-66)
+        // or blows them (WF-88), after the listeners it set off have run.
+        await ProgressJobsAsync(context, payload, firedListeners, cancellationToken);
+
         return GameActionOutcome.Final(null, fired > 0 ? $"{fired} trigger(s) fired." : "No content reacted.");
+    }
+
+    // WF-66: goals reached by something happening — talking to an NPC,
+    // observing one or an inspectable, being there when one of the job's own
+    // events fires, putting an item down in a room. WF-88: and the ways a job
+    // fails — being seen, an alarm, an NPC killed. One commit for all of it.
+    private async Task ProgressJobsAsync(
+        TriggerActionContext context,
+        TriggerEventPayload payload,
+        IReadOnlyList<(Guid RunId, Guid ListenerId)> firedListeners,
+        CancellationToken cancellationToken)
+    {
+        var characterId = context.Session.CharacterId;
+        var roomId = payload.RoomId ?? context.Session.CurrentRoomId;
+        var changes = new List<StateChange>();
+        var notes = new List<string>();
+
+        foreach (var run in await missionReader.GetOpenInstancesForCharacterAsync(characterId, cancellationToken))
+        {
+            if (content.Current.FindMission(run.MissionId) is not { } job)
+            {
+                continue;
+            }
+
+            var blown = job.FailsWhen.FirstOrDefault(rule => Blows(rule, job, payload));
+            if (blown is not null)
+            {
+                var why = blown.Kind switch
+                {
+                    MissionFailKind.Seen => "you were seen",
+                    MissionFailKind.AlarmRaised => "the alarm was raised",
+                    _ => "someone who had to live is down",
+                };
+                changes.Add(new FailMissionChange(run.Id, why));
+                notes.Add($"{job.DisplayName} is blown: {why}.");
+                continue;
+            }
+
+            foreach (var objective in job.Objectives)
+            {
+                if (run.FindObjective(objective.Id) is not { Status: MissionObjectiveStatus.Active })
+                {
+                    continue;
+                }
+
+                var reached = objective.Kind switch
+                {
+                    MissionObjectiveKind.TalkTo => payload.Event == TriggerEventKind.NpcSpokenTo && payload.NpcId == objective.NpcId,
+                    MissionObjectiveKind.Observe =>
+                        (payload.Event == TriggerEventKind.NpcObserved && objective.NpcId is not null && payload.NpcId == objective.NpcId)
+                        || (payload.Event == TriggerEventKind.InteractableInspected && objective.InteractableId is not null && payload.InteractableId == objective.InteractableId),
+                    MissionObjectiveKind.Witness => firedListeners.Contains((run.Id, objective.ListenerId ?? Guid.Empty)),
+                    MissionObjectiveKind.PlantItem => payload.Event == TriggerEventKind.ItemDropped && payload.ItemId == objective.ItemId && roomId == objective.RoomId,
+                    _ => false,
+                };
+                if (reached)
+                {
+                    changes.Add(new CompleteObjectiveChange(run.Id, objective.Id));
+                    notes.Add($"Objective complete: {objective.DisplayName}.");
+                    // Objectives open in order: one event completes one required step.
+                    if (!objective.IsOptional)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (changes.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await stateChangeApplier.ApplyAsync(characterId, changes, cancellationToken);
+        }
+        catch (JobRaceLostException)
+        {
+            return;
+        }
+
+        await broadcaster.SendToUserAsync(
+            context.Request.UserId,
+            new RoomMessage(Guid.NewGuid(), context.Session.CurrentRoomId, Guid.Empty, string.Empty,
+                string.Join(" ", notes), ChatMessageType.Narration, timeProvider.GetUtcNow()),
+            cancellationToken);
+    }
+
+    // WF-88: the job's NPCs, unless the rule names one.
+    private static bool Blows(MissionFailRule rule, MissionDefinition job, TriggerEventPayload payload)
+    {
+        bool About(Guid? npcId) => npcId is { } id && (rule.NpcId is { } named ? named == id : job.NpcIds.Contains(id));
+        return rule.Kind switch
+        {
+            MissionFailKind.Seen => payload.Event == TriggerEventKind.SneakAttempted && payload.Outcome == TriggerOutcome.Failure && About(payload.NpcId),
+            MissionFailKind.AlarmRaised => payload.Event == TriggerEventKind.NpcAlerted && About(payload.NpcId),
+            MissionFailKind.NpcKilled => payload.Event == TriggerEventKind.NpcDefeated && payload.NpcId == rule.NpcId,
+            _ => false,
+        };
     }
 
     // WF-26: every event happens in a room, and only that room's listeners

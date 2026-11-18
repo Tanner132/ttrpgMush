@@ -72,6 +72,7 @@ public sealed class MissionEngine
             DevelopmentGameActions.TakeItemActionId => TakeItemAsync(context, cancellationToken),
             DevelopmentGameActions.ReachRoomActionId => ReachRoomAsync(context, cancellationToken),
             DevelopmentGameActions.GiveItemActionId => GiveItemAsync(context, cancellationToken),
+            DevelopmentGameActions.DropItemActionId => DropItemAsync(context, cancellationToken),
             _ => Task.FromResult(GameActionOutcome.Failure(GameActionError.ActionNotFound)),
         };
 
@@ -176,6 +177,30 @@ public sealed class MissionEngine
             cancellationToken);
 
         return GameActionOutcome.Final(null, $"You give the {item.DisplayName} to {receiver.Name}.");
+    }
+
+    // WF-66: a runner puts down something they carry. Where it lands is an
+    // event: a plantItem goal listens for it.
+    private async Task<GameActionOutcome> DropItemAsync(MissionActionContext context, CancellationToken cancellationToken)
+    {
+        var session = context.Session;
+        if (context.Request.TargetId is not Guid itemId)
+        {
+            return GameActionOutcome.Failure(GameActionError.TargetNotFound);
+        }
+
+        var carried = await missionReader.GetItemsOwnedByCharacterAsync(session.CharacterId, cancellationToken);
+        if (carried.FirstOrDefault(candidate => candidate.Id == itemId) is not { } item)
+        {
+            return GameActionOutcome.Failure(GameActionError.TargetNotFound);
+        }
+
+        var applied = await stateChangeApplier.ApplyAsync(session.CharacterId, [new DropItemChange(item.Id)], cancellationToken);
+        await AppendAuditAsync(context, applied, cancellationToken);
+        await SendPlayerEmoteAsync(context.Request.UserId, $"puts down the {item.DisplayName}.", cancellationToken);
+        await EnqueueTriggerAsync(
+            context.Request, session.CurrentRoomId, TriggerEventKind.ItemDropped, itemId: item.ItemId, cancellationToken: cancellationToken);
+        return GameActionOutcome.Final(null, $"You put down the {item.DisplayName}.");
     }
 
     // Workstream 8: movement raises this on the arrival room's queue, ahead of

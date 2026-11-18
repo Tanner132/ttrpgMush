@@ -407,6 +407,68 @@ public sealed class SceneEngineTests
         Assert.Contains("transfer is already moving", spoken.Content);
     }
 
+    // WF-88/WF-89: the hand-over names the job's "clean" ending; its pay, the
+    // negotiated raise and an optional objective's bonus add up.
+    [Fact]
+    public async Task A_turn_in_pays_its_ending_plus_the_raise_and_the_optional_bonus()
+    {
+        var ending = Guid.NewGuid();
+        var spied = Guid.NewGuid();
+        var current = TestGameContent.Provider.Current;
+        var handOver = ShippedContentIds.SceneChoices.JohnsonWarehouseJobGreetingHandOverPackage;
+        var content = new SwappedContent(current with
+        {
+            Missions = current.Missions
+                .Select(mission => mission.Id != MissionId ? mission : mission with
+                {
+                    Objectives = [.. mission.Objectives, new MissionObjectiveDefinition(spied, "Read the ledger", MissionObjectiveKind.Observe,
+                        InteractableId: Guid.NewGuid(), IsOptional: true, BonusKarma: 1, BonusNuyen: 500)],
+                    Endings = [new MissionEnding(ending, "Clean", new MissionRewards(5, 9000))],
+                })
+                .ToArray(),
+            Scenes = current.Scenes
+                .Select(scene => scene.Id != JohnsonSceneId ? scene : scene with
+                {
+                    Nodes = scene.Nodes.Select(node => node with
+                    {
+                        Choices = node.Choices.Select(choice => choice.Id != handOver ? choice : choice with
+                        {
+                            Effects = choice.Effects!.Select(effect => effect.Kind == SceneEffectKind.TurnInMission ? effect with { EndingId = ending } : effect).ToList(),
+                        }).ToList(),
+                    }).ToList(),
+                })
+                .ToList(),
+        });
+        var harness = new Harness { Content = content };
+        var johnson = harness.AddNpc(NpcTemplateIds.MrJohnson, "Mr. Johnson");
+        harness.OpenConversation(johnson, JohnsonSceneId, ShippedContentIds.SceneNodes.Greeting);
+        harness.Missions.Instances.Add(new MissionInstanceSnapshot(
+            Guid.NewGuid(), MissionId, harness.CharacterId, MissionInstanceStatus.ReadyToTurnIn,
+            new[]
+            {
+                new MissionObjectiveState(ShippedContentIds.Objectives.EnterWarehouse, MissionObjectiveStatus.Completed),
+                new MissionObjectiveState(ShippedContentIds.Objectives.RetrievePackage, MissionObjectiveStatus.Completed),
+                new MissionObjectiveState(ShippedContentIds.Objectives.LeaveWarehouse, MissionObjectiveStatus.Completed),
+                new MissionObjectiveState(ShippedContentIds.Objectives.DeliverPackage, MissionObjectiveStatus.Active),
+                new MissionObjectiveState(spied, MissionObjectiveStatus.Completed),
+            },
+            NegotiatedNuyen: 2600,
+            DateTimeOffset.UtcNow,
+            CompletedAtUtc: null));
+        harness.Missions.Items.Add(new WorldItemSnapshot(
+            Guid.NewGuid(), ShippedContentIds.Items.Package, MissionId, "Sealed Courier Package", "d",
+            RoomId: null, OwnerCharacterId: harness.CharacterId));
+
+        var outcome = await harness.ChooseAsync(johnson, handOver);
+
+        Assert.Equal(GameActionError.None, outcome.Error);
+        var completion = Assert.Single(Assert.Single(harness.Applier.Applications).Changes.OfType<CompleteMissionChange>());
+        Assert.Equal(ending, completion.EndingId);
+        Assert.Equal(5 + 1, completion.Karma);
+        // The ending's 9,000, the 600 the negotiation won over the job's 2,000, and the 500 bonus.
+        Assert.Equal(9000 + 600 + 500, completion.Nuyen);
+    }
+
     [Fact]
     public async Task Talking_past_the_lookout_pacifies_him()
     {

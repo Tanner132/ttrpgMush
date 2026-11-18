@@ -1630,3 +1630,43 @@ button.forge__row-link {
 .forge-map__compass-c { grid-area: c; border-radius: 50% !important; font-size: 16px !important; }
 .forge-map__compass-e { grid-area: e; }
 .forge-map__compass-s { grid-area: s; }
+
+/* Zoom, on the grid's bottom-left corner, opposite the compass. */
+.forge-map__zoom {
+  position: absolute;
+  left: var(--sb-space-3);
+  bottom: var(--sb-space-3);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--sb-surface-raised) 85%, transparent);
+  border: 1px solid var(--sb-border);
+}
+
+.forge-map__zoom button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--sb-text);
+  background: var(--sb-surface-sunken);
+  border: 1px solid var(--sb-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.forge-map__zoom button:hover:not(:disabled),
+.forge-map__zoom button:focus-visible {
+  color: var(--sb-accent);
+  border-color: var(--sb-accent);
+}
+
+.forge-map__zoom button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

@@ -197,7 +197,7 @@ export function jobChecks(
                         { kind: 'missionReadyToTurnIn' as const, missionId: mission.id },
                         ...(deliver.itemId ? [{ kind: 'carryingItem' as const, itemId: deliver.itemId }] : []),
                       ],
-                      effects: [{ kind: 'turnInMission' as const, missionId: mission.id }],
+                      effects: [{ kind: 'turnInMission' as const, missionId: mission.id, endingId: mission.endings?.[0]?.id }],
                       endsScene: true,
                     },
                   ],
@@ -208,6 +208,22 @@ export function jobChecks(
       },
     })
   }
+  // WF-89: with named endings, every hand-over says which.
+  const endingIds = new Set((mission.endings ?? []).map((ending) => ending.id))
+  if (pitch && endingIds.size > 0) {
+    const unnamed = sceneEffects(pitch).filter(
+      (effect) => effect.kind === 'turnInMission' && effect.missionId === mission.id && !(effect.endingId && endingIds.has(effect.endingId)),
+    ).length
+    if (unnamed > 0) {
+      checks.push({
+        id: 'endings',
+        step: 'pitch',
+        ok: false,
+        text: `${plural(unnamed, 'hand-over reply', 'hand-over replies')} in the pitch ${unnamed === 1 ? 'does' : 'do'} not say which ending ${unnamed === 1 ? 'it brings' : 'they bring'} about.`,
+      })
+    }
+  }
+
   if (!deliver && handsOver) {
     checks.push({
       id: 'nothing-to-hand-over',
@@ -231,6 +247,9 @@ export function jobChecks(
       ...mission.objectives
         .filter((objective) => objective.kind === 'reachRoom' && objective.roomId)
         .map((objective) => ({ roomId: objective.roomId!, what: roomName(objective.roomId) })),
+      ...mission.objectives
+        .filter((objective) => objective.kind === 'plantItem' && objective.roomId)
+        .map((objective) => ({ roomId: objective.roomId!, what: `${roomName(objective.roomId)} (to plant)` })),
       ...mission.objectives
         .filter((objective) => objective.kind === 'pickUpItem')
         .map((objective) => mission.items.find((item) => item.id === objective.itemId))

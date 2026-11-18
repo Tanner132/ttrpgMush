@@ -76,6 +76,7 @@ function missions(context: JobContext): EventScope['missions'] {
       id: mission.id,
       displayName: `${mission.displayName || 'This job'} (this job)`,
       nuyen: mission.rewards.nuyen,
+      endings: (mission.endings ?? []).map((ending) => ({ id: ending.id, displayName: ending.displayName || 'Unnamed ending' })),
       objectives: mission.objectives.map((objective) => ({ id: objective.id, displayName: objective.displayName })),
     },
     ...references.missions

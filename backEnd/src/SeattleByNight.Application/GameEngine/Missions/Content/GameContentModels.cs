@@ -165,6 +165,16 @@ public sealed record MissionDefinition(
     public IReadOnlyList<Guid> CompletionSetsFacts { get; init; } = [];
     public IReadOnlyList<Guid> CompletionClearsFacts { get; init; } = [];
 
+    // WF-88: what fails the job, besides its own events.
+    public IReadOnlyList<MissionFailRule> FailsWhen { get; init; } = [];
+
+    // WF-89: named endings. Empty: the job has its one ending (Rewards and
+    // the completion facts).
+    public IReadOnlyList<MissionEnding> Endings { get; init; } = [];
+
+    public MissionEnding? FindEnding(Guid? endingId) =>
+        endingId is { } id ? Endings.FirstOrDefault(ending => ending.Id == id) : null;
+
     public AftermathStage? AftermathAt(TimeSpan sinceCompletion) =>
         Aftermath.LastOrDefault(stage => sinceCompletion >= TimeSpan.FromHours(stage.FromHour));
 }
@@ -217,7 +227,37 @@ public enum MissionObjectiveKind
     ReachRoom,
     PickUpItem,
     DeliverItem,
+    // WF-66: talk to the named NPC.
+    TalkTo,
+    // WF-66 (spying): observe the named NPC, or inspect the named interactable.
+    Observe,
+    // WF-66 (spying): be there when one of the job's own events fires for you.
+    Witness,
+    // WF-66: put the named item down in the named room.
+    PlantItem,
 }
+
+// WF-88: what blows a job, beyond its own events and replies.
+public enum MissionFailKind
+{
+    // A sneak past one of the job's NPCs (or the named one) fails.
+    Seen,
+    // One of the job's NPCs (or the named one) is alerted.
+    AlarmRaised,
+    // The named NPC is defeated.
+    NpcKilled,
+}
+
+public sealed record MissionFailRule(MissionFailKind Kind, Guid? NpcId = null);
+
+// WF-89: one named way a job can end, with its own pay and facts. A turn-in
+// reply names the ending it brings about.
+public sealed record MissionEnding(
+    Guid Id,
+    string DisplayName,
+    MissionRewards Rewards,
+    IReadOnlyList<Guid>? SetsFacts = null,
+    IReadOnlyList<Guid>? ClearsFacts = null);
 
 public sealed record MissionObjectiveDefinition(
     Guid Id,
@@ -227,7 +267,17 @@ public sealed record MissionObjectiveDefinition(
     // reachRoom: the map room to walk into.
     Guid? RoomId = null,
     // WF-81: facts set on the runner when the objective is completed.
-    IReadOnlyList<Guid>? SetsFacts = null);
+    IReadOnlyList<Guid>? SetsFacts = null,
+    // WF-66: talkTo / observe name an NPC; observe may name an interactable
+    // instead; witness names one of the job's listeners.
+    Guid? NpcId = null,
+    Guid? InteractableId = null,
+    Guid? ListenerId = null,
+    // WF-88: an optional objective is open from the start, never holds up the
+    // turn-in, and pays its bonus on top when it was done.
+    bool IsOptional = false,
+    int BonusKarma = 0,
+    int BonusNuyen = 0);
 
 // ------------------------------------------------------------------------
 // Scenes (§37, generalized in Milestone 7): a node graph defined as data —
@@ -454,7 +504,9 @@ public sealed record SceneEffect(
     // setFact / clearFact: which fact.
     Guid? FactId = null,
     // unlockExit / lockExit: which map exit.
-    Guid? ExitId = null);
+    Guid? ExitId = null,
+    // WF-89: turnInMission — which of the job's endings this is.
+    Guid? EndingId = null);
 
 // ------------------------------------------------------------------------
 // Triggers (Milestone 7): (event, conditions) → reaction sequence. This is
@@ -476,6 +528,14 @@ public enum TriggerEventKind
     // WF-86: a runner used an interactable of kind "use" (a switch). Its
     // effects are the listener's.
     InteractableUsed,
+    // World Forge phase 7: the engine's own events, for goals and ways to
+    // fail. Not offered to authors as listeners.
+    // A runner's observation of an NPC succeeded.
+    NpcObserved,
+    // An NPC became alerted.
+    NpcAlerted,
+    // A runner put an item down.
+    ItemDropped,
     // WF-21. The character tried to sneak past an NPC; the trigger's Outcome
     // filter can pick success or failure.
     SneakAttempted,

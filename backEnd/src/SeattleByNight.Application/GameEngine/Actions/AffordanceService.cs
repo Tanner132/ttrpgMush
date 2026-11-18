@@ -291,6 +291,13 @@ public sealed class AffordanceService
 
         // Workstream 8 phase 5: anything carried can be handed to anyone here.
         var carried = await missionReader.GetItemsOwnedByCharacterAsync(characterId, cancellationToken);
+        // WF-66: anything carried can be put down where the runner stands.
+        var drop = DevelopmentGameActions.All[DevelopmentGameActions.DropItemActionId];
+        foreach (var item in carried)
+        {
+            affordances.Add(new GameAffordance(drop.ActionId, item.Id, $"{drop.DisplayName} {item.DisplayName}", drop.Description, drop.Kind));
+        }
+
         if (carried.Count > 0)
         {
             var give = DevelopmentGameActions.All[DevelopmentGameActions.GiveItemActionId];

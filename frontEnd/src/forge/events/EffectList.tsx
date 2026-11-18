@@ -119,6 +119,16 @@ function EffectFields({ effect, scope, onChange }: { effect: Effect; scope: Even
             })
           }
         />
+        {effect.kind === 'turnInMission' && (mission?.endings?.length ?? 0) > 0 && (
+          <Select
+            label="Which ending"
+            value={effect.endingId}
+            options={mission?.endings ?? []}
+            placeholder="Choose an ending"
+            hint="The job ends this way, with this ending's pay and facts."
+            onChange={(endingId) => onChange({ ...effect, endingId: endingId || undefined })}
+          />
+        )}
         {needsObjective && (
           <Select
             label="Which objective"

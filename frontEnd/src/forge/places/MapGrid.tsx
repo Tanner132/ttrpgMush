@@ -374,16 +374,6 @@ export function MapGrid({
           {ZoomLevels[zoom]?.name ?? 'Rooms'} · centred on {center.x}, {center.y}
         </span>
         <span className="forge__spacer" />
-        {onZoom && (
-          <div className="forge-map__layer" role="group" aria-label="Zoom">
-            <button type="button" className="ui-button" aria-label="Zoom out" disabled={zoom >= ZoomLevels.length - 1} onClick={() => onZoom(zoom + 1)}>
-              −
-            </button>
-            <button type="button" className="ui-button" aria-label="Zoom in" disabled={zoom <= 0} onClick={() => onZoom(zoom - 1)}>
-              +
-            </button>
-          </div>
-        )}
         <div className="forge-map__layer" role="group" aria-label="Layer">
           <button type="button" className="ui-button" aria-label="Go down a layer" onClick={() => onLayer(layer - 1)}>
             ▼
@@ -422,6 +412,17 @@ export function MapGrid({
       >
         {cells}
       </div>
+      {/* Zoom sits on the grid's other corner from the compass; both are outside the grid, so a click on them is never a drag or a square. */}
+      {onZoom && (
+        <div className="forge-map__zoom" role="group" aria-label="Zoom">
+          <button type="button" aria-label="Zoom in" disabled={zoom <= 0} onClick={() => onZoom(zoom - 1)}>
+            +
+          </button>
+          <button type="button" aria-label="Zoom out" disabled={zoom >= ZoomLevels.length - 1} onClick={() => onZoom(zoom + 1)}>
+            −
+          </button>
+        </div>
+      )}
       {/* The compass sits on the grid, outside it, so a click on it is never a drag or a square. */}
       <div className="forge-map__compass" role="group" aria-label="Move the map">
         <button type="button" className="forge-map__compass-n" aria-label="Look north" onClick={() => onPan(0, 1)}>

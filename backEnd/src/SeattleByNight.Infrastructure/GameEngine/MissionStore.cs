@@ -226,10 +226,13 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
             return new MissionAssignResult(repeatabilityError, CooldownEndsAtUtc: cooldownEndsAtUtc);
         }
 
+        // WF-88: the first required objective, and every optional one, are open
+        // from the start; the rest open in order.
+        var firstRequired = definition.Objectives.FirstOrDefault(objective => !objective.IsOptional)?.Id;
         var objectives = definition.Objectives
-            .Select((objective, index) => new MissionObjectiveState(
+            .Select(objective => new MissionObjectiveState(
                 objective.Id,
-                index == 0 ? MissionObjectiveStatus.Active : MissionObjectiveStatus.Inactive))
+                objective.IsOptional || objective.Id == firstRequired ? MissionObjectiveStatus.Active : MissionObjectiveStatus.Inactive))
             .ToArray();
 
         var row = new MissionInstance

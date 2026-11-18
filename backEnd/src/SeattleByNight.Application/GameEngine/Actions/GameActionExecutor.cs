@@ -469,6 +469,11 @@ public sealed class GameActionExecutor
                     return ($"You can't get a solid read on {npc.Name}.", null);
                 }
 
+                // WF-66: a spying goal listens for this.
+                var observedScope = await scopeResolver.ResolveScopeAsync(session.CurrentRoomId, cancellationToken);
+                var observed = TriggerRequests.Build(request, TriggerEventKind.NpcObserved, session.CurrentRoomId, npcId: npc.Id);
+                _ = queue.EnqueueAsync(observedScope, observed, CancellationToken.None);
+
                 var read = NpcDerivedValues.IsIncapacitated(npc, target.NpcTemplate!)
                     ? "is down"
                     : npc.Awareness switch
@@ -626,6 +631,17 @@ public sealed class GameActionExecutor
         {
             await combatEngine.StartNpcInitiatedCombatAsync(
                 request, session, actor, aggressor, cancellationToken);
+        }
+
+        // WF-88: an NPC raising the alarm is something a job can fail on.
+        if (string.Equals(request.ActionId, DevelopmentGameActions.NpcAlertActionId, StringComparison.Ordinal)
+            && target.Npc is { } alerted)
+        {
+            var alertScope = await scopeResolver.ResolveScopeAsync(session.CurrentRoomId, cancellationToken);
+            _ = queue.EnqueueAsync(
+                alertScope,
+                TriggerRequests.Build(request, TriggerEventKind.NpcAlerted, session.CurrentRoomId, npcId: alerted.Id),
+                CancellationToken.None);
         }
 
         // §24: inspecting something is an event content can react to.

@@ -21,6 +21,7 @@ public sealed class MissionInstanceConfiguration : IEntityTypeConfiguration<Miss
         builder.Property(instance => instance.CrewId).HasColumnName("crew_id").HasColumnType("uuid");
         builder.Property(instance => instance.AcceptedAtUtc).HasColumnName("accepted_at_utc").HasColumnType("timestamp with time zone");
         builder.Property(instance => instance.CompletedAtUtc).HasColumnName("completed_at_utc").HasColumnType("timestamp with time zone");
+        builder.Property(instance => instance.EndingId).HasColumnName("ending_id").HasColumnType("uuid");
         builder.Property(instance => instance.UpdatedAtUtc).HasColumnName("updated_at_utc").HasColumnType("timestamp with time zone");
 
         builder.HasIndex(instance => new { instance.CharacterId, instance.MissionId })

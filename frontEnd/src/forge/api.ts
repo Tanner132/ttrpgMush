@@ -102,7 +102,7 @@ export interface ContentPalette {
  * WF-33: bump with `ForgeContract.Version` in the API's GameContentEndpoints.cs
  * whenever a content document or Forge request changes shape.
  */
-export const ForgeContractVersion = 5
+export const ForgeContractVersion = 6
 
 export interface PlacedReference {
   id: Guid

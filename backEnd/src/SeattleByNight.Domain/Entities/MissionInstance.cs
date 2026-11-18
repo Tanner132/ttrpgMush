@@ -27,4 +27,7 @@ public sealed class MissionInstance
     public Guid? CrewId { get; set; }
     public DateTimeOffset? CompletedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
+
+    // WF-89: which of the job's named endings it finished with.
+    public Guid? EndingId { get; set; }
 }

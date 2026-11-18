@@ -73,7 +73,7 @@ public sealed record FailObjectiveChange(Guid MissionInstanceId, Guid ObjectiveI
 // Award transactions and a mission-reward receipt keyed deterministically by
 // MissionInstanceId) in the same transaction as the Completed status — the
 // grant happens exactly once even if the completing action replays.
-public sealed record CompleteMissionChange(Guid MissionInstanceId, int Karma, int Nuyen) : StateChange;
+public sealed record CompleteMissionChange(Guid MissionInstanceId, int Karma, int Nuyen, Guid? EndingId = null) : StateChange;
 
 // Milestone 6 (§37): scene-state mutations. Scene position commits
 // atomically with whatever the selected choice did — accepting a job and
@@ -103,7 +103,11 @@ public sealed record AcceptMissionChange(Guid MissionId, int? NegotiatedNuyen) :
 public sealed record RemoveItemChange(Guid ItemId, string Reason) : StateChange;
 
 // The mission fails. Durable consequences from earlier commits stand.
-public sealed record FailMissionChange(Guid MissionInstanceId) : StateChange;
+public sealed record FailMissionChange(Guid MissionInstanceId, string? Reason = null) : StateChange;
+
+// WF-66: the acting character puts down an item they carry, in the room they
+// stand in.
+public sealed record DropItemChange(Guid ItemId) : StateChange;
 
 // ------------------------------------------------------------------------
 // Milestone 7 trigger/scene palette. These are the only ways authored content

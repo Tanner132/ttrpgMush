@@ -1288,6 +1288,10 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("crew_id");
 
+                    b.Property<Guid?>("EndingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ending_id");
+
                     b.Property<Guid>("MissionId")
                         .HasColumnType("uuid")
                         .HasColumnName("mission_id");

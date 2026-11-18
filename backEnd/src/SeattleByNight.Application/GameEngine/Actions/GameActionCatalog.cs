@@ -91,6 +91,8 @@ public static class DevelopmentGameActions
 
     // Workstream 8 phase 5 (8.1 "Handing an item to another character").
     public const string GiveItemActionId = "give-item";
+    // WF-66: put down an item you carry, where you stand (planting it).
+    public const string DropItemActionId = "drop-item";
 
     // Milestone 6 conversation verbs (§36/§37).
     public const string TalkNpcActionId = "talk-npc";
@@ -223,6 +225,13 @@ public static class DevelopmentGameActions
             "Hand something you carry to someone here.",
             GameActionKind.Mission,
             TargetKind: GameActionTargetKind.ItemHandover);
+
+        actions[DropItemActionId] = new GameActionDefinition(
+            DropItemActionId,
+            "Put down",
+            "Leave something you carry here.",
+            GameActionKind.Mission,
+            TargetKind: GameActionTargetKind.Item);
 
         // Reaction (§24), workstream 8: movement raises this on the arrival
         // room's queue so a reachRoom objective completes before any listener

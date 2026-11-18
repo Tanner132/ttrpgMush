@@ -132,7 +132,10 @@ public static class GameContentLoader
         IReadOnlyList<Guid>? RequiresFacts = null,
         IReadOnlyList<Guid>? RefusesFacts = null,
         IReadOnlyList<Guid>? CompletionSetsFacts = null,
-        IReadOnlyList<Guid>? CompletionClearsFacts = null);
+        IReadOnlyList<Guid>? CompletionClearsFacts = null,
+        // WF-88, WF-89.
+        IReadOnlyList<MissionFailRule>? FailsWhen = null,
+        IReadOnlyList<MissionEnding>? Endings = null);
 
     // Everything a trigger or scene may point at, gathered once so the
     // cross-reference checks read as questions about the whole content set
@@ -342,6 +345,7 @@ public static class GameContentLoader
             .Where(effect => effect.Kind == SceneEffectKind.SetFact && effect.FactId is not null)
             .Select(effect => effect.FactId!.Value)
             .Concat(missions.SelectMany(mission => mission.CompletionSetsFacts))
+            .Concat(missions.SelectMany(mission => mission.Endings.SelectMany(ending => ending.SetsFacts ?? [])))
             .Concat(missions.SelectMany(mission => mission.Objectives.SelectMany(objective => objective.SetsFacts ?? [])))
             .ToHashSet();
 
@@ -596,21 +600,55 @@ public static class GameContentLoader
                     $"{where} objective '{objective.DisplayName}' names an item the job does not have.");
             }
 
-            if (objective.Kind == MissionObjectiveKind.ReachRoom)
+            if (objective.Kind is MissionObjectiveKind.ReachRoom or MissionObjectiveKind.PlantItem)
             {
                 Require(
                     objective.RoomId is { } roomId && roomId != Guid.Empty,
-                    $"{where} objective '{objective.DisplayName}' must name the room to reach.");
+                    $"{where} objective '{objective.DisplayName}' must name the room.");
             }
             else
             {
                 Require(
                     objective.RoomId is null,
-                    $"{where} objective '{objective.DisplayName}' names a room, but only reachRoom has one.");
+                    $"{where} objective '{objective.DisplayName}' names a room, but only reachRoom and plantItem have one.");
             }
+
+            // WF-66: who or what the new kinds of goal are about.
+            var about = $"{where} objective '{objective.DisplayName}'";
+            switch (objective.Kind)
+            {
+                case MissionObjectiveKind.PlantItem:
+                    Require(objective.ItemId is { } planted && itemIds.Contains(planted), $"{about} names an item the job does not have.");
+                    break;
+                case MissionObjectiveKind.TalkTo:
+                    Require(objective.NpcId is { } talked && talked != Guid.Empty, $"{about} must name the NPC to talk to.");
+                    break;
+                case MissionObjectiveKind.Observe:
+                    Require(
+                        (objective.NpcId is not null) != (objective.InteractableId is not null),
+                        $"{about} must name one NPC or one inspectable to observe.");
+                    break;
+                case MissionObjectiveKind.Witness:
+                    Require(
+                        objective.ListenerId is { } listener && (raw.Triggers ?? []).Any(trigger => trigger.Id == listener),
+                        $"{about} must name one of the job's own events.");
+                    break;
+            }
+
+            Require(
+                objective.Kind is MissionObjectiveKind.TalkTo or MissionObjectiveKind.Observe || objective.NpcId is null,
+                $"{about} names an NPC, but only talkTo and observe do.");
+            Require(objective.Kind == MissionObjectiveKind.Observe || objective.InteractableId is null, $"{about} names an inspectable, but only observe does.");
+            Require(objective.Kind == MissionObjectiveKind.Witness || objective.ListenerId is null, $"{about} names an event, but only witness does.");
+
+            // WF-88: an optional goal pays extra; it never blocks the turn-in.
+            Require(objective.BonusKarma >= 0 && objective.BonusNuyen >= 0, $"{about} pays a negative bonus.");
+            Require(objective.IsOptional || (objective.BonusKarma == 0 && objective.BonusNuyen == 0), $"{about} pays a bonus, but only an optional objective does.");
+            Require(!objective.IsOptional || objective.Kind != MissionObjectiveKind.DeliverItem, $"{about} is a delivery, which is the turn-in itself, so it cannot be optional.");
         }
 
         RequireUnique(objectives.Select(objective => objective.Id), $"objective in {where}");
+        Require(objectives.Any(objective => !objective.IsOptional), $"{where} needs at least one objective that is not optional.");
         foreach (var objective in objectives)
         {
             RequireFacts(objective.SetsFacts ?? [], factIds, $"{where} objective '{objective.DisplayName}'");
@@ -629,6 +667,28 @@ public static class GameContentLoader
         Require(
             !completionSets.Intersect(completionClears).Any(),
             $"{where} both sets and clears the same fact when it is completed.");
+
+        // WF-88: what blows the job.
+        var failsWhen = raw.FailsWhen ?? [];
+        Require(failsWhen.Count <= 10, $"{where} has more than 10 ways to fail.");
+        foreach (var rule in failsWhen)
+        {
+            Require(
+                rule.Kind != MissionFailKind.NpcKilled || rule.NpcId is { } killed && killed != Guid.Empty,
+                $"{where} fails when an NPC is killed, but names no NPC.");
+        }
+
+        // WF-89: its named endings.
+        var endings = raw.Endings ?? [];
+        Require(endings.Count <= 10, $"{where} has more than 10 endings.");
+        RequireUnique(endings.Select(ending => ending.Id), $"ending in {where}");
+        foreach (var ending in endings)
+        {
+            Require(ending.Id != Guid.Empty, $"{where} has an ending without an id.");
+            Require(!string.IsNullOrWhiteSpace(ending.DisplayName) && ending.DisplayName.Length <= 120, $"{where} has an ending without a name of at most 120 characters.");
+            Require(ending.Rewards is { Karma: >= 0, Nuyen: >= 0 }, $"{where} ending '{ending.DisplayName}' must pay something not negative.");
+            RequireFacts((ending.SetsFacts ?? []).Concat(ending.ClearsFacts ?? []), factIds, $"{where} ending '{ending.DisplayName}'");
+        }
 
         // WF-26: the job's listeners, each on a room.
         var triggers = (raw.Triggers ?? [])
@@ -670,6 +730,8 @@ public static class GameContentLoader
             RefusesFacts = refuses.Distinct().ToArray(),
             CompletionSetsFacts = completionSets.Distinct().ToArray(),
             CompletionClearsFacts = completionClears.Distinct().ToArray(),
+            FailsWhen = failsWhen,
+            Endings = endings,
         };
     }
 
@@ -1276,9 +1338,19 @@ public static class GameContentLoader
 
         switch (effect.Kind)
         {
+            case SceneEffectKind.TurnInMission:
+            {
+                // WF-89: a turn-in names one of the job's endings, or the job has none.
+                var mission = RequireMission(effect, missions, where);
+                Require(
+                    effect.EndingId is null ? mission.Endings.Count == 0 : mission.FindEnding(effect.EndingId) is not null,
+                    effect.EndingId is null
+                        ? $"{where} effect 'turnInMission' must say which of '{mission.DisplayName}'s endings it is."
+                        : $"{where} effect 'turnInMission' names an ending '{mission.DisplayName}' does not have.");
+                break;
+            }
             case SceneEffectKind.AcceptMission:
             case SceneEffectKind.SetNegotiatedPay:
-            case SceneEffectKind.TurnInMission:
             case SceneEffectKind.FailMission:
                 RequireMission(effect, missions, where);
                 break;

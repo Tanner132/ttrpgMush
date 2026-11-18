@@ -133,6 +133,7 @@ public static class FactUses
             var where = $"Job: {mission.DisplayName}";
             Triggers(mission.Triggers, where);
             sets.AddRange(mission.CompletionSetsFacts.Select(fact => (fact, $"{where} (when done)")));
+            sets.AddRange(mission.Endings.SelectMany(ending => (ending.SetsFacts ?? []).Select(fact => (fact, $"{where} (ending {ending.DisplayName})"))));
             sets.AddRange(mission.Objectives.SelectMany(objective => (objective.SetsFacts ?? []).Select(fact => (fact, $"{where} (objective {objective.DisplayName})"))));
             tests.AddRange(mission.RequiresFacts.Concat(mission.RefusesFacts).Select(fact => (fact, $"{where} (before it is offered)")));
         }
