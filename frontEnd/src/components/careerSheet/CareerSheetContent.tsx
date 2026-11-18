@@ -7,6 +7,7 @@ import { CareerSheetOverview } from './CareerSheetOverview.tsx'
 import { CareerSheetHistory } from './CareerSheetHistory.tsx'
 import { AttributeAdvancementList } from './AttributeAdvancementList.tsx'
 import { SkillAdvancementList } from './SkillAdvancementList.tsx'
+import { QualityAdvancementPanel } from './QualityAdvancementPanel.tsx'
 
 export interface CareerSheetContentProps {
     sheet: ComposedCareerSheet
@@ -40,7 +41,11 @@ export function CareerSheetContent({ sheet, catalog, onAdvanced }: CareerSheetCo
             label: 'Skills & Languages',
             panel: <SkillAdvancementList sheet={sheet} catalog={catalog} onAdvanced={onAdvanced} />,
         },
-        { id: 'qualities', label: 'Qualities', panel: renderCards(sections.qualities) },
+        {
+            id: 'qualities',
+            label: 'Qualities',
+            panel: <QualityAdvancementPanel sheet={sheet} catalog={catalog} onAdvanced={onAdvanced} />,
+        },
         ...(hasMagicResonance
             ? [{ id: 'magic-resonance', label: 'Magic or Resonance', panel: renderCards(sections.magicResonance) }]
             : []),

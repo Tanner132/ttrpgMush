@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddSingleton<CareerSheetComposer>();
         services.AddSingleton<AttributeAdvancementEvaluator>();
         services.AddSingleton<SkillAdvancementEvaluator>();
+        services.AddSingleton<QualityAdvancementEvaluator>();
         services.AddSingleton<IDiceRoller, SeededDiceRoller>();
         services.AddSingleton<TestResolver>();
         services.AddScoped<IComposedSheetLoader, ComposedSheetLoader>();

@@ -85,7 +85,34 @@ public sealed record CareerProgressionDocument
     public IReadOnlyDictionary<string, int> LanguageRatings { get; init; } = new Dictionary<string, int>();
     public IReadOnlyDictionary<string, string> LanguageSpecializations { get; init; } = new Dictionary<string, string>();
 
+    // Workstream 2.1: qualities. Every quality instance on the composed sheet
+    // has a stable key (CareerQualityKeys): a baseline instance is addressed
+    // by its index in the immutable baseline list, a career instance by the
+    // key minted when it was bought. A rated quality is several instances of
+    // one id (the ledgers' Cost-Modeling Convention), so raising its rating
+    // adds an instance and buying a level off removes one. RemovedQualities
+    // lists keys bought off; a removal held for Storyteller approval is not
+    // listed here until it is approved.
+    public IReadOnlyDictionary<string, CareerQualityGrant> AcquiredQualities { get; init; } = new Dictionary<string, CareerQualityGrant>();
+    public IReadOnlyList<string> RemovedQualities { get; init; } = [];
+
     public static readonly CareerProgressionDocument Empty = new();
+}
+
+// KarmaCost is the listed catalog cost of one instance (not the doubled
+// career price paid), the same value creation stores on CanonicalQuality.
+public sealed record CareerQualityGrant(string Id, IReadOnlyDictionary<string, string>? Parameters, int KarmaCost);
+
+public sealed record KeyedQuality(string Key, CanonicalQuality Quality);
+
+public static class CareerQualityKeys
+{
+    public const string BaselinePrefix = "baseline:";
+    public const string CareerPrefix = "career:";
+
+    public static string Baseline(int index) => $"{BaselinePrefix}{index}";
+
+    public static string NewCareerKey() => $"{CareerPrefix}{Guid.NewGuid():N}";
 }
 
 public sealed record CharacterCareerStateSnapshot(
@@ -193,9 +220,22 @@ public sealed record ComposedCharacterSheet(
     IReadOnlyList<CharacterAdvancementRecord> RecentAdvancements,
     IReadOnlyList<AttributeAdvancementEligibility> NextActions,
     IReadOnlyList<SkillAdvancementEligibility> SkillNextActions,
+    CareerQualityActions QualityActions,
     DateTimeOffset FinalizedAtUtc,
     DateTimeOffset CareerStateCreatedAtUtc,
     DateTimeOffset CareerStateUpdatedAtUtc);
+
+// Workstream 2.1: what the sheet can do with qualities. Acquisitions lists
+// every career-eligible positive quality (priced without parameters);
+// Removals lists every negative instance on the sheet by key; Requests is the
+// character's pending removal requests plus the latest resolved ones.
+public sealed record CareerQualityActions(
+    IReadOnlyList<QualityAcquisitionEligibility> Acquisitions,
+    IReadOnlyList<QualityRemovalEligibility> Removals,
+    IReadOnlyList<QualityRemovalRequestRecord> Requests)
+{
+    public static readonly CareerQualityActions Empty = new([], [], []);
+}
 
 public sealed record ComposedCharacterSheetResult(
     ComposedCharacterSheetError Error,

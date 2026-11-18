@@ -8,6 +8,10 @@ public static class AuthorizationPolicies
     public const string WorldEditing = "WorldEditing";
     public const string ModerationAccess = "ModerationAccess";
     public const string AuditLogReading = "AuditLogReading";
+
+    // Workstream 2.1: approving or denying quality buy-offs. Storytellers are
+    // the world builders (the World Forge's authors) and administrators.
+    public const string CareerReview = "CareerReview";
 }
 
 public static class AuthorizationPolicyExtensions
@@ -27,6 +31,9 @@ public static class AuthorizationPolicyExtensions
 
             options.AddPolicy(AuthorizationPolicies.AuditLogReading, policy =>
                 policy.RequireRole(ApplicationRoles.Administrator));
+
+            options.AddPolicy(AuthorizationPolicies.CareerReview, policy =>
+                policy.RequireRole(ApplicationRoles.Administrator, ApplicationRoles.WorldBuilder));
         });
 
         return services;

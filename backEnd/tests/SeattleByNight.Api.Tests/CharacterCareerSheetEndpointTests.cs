@@ -299,6 +299,131 @@ public sealed class CharacterCareerSheetEndpointTests : IClassFixture<ApiTestFac
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    // ── Workstream 2.1: qualities ─────────────────────────────────────────
+
+    [Fact]
+    public async Task Buying_a_quality_charges_karma_and_shows_on_the_sheet()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Quality Runner");
+        await GrantKarmaAsync(characterId, 100);
+        var before = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        var acquisitions = before.GetProperty("qualityActions").GetProperty("acquisitions").EnumerateArray().ToArray();
+        var toughness = Assert.Single(acquisitions, item => item.GetProperty("qualityId").GetString() == "toughness");
+        var cost = toughness.GetProperty("karmaCost").GetInt32();
+        Assert.True(toughness.GetProperty("isEligible").GetBoolean());
+        Assert.DoesNotContain(acquisitions, item => item.GetProperty("qualityId").GetString() == "bilingual");
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/qualities", new
+        {
+            expectedVersion = before.GetProperty("careerStateVersion").GetGuid(),
+            requestId = Guid.NewGuid(),
+            action = "acquire",
+            qualityId = "toughness",
+        });
+
+        response.EnsureSuccessStatusCode();
+        var result = await ReadObjectAsync(response);
+        Assert.Equal(100 - cost, result.GetProperty("currentKarma").GetInt32());
+        Assert.False(result.GetProperty("pendingApproval").GetBoolean());
+
+        var after = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        Assert.Contains(after.GetProperty("sheet").GetProperty("qualities").EnumerateArray(),
+            item => item.GetProperty("id").GetString() == "toughness");
+    }
+
+    [Fact]
+    public async Task An_ineligible_quality_purchase_returns_the_reasons()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Ineligible Quality Runner");
+        var before = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+
+        var response = await owner.PostAsJsonAsync($"/api/characters/{characterId}/advancements/qualities", new
+        {
+            expectedVersion = before.GetProperty("careerStateVersion").GetGuid(),
+            requestId = Guid.NewGuid(),
+            action = "acquire",
+            qualityId = "bilingual",
+            parameters = new Dictionary<string, string> { ["language-id"] = "Spanish" },
+        });
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        var problem = await ReadObjectAsync(response);
+        Assert.Equal("character-career.quality.ineligible", problem.GetProperty("code").GetString());
+        Assert.NotEmpty(problem.GetProperty("reasons").EnumerateArray());
+    }
+
+    [Fact]
+    public async Task Players_cannot_review_removal_requests()
+    {
+        var player = await CreatePlayerAsync();
+
+        var list = await player.GetAsync("/api/admin/quality-removal-requests");
+        var approve = await player.PostAsJsonAsync($"/api/admin/quality-removal-requests/{Guid.NewGuid()}/approve", new { note = "x" });
+
+        Assert.Equal(HttpStatusCode.Forbidden, list.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, approve.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_storyteller_denying_a_removal_request_refunds_the_player()
+    {
+        var owner = await CreatePlayerAsync();
+        var characterId = await FinalizeRunnerAsync(owner, "Removal Request Runner");
+        await GrantKarmaAsync(characterId, 100);
+        var userId = await OwnerOfAsync(characterId);
+        var before = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+
+        // No negative quality can be bought, so the request is written the
+        // way the handler would for one (the store does not re-check the key).
+        await using (var db = factory.CreateDbContext())
+        {
+            var held = await new SeattleByNight.Infrastructure.CharacterCareer.CharacterCareerAdvancementStore(db, TimeProvider.System)
+                .CommitQualityRemovalAsync(new SeattleByNight.Application.CharacterCareer.QualityRemovalCommit(
+                    new SeattleByNight.Application.CharacterCareer.QualityCommitContext(
+                        characterId, userId, before.GetProperty("careerStateVersion").GetGuid(), Guid.NewGuid(), "sr5-core", "1.0.0"),
+                    "baseline:0", "bad-rep", "Bad Rep", 14,
+                    new SeattleByNight.Application.CharacterCareer.QualityRemovalApprovalRequest("Resolve the source.", "I paid them back.")));
+            Assert.True(held.Committed!.PendingApproval);
+        }
+
+        var storyteller = await factory.LoginDevAdminAsync();
+        var pending = await ReadArrayAsync(await storyteller.GetAsync("/api/admin/quality-removal-requests?status=pending"));
+        var request = Assert.Single(pending, item => item.GetProperty("characterId").GetGuid() == characterId);
+        Assert.Equal("I paid them back.", request.GetProperty("explanation").GetString());
+        Assert.Equal("Resolve the source.", request.GetProperty("requirement").GetString());
+
+        var heldSheet = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        Assert.Equal(86, heldSheet.GetProperty("currentKarma").GetInt32());
+        Assert.Equal("Pending", heldSheet.GetProperty("qualityActions").GetProperty("requests")[0].GetProperty("status").GetString());
+
+        var denied = await storyteller.PostAsJsonAsync(
+            $"/api/admin/quality-removal-requests/{request.GetProperty("id").GetGuid()}/deny", new { note = "Not yet." });
+        denied.EnsureSuccessStatusCode();
+        var again = await storyteller.PostAsJsonAsync(
+            $"/api/admin/quality-removal-requests/{request.GetProperty("id").GetGuid()}/approve", new { note = (string?)null });
+        Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+
+        var after = await ReadObjectAsync(await owner.GetAsync($"/api/characters/{characterId}/career-sheet"));
+        Assert.Equal(100, after.GetProperty("currentKarma").GetInt32());
+        var resolved = after.GetProperty("qualityActions").GetProperty("requests")[0];
+        Assert.Equal("Denied", resolved.GetProperty("status").GetString());
+        Assert.Equal("Not yet.", resolved.GetProperty("resolutionNote").GetString());
+    }
+
+    private async Task<Guid> OwnerOfAsync(Guid characterId)
+    {
+        await using var db = factory.CreateDbContext();
+        return await db.Characters.Where(item => item.Id == characterId).Select(item => item.UserId).SingleAsync();
+    }
+
+    private static async Task<JsonElement[]> ReadArrayAsync(HttpResponseMessage response)
+    {
+        response.EnsureSuccessStatusCode();
+        return (await ReadObjectAsync(response)).EnumerateArray().ToArray();
+    }
+
     private async Task<HttpClient> CreatePlayerAsync()
     {
         var username = $"career-{Guid.NewGuid():N}";

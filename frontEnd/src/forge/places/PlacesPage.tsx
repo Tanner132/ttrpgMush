@@ -102,19 +102,7 @@ export default function PlacesPage() {
 
       <div className="forge__columns">
         <div className="forge__column">
-          {room && <RoomSection key={room.id} room={room} />}
-          {room && <PlacementSection key={`placement-${room.id}-${room.version}`} room={room} />}
-
           <Section title="Map">
-            <Segmented
-              label="On the map, a click will"
-              value={mode}
-              options={Modes}
-              onChange={(next) => {
-                setMode(next)
-                setBuild(null)
-              }}
-            />
             <MapGrid
               rooms={world.rooms}
               exits={world.exits}
@@ -174,6 +162,10 @@ export default function PlacesPage() {
               />
             )}
           </Section>
+
+          {room && <RoomSection key={room.id} room={room} />}
+          
+          {room && <PlacementSection key={`placement-${room.id}-${room.version}`} room={room} />}
 
           {room && <ExitsSection room={room} />}
 

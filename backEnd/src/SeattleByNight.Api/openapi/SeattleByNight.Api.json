@@ -275,6 +275,39 @@
         }
       }
     },
+    "/api/characters/{characterId}/advancements/qualities": {
+      "post": {
+        "tags": [
+          "CharacterEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "characterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceQualityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/characters/{characterId}": {
       "delete": {
         "tags": [
@@ -930,6 +963,93 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/quality-removal-requests": {
+      "get": {
+        "tags": [
+          "AdminEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/quality-removal-requests/{requestId}/approve": {
+      "post": {
+        "tags": [
+          "SeattleByNight.Api"
+        ],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveQualityRemovalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/admin/quality-removal-requests/{requestId}/deny": {
+      "post": {
+        "tags": [
+          "SeattleByNight.Api"
+        ],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveQualityRemovalRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -2481,6 +2601,58 @@
           },
           "attributeId": {
             "type": "string"
+          }
+        }
+      },
+      "AdvanceQualityRequest": {
+        "required": [
+          "expectedVersion",
+          "requestId",
+          "action",
+          "qualityId",
+          "parameters",
+          "key",
+          "explanation"
+        ],
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "action": {
+            "type": "string"
+          },
+          "qualityId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "parameters": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "key": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "explanation": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4105,6 +4277,20 @@
               {
                 "$ref": "#/components/schemas/CharacterCreationDraftDocument"
               }
+            ]
+          }
+        }
+      },
+      "ResolveQualityRemovalRequest": {
+        "required": [
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": [
+              "null",
+              "string"
             ]
           }
         }

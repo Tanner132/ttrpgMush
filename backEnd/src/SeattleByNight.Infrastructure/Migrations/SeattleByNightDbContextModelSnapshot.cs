@@ -1458,6 +1458,104 @@ namespace SeattleByNight.Infrastructure.Migrations
                     b.ToTable("play_sessions", (string)null);
                 });
 
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.QualityRemovalRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdvancementId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("advancement_id");
+
+                    b.Property<Guid>("CharacterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("explanation");
+
+                    b.Property<Guid>("HoldTransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("hold_transaction_id");
+
+                    b.Property<int>("KarmaCost")
+                        .HasColumnType("integer")
+                        .HasColumnName("karma_cost");
+
+                    b.Property<string>("QualityId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("quality_id");
+
+                    b.Property<string>("QualityKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("quality_key");
+
+                    b.Property<Guid?>("RefundTransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("refund_transaction_id");
+
+                    b.Property<DateTimeOffset>("RequestedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("requested_at_utc");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by_user_id");
+
+                    b.Property<string>("Requirement")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("requirement");
+
+                    b.Property<string>("ResolutionNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("resolution_note");
+
+                    b.Property<DateTimeOffset?>("ResolvedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at_utc");
+
+                    b.Property<Guid?>("ResolvedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by_user_id");
+
+                    b.Property<string>("Status")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdvancementId");
+
+                    b.HasIndex("HoldTransactionId");
+
+                    b.HasIndex("RefundTransactionId");
+
+                    b.HasIndex("CharacterId", "QualityKey")
+                        .IsUnique()
+                        .HasFilter("status = 'Pending'");
+
+                    b.HasIndex("Status", "RequestedAtUtc");
+
+                    b.ToTable("quality_removal_requests", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_quality_removal_requests_karma_cost", "karma_cost > 0");
+                        });
+                });
+
             modelBuilder.Entity("SeattleByNight.Domain.Entities.Room", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2269,6 +2367,31 @@ namespace SeattleByNight.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SeattleByNight.Domain.Entities.QualityRemovalRequest", b =>
+                {
+                    b.HasOne("SeattleByNight.Domain.Entities.CharacterAdvancement", null)
+                        .WithMany()
+                        .HasForeignKey("AdvancementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SeattleByNight.Domain.Entities.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SeattleByNight.Domain.Entities.CharacterResourceTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("HoldTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SeattleByNight.Domain.Entities.CharacterResourceTransaction", null)
+                        .WithMany()
+                        .HasForeignKey("RefundTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("SeattleByNight.Domain.Entities.Room", b =>

@@ -37,6 +37,7 @@ function buildSheet(overrides: Partial<ComposedCareerSheet> = {}): ComposedCaree
         recentTransactions: [],
         recentAdvancements: [],
         nextActions: [],
+        qualityActions: { acquisitions: [], removals: [], requests: [] },
         finalizedAtUtc: '2026-08-01T00:00:00Z',
         careerStateCreatedAtUtc: '2026-08-01T00:00:00Z',
         careerStateUpdatedAtUtc: '2026-08-01T00:00:00Z',

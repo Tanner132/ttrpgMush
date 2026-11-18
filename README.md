@@ -15,17 +15,17 @@ build the world and its missions from inside the running game.
 | --- | --- |
 | Accounts | Register, log in, log out (ASP.NET Core Identity, HTTP-only cookie, antiforgery). Roles: `Administrator`, `WorldBuilder`, `Moderator`. |
 | Character creation | Complete SR5 creator (Standard Priority and Sum-to-Ten): identity, priorities, metatype and metavariants, attributes, qualities, magic/resonance, augmentations, skills, knowledge, contacts, martial arts, gear with attachments and vehicle mods, lifestyle, review and atomic finalization. Two character slots per account. |
-| Character sheet | Career sheet at `/characters/:id/sheet` and in play via `/character`. Karma advancement for attributes, Edge/Magic/Resonance, active skills, skill groups, knowledge skills, languages, and specializations. |
+| Character sheet | Career sheet at `/characters/:id/sheet` and in play via `/character`. Karma advancement for attributes, Edge/Magic/Resonance, active skills, skill groups, knowledge skills, languages, specializations, and qualities (buy positive ones and raise rated ones; buy off negative ones, some through Storyteller review). |
 | World | Persistent rooms on a layered coordinate grid joined by directed exits (hidden/locked supported). Server-authoritative movement. |
 | Play | Realtime room chat (speech, emotes, dice), presence, arrivals/departures, session-scoped transcript, idle expiry. |
 | Rules engine | SR5 tests (success, threshold, opposed) built from the real sheet, limits, wound modifiers, Edge (Push the Limit, Second Chance), active effects, seeded and audited dice. |
 | NPCs and combat | Placed NPCs with awareness states, room interactables with discovery, and structured-time combat: initiative passes, action economy, ranged and melee attacks, defense, soak, condition monitors, NPC turns, turn timers. |
 | Missions | Jobs on the one shared map: objectives, the job's one item, Johnson dialogue with negotiation, and Karma/nuyen rewards granted exactly once through the career ledger. One clock per job: a deadline from the first accept, first to finish wins, a 24-hour aftermath shown in the job's rooms, then a reset (NPCs back, item back). Crews of up to five take jobs together and split the pay. |
 | World Forge | Staff content builder at `/admin/forge`: missions, encounters, NPC templates and placements, scenes/dialogue, triggers, and test definitions with a draft → validate → publish → retire lifecycle. |
-| Administration | User role management, append-only audit log, coordinate world editor at `/admin/world`. |
+| Administration | User role management, append-only audit log, coordinate world editor at `/admin/world`, and Storyteller review of quality buy-offs on the Admin page (`/admin/users`). |
 
 Not built yet: spellcasting, Matrix actions, rigging, group combat, non-public
-rooms, quality/magic career advancement, nuyen purchases, moderation tools, and
+rooms, magic/resonance career advancement, nuyen purchases, moderation tools, and
 email confirmation/password reset. See the roadmap.
 
 ## Repository layout
@@ -186,6 +186,7 @@ authoritative contract. In summary:
 | `/api/game/missions` | The caller's missions, with an open job's deadline | Authenticated |
 | `/api/game/crew` | The caller's crew; invite, join, leave | Authenticated |
 | `/api/admin/users`, `/api/admin/audit` | Role management, audit log | `Administrator` |
+| `/api/admin/quality-removal-requests` | List quality buy-off requests; approve or deny one | `Administrator`, `WorldBuilder` |
 | `/api/admin/world` | One map at a time (`?mapId=`): rooms, exits, travel links, districts; maps, publishing and unpublishing rooms, moving, painting and duplicating rooms, the reachability check, the world index and search, hiding and locking exits, NPCs and interactables, map items, room deletion, NPC/interactable placement, room environment | `Administrator`, `WorldBuilder` |
 | `/api/admin/content` | World Forge content lifecycle; draft saves may be version-checked (409 on a stale save) | `Administrator`, `WorldBuilder` |
 | `/api/admin/missions` | List mission definitions, assign a mission to a character | `Administrator`, `WorldBuilder` |

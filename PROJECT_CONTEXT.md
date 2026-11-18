@@ -227,12 +227,32 @@ in the Api composition root, and applied at endpoint boundaries:
   calculates them.
 - Derived statistics are recomputed on read, never stored.
 - Product interpretations: advancement is immediate, ignores training time and
-  downtime, and needs no Storyteller approval.
+  downtime, and needs no Storyteller approval, with one exception: buying off a
+  negative quality whose removal has a stated requirement
+  (`career.quality-removal-approval`).
 - Implemented: attributes, Edge, Magic, Resonance, active skills, skill groups
-  (including break and rebuild), knowledge skills, languages, specializations.
-  Not implemented: qualities, spells/forms, Initiation/Submersion, nuyen
-  purchases. The rules contract for those is
+  (including break and rebuild), knowledge skills, languages, specializations,
+  qualities. Not implemented: spells/forms, Initiation/Submersion, nuyen
+  purchases, contacts. The rules contract for those is
   `roadmap/SHEET_901_CAREER_RULES_BASELINE.md`.
+- Qualities (workstream 2.1). Every catalog quality row carries a `career`
+  block the loader validates: availability and prerequisites for positive
+  qualities, the removal rule (`on-demand`, `approval`, `never`) for negative
+  ones, and `maxInstances`. A rated quality is held as one instance per level
+  (the ledgers' Cost-Modeling Convention), so raising it buys another
+  instance and the server sets its `rating` choice. Each instance on the
+  composed sheet has a stable key (`baseline:<index>` or `career:<id>`); the
+  progression document records `AcquiredQualities` and `RemovedQualities` by
+  key. The composed sheet returns `qualityActions` (acquisitions, removals,
+  requests).
+- Quality buy-off requests. An `approval` removal writes a
+  `QualityRemovalRequest` and a Karma hold transaction instead of removing the
+  quality. A Storyteller (`Administrator` or `WorldBuilder`, policy
+  `CareerReview`) approves it, which removes the instance and writes the
+  advancement, or denies it, which writes a `Refund` transaction. Both resolve
+  atomically with the career state, are guarded by the request status as a
+  concurrency token, and are audited. At most one request per instance is
+  pending (partial unique index).
 
 ## Game engine
 

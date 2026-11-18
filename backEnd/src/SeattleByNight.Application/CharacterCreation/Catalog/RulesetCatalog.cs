@@ -56,7 +56,48 @@ public sealed record QualityDefinition(
     bool Parameterized,
     bool Repeatable,
     IReadOnlyList<string> Conflicts,
-    SourceCitation Source);
+    SourceCitation Source,
+    CareerQualityMetadata? Career = null);
+
+// Workstream 2.1 career metadata (SHEET_901 §7, owner decisions
+// `career.quality-expansion-eligibility`, `career.quality-removal-approval`,
+// `career.quality-ratings` in SR5_RULE_DECISIONS.md). Every catalog row
+// carries one; the loader rejects a row without it.
+//
+// Positive qualities use Availability ("eligible" | "creation-only", Reason
+// required for creation-only) and Prerequisites (closed vocabulary, see
+// CareerQualityPrerequisites). Negative qualities use Removal ("on-demand" |
+// "approval" | "never"); "approval" needs RemovalRequirement, the text shown
+// to the player and the Storyteller, and "never" needs Reason.
+// MaxInstances caps how many instances may be held at once. A rated quality's
+// rating is the number of instances held (the ledgers' Cost-Modeling
+// Convention), so this is also its maximum rating; it is null when uncapped.
+public sealed record CareerQualityMetadata(
+    string? Availability = null,
+    string? Reason = null,
+    IReadOnlyList<string>? Prerequisites = null,
+    string? Removal = null,
+    string? RemovalRequirement = null,
+    int? MaxInstances = null);
+
+public static class CareerQualityPrerequisites
+{
+    public const string Magic = "magic";
+    public const string NoMagic = "no-magic";
+    public const string Resonance = "resonance";
+    public const string MagicOrResonance = "magic-or-resonance";
+    public const string Mundane = "mundane";
+    public const string Spellcaster = "spellcaster";
+    public const string Adept = "adept";
+    public const string Submersion = "submersion";
+    public const string MetatypePrefix = "metatype:";
+    public const string QualityPrefix = "quality:";
+
+    public static readonly IReadOnlySet<string> Simple = new HashSet<string>(StringComparer.Ordinal)
+    {
+        Magic, NoMagic, Resonance, MagicOrResonance, Mundane, Spellcaster, Adept, Submersion,
+    };
+}
 
 public sealed record SkillDefinition(
     string Id,

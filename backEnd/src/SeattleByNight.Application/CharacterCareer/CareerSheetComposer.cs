@@ -13,7 +13,8 @@ public sealed class CareerSheetComposer
     {
         var hasAttributeProgression = progression.AttributeIncreases.Count > 0;
         var hasSkillProgression = HasSkillProgression(progression);
-        if (!hasAttributeProgression && !hasSkillProgression)
+        var hasQualityProgression = progression.AcquiredQualities.Count > 0 || progression.RemovedQualities.Count > 0;
+        if (!hasAttributeProgression && !hasSkillProgression && !hasQualityProgression)
         {
             return baseline;
         }
@@ -34,7 +35,42 @@ public sealed class CareerSheetComposer
             SkillGroups = ApplySkillGroupProgression(baseline.SkillGroups, progression),
             KnowledgeSkills = ApplyKnowledgeProgression(baseline.KnowledgeSkills, progression),
             Languages = ApplyLanguageProgression(baseline.Languages, progression),
+            Qualities = hasQualityProgression
+                ? ComposeQualities(baseline.Qualities, progression).Select(item => item.Quality).ToArray()
+                : baseline.Qualities,
         };
+    }
+
+    // Workstream 2.1. The composed quality list with each instance's stable
+    // key, in baseline order then purchase order. Shared by Compose (which
+    // keeps only the CanonicalQuality) and the quality evaluator (which needs
+    // the key to address an instance). A career instance records the listed
+    // catalog cost it was bought at (CareerQualityGrant.KarmaCost), matching
+    // how creation records KarmaCost.
+    public IReadOnlyList<KeyedQuality> ComposeQualities(
+        IReadOnlyList<CanonicalQuality> baseline,
+        CareerProgressionDocument progression)
+    {
+        var removed = progression.RemovedQualities.ToHashSet(StringComparer.Ordinal);
+        var result = new List<KeyedQuality>(baseline.Count + progression.AcquiredQualities.Count);
+        for (var index = 0; index < baseline.Count; index++)
+        {
+            var key = CareerQualityKeys.Baseline(index);
+            if (!removed.Contains(key))
+            {
+                result.Add(new KeyedQuality(key, baseline[index]));
+            }
+        }
+
+        foreach (var (key, grant) in progression.AcquiredQualities)
+        {
+            if (!removed.Contains(key))
+            {
+                result.Add(new KeyedQuality(key, new CanonicalQuality(grant.Id, 1, grant.KarmaCost, grant.Parameters, CanonicalProvenance.Karma)));
+            }
+        }
+
+        return result;
     }
 
     private static bool HasSkillProgression(CareerProgressionDocument progression) =>

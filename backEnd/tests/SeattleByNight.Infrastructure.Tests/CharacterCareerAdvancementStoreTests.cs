@@ -302,6 +302,266 @@ public sealed class CharacterCareerAdvancementStoreTests : IAsyncLifetime
         Assert.Equal(state.Version, reloaded.Version);
     }
 
+    // ── Workstream 2.1: qualities ─────────────────────────────────────────
+
+    [Fact]
+    public async Task Buying_a_quality_through_the_handler_charges_twice_its_cost_and_lands_on_the_composed_sheet()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+        var userId = await OwnerOfAsync(db, characterId);
+        var cost = new EmbeddedRulesetCatalogProvider().Current.Qualities["toughness"].Cost * 2;
+
+        var result = await CreateQualityHandler(db).Handle(new AdvanceQualityCommand(
+            userId, characterId, state.Version, Guid.NewGuid(), QualityAdvancementAction.Acquire,
+            "toughness", null, null, null), CancellationToken.None);
+
+        Assert.True(result.Succeeded, string.Join("; ", result.BlockingReasons ?? []));
+        Assert.Equal(state.CurrentKarma - cost, result.Committed!.CurrentKarma);
+        Assert.False(result.Committed.PendingApproval);
+
+        var advancement = await db.CharacterAdvancements.SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(CharacterAdvancementCategory.Quality, advancement.Category);
+        Assert.Equal(result.Committed.Key, advancement.TargetId);
+        Assert.Equal(cost, advancement.KarmaCost);
+        var transaction = await db.CharacterResourceTransactions.SingleAsync(
+            item => item.CharacterId == characterId && item.TransactionType == CharacterResourceTransactionType.Advancement);
+        Assert.Equal(-cost, transaction.Amount);
+        Assert.Equal(advancement.Id, transaction.AdvancementId);
+
+        var sheet = await CreateSheetHandler(db).Handle(new GetComposedCharacterSheetQuery(userId, characterId), CancellationToken.None);
+        Assert.Contains(sheet.Sheet!.Sheet.Qualities, item => item.Id == "toughness");
+        Assert.False(sheet.Sheet.QualityActions.Acquisitions.Single(item => item.QualityId == "toughness").IsEligible);
+    }
+
+    [Fact]
+    public async Task Quality_handler_hides_another_players_character_and_replays_a_request_id_once()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+        var userId = await OwnerOfAsync(db, characterId);
+        var strangerId = await CreateUserAsync(db);
+        var requestId = Guid.NewGuid();
+        AdvanceQualityCommand Command(Guid user) => new(
+            user, characterId, state.Version, requestId, QualityAdvancementAction.Acquire, "toughness", null, null, null);
+
+        var stranger = await CreateQualityHandler(db).Handle(Command(strangerId), CancellationToken.None);
+        var first = await CreateQualityHandler(db).Handle(Command(userId), CancellationToken.None);
+        var replay = await CreateQualityHandler(db).Handle(Command(userId), CancellationToken.None);
+
+        Assert.Equal(AdvanceQualityError.NotFound, stranger.Error);
+        Assert.True(first.Succeeded);
+        Assert.Equal(first.Committed, replay.Committed);
+        Assert.Equal(1, await db.CharacterAdvancements.CountAsync(item => item.CharacterId == characterId));
+    }
+
+    [Fact]
+    public async Task Concurrent_identical_quality_purchases_spend_exactly_once()
+    {
+        Guid characterId;
+        CharacterCareerStateSnapshot state;
+        await using (var setupDb = CreateDbContext())
+        {
+            (characterId, state) = await CreateInitializedCharacterAsync(setupDb);
+        }
+
+        var requestId = Guid.NewGuid();
+        var attempts = await Task.WhenAll(Enumerable.Range(0, 4).Select(async _ =>
+        {
+            await using var db = CreateDbContext();
+            return await CreateStore(db).CommitQualityAcquisitionAsync(new QualityAcquisitionCommit(
+                QualityContext(characterId, state.Version, requestId), "career:race",
+                new CareerQualityGrant("toughness", null, 9), "Toughness", 0, 18));
+        }));
+
+        Assert.All(attempts, item => Assert.True(item.Error is QualityCommitError.None or QualityCommitError.VersionConflict));
+        var winners = attempts.Where(item => item.Error == QualityCommitError.None).ToArray();
+        Assert.NotEmpty(winners);
+        Assert.All(winners, item => Assert.Equal(winners[0].Committed, item.Committed));
+
+        await using var verifyDb = CreateDbContext();
+        var reloaded = await verifyDb.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(state.CurrentKarma - 18, reloaded.CurrentKarma);
+        Assert.Equal(1, await verifyDb.CharacterAdvancements.CountAsync(item => item.CharacterId == characterId));
+    }
+
+    [Fact]
+    public async Task An_on_demand_removal_takes_the_quality_off_at_once()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+
+        var result = await CreateStore(db).CommitQualityRemovalAsync(new QualityRemovalCommit(
+            QualityContext(characterId, state.Version, Guid.NewGuid()), "baseline:0", "bad-luck", "Bad Luck", 24, null));
+
+        Assert.Equal(QualityCommitError.None, result.Error);
+        Assert.False(result.Committed!.PendingApproval);
+        var reloaded = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Contains("baseline:0", CharacterCareerSerialization.DeserializeProgression(reloaded.ProgressionJson).RemovedQualities);
+        Assert.Equal(state.CurrentKarma - 24, reloaded.CurrentKarma);
+        Assert.False(await db.QualityRemovalRequests.AnyAsync(item => item.CharacterId == characterId));
+    }
+
+    [Fact]
+    public async Task An_approved_removal_request_holds_the_karma_then_removes_the_quality()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+        var storytellerId = await CreateUserAsync(db);
+
+        var requested = await RequestRemovalAsync(db, characterId, state.Version, "baseline:0");
+
+        Assert.Equal(QualityCommitError.None, requested.Error);
+        Assert.True(requested.Committed!.PendingApproval);
+        Assert.Null(requested.Committed.AdvancementId);
+        var held = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(state.CurrentKarma - 14, held.CurrentKarma);
+        Assert.Empty(CharacterCareerSerialization.DeserializeProgression(held.ProgressionJson).RemovedQualities);
+        var request = await db.QualityRemovalRequests.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(QualityRemovalRequestStatus.Pending, request.Status);
+        Assert.Equal("I made amends.", request.Explanation);
+
+        var resolved = await CreateRequestStore(db).ResolveAsync(request.Id, storytellerId, approve: true, "Well played.");
+
+        Assert.Equal(ResolveQualityRemovalError.None, resolved.Error);
+        Assert.Equal(QualityRemovalRequestStatus.Approved, resolved.Request!.Status);
+        Assert.Equal("Well played.", resolved.Request.ResolutionNote);
+        var after = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(held.CurrentKarma, after.CurrentKarma);
+        Assert.NotEqual(held.Version, after.Version);
+        Assert.Contains("baseline:0", CharacterCareerSerialization.DeserializeProgression(after.ProgressionJson).RemovedQualities);
+        var advancement = await db.CharacterAdvancements.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(14, advancement.KarmaCost);
+        var hold = await db.CharacterResourceTransactions.AsNoTracking().SingleAsync(item => item.Id == request.HoldTransactionId);
+        Assert.Equal(advancement.Id, hold.AdvancementId);
+        Assert.True(await db.AuditRecords.AnyAsync(item => item.TargetId == request.Id && item.Action == "QualityRemovalApproved"));
+    }
+
+    [Fact]
+    public async Task A_denied_removal_request_refunds_the_karma_and_keeps_the_quality()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+        var storytellerId = await CreateUserAsync(db);
+        await RequestRemovalAsync(db, characterId, state.Version, "baseline:0");
+        var request = await db.QualityRemovalRequests.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+
+        var resolved = await CreateRequestStore(db).ResolveAsync(request.Id, storytellerId, approve: false, "Not yet.");
+
+        Assert.Equal(ResolveQualityRemovalError.None, resolved.Error);
+        Assert.Equal(QualityRemovalRequestStatus.Denied, resolved.Request!.Status);
+        var after = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(state.CurrentKarma, after.CurrentKarma);
+        Assert.Empty(CharacterCareerSerialization.DeserializeProgression(after.ProgressionJson).RemovedQualities);
+        var refund = await db.CharacterResourceTransactions.AsNoTracking()
+            .SingleAsync(item => item.CharacterId == characterId && item.TransactionType == CharacterResourceTransactionType.Refund);
+        Assert.Equal(14, refund.Amount);
+        Assert.Equal(state.CurrentKarma, refund.BalanceAfter);
+        Assert.False(await db.CharacterAdvancements.AnyAsync(item => item.CharacterId == characterId));
+
+        var again = await CreateRequestStore(db).ResolveAsync(request.Id, storytellerId, approve: true, null);
+        Assert.Equal(ResolveQualityRemovalError.AlreadyResolved, again.Error);
+    }
+
+    [Fact]
+    public async Task Only_one_removal_request_per_quality_can_be_pending()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+        var first = await RequestRemovalAsync(db, characterId, state.Version, "baseline:0");
+
+        db.ChangeTracker.Clear();
+        var second = await RequestRemovalAsync(db, characterId, first.Committed!.CareerStateVersion, "baseline:0");
+
+        Assert.Equal(QualityCommitError.PendingRequestExists, second.Error);
+        var after = await db.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        Assert.Equal(state.CurrentKarma - 14, after.CurrentKarma);
+    }
+
+    [Fact]
+    public async Task Two_storytellers_resolving_at_once_cannot_both_win()
+    {
+        Guid characterId;
+        Guid requestId;
+        Guid storytellerId;
+        CharacterCareerStateSnapshot state;
+        await using (var setupDb = CreateDbContext())
+        {
+            (characterId, state) = await CreateInitializedCharacterAsync(setupDb);
+            storytellerId = await CreateUserAsync(setupDb);
+            await RequestRemovalAsync(setupDb, characterId, state.Version, "baseline:0");
+            requestId = (await setupDb.QualityRemovalRequests.SingleAsync(item => item.CharacterId == characterId)).Id;
+        }
+
+        var outcomes = await Task.WhenAll(new[] { true, false, true, false }.Select(async approve =>
+        {
+            await using var db = CreateDbContext();
+            return await CreateRequestStore(db).ResolveAsync(requestId, storytellerId, approve, null);
+        }));
+
+        var winners = outcomes.Where(item => item.Succeeded).ToArray();
+        Assert.Single(winners);
+        Assert.All(outcomes.Where(item => !item.Succeeded), item => Assert.True(
+            item.Error is ResolveQualityRemovalError.AlreadyResolved or ResolveQualityRemovalError.Conflict));
+
+        await using var verifyDb = CreateDbContext();
+        var after = await verifyDb.CharacterCareerStates.AsNoTracking().SingleAsync(item => item.CharacterId == characterId);
+        var expectedKarma = winners[0].Request!.Status == QualityRemovalRequestStatus.Approved
+            ? state.CurrentKarma - 14
+            : state.CurrentKarma;
+        Assert.Equal(expectedKarma, after.CurrentKarma);
+    }
+
+    [Fact]
+    public async Task Deleting_a_character_clears_its_removal_requests()
+    {
+        await using var db = CreateDbContext();
+        var (characterId, state) = await CreateInitializedCharacterAsync(db);
+        var userId = await OwnerOfAsync(db, characterId);
+        await RequestRemovalAsync(db, characterId, state.Version, "baseline:0");
+
+        Assert.True(await new SeattleByNight.Infrastructure.Characters.CharacterStore(db).DeleteAsync(userId, characterId));
+
+        Assert.False(await db.QualityRemovalRequests.AnyAsync(item => item.CharacterId == characterId));
+    }
+
+    private static QualityCommitContext QualityContext(Guid characterId, Guid version, Guid requestId) =>
+        new(characterId, Guid.NewGuid(), version, requestId, "sr5-core", "1.0.0");
+
+    private static Task<QualityCommitResult> RequestRemovalAsync(
+        SeattleByNightDbContext db, Guid characterId, Guid version, string key) =>
+        CreateStore(db).CommitQualityRemovalAsync(new QualityRemovalCommit(
+            QualityContext(characterId, version, Guid.NewGuid()), key, "bad-rep", "Bad Rep", 14,
+            new QualityRemovalApprovalRequest("Resolve the source.", "I made amends.")));
+
+    private static async Task<Guid> OwnerOfAsync(SeattleByNightDbContext db, Guid characterId) =>
+        await db.Characters.Where(item => item.Id == characterId).Select(item => item.UserId).SingleAsync();
+
+    private static QualityRemovalRequestStore CreateRequestStore(SeattleByNightDbContext db) =>
+        new(db, TimeProvider.System, new SeattleByNight.Infrastructure.Auditing.AuditWriter(db, TimeProvider.System));
+
+    private static AdvanceQualityCommandHandler CreateQualityHandler(SeattleByNightDbContext db) => new(
+        new SeattleByNight.Infrastructure.CharacterCreation.CharacterCreationDraftStore(db, TimeProvider.System),
+        new CharacterCreationBaselineReader(new EmbeddedRulesetCatalogProvider()),
+        new CharacterCareerStateStore(db, new CharacterCreationBaselineReader(new EmbeddedRulesetCatalogProvider()), TimeProvider.System),
+        CreateStore(db),
+        CreateRequestStore(db),
+        new EmbeddedRulesetCatalogProvider(),
+        new CareerSheetComposer(),
+        new QualityAdvancementEvaluator());
+
+    private static GetComposedCharacterSheetQueryHandler CreateSheetHandler(SeattleByNightDbContext db) => new(
+        new SeattleByNight.Infrastructure.CharacterCreation.CharacterCreationDraftStore(db, TimeProvider.System),
+        new CharacterCreationBaselineReader(new EmbeddedRulesetCatalogProvider()),
+        new CharacterCareerStateStore(db, new CharacterCreationBaselineReader(new EmbeddedRulesetCatalogProvider()), TimeProvider.System),
+        new CharacterCareerHistoryReader(db),
+        new EmbeddedRulesetCatalogProvider(),
+        new CareerSheetComposer(),
+        new AttributeAdvancementEvaluator(),
+        new SkillAdvancementEvaluator(),
+        new QualityAdvancementEvaluator(),
+        CreateRequestStore(db));
+
     private static CharacterCareerAdvancementStore CreateStore(SeattleByNightDbContext db) => new(db, TimeProvider.System);
 
     // Carryover Karma is capped at 7 (MaxCarryoverKarma), too little to test a

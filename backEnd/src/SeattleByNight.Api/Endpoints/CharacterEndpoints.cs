@@ -109,6 +109,80 @@ public sealed record AddSkillSpecializationResponse(
     Guid CareerStateVersion,
     Guid AdvancementId);
 
+// Workstream 2.1. Action is "acquire" or "remove". Acquire names QualityId
+// (and Parameters for a parameterized quality); buying another level of a
+// rated quality is another acquire. Remove names an instance Key from
+// QualityActions.Removals; Explanation is required when that removal needs a
+// Storyteller's approval.
+public sealed record AdvanceQualityRequest(
+    Guid ExpectedVersion,
+    Guid RequestId,
+    string Action,
+    string? QualityId,
+    Dictionary<string, string>? Parameters,
+    string? Key,
+    string? Explanation);
+
+public sealed record AdvanceQualityResponse(
+    Guid CharacterId,
+    string Action,
+    string QualityId,
+    string Key,
+    int KarmaCost,
+    int CurrentKarma,
+    Guid CareerStateVersion,
+    Guid? AdvancementId,
+    Guid? RemovalRequestId,
+    bool PendingApproval);
+
+public sealed record ComposedQualityAcquisitionResponse(
+    string QualityId,
+    int HeldInstances,
+    int? MaxInstances,
+    int KarmaCost,
+    bool IsEligible,
+    IReadOnlyList<string> BlockingReasons);
+
+// Mode is "onDemand", "approval" or "never".
+public sealed record ComposedQualityRemovalResponse(
+    string Key,
+    string QualityId,
+    int KarmaCost,
+    string Mode,
+    string? Requirement,
+    bool HasPendingRequest,
+    bool IsEligible,
+    IReadOnlyList<string> BlockingReasons,
+    IReadOnlyDictionary<string, string>? Parameters);
+
+// Status is "Pending", "Approved" or "Denied".
+public sealed record QualityRemovalRequestResponse(
+    Guid Id,
+    Guid CharacterId,
+    string CharacterName,
+    string? RequestedByUserName,
+    string QualityKey,
+    string QualityId,
+    int KarmaCost,
+    string Requirement,
+    string Explanation,
+    string Status,
+    string? ResolvedByUserName,
+    string? ResolutionNote,
+    DateTimeOffset RequestedAtUtc,
+    DateTimeOffset? ResolvedAtUtc)
+{
+    public static QualityRemovalRequestResponse From(QualityRemovalRequestRecord record) => new(
+        record.Id, record.CharacterId, record.CharacterName, record.RequestedByUserName, record.QualityKey,
+        record.QualityId, record.KarmaCost, record.Requirement, record.Explanation, record.Status.ToString(),
+        record.ResolvedByUserName, record.ResolutionNote, record.RequestedAtUtc, record.ResolvedAtUtc);
+}
+
+public sealed record ComposedQualityActionsResponse(
+    IReadOnlyList<ComposedQualityAcquisitionResponse> Acquisitions,
+    IReadOnlyList<ComposedQualityRemovalResponse> Removals,
+    IReadOnlyList<QualityRemovalRequestResponse> Requests);
+
 public sealed record ComposedCharacterSheetResponse(
     Guid CharacterId,
     string Name,
@@ -125,6 +199,7 @@ public sealed record ComposedCharacterSheetResponse(
     IReadOnlyList<ComposedResourceTransactionResponse> RecentTransactions,
     IReadOnlyList<ComposedAdvancementResponse> RecentAdvancements,
     IReadOnlyList<ComposedNextActionResponse> NextActions,
+    ComposedQualityActionsResponse QualityActions,
     DateTimeOffset FinalizedAtUtc,
     DateTimeOffset CareerStateCreatedAtUtc,
     DateTimeOffset CareerStateUpdatedAtUtc);
@@ -141,6 +216,7 @@ public static class CharacterEndpoints
         group.MapPost("{characterId:guid}/advancements/skills", AdvanceSkillAsync).RequireAntiforgery();
         group.MapPost("{characterId:guid}/advancements/skills/preview", PreviewSkillAdvancementAsync);
         group.MapPost("{characterId:guid}/advancements/specializations", AddSkillSpecializationAsync).RequireAntiforgery();
+        group.MapPost("{characterId:guid}/advancements/qualities", AdvanceQualityAsync).RequireAntiforgery();
         group.MapDelete("{characterId:guid}", DeleteCharacterAsync).RequireAntiforgery();
 
         return endpoints;
@@ -323,6 +399,42 @@ public static class CharacterEndpoints
             committed.KarmaCost, committed.CurrentKarma, committed.CareerStateVersion, committed.AdvancementId));
     }
 
+    private static async Task<IResult> AdvanceQualityAsync(
+        Guid characterId,
+        AdvanceQualityRequest request,
+        UserManager<ApplicationUser> userManager,
+        IMediator mediator,
+        HttpContext httpContext)
+    {
+        var user = await userManager.GetUserAsync(httpContext.User);
+        if (user is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!Enum.TryParse<QualityAdvancementAction>(request.Action, ignoreCase: true, out var action)
+            || !Enum.IsDefined(action))
+        {
+            return Results.Problem(statusCode: 400, title: "That quality action is not recognized.",
+                extensions: new Dictionary<string, object?> { ["code"] = "character-career.quality.unknown-action" });
+        }
+
+        var result = await mediator.Send(new AdvanceQualityCommand(
+            user.Id, characterId, request.ExpectedVersion, request.RequestId, action,
+            request.QualityId, request.Parameters, request.Key, request.Explanation));
+
+        if (!result.Succeeded)
+        {
+            return Problem(result.Error, result.BlockingReasons);
+        }
+
+        var committed = result.Committed!;
+        return Results.Ok(new AdvanceQualityResponse(
+            characterId, committed.Action.ToString(), committed.QualityId, committed.Key, committed.KarmaCost,
+            committed.CurrentKarma, committed.CareerStateVersion, committed.AdvancementId, committed.RemovalRequestId,
+            committed.PendingApproval));
+    }
+
     private static ComposedCharacterSheetResponse ToResponse(ComposedCharacterSheet sheet) => new(
         sheet.CharacterId,
         sheet.Name,
@@ -350,6 +462,13 @@ public static class CharacterEndpoints
             .Concat(sheet.SkillNextActions.Select(item => new ComposedNextActionResponse(
                 SkillNextActionCategory(item.Kind), item.Key, item.KarmaCost, item.IsEligible, item.BlockingReasons)))
             .ToArray(),
+        new ComposedQualityActionsResponse(
+            sheet.QualityActions.Acquisitions.Select(item => new ComposedQualityAcquisitionResponse(
+                item.QualityId, item.HeldInstances, item.MaxInstances, item.KarmaCost, item.IsEligible, item.BlockingReasons)).ToArray(),
+            sheet.QualityActions.Removals.Select(item => new ComposedQualityRemovalResponse(
+                item.Key, item.QualityId, item.KarmaCost, RemovalMode(item.Mode), item.Requirement, item.HasPendingRequest,
+                item.IsEligible, item.BlockingReasons, item.Parameters)).ToArray(),
+            sheet.QualityActions.Requests.Select(QualityRemovalRequestResponse.From).ToArray()),
         sheet.FinalizedAtUtc,
         sheet.CareerStateCreatedAtUtc,
         sheet.CareerStateUpdatedAtUtc);
@@ -366,6 +485,54 @@ public static class CharacterEndpoints
         CareerSkillKind.Language => "language",
         _ => kind.ToString(),
     };
+
+    private static string RemovalMode(QualityRemovalMode mode) => mode switch
+    {
+        QualityRemovalMode.Approval => "approval",
+        QualityRemovalMode.Never => "never",
+        _ => "onDemand",
+    };
+
+    private static IResult Problem(AdvanceQualityError error, IReadOnlyList<string>? reasons)
+    {
+        if (error == AdvanceQualityError.NotFound)
+        {
+            return Results.NotFound();
+        }
+
+        var (status, code, title) = error switch
+        {
+            AdvanceQualityError.CareerStateNotInitialized =>
+                (409, "character-career.not-initialized", "This character's career state has not been initialized yet."),
+            AdvanceQualityError.VersionConflict =>
+                (409, "character-career.version-conflict", "This character's career state was changed by another request."),
+            AdvanceQualityError.RequestIdReused =>
+                (409, "character-career.request-id-reused", "This request id was already used for a different action."),
+            AdvanceQualityError.UnknownTarget =>
+                (400, "character-career.quality.unknown-target", "That quality does not exist on this character or in the catalog."),
+            AdvanceQualityError.RuleViolation =>
+                (422, "character-career.quality.ineligible", "This quality change cannot be made right now."),
+            AdvanceQualityError.UnsupportedSchemaVersion =>
+                (422, "character-career.unsupported-schema-version", "The finalized sheet uses an unsupported schema version."),
+            AdvanceQualityError.MalformedDocument =>
+                (422, "character-career.malformed-document", "The finalized sheet is malformed."),
+            AdvanceQualityError.RulesetCatalogUnavailable =>
+                (422, "character-career.catalog-unavailable", "The pinned ruleset catalog is unavailable."),
+            AdvanceQualityError.CatalogDigestMismatch =>
+                (422, "character-career.catalog-digest-mismatch", "The finalized sheet's catalog digest no longer matches the pinned catalog."),
+            AdvanceQualityError.IncompleteDocument =>
+                (422, "character-career.incomplete-document", "The finalized sheet is missing a required section."),
+            _ => (500, "character-career.failed", "The quality change could not be made."),
+        };
+
+        var extensions = new Dictionary<string, object?> { ["code"] = code };
+        if (reasons is { Count: > 0 })
+        {
+            extensions["reasons"] = reasons;
+        }
+
+        return Results.Problem(statusCode: status, title: title, extensions: extensions);
+    }
 
     private static IResult Problem(DeleteCharacterError error)
     {

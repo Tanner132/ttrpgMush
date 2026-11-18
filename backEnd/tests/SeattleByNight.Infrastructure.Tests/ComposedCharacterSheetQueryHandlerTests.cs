@@ -183,7 +183,9 @@ public sealed class ComposedCharacterSheetQueryHandlerTests : IAsyncLifetime
         new EmbeddedRulesetCatalogProvider(),
         new CareerSheetComposer(),
         new AttributeAdvancementEvaluator(),
-        new SkillAdvancementEvaluator());
+        new SkillAdvancementEvaluator(),
+        new QualityAdvancementEvaluator(),
+        new QualityRemovalRequestStore(db, TimeProvider.System, new SeattleByNight.Infrastructure.Auditing.AuditWriter(db, TimeProvider.System)));
 
     private static readonly string[] GrantedSpellIds =
     [

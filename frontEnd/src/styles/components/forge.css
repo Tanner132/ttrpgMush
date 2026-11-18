@@ -132,7 +132,7 @@
 }
 
 .forge__page {
-  max-width: 1360px;
+  max-width: 75%;
   margin: 0 auto;
   padding: var(--sb-space-5);
   display: flex;
@@ -178,7 +178,7 @@
 
 .forge__columns {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
   gap: var(--sb-space-4);
   align-items: start;
 }
@@ -1587,8 +1587,8 @@ button.forge__row-link {
   bottom: var(--sb-space-3);
   z-index: 2;
   display: grid;
-  grid-template-columns: repeat(3, 32px);
-  grid-template-rows: repeat(3, 32px);
+  grid-template-columns: repeat(3, 20px);
+  grid-template-rows: repeat(3, 20px);
   grid-template-areas:
     '. n .'
     'w c e'
@@ -1669,4 +1669,8 @@ button.forge__row-link {
 .forge-map__zoom button:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+.forge-map__room-name {
+  word-wrap: normal;
 }

@@ -10,6 +10,9 @@ import {
 } from '../../api/admin.ts'
 import { ApiError } from '../../api/client.ts'
 
+// The quality review panel has its own tests and fetches its own data.
+vi.mock('./QualityReviewPanel.tsx', () => ({ QualityReviewPanel: () => null }))
+
 vi.mock('../../api/admin.ts', () => ({
   RoleNames: ['Administrator', 'WorldBuilder', 'Moderator'],
   searchAdminUsers: vi.fn(),

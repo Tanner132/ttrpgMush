@@ -61,6 +61,48 @@ public sealed record SkillSpecializationCommit(
     string RulesetId,
     string CatalogVersion);
 
+// Workstream 2.1 quality commits. Context carries what every career commit
+// shares; the store mints nothing the handler already decided.
+public sealed record QualityCommitContext(
+    Guid CharacterId,
+    Guid UserId,
+    Guid ExpectedVersion,
+    Guid RequestId,
+    string RulesetId,
+    string CatalogVersion);
+
+public sealed record QualityAcquisitionCommit(
+    QualityCommitContext Context,
+    string Key,
+    CareerQualityGrant Grant,
+    string DisplayName,
+    int PreviousInstances,
+    int KarmaCost);
+
+// Approval is set when the removal waits for a Storyteller: the Karma is
+// held and a QualityRemovalRequest row is written instead of the removal.
+public sealed record QualityRemovalCommit(
+    QualityCommitContext Context,
+    string Key,
+    string QualityId,
+    string DisplayName,
+    int KarmaCost,
+    QualityRemovalApprovalRequest? Approval);
+
+public sealed record QualityRemovalApprovalRequest(string Requirement, string Explanation);
+
+public enum QualityCommitError
+{
+    None,
+    CareerStateNotInitialized,
+    VersionConflict,
+    PendingRequestExists,
+}
+
+public sealed record QualityCommitResult(QualityCommitError Error, QualityAdvancementCommitted? Committed = null);
+
+public sealed record CareerQualityActionReceiptLookup(bool Found, bool KindMismatch, QualityAdvancementCommitted? Committed);
+
 public enum SkillAdvancementCommitError
 {
     None,
@@ -113,5 +155,20 @@ public interface ICharacterCareerAdvancementStore
 
     Task<AddSkillSpecializationCommitResult> CommitSkillSpecializationAsync(
         SkillSpecializationCommit commit,
+        CancellationToken cancellationToken = default);
+
+    // Workstream 2.1
+    Task<CareerQualityActionReceiptLookup> FindQualityAdvancementReceiptAsync(
+        Guid characterId,
+        Guid requestId,
+        string expectedKind,
+        CancellationToken cancellationToken = default);
+
+    Task<QualityCommitResult> CommitQualityAcquisitionAsync(
+        QualityAcquisitionCommit commit,
+        CancellationToken cancellationToken = default);
+
+    Task<QualityCommitResult> CommitQualityRemovalAsync(
+        QualityRemovalCommit commit,
         CancellationToken cancellationToken = default);
 }

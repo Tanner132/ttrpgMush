@@ -54,6 +54,10 @@ public sealed class CharacterStore : ICharacterStore
                     .SetProperty(item => item.ContainerId, (Guid?)null),
                 cancellationToken);
 
+        // Removal requests reference transactions and advancements.
+        await _dbContext.QualityRemovalRequests
+            .Where(r => r.CharacterId == characterId)
+            .ExecuteDeleteAsync(cancellationToken);
         await _dbContext.CharacterResourceTransactions
             .Where(t => t.CharacterId == characterId)
             .ExecuteDeleteAsync(cancellationToken);

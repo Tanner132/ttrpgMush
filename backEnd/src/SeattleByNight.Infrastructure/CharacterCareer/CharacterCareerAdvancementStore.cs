@@ -414,6 +414,258 @@ public sealed class CharacterCareerAdvancementStore : ICharacterCareerAdvancemen
         return new AddSkillSpecializationCommitResult(SkillAdvancementCommitError.None, committed);
     }
 
+    // Workstream 2.1
+    public async Task<CareerQualityActionReceiptLookup> FindQualityAdvancementReceiptAsync(
+        Guid characterId, Guid requestId, string expectedKind, CancellationToken cancellationToken = default)
+    {
+        var payload = await FindRawReceiptAsync(characterId, requestId, cancellationToken);
+        if (payload is null)
+        {
+            return new CareerQualityActionReceiptLookup(false, false, null);
+        }
+
+        if (payload.Kind != expectedKind)
+        {
+            return new CareerQualityActionReceiptLookup(true, true, null);
+        }
+
+        var committed = payload.Result.Deserialize<QualityAdvancementCommitted>(CharacterCareerSerialization.Options)
+            ?? throw new JsonException("The cached quality-advancement receipt is empty.");
+        return new CareerQualityActionReceiptLookup(true, false, committed);
+    }
+
+    public async Task<QualityCommitResult> CommitQualityAcquisitionAsync(
+        QualityAcquisitionCommit commit,
+        CancellationToken cancellationToken = default)
+    {
+        var context = commit.Context;
+        var state = await db.CharacterCareerStates
+            .SingleOrDefaultAsync(item => item.CharacterId == context.CharacterId, cancellationToken);
+        if (state is null)
+        {
+            return new QualityCommitResult(QualityCommitError.CareerStateNotInitialized);
+        }
+
+        if (state.Version != context.ExpectedVersion)
+        {
+            return new QualityCommitResult(QualityCommitError.VersionConflict);
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var progression = CharacterCareerSerialization.DeserializeProgression(state.ProgressionJson);
+        var updated = progression with
+        {
+            AcquiredQualities = new Dictionary<string, CareerQualityGrant>(progression.AcquiredQualities) { [commit.Key] = commit.Grant },
+        };
+
+        var newRating = commit.PreviousInstances + 1;
+        var advancement = new CharacterAdvancement
+        {
+            CharacterId = context.CharacterId,
+            Category = CharacterAdvancementCategory.Quality,
+            TargetId = commit.Key,
+            DetailsJson = JsonSerializer.Serialize(
+                new { action = "acquire", qualityId = commit.Grant.Id, parameters = commit.Grant.Parameters },
+                CharacterCareerSerialization.Options),
+            PreviousValue = commit.PreviousInstances,
+            NewValue = newRating,
+            KarmaCost = commit.KarmaCost,
+            RulesetId = context.RulesetId,
+            CatalogVersion = context.CatalogVersion,
+            CreatedAtUtc = now,
+        };
+
+        var newKarma = state.CurrentKarma - commit.KarmaCost;
+        var transaction = new CharacterResourceTransaction
+        {
+            CharacterId = context.CharacterId,
+            ResourceType = CharacterResourceType.Karma,
+            Amount = -commit.KarmaCost,
+            BalanceAfter = newKarma,
+            TransactionType = CharacterResourceTransactionType.Advancement,
+            Description = commit.PreviousInstances == 0
+                ? $"Took the {commit.DisplayName} quality."
+                : $"Raised {commit.DisplayName} to {newRating}.",
+            AdvancementId = advancement.Id,
+            CreatedAtUtc = now,
+        };
+
+        state.ProgressionJson = CharacterCareerSerialization.SerializeProgression(updated);
+        state.CurrentKarma = newKarma;
+        state.Version = Guid.NewGuid();
+        state.UpdatedAtUtc = now;
+
+        var committed = new QualityAdvancementCommitted(
+            QualityAdvancementAction.Acquire, commit.Grant.Id, commit.Key, commit.KarmaCost, newKarma, state.Version,
+            advancement.Id, null, false);
+
+        db.CharacterAdvancements.Add(advancement);
+        db.CharacterResourceTransactions.Add(transaction);
+        db.CharacterActionReceipts.Add(QualityReceipt(context, committed, now));
+        return await SaveQualityCommitAsync(context, committed, cancellationToken);
+    }
+
+    public async Task<QualityCommitResult> CommitQualityRemovalAsync(
+        QualityRemovalCommit commit,
+        CancellationToken cancellationToken = default)
+    {
+        var context = commit.Context;
+        var state = await db.CharacterCareerStates
+            .SingleOrDefaultAsync(item => item.CharacterId == context.CharacterId, cancellationToken);
+        if (state is null)
+        {
+            return new QualityCommitResult(QualityCommitError.CareerStateNotInitialized);
+        }
+
+        if (state.Version != context.ExpectedVersion)
+        {
+            return new QualityCommitResult(QualityCommitError.VersionConflict);
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var newKarma = state.CurrentKarma - commit.KarmaCost;
+        state.CurrentKarma = newKarma;
+        state.Version = Guid.NewGuid();
+        state.UpdatedAtUtc = now;
+
+        QualityAdvancementCommitted committed;
+        if (commit.Approval is { } approval)
+        {
+            // Held, not spent: the quality stays until a Storyteller approves,
+            // and the hold is refunded if they deny it.
+            var hold = new CharacterResourceTransaction
+            {
+                CharacterId = context.CharacterId,
+                ResourceType = CharacterResourceType.Karma,
+                Amount = -commit.KarmaCost,
+                BalanceAfter = newKarma,
+                TransactionType = CharacterResourceTransactionType.Advancement,
+                Description = $"Held for removing {commit.DisplayName}, waiting for a Storyteller.",
+                CreatedAtUtc = now,
+            };
+            var request = new QualityRemovalRequest
+            {
+                CharacterId = context.CharacterId,
+                RequestedByUserId = context.UserId,
+                QualityKey = commit.Key,
+                QualityId = commit.QualityId,
+                KarmaCost = commit.KarmaCost,
+                Requirement = approval.Requirement,
+                Explanation = approval.Explanation,
+                Status = QualityRemovalRequestStatus.Pending,
+                HoldTransactionId = hold.Id,
+                RequestedAtUtc = now,
+            };
+
+            committed = new QualityAdvancementCommitted(
+                QualityAdvancementAction.Remove, commit.QualityId, commit.Key, commit.KarmaCost, newKarma, state.Version,
+                null, request.Id, true);
+            db.CharacterResourceTransactions.Add(hold);
+            db.QualityRemovalRequests.Add(request);
+        }
+        else
+        {
+            var progression = CharacterCareerSerialization.DeserializeProgression(state.ProgressionJson);
+            state.ProgressionJson = CharacterCareerSerialization.SerializeProgression(progression with
+            {
+                RemovedQualities = [.. progression.RemovedQualities, commit.Key],
+            });
+
+            var advancement = NewRemovalAdvancement(
+                context.CharacterId, commit.Key, commit.QualityId, commit.KarmaCost, context.RulesetId, context.CatalogVersion, null, now);
+            var transaction = new CharacterResourceTransaction
+            {
+                CharacterId = context.CharacterId,
+                ResourceType = CharacterResourceType.Karma,
+                Amount = -commit.KarmaCost,
+                BalanceAfter = newKarma,
+                TransactionType = CharacterResourceTransactionType.Advancement,
+                Description = $"Bought off {commit.DisplayName}.",
+                AdvancementId = advancement.Id,
+                CreatedAtUtc = now,
+            };
+
+            committed = new QualityAdvancementCommitted(
+                QualityAdvancementAction.Remove, commit.QualityId, commit.Key, commit.KarmaCost, newKarma, state.Version,
+                advancement.Id, null, false);
+            db.CharacterAdvancements.Add(advancement);
+            db.CharacterResourceTransactions.Add(transaction);
+        }
+
+        db.CharacterActionReceipts.Add(QualityReceipt(context, committed, now));
+        return await SaveQualityCommitAsync(context, committed, cancellationToken);
+    }
+
+    // Shared with QualityRemovalRequestStore, which writes the same row when a
+    // Storyteller approves a held removal.
+    internal static CharacterAdvancement NewRemovalAdvancement(
+        Guid characterId,
+        string key,
+        string qualityId,
+        int karmaCost,
+        string rulesetId,
+        string catalogVersion,
+        Guid? removalRequestId,
+        DateTimeOffset now) => new()
+        {
+            CharacterId = characterId,
+            Category = CharacterAdvancementCategory.Quality,
+            TargetId = key,
+            DetailsJson = JsonSerializer.Serialize(
+                new { action = "remove", qualityId, removalRequestId },
+                CharacterCareerSerialization.Options),
+            PreviousValue = 1,
+            NewValue = 0,
+            KarmaCost = karmaCost,
+            RulesetId = rulesetId,
+            CatalogVersion = catalogVersion,
+            CreatedAtUtc = now,
+        };
+
+    private static CharacterActionReceipt QualityReceipt(
+        QualityCommitContext context, QualityAdvancementCommitted committed, DateTimeOffset now) => new()
+        {
+            CharacterId = context.CharacterId,
+            RequestId = context.RequestId,
+            ResultJson = CharacterCareerSerialization.SerializeReceipt(new CharacterActionReceiptPayload(
+                CharacterCareerQualityActionKinds.QualityAdvancement,
+                JsonSerializer.SerializeToElement(committed, CharacterCareerSerialization.Options))),
+            CreatedAtUtc = now,
+        };
+
+    private async Task<QualityCommitResult> SaveQualityCommitAsync(
+        QualityCommitContext context, QualityAdvancementCommitted committed, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            db.ChangeTracker.Clear();
+            return new QualityCommitResult(QualityCommitError.VersionConflict);
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "23505" })
+        {
+            // Either a concurrent replay of this request id won (its receipt
+            // is authoritative) or another request for the same quality is
+            // already pending (the partial unique index).
+            db.ChangeTracker.Clear();
+            var lookup = await FindQualityAdvancementReceiptAsync(
+                context.CharacterId, context.RequestId, CharacterCareerQualityActionKinds.QualityAdvancement, cancellationToken);
+            if (lookup is { Found: true, KindMismatch: false, Committed: not null })
+            {
+                return new QualityCommitResult(QualityCommitError.None, lookup.Committed);
+            }
+
+            return lookup.Found
+                ? new QualityCommitResult(QualityCommitError.VersionConflict)
+                : new QualityCommitResult(QualityCommitError.PendingRequestExists);
+        }
+
+        return new QualityCommitResult(QualityCommitError.None, committed);
+    }
+
     private static CareerProgressionDocument ApplyBrokenGroup(
         CareerProgressionDocument progression, string? groupId, SkillGroupBreakReason? reason) =>
         groupId is null || reason is null

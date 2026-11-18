@@ -54,6 +54,7 @@ public static class DependencyInjection
         services.AddScoped<ICharacterCareerStateStore, CharacterCareerStateStore>();
         services.AddScoped<ICharacterCareerHistoryReader, CharacterCareerHistoryReader>();
         services.AddScoped<ICharacterCareerAdvancementStore, CharacterCareerAdvancementStore>();
+        services.AddScoped<IQualityRemovalRequestStore, QualityRemovalRequestStore>();
         services.AddScoped<IPlaySessionStore, PlaySessionStore>();
         services.AddScoped<IRoomChatStore, RoomChatStore>();
         services.AddScoped<IMovementStore, MovementStore>();

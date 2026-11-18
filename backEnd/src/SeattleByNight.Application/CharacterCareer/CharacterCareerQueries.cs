@@ -12,6 +12,7 @@ public sealed class GetComposedCharacterSheetQueryHandler
     : IRequestHandler<GetComposedCharacterSheetQuery, ComposedCharacterSheetResult>
 {
     private const int RecentWindowSize = 20;
+    private const int RecentRequestsSize = 5;
 
     private readonly ICharacterCreationDraftStore draftStore;
     private readonly CharacterCreationBaselineReader baselineReader;
@@ -21,6 +22,8 @@ public sealed class GetComposedCharacterSheetQueryHandler
     private readonly CareerSheetComposer composer;
     private readonly AttributeAdvancementEvaluator attributeEvaluator;
     private readonly SkillAdvancementEvaluator skillEvaluator;
+    private readonly QualityAdvancementEvaluator qualityEvaluator;
+    private readonly IQualityRemovalRequestStore removalRequestStore;
 
     public GetComposedCharacterSheetQueryHandler(
         ICharacterCreationDraftStore draftStore,
@@ -30,7 +33,9 @@ public sealed class GetComposedCharacterSheetQueryHandler
         IRulesetCatalogProvider catalogProvider,
         CareerSheetComposer composer,
         AttributeAdvancementEvaluator attributeEvaluator,
-        SkillAdvancementEvaluator skillEvaluator)
+        SkillAdvancementEvaluator skillEvaluator,
+        QualityAdvancementEvaluator qualityEvaluator,
+        IQualityRemovalRequestStore removalRequestStore)
     {
         this.draftStore = draftStore;
         this.baselineReader = baselineReader;
@@ -40,6 +45,8 @@ public sealed class GetComposedCharacterSheetQueryHandler
         this.composer = composer;
         this.attributeEvaluator = attributeEvaluator;
         this.skillEvaluator = skillEvaluator;
+        this.qualityEvaluator = qualityEvaluator;
+        this.removalRequestStore = removalRequestStore;
     }
 
     public async Task<ComposedCharacterSheetResult> Handle(
@@ -79,6 +86,17 @@ public sealed class GetComposedCharacterSheetQueryHandler
         var nextActions = attributeEvaluator.EvaluateAll(catalog, composedSheet, careerState.CurrentKarma);
         var skillNextActions = skillEvaluator.EvaluateAll(catalog, composedSheet, careerState.CurrentKarma);
 
+        var requests = await removalRequestStore.GetForCharacterAsync(request.CharacterId, RecentRequestsSize, cancellationToken);
+        var pendingKeys = requests
+            .Where(item => item.Status == Domain.Enums.QualityRemovalRequestStatus.Pending)
+            .Select(item => item.QualityKey)
+            .ToHashSet(StringComparer.Ordinal);
+        var keyedQualities = composer.ComposeQualities(baseline.Baseline.Sheet.Qualities, careerState.Progression);
+        var qualityActions = new CareerQualityActions(
+            qualityEvaluator.EvaluateAllAcquisitions(catalog, composedSheet, careerState.CurrentKarma),
+            qualityEvaluator.EvaluateAllRemovals(catalog, keyedQualities, careerState.CurrentKarma, pendingKeys),
+            requests);
+
         return ComposedCharacterSheetResult.Success(new ComposedCharacterSheet(
             baseline.Baseline.CharacterId,
             baseline.Baseline.Name,
@@ -96,6 +114,7 @@ public sealed class GetComposedCharacterSheetQueryHandler
             advancements,
             nextActions,
             skillNextActions,
+            qualityActions,
             baseline.Baseline.FinalizedAtUtc,
             careerState.CreatedAtUtc,
             careerState.UpdatedAtUtc));

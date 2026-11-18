@@ -42,6 +42,9 @@ public static class AuditActions
     public const string MapItemCreated = "MapItemCreated";
     public const string MapItemUpdated = "MapItemUpdated";
     public const string MapItemDeleted = "MapItemDeleted";
+    // Workstream 2.1: Storyteller review of quality buy-offs.
+    public const string QualityRemovalApproved = "QualityRemovalApproved";
+    public const string QualityRemovalDenied = "QualityRemovalDenied";
 }
 
 public static class AuditTargetTypes
@@ -56,6 +59,7 @@ public static class AuditTargetTypes
     public const string TravelLink = "TravelLink";
     public const string District = "District";
     public const string MapItem = "MapItem";
+    public const string QualityRemovalRequest = "QualityRemovalRequest";
 }
 
 public interface IAuditWriter

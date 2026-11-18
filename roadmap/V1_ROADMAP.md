@@ -17,7 +17,7 @@ v1 is ten workstreams:
 | # | Workstream | State |
 | --- | --- | --- |
 | 1 | [World Forge fixes and gaps](#1-world-forge-fixes-and-gaps) | Built. Left: the acceptance run (1.4, after 8), and the 1.3c gaps that belong to 8, 9 or playtesting |
-| 2 | [Career advancement completion](#2-career-advancement-completion) | Defined; ready to build |
+| 2 | [Career advancement completion](#2-career-advancement-completion) | 2.1 (qualities) built 2026-11-18, not committed; 2.2–2.5 next |
 | 3 | [Group missions](#3-group-missions) | Mostly answered by 8 (crews); what is left is group combat, in the combat milestone |
 | 4 | [Magic in play](#4-magic-in-play) | Needs rules contract and design |
 | 5 | [Matrix in play](#5-matrix-in-play) | Needs rules clarification from the owner |
@@ -494,6 +494,14 @@ Constraints that apply to all of it:
   both get them.
 
 ### 2.1 Quality advancement
+
+**Built 2026-11-18, not committed.** Owner decisions recorded the same day in
+`SR5_RULE_DECISIONS.md`: `career.quality-expansion-eligibility`,
+`career.quality-removal-approval` (buy-offs with a stated requirement go to a
+Storyteller, Karma held and refunded on denial, reviewed on the Admin page), `career.quality-ratings`, and
+`career.quality-prerequisites`. The release-gate items in 2.5 for this
+mutation (PostgreSQL concurrency, idempotency and ownership tests) are done;
+the accessibility and narrow-viewport review is not.
 
 - Acquire career-eligible positive qualities; remove eligible negative ones.
 - Add the career metadata the catalog lacks (creation-only flags, career

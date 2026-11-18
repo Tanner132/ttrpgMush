@@ -253,7 +253,16 @@ export interface SkillAllocation { skillId: string; rating: number; parameter?: 
 export interface SkillGroupAllocation { skillGroupId: string; rating: number }
 export interface KnowledgeSkillAllocation { name: string; categoryId: string; rating: number; specialization?: string }
 export interface LanguageAllocation { name: string; rating: number; specialization?: string }
-export interface QualityDefinition { id: string; displayName: string; polarity: string; cost: number; parameterized: boolean; repeatable: boolean; conflicts: string[]; source: SourceCitation }
+// Workstream 2.1: career metadata (backend CareerQualityMetadata).
+export interface CareerQualityMetadata {
+    availability?: 'eligible' | 'creation-only' | null
+    reason?: string | null
+    prerequisites?: string[] | null
+    removal?: 'on-demand' | 'approval' | 'never' | null
+    removalRequirement?: string | null
+    maxInstances?: number | null
+}
+export interface QualityDefinition { id: string; displayName: string; polarity: string; cost: number; parameterized: boolean; repeatable: boolean; conflicts: string[]; source: SourceCitation; career?: CareerQualityMetadata | null }
 export interface SkillDefinition { id: string; displayName: string; category: string; linkedAttribute: string; groupId?: string; parameterized: boolean; domain: string; source: SourceCitation }
 export interface SkillGroupDefinition { id: string; displayName: string; skillIds: string[]; source: SourceCitation }
 export interface KnowledgeCategoryDefinition { id: string; displayName: string; linkedAttribute: string; source: SourceCitation }

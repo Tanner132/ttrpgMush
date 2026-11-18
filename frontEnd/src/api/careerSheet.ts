@@ -353,6 +353,59 @@ export interface ComposedNextAction {
     blockingReasons: string[]
 }
 
+// ─── Workstream 2.1: qualities ─────────────────────────────────────────────
+// Mirrors CharacterEndpoints.cs's ComposedQualityActionsResponse.
+
+export interface QualityAcquisitionAction {
+    qualityId: string
+    /** Instances already held; for a rated quality, its current rating. */
+    heldInstances: number
+    maxInstances?: number | null
+    karmaCost: number
+    isEligible: boolean
+    blockingReasons: string[]
+}
+
+export type QualityRemovalMode = 'onDemand' | 'approval' | 'never'
+
+export interface QualityRemovalAction {
+    /** The instance key on the composed sheet (`baseline:<n>` or `career:<id>`). */
+    key: string
+    qualityId: string
+    karmaCost: number
+    mode: QualityRemovalMode
+    requirement?: string | null
+    hasPendingRequest: boolean
+    isEligible: boolean
+    blockingReasons: string[]
+    parameters?: Record<string, string> | null
+}
+
+export type QualityRemovalRequestStatus = 'Pending' | 'Approved' | 'Denied'
+
+export interface QualityRemovalRequest {
+    id: string
+    characterId: string
+    characterName: string
+    requestedByUserName?: string | null
+    qualityKey: string
+    qualityId: string
+    karmaCost: number
+    requirement: string
+    explanation: string
+    status: QualityRemovalRequestStatus
+    resolvedByUserName?: string | null
+    resolutionNote?: string | null
+    requestedAtUtc: string
+    resolvedAtUtc?: string | null
+}
+
+export interface ComposedQualityActions {
+    acquisitions: QualityAcquisitionAction[]
+    removals: QualityRemovalAction[]
+    requests: QualityRemovalRequest[]
+}
+
 export interface ComposedCareerSheet {
     characterId: string
     name: string
@@ -369,6 +422,7 @@ export interface ComposedCareerSheet {
     recentTransactions: ComposedResourceTransaction[]
     recentAdvancements: ComposedAdvancement[]
     nextActions: ComposedNextAction[]
+    qualityActions: ComposedQualityActions
     finalizedAtUtc: string
     careerStateCreatedAtUtc: string
     careerStateUpdatedAtUtc: string
@@ -523,4 +577,69 @@ export async function addSkillSpecialization(
         parameter: target.parameter ?? null,
         specialization,
     })
+}
+
+// ─── Workstream 2.1: quality advancement ────────────────────────────────────
+
+export interface AdvanceQualityResult {
+    characterId: string
+    action: 'Acquire' | 'Remove'
+    qualityId: string
+    key: string
+    karmaCost: number
+    currentKarma: number
+    careerStateVersion: string
+    advancementId?: string | null
+    removalRequestId?: string | null
+    /** True when the Karma is held until a Storyteller approves the removal. */
+    pendingApproval: boolean
+}
+
+export async function acquireQuality(
+    characterId: string,
+    expectedVersion: string,
+    qualityId: string,
+    parameters?: Record<string, string>,
+): Promise<AdvanceQualityResult> {
+    return apiPost<AdvanceQualityResult>(`/api/characters/${characterId}/advancements/qualities`, {
+        expectedVersion,
+        requestId: crypto.randomUUID(),
+        action: 'acquire',
+        qualityId,
+        parameters: parameters && Object.keys(parameters).length > 0 ? parameters : null,
+    })
+}
+
+export async function removeQuality(
+    characterId: string,
+    expectedVersion: string,
+    key: string,
+    explanation?: string,
+): Promise<AdvanceQualityResult> {
+    return apiPost<AdvanceQualityResult>(`/api/characters/${characterId}/advancements/qualities`, {
+        expectedVersion,
+        requestId: crypto.randomUUID(),
+        action: 'remove',
+        key,
+        explanation: explanation ?? null,
+    })
+}
+
+// ─── Workstream 2.1: Storyteller review (admin panel) ──────────────────────
+
+export async function listQualityRemovalRequests(
+    status: QualityRemovalRequestStatus = 'Pending',
+): Promise<QualityRemovalRequest[]> {
+    return apiGet<QualityRemovalRequest[]>(`/api/admin/quality-removal-requests?status=${status}`)
+}
+
+export async function resolveQualityRemovalRequest(
+    requestId: string,
+    approve: boolean,
+    note?: string,
+): Promise<QualityRemovalRequest> {
+    return apiPost<QualityRemovalRequest>(
+        `/api/admin/quality-removal-requests/${requestId}/${approve ? 'approve' : 'deny'}`,
+        { note: note?.trim() ? note.trim() : null },
+    )
 }

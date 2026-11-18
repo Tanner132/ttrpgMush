@@ -88,3 +88,73 @@
   color: var(--sb-text-muted);
 }
 
+
+/* Workstream 2.1: Storyteller review of quality buy-offs. */
+
+.quality-review__list {
+  display: grid;
+  gap: var(--sb-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quality-review__card {
+  display: grid;
+  gap: var(--sb-space-2);
+  padding: var(--sb-space-3);
+  border: 1px solid var(--sb-border-strong);
+  background: var(--sb-surface-sunken);
+}
+
+.quality-review__title {
+  margin: 0;
+  font-family: var(--sb-font-heading);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.quality-review__facts {
+  display: grid;
+  grid-template-columns: minmax(7rem, max-content) 1fr;
+  gap: var(--sb-space-1) var(--sb-space-3);
+  margin: 0;
+}
+
+.quality-review__facts dt {
+  color: var(--sb-text-muted);
+  font-family: var(--sb-font-data);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.quality-review__facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.quality-review__explanation {
+  white-space: pre-wrap;
+}
+
+.quality-review__actions {
+  display: grid;
+  gap: var(--sb-space-2);
+}
+
+.quality-review__note {
+  width: 100%;
+  resize: vertical;
+}
+
+@media (max-width: 560px) {
+  .quality-review__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .quality-review__facts dd {
+    margin-bottom: var(--sb-space-2);
+  }
+}

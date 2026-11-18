@@ -12,6 +12,10 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Stay clean for a number of weeks equal to the Addiction rating, then succeed on an Addiction Test (sr5-core p. 414)."
       }
     },
     {
@@ -26,6 +30,9 @@
         "sourceId": "run-faster",
         "printedPage": 145,
         "pdfPage": 147
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -40,6 +47,9 @@
         "sourceId": "run-faster",
         "printedPage": 151,
         "pdfPage": 153
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -54,6 +64,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -68,6 +81,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -82,6 +98,10 @@
         "sourceId": "run-faster",
         "printedPage": 152,
         "pdfPage": 154
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Complete the in-game goals the Storyteller set for regaining your memory (run-faster p. 152)."
       }
     },
     {
@@ -96,6 +116,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -110,6 +133,9 @@
         "sourceId": "run-faster",
         "printedPage": 145,
         "pdfPage": 147
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -124,6 +150,10 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 1
       }
     },
     {
@@ -138,6 +168,9 @@
         "sourceId": "run-faster",
         "printedPage": 152,
         "pdfPage": 154
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -152,6 +185,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -166,6 +202,12 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "magic"
+        ]
       }
     },
     {
@@ -180,6 +222,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -194,6 +239,10 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Confront and resolve the source of the bad reputation (sr5-core p. 79)."
       }
     },
     {
@@ -208,6 +257,9 @@
         "sourceId": "run-faster",
         "printedPage": 152,
         "pdfPage": 154
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -222,6 +274,10 @@
         "sourceId": "run-faster",
         "printedPage": 153,
         "pdfPage": 155
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "The regret must have become public (run-faster p. 153)."
       }
     },
     {
@@ -236,6 +292,10 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "creation-only",
+        "reason": "Grants a second native language in creation Step Five; there is no career acquisition path (sr5-core p. 72)."
       }
     },
     {
@@ -250,6 +310,9 @@
         "sourceId": "run-faster",
         "printedPage": 145,
         "pdfPage": 147
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -266,6 +329,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -280,6 +346,9 @@
         "sourceId": "run-faster",
         "printedPage": 153,
         "pdfPage": 155
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -294,6 +363,10 @@
         "sourceId": "run-faster",
         "printedPage": 145,
         "pdfPage": 147
+      },
+      "career": {
+        "availability": "creation-only",
+        "reason": "Only changes how much creation Karma can be traded for starting nuyen (run-faster p. 145)."
       }
     },
     {
@@ -308,6 +381,10 @@
         "sourceId": "run-faster",
         "printedPage": 153,
         "pdfPage": 155
+      },
+      "career": {
+        "removal": "never",
+        "reason": "This quality cannot be bought off (run-faster p. 153)."
       }
     },
     {
@@ -322,6 +399,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -336,6 +416,9 @@
         "sourceId": "run-faster",
         "printedPage": 145,
         "pdfPage": 147
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -350,6 +433,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -364,6 +450,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -378,6 +467,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -392,6 +484,9 @@
         "sourceId": "run-faster",
         "printedPage": 145,
         "pdfPage": 147
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -406,6 +501,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -420,6 +518,9 @@
         "sourceId": "run-faster",
         "printedPage": 145,
         "pdfPage": 147
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -434,6 +535,9 @@
         "sourceId": "run-faster",
         "printedPage": 153,
         "pdfPage": 155
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -448,6 +552,9 @@
         "sourceId": "run-faster",
         "printedPage": 153,
         "pdfPage": 155
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -462,6 +569,9 @@
         "sourceId": "run-faster",
         "printedPage": 146,
         "pdfPage": 148
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -476,6 +586,9 @@
         "sourceId": "run-faster",
         "printedPage": 154,
         "pdfPage": 156
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -490,6 +603,9 @@
         "sourceId": "run-faster",
         "printedPage": 154,
         "pdfPage": 156
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -504,6 +620,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -518,6 +637,9 @@
         "sourceId": "run-faster",
         "printedPage": 154,
         "pdfPage": 156
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -532,6 +654,9 @@
         "sourceId": "run-faster",
         "printedPage": 146,
         "pdfPage": 148
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -546,6 +671,10 @@
         "sourceId": "run-faster",
         "printedPage": 154,
         "pdfPage": 156
+      },
+      "career": {
+        "removal": "on-demand",
+        "maxInstances": 3
       }
     },
     {
@@ -560,6 +689,9 @@
         "sourceId": "run-faster",
         "printedPage": 146,
         "pdfPage": 148
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -576,6 +708,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -590,6 +725,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -604,6 +742,9 @@
         "sourceId": "run-faster",
         "printedPage": 154,
         "pdfPage": 156
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -618,6 +759,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -632,6 +776,9 @@
         "sourceId": "run-faster",
         "printedPage": 154,
         "pdfPage": 156
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -648,6 +795,9 @@
         "sourceId": "run-faster",
         "printedPage": 146,
         "pdfPage": 148
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -662,6 +812,10 @@
         "sourceId": "run-faster",
         "printedPage": 155,
         "pdfPage": 157
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Get past parole, or build a new life (run-faster p. 155)."
       }
     },
     {
@@ -678,6 +832,10 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 1
       }
     },
     {
@@ -692,6 +850,10 @@
         "sourceId": "run-faster",
         "printedPage": 146,
         "pdfPage": 148
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 4
       }
     },
     {
@@ -706,6 +868,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -720,6 +885,9 @@
         "sourceId": "run-faster",
         "printedPage": 155,
         "pdfPage": 157
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -734,6 +902,13 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "magic-or-resonance"
+        ],
+        "maxInstances": 6
       }
     },
     {
@@ -748,6 +923,10 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "creation-only",
+        "reason": "Only grants an extra creation contact Karma pool (run-faster p. 148)."
       }
     },
     {
@@ -762,6 +941,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -776,6 +958,10 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand",
+        "maxInstances": 4
       }
     },
     {
@@ -790,6 +976,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -804,6 +993,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -818,6 +1010,10 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 3
       }
     },
     {
@@ -832,6 +1028,9 @@
         "sourceId": "run-faster",
         "printedPage": 155,
         "pdfPage": 157
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -846,6 +1045,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -860,6 +1062,14 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "metatype:elf",
+          "metatype:dwarf",
+          "metatype:ork"
+        ]
       }
     },
     {
@@ -874,6 +1084,10 @@
         "sourceId": "run-faster",
         "printedPage": 155,
         "pdfPage": 157
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Resolve why your contacts went cold (run-faster p. 155)."
       }
     },
     {
@@ -888,6 +1102,9 @@
         "sourceId": "run-faster",
         "printedPage": 155,
         "pdfPage": 157
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -902,6 +1119,11 @@
         "sourceId": "run-faster",
         "printedPage": 156,
         "pdfPage": 158
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Pay the debt off in full with nuyen (run-faster p. 156).",
+        "maxInstances": 15
       }
     },
     {
@@ -916,6 +1138,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -930,6 +1155,9 @@
         "sourceId": "run-faster",
         "printedPage": 156,
         "pdfPage": 158
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -944,6 +1172,10 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 3
       }
     },
     {
@@ -958,6 +1190,10 @@
         "sourceId": "run-faster",
         "printedPage": 156,
         "pdfPage": 158
+      },
+      "career": {
+        "removal": "on-demand",
+        "maxInstances": 5
       }
     },
     {
@@ -972,6 +1208,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -986,6 +1225,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1000,6 +1242,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1014,6 +1259,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1028,6 +1276,9 @@
         "sourceId": "run-faster",
         "printedPage": 156,
         "pdfPage": 158
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1042,6 +1293,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1056,6 +1310,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1070,6 +1327,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1084,6 +1344,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1100,6 +1363,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1114,6 +1380,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1128,6 +1397,13 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "no-magic"
+        ],
+        "maxInstances": 4
       }
     },
     {
@@ -1142,6 +1418,12 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "magic"
+        ]
       }
     },
     {
@@ -1156,6 +1438,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1170,6 +1455,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1186,6 +1474,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1200,6 +1491,10 @@
         "sourceId": "run-faster",
         "printedPage": 156,
         "pdfPage": 158
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Correct the condition with cyberware or bioware (run-faster p. 156)."
       }
     },
     {
@@ -1214,6 +1509,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1228,6 +1526,9 @@
         "sourceId": "run-faster",
         "printedPage": 157,
         "pdfPage": 159
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1242,6 +1543,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1256,6 +1560,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1270,6 +1577,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1284,6 +1594,9 @@
         "sourceId": "run-faster",
         "printedPage": 157,
         "pdfPage": 159
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1298,6 +1611,9 @@
         "sourceId": "run-faster",
         "printedPage": 157,
         "pdfPage": 159
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1312,6 +1628,10 @@
         "sourceId": "run-faster",
         "printedPage": 157,
         "pdfPage": 159
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Have the repair surgery done (run-faster p. 157)."
       }
     },
     {
@@ -1326,6 +1646,10 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 2
       }
     },
     {
@@ -1340,6 +1664,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1354,6 +1681,9 @@
         "sourceId": "run-faster",
         "printedPage": 157,
         "pdfPage": 159
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1368,6 +1698,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1382,6 +1715,9 @@
         "sourceId": "run-faster",
         "printedPage": 158,
         "pdfPage": 160
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1396,6 +1732,9 @@
         "sourceId": "run-faster",
         "printedPage": 148,
         "pdfPage": 150
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1410,6 +1749,9 @@
         "sourceId": "run-faster",
         "printedPage": 158,
         "pdfPage": 160
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1424,6 +1766,9 @@
         "sourceId": "run-faster",
         "printedPage": 158,
         "pdfPage": 160
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1438,6 +1783,9 @@
         "sourceId": "run-faster",
         "printedPage": 158,
         "pdfPage": 160
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1452,6 +1800,9 @@
         "sourceId": "run-faster",
         "printedPage": 158,
         "pdfPage": 160
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1466,6 +1817,9 @@
         "sourceId": "run-faster",
         "printedPage": 158,
         "pdfPage": 160
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1480,6 +1834,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1494,6 +1851,12 @@
         "sourceId": "run-faster",
         "printedPage": 149,
         "pdfPage": 151
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "quality:sinner-layered"
+        ]
       }
     },
     {
@@ -1508,6 +1871,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1522,6 +1888,10 @@
         "sourceId": "run-faster",
         "printedPage": 86,
         "pdfPage": 88
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 3
       }
     },
     {
@@ -1538,6 +1908,10 @@
         "sourceId": "run-faster",
         "printedPage": 158,
         "pdfPage": 160
+      },
+      "career": {
+        "removal": "on-demand",
+        "maxInstances": 10
       }
     },
     {
@@ -1552,6 +1926,10 @@
         "sourceId": "run-faster",
         "printedPage": 159,
         "pdfPage": 161
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Have the sense repaired or corrected permanently (run-faster p. 159)."
       }
     },
     {
@@ -1566,6 +1944,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1580,6 +1961,10 @@
         "sourceId": "run-faster",
         "printedPage": 149,
         "pdfPage": 151
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 3
       }
     },
     {
@@ -1594,6 +1979,9 @@
         "sourceId": "run-faster",
         "printedPage": 149,
         "pdfPage": 151
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1608,6 +1996,10 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Get the medical treatment needed to repair the damage (sr5-core p. 83)."
       }
     },
     {
@@ -1622,6 +2014,9 @@
         "sourceId": "run-faster",
         "printedPage": 149,
         "pdfPage": 151
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1636,6 +2031,9 @@
         "sourceId": "run-faster",
         "printedPage": 149,
         "pdfPage": 151
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1650,6 +2048,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1664,6 +2065,9 @@
         "sourceId": "run-faster",
         "printedPage": 159,
         "pdfPage": 161
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1678,6 +2082,9 @@
         "sourceId": "run-faster",
         "printedPage": 159,
         "pdfPage": 161
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1692,6 +2099,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1706,6 +2116,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1720,6 +2133,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1734,6 +2150,9 @@
         "sourceId": "run-faster",
         "printedPage": 149,
         "pdfPage": 151
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1748,6 +2167,9 @@
         "sourceId": "run-faster",
         "printedPage": 149,
         "pdfPage": 151
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1762,6 +2184,10 @@
         "sourceId": "run-faster",
         "printedPage": 150,
         "pdfPage": 152
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 3
       }
     },
     {
@@ -1776,6 +2202,12 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "magic"
+        ]
       }
     },
     {
@@ -1790,6 +2222,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1804,6 +2239,12 @@
         "sourceId": "run-faster",
         "printedPage": 150,
         "pdfPage": 152
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "magic"
+        ]
       }
     },
     {
@@ -1818,6 +2259,9 @@
         "sourceId": "run-faster",
         "printedPage": 150,
         "pdfPage": 152
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1832,6 +2276,9 @@
         "sourceId": "run-faster",
         "printedPage": 150,
         "pdfPage": 152
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1846,6 +2293,10 @@
         "sourceId": "run-faster",
         "printedPage": 150,
         "pdfPage": 152
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 4
       }
     },
     {
@@ -1860,6 +2311,9 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1874,6 +2328,12 @@
         "sourceId": "run-faster",
         "printedPage": 151,
         "pdfPage": 153
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "quality:sinner-layered"
+        ]
       }
     },
     {
@@ -1888,6 +2348,9 @@
         "sourceId": "run-faster",
         "printedPage": 151,
         "pdfPage": 153
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1902,6 +2365,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1916,6 +2382,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1930,6 +2399,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -1944,6 +2416,9 @@
         "sourceId": "run-faster",
         "printedPage": 151,
         "pdfPage": 153
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -1958,6 +2433,10 @@
         "sourceId": "run-faster",
         "printedPage": 159,
         "pdfPage": 161
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Neutralize your nemesis (run-faster p. 159)."
       }
     },
     {
@@ -1972,6 +2451,10 @@
         "sourceId": "run-faster",
         "printedPage": 159,
         "pdfPage": 161
+      },
+      "career": {
+        "removal": "approval",
+        "removalRequirement": "Make the bounty go away, for example by clearing your name (run-faster p. 159)."
       }
     },
     {
@@ -1986,6 +2469,9 @@
         "sourceId": "run-faster",
         "printedPage": 151,
         "pdfPage": 153
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2003,6 +2489,9 @@
         "sourceId": "sr5-core",
         "printedPage": 77,
         "pdfPage": 79
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2017,6 +2506,10 @@
         "sourceId": "sr5-core",
         "printedPage": 71,
         "pdfPage": 73
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 3
       }
     },
     {
@@ -2031,6 +2524,12 @@
         "sourceId": "run-faster",
         "printedPage": 151,
         "pdfPage": 153
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "spellcaster"
+        ]
       }
     },
     {
@@ -2045,6 +2544,9 @@
         "sourceId": "run-gun",
         "printedPage": 127,
         "pdfPage": 129
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2059,6 +2561,9 @@
         "sourceId": "run-gun",
         "printedPage": 127,
         "pdfPage": 129
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2073,6 +2578,10 @@
         "sourceId": "run-gun",
         "printedPage": 127,
         "pdfPage": 129
+      },
+      "career": {
+        "availability": "eligible",
+        "maxInstances": 2
       }
     },
     {
@@ -2087,6 +2596,9 @@
         "sourceId": "run-gun",
         "printedPage": 127,
         "pdfPage": 129
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2101,6 +2613,9 @@
         "sourceId": "run-gun",
         "printedPage": 127,
         "pdfPage": 129
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2115,6 +2630,9 @@
         "sourceId": "run-gun",
         "printedPage": 127,
         "pdfPage": 129
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2129,6 +2647,9 @@
         "sourceId": "run-gun",
         "printedPage": 127,
         "pdfPage": 129
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2143,6 +2664,9 @@
         "sourceId": "run-gun",
         "printedPage": 127,
         "pdfPage": 129
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2159,6 +2683,9 @@
         "sourceId": "run-gun",
         "printedPage": 169,
         "pdfPage": 171
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2175,6 +2702,9 @@
         "sourceId": "run-gun",
         "printedPage": 169,
         "pdfPage": 171
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2189,6 +2719,9 @@
         "sourceId": "run-gun",
         "printedPage": 169,
         "pdfPage": 171
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2203,6 +2736,9 @@
         "sourceId": "run-gun",
         "printedPage": 169,
         "pdfPage": 171
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2217,6 +2753,9 @@
         "sourceId": "run-gun",
         "printedPage": 169,
         "pdfPage": 171
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2231,6 +2770,9 @@
         "sourceId": "better-than-bad",
         "printedPage": 160,
         "pdfPage": 161
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2245,6 +2787,12 @@
         "sourceId": "better-than-bad",
         "printedPage": 160,
         "pdfPage": 161
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "resonance"
+        ]
       }
     },
     {
@@ -2259,6 +2807,9 @@
         "sourceId": "better-than-bad",
         "printedPage": 160,
         "pdfPage": 161
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2273,6 +2824,13 @@
         "sourceId": "better-than-bad",
         "printedPage": 160,
         "pdfPage": 161
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "mundane",
+          "quality:special-modifications"
+        ]
       }
     },
     {
@@ -2287,6 +2845,9 @@
         "sourceId": "better-than-bad",
         "printedPage": 161,
         "pdfPage": 162
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2301,6 +2862,9 @@
         "sourceId": "better-than-bad",
         "printedPage": 161,
         "pdfPage": 162
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2315,6 +2879,13 @@
         "sourceId": "better-than-bad",
         "printedPage": 161,
         "pdfPage": 162
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "mundane"
+        ],
+        "maxInstances": 2
       }
     },
     {
@@ -2329,6 +2900,12 @@
         "sourceId": "better-than-bad",
         "printedPage": 161,
         "pdfPage": 162
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "adept"
+        ]
       }
     },
     {
@@ -2343,6 +2920,13 @@
         "sourceId": "better-than-bad",
         "printedPage": 161,
         "pdfPage": 162
+      },
+      "career": {
+        "availability": "eligible",
+        "prerequisites": [
+          "resonance",
+          "submersion"
+        ]
       }
     },
     {
@@ -2357,6 +2941,9 @@
         "sourceId": "better-than-bad",
         "printedPage": 162,
         "pdfPage": 163
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2371,6 +2958,9 @@
         "sourceId": "better-than-bad",
         "printedPage": 162,
         "pdfPage": 163
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2385,6 +2975,9 @@
         "sourceId": "hard-targets",
         "printedPage": 191,
         "pdfPage": 192
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2399,6 +2992,9 @@
         "sourceId": "hard-targets",
         "printedPage": 191,
         "pdfPage": 192
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2413,6 +3009,9 @@
         "sourceId": "hard-targets",
         "printedPage": 191,
         "pdfPage": 192
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2427,6 +3026,9 @@
         "sourceId": "hard-targets",
         "printedPage": 191,
         "pdfPage": 192
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2441,6 +3043,9 @@
         "sourceId": "hard-targets",
         "printedPage": 191,
         "pdfPage": 192
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2455,6 +3060,9 @@
         "sourceId": "hard-targets",
         "printedPage": 191,
         "pdfPage": 192
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2469,6 +3077,9 @@
         "sourceId": "hard-targets",
         "printedPage": 191,
         "pdfPage": 192
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2483,6 +3094,9 @@
         "sourceId": "rigger-5",
         "printedPage": 33,
         "pdfPage": 34
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2497,6 +3111,9 @@
         "sourceId": "rigger-5",
         "printedPage": 33,
         "pdfPage": 34
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2511,6 +3128,9 @@
         "sourceId": "rigger-5",
         "printedPage": 33,
         "pdfPage": 34
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2525,6 +3145,9 @@
         "sourceId": "rigger-5",
         "printedPage": 33,
         "pdfPage": 34
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2539,6 +3162,9 @@
         "sourceId": "rigger-5",
         "printedPage": 33,
         "pdfPage": 34
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2553,6 +3179,9 @@
         "sourceId": "rigger-5",
         "printedPage": 33,
         "pdfPage": 34
+      },
+      "career": {
+        "availability": "eligible"
       }
     },
     {
@@ -2567,6 +3196,9 @@
         "sourceId": "rigger-5",
         "printedPage": 33,
         "pdfPage": 34
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2581,6 +3213,9 @@
         "sourceId": "rigger-5",
         "printedPage": 34,
         "pdfPage": 35
+      },
+      "career": {
+        "removal": "on-demand"
       }
     },
     {
@@ -2595,6 +3230,9 @@
         "sourceId": "rigger-5",
         "printedPage": 34,
         "pdfPage": 35
+      },
+      "career": {
+        "removal": "on-demand"
       }
     }
   ]

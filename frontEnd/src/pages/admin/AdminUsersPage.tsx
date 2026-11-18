@@ -12,6 +12,7 @@ import { Button } from '../../components/ui/Button.tsx'
 import { Panel } from '../../components/ui/Panel.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
 import { TextField } from '../../components/ui/TextField.tsx'
+import { QualityReviewPanel } from './QualityReviewPanel.tsx'
 
 export default function AdminUsersPage() {
   const [query, setQuery] = useState('')
@@ -154,6 +155,7 @@ export default function AdminUsersPage() {
           )}
         </div>
       </Panel>
+      <QualityReviewPanel />
     </div>
   )
 }

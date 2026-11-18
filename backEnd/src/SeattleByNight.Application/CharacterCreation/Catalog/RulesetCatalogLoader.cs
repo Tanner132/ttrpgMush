@@ -349,6 +349,7 @@ public static partial class RulesetCatalogLoader
                 throw new RulesetCatalogException($"Quality '{quality.Id}' must have a positive Karma cost.");
             if (quality.Conflicts is null || quality.Conflicts.Any(id => !qualityIds.Contains(id)))
                 throw new RulesetCatalogException($"Quality '{quality.Id}' has a dangling conflict reference.");
+            ValidateCareerQualityMetadata(quality, qualityIds, metatypeIds);
         }
 
         foreach (var skill in document.Skills)
@@ -793,6 +794,86 @@ public static partial class RulesetCatalogLoader
 
     private static ImmutableDictionary<string, T> ToDictionary<T>(IEnumerable<T> values, Func<T, string> keySelector) =>
         values.ToImmutableDictionary(keySelector, StringComparer.Ordinal);
+
+    // Workstream 2.1: career metadata is required on every quality and is
+    // checked against the polarity it applies to, so a positive row can never
+    // carry a removal rule or a negative row a purchase rule.
+    private static void ValidateCareerQualityMetadata(
+        QualityDefinition quality,
+        IReadOnlySet<string> qualityIds,
+        IReadOnlySet<string> metatypeIds)
+    {
+        var career = quality.Career
+            ?? throw new RulesetCatalogException($"Quality '{quality.Id}' is missing its career metadata.");
+
+        if (career.MaxInstances is { } maxInstances)
+        {
+            if (maxInstances < 1)
+                throw new RulesetCatalogException($"Quality '{quality.Id}' has a career maximum below 1.");
+            if (maxInstances > 1 && !quality.Repeatable)
+                throw new RulesetCatalogException($"Quality '{quality.Id}' has a career maximum above 1 but is not repeatable.");
+        }
+
+        if (quality.Polarity == "positive")
+        {
+            if (career.Removal is not null || career.RemovalRequirement is not null)
+                throw new RulesetCatalogException($"Positive quality '{quality.Id}' cannot carry a removal rule.");
+            switch (career.Availability)
+            {
+                case "eligible":
+                    if (career.Reason is not null)
+                        throw new RulesetCatalogException($"Quality '{quality.Id}' is career-eligible but carries an unavailability reason.");
+                    break;
+                case "creation-only":
+                    if (string.IsNullOrWhiteSpace(career.Reason))
+                        throw new RulesetCatalogException($"Creation-only quality '{quality.Id}' must say why.");
+                    if (career.Prerequisites is { Count: > 0 })
+                        throw new RulesetCatalogException($"Creation-only quality '{quality.Id}' cannot carry career prerequisites.");
+                    break;
+                default:
+                    throw new RulesetCatalogException($"Quality '{quality.Id}' has an invalid career availability.");
+            }
+
+            foreach (var prerequisite in career.Prerequisites ?? [])
+            {
+                var valid = CareerQualityPrerequisites.Simple.Contains(prerequisite)
+                    || (prerequisite.StartsWith(CareerQualityPrerequisites.MetatypePrefix, StringComparison.Ordinal)
+                        && metatypeIds.Contains(prerequisite[CareerQualityPrerequisites.MetatypePrefix.Length..]))
+                    || (prerequisite.StartsWith(CareerQualityPrerequisites.QualityPrefix, StringComparison.Ordinal)
+                        && prerequisite[CareerQualityPrerequisites.QualityPrefix.Length..] is var required
+                        && required != quality.Id
+                        && qualityIds.Contains(required));
+                if (!valid)
+                    throw new RulesetCatalogException($"Quality '{quality.Id}' has an unknown career prerequisite '{prerequisite}'.");
+            }
+
+            return;
+        }
+
+        if (career.Availability is not null || career.Prerequisites is not null)
+            throw new RulesetCatalogException($"Negative quality '{quality.Id}' cannot carry a purchase rule.");
+        switch (career.Removal)
+        {
+            case "on-demand":
+                if (career.Reason is not null || career.RemovalRequirement is not null)
+                    throw new RulesetCatalogException($"Quality '{quality.Id}' is removable on demand but carries a requirement.");
+                break;
+            case "approval":
+                if (string.IsNullOrWhiteSpace(career.RemovalRequirement))
+                    throw new RulesetCatalogException($"Quality '{quality.Id}' needs approval to remove but states no requirement.");
+                if (career.Reason is not null)
+                    throw new RulesetCatalogException($"Quality '{quality.Id}' needs approval to remove but carries an unavailability reason.");
+                break;
+            case "never":
+                if (string.IsNullOrWhiteSpace(career.Reason))
+                    throw new RulesetCatalogException($"Quality '{quality.Id}' can never be removed but does not say why.");
+                if (career.RemovalRequirement is not null)
+                    throw new RulesetCatalogException($"Quality '{quality.Id}' can never be removed but carries a requirement.");
+                break;
+            default:
+                throw new RulesetCatalogException($"Quality '{quality.Id}' has an invalid career removal rule.");
+        }
+    }
 
     private static void ValidateCommonEntry(
         string id,
