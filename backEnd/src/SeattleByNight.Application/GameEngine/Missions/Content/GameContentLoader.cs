@@ -723,6 +723,7 @@ public static class GameContentLoader
                 Require(raw.ItemId is not null, $"{where} must name the item it watches.");
                 break;
             case TriggerEventKind.InteractableInspected:
+            case TriggerEventKind.InteractableUsed:
                 Require(raw.InteractableId is not null, $"{where} must name the inspectable it watches.");
                 break;
         }
@@ -846,6 +847,7 @@ public static class GameContentLoader
     private static readonly IReadOnlySet<TriggerEventKind> PlaceEvents = new HashSet<TriggerEventKind>
     {
         TriggerEventKind.InteractableInspected,
+        TriggerEventKind.InteractableUsed,
         TriggerEventKind.PlayerEnteredRoom,
         TriggerEventKind.PlayerLeftRoom,
         TriggerEventKind.NpcSpokenTo,
@@ -986,6 +988,8 @@ public static class GameContentLoader
         SceneEffectKind.AdvanceScene,
         SceneEffectKind.SetFact,
         SceneEffectKind.ClearFact,
+        SceneEffectKind.UnlockExit,
+        SceneEffectKind.LockExit,
     };
 
     // A job's listeners may also hand over one of its items. Pay negotiation
@@ -1333,6 +1337,13 @@ public static class GameContentLoader
             case SceneEffectKind.AlertNpc:
             case SceneEffectKind.PacifyNpc:
                 ValidateNpcTarget(effect, site, where);
+                break;
+            case SceneEffectKind.UnlockExit:
+            case SceneEffectKind.LockExit:
+                // The exit is the map's; that it exists is the map check's business.
+                Require(
+                    effect.ExitId is { } exitId && exitId != Guid.Empty,
+                    $"{where} effect '{EffectName(effect.Kind)}' must name the exit.");
                 break;
             case SceneEffectKind.SetFact:
             case SceneEffectKind.ClearFact:

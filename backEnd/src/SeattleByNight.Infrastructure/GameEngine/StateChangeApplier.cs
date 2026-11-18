@@ -85,6 +85,7 @@ public sealed class StateChangeApplier : IStateChangeApplier
                 GrantItemChange grant => await ApplyGrantItemAsync(characterId, grant, now, cancellationToken),
                 RecordTriggerFireChange trigger => await ApplyRecordTriggerFireAsync(characterId, trigger, now, cancellationToken),
                 SetFactChange setFact => new AppliedStateChange("SetFact", await SetFactAsync(characterId, setFact.FactId, now, cancellationToken)),
+                ForgetDiscoveryChange forget => await ApplyForgetDiscoveryAsync(characterId, forget, cancellationToken),
                 ClearFactChange clearFact => new AppliedStateChange("ClearFact", await ClearFactAsync(characterId, clearFact.FactId, cancellationToken)),
                 _ => throw new NotSupportedException($"State change '{change.GetType().Name}' has no applier."),
             });
@@ -158,6 +159,17 @@ public sealed class StateChangeApplier : IStateChangeApplier
 
         dbContext.CharacterFacts.Remove(row);
         return $"Fact cleared: {name}.";
+    }
+
+    private async Task<AppliedStateChange> ApplyForgetDiscoveryAsync(
+        Guid characterId, ForgetDiscoveryChange change, CancellationToken cancellationToken)
+    {
+        var subjectType = change.SubjectType.ToString();
+        var rows = await dbContext.CharacterDiscoveries
+            .Where(row => row.CharacterId == characterId && row.SubjectType == subjectType && row.SubjectId == change.SubjectId)
+            .ToListAsync(cancellationToken);
+        dbContext.CharacterDiscoveries.RemoveRange(rows);
+        return new AppliedStateChange("ForgetDiscovery", rows.Count == 0 ? "Nothing to forget." : $"Forgot {subjectType} {change.SubjectId}.");
     }
 
     // WF-83: what finishing a job (or one of its objectives) records on a
@@ -416,7 +428,18 @@ public sealed class StateChangeApplier : IStateChangeApplier
             throw new InvalidOperationException($"{item.DisplayName} is not placed anywhere to pick up.");
         }
 
+        // WF-87: a map item taken from its room starts the clock on its coming back.
+        if (item.MissionId is null)
+        {
+            var mapItem = await dbContext.MapItems.FirstOrDefaultAsync(row => row.Id == item.ItemId, cancellationToken);
+            if (mapItem is not null && mapItem.RoomId == item.RoomId)
+            {
+                mapItem.TakenAtUtc = now;
+            }
+        }
+
         item.RoomId = null;
+        item.ContainerId = null;
         item.OwnerCharacterId = characterId;
         item.UpdatedAtUtc = now;
 

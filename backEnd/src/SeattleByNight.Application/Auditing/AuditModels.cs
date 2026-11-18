@@ -37,6 +37,11 @@ public static class AuditActions
     public const string DistrictUpdated = "DistrictUpdated";
     public const string DistrictDeleted = "DistrictDeleted";
     public const string RoomDistrictSet = "RoomDistrictSet";
+    // World Forge phase 6.
+    public const string ConcealmentSet = "ConcealmentSet";
+    public const string MapItemCreated = "MapItemCreated";
+    public const string MapItemUpdated = "MapItemUpdated";
+    public const string MapItemDeleted = "MapItemDeleted";
 }
 
 public static class AuditTargetTypes
@@ -50,6 +55,7 @@ public static class AuditTargetTypes
     public const string Map = "Map";
     public const string TravelLink = "TravelLink";
     public const string District = "District";
+    public const string MapItem = "MapItem";
 }
 
 public interface IAuditWriter

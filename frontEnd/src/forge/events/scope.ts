@@ -1,4 +1,4 @@
-import type { ContentReferences, Guid } from '../api.ts'
+import type { ContentReferences, Guid, WorldExit } from '../api.ts'
 import type { Option } from '../fields.tsx'
 import type { ConditionKind, EffectKind, TriggerEvent } from '../model.ts'
 
@@ -36,6 +36,8 @@ export interface EventScope {
   scenes: Option[]
   /** WF-81: facts an effect can set or clear and a condition can test. */
   facts: Option[]
+  /** WF-50: locked exits an effect can open or shut for the runner. */
+  exits: Option[]
   /** Only a job's events fire once; a room's own fire every time. */
   canFireOnce: boolean
   /** A job's events in a public room show the rest of the room a cover line. */
@@ -52,6 +54,7 @@ export const EventWords: Record<TriggerEvent, { label: string; detail: string }>
   combatStarted: { label: 'Fight starts', detail: 'With an NPC here' },
   lockedExitTried: { label: 'Locked door tried', detail: 'An exit out of here' },
   interactableInspected: { label: 'Runner inspects', detail: 'An inspectable here' },
+  interactableUsed: { label: 'Runner uses', detail: 'A switch or panel here' },
   itemPickedUp: { label: 'Item picked up', detail: 'An item here' },
   missionAccepted: { label: 'Job accepted', detail: 'Where the runner stands' },
 }
@@ -60,7 +63,7 @@ export const EventWords: Record<TriggerEvent, { label: string; detail: string }>
 export function subjectOf(event: TriggerEvent): 'npc' | 'item' | 'inspectable' | null {
   if (NpcEvents.includes(event)) return 'npc'
   if (event === 'itemPickedUp') return 'item'
-  if (event === 'interactableInspected') return 'inspectable'
+  if (event === 'interactableInspected' || event === 'interactableUsed') return 'inspectable'
   return null
 }
 
@@ -83,6 +86,8 @@ export const EffectWords: Record<EffectKind, string> = {
   advanceScene: 'Jump conversation',
   setFact: 'Set fact',
   clearFact: 'Clear fact',
+  unlockExit: 'Unlock door',
+  lockExit: 'Lock door',
 }
 
 export const ConditionWords: Record<ConditionKind, string> = {
@@ -94,6 +99,14 @@ export const ConditionWords: Record<ConditionKind, string> = {
   notYetNegotiated: 'Pay not yet negotiated',
   factSet: 'Runner has fact',
   factNotSet: "Runner doesn't have fact",
+}
+
+/** WF-50: the locked doors on the open map, by where they lead. */
+export function exitOptions(exits: WorldExit[]): Option[] {
+  return exits
+    .filter((exit) => exit.states.includes('locked'))
+    .map((exit) => ({ id: exit.id, displayName: `${exit.sourceRoomName} → ${exit.direction} → ${exit.destinationRoomName}` }))
+    .sort((a, b) => a.displayName.localeCompare(b.displayName))
 }
 
 /** WF-82: the Library's facts for a picker; one that lasts for a run says so. */
@@ -110,6 +123,7 @@ export function factOptions(references: ContentReferences): Option[] {
 /** The events a room's own content can hear (GameContentLoader.PlaceEvents). */
 export const PlaceEvents: TriggerEvent[] = [
   'interactableInspected',
+  'interactableUsed',
   'playerEnteredRoom',
   'playerLeftRoom',
   'npcSpokenTo',
@@ -133,6 +147,8 @@ export const PlaceEffects: EffectKind[] = [
   'acceptMission',
   'setFact',
   'clearFact',
+  'unlockExit',
+  'lockExit',
 ]
 
 export const PlaceConditions: ConditionKind[] = [
@@ -149,7 +165,7 @@ export const PlaceConditions: ConditionKind[] = [
  * A room's own events. Only world NPCs and inspectables in the room on the
  * map can be named — the publish gate checks exactly that.
  */
-export function placeScope(roomId: Guid, references: ContentReferences): EventScope {
+export function placeScope(roomId: Guid, references: ContentReferences, exits: WorldExit[] = []): EventScope {
   const room = references.rooms.find((candidate) => candidate.id === roomId)
   return {
     events: PlaceEvents,
@@ -175,6 +191,7 @@ export function placeScope(roomId: Guid, references: ContentReferences): EventSc
       .filter((scene) => !scene.isRetired && scene.npcTemplateId === null)
       .map((scene) => ({ id: scene.id, displayName: scene.displayName })),
     facts: factOptions(references),
+    exits: exitOptions(exits),
     canFireOnce: false,
     canHaveCoverLine: false,
   }

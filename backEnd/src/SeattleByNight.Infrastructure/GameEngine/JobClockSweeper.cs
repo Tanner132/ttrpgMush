@@ -69,7 +69,35 @@ public sealed class JobClockSweeper(
         }
 
         var returned = await ReturnNpcsAsync(now, cancellationToken);
-        return new JobClockSweepResult(expired, reset, returned, notices);
+        var respawned = await RespawnMapItemsAsync(now, cancellationToken);
+        return new JobClockSweepResult(expired, reset, returned, notices) { RespawnedItemIds = respawned };
+    }
+
+    // WF-87: a map item that is not unique comes back in its room once its
+    // time is up after it was taken, if no copy is lying there already. The
+    // copy taken stays with whoever has it.
+    private async Task<IReadOnlyList<Guid>> RespawnMapItemsAsync(DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var waiting = await db.MapItems
+            .Where(item => !item.IsUnique && item.RespawnMinutes != null && item.TakenAtUtc != null)
+            .ToListAsync(cancellationToken);
+        var back = new List<Guid>();
+        foreach (var item in waiting.Where(item => item.TakenAtUtc!.Value.AddMinutes(item.RespawnMinutes!.Value) <= now))
+        {
+            var lying = await db.WorldItemInstances.AnyAsync(
+                copy => copy.MissionId == null && copy.ItemId == item.Id && copy.RoomId == item.RoomId && copy.OwnerCharacterId == null,
+                cancellationToken);
+            if (!lying)
+            {
+                db.WorldItemInstances.Add(SeattleByNight.Infrastructure.WorldEditing.ThingsInRoomsStore.Spawn(item, now));
+                back.Add(item.Id);
+            }
+
+            item.TakenAtUtc = null;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        return back;
     }
 
     private async Task<(bool Expired, JobClockNotice? Notice)?> SettleJobAsync(

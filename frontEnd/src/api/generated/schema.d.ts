@@ -2233,6 +2233,162 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/world/concealment/{kind}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    kind: string;
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConcealmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/rooms/{roomId}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    roomId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    roomId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MapItemRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/world/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MapItemRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/world/npc-templates": {
         parameters: {
             query?: never;
@@ -3134,6 +3290,14 @@ export interface components {
             /** @default false */
             granted: boolean;
         };
+        ConcealmentRequest: {
+            isHidden: boolean;
+            /** Format: int32 */
+            searchDifficulty: null | number | string;
+            isLocked: boolean;
+            /** Format: uuid */
+            keyItemId: null | string;
+        };
         ContactSelection: {
             instanceId: string;
             name: string;
@@ -3259,6 +3423,22 @@ export interface components {
             /** Format: int32 */
             purchasedPowerPoints?: null | number | string;
         };
+        MapItemRequest: {
+            name: null | string;
+            description: null | string;
+            isUnique: boolean;
+            /** Format: int32 */
+            respawnMinutes: null | number | string;
+            isHidden: boolean;
+            /** Format: int32 */
+            searchDifficulty: null | number | string;
+            /** Format: uuid */
+            containerId: null | string;
+            /** Format: uuid */
+            roomId?: null | string;
+            /** Format: uuid */
+            version?: null | string;
+        };
         MartialArtsSelection: {
             styleId: string;
             techniqueIds?: null | string[];
@@ -3315,6 +3495,8 @@ export interface components {
             isHidden: boolean;
             /** Format: int32 */
             discoveryThreshold: null | number | string;
+            kind?: null | string;
+            readText?: null | string;
         };
         PlaceNpcRequest: {
             /** Format: uuid */

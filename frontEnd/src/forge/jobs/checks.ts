@@ -1,5 +1,5 @@
 import type { Guid, WorldGraph } from '../api.ts'
-import { choiceOutcomes, newId, sceneEffects, type Mission, type Scene, type SceneChoice } from '../model.ts'
+import { choiceOutcomes, listenerEffects, newId, sceneEffects, type Mission, type Scene, type SceneChoice } from '../model.ts'
 import type { Johnson } from './useJob.ts'
 
 export const Steps = [
@@ -217,6 +217,41 @@ export function jobChecks(
     })
   }
 
+  // --------------------------------------------------------------- route
+  // WF-51: a runner can get from the Johnson to every room the job sends
+  // them to, and every item it asks for, through doors that can be opened.
+  const start = johnsons[0]?.roomId
+  if (start && world.rooms.some((room) => room.id === start)) {
+    const unlocked = new Set(
+      [...mission.triggers.flatMap(listenerEffects), ...(pitch ? sceneEffects(pitch) : [])]
+        .filter((effect) => effect.kind === 'unlockExit' && effect.exitId)
+        .map((effect) => effect.exitId!),
+    )
+    const targets = [
+      ...mission.objectives
+        .filter((objective) => objective.kind === 'reachRoom' && objective.roomId)
+        .map((objective) => ({ roomId: objective.roomId!, what: roomName(objective.roomId) })),
+      ...mission.objectives
+        .filter((objective) => objective.kind === 'pickUpItem')
+        .map((objective) => mission.items.find((item) => item.id === objective.itemId))
+        .filter((item): item is NonNullable<typeof item> => item?.roomId !== undefined)
+        .map((item) => ({ roomId: item.roomId!, what: `${item.name || 'an item'} in ${roomName(item.roomId)}` })),
+    ].filter((target) => world.rooms.some((room) => room.id === target.roomId))
+    const out = jobRoute(world, start, unlocked)
+    const stranded = targets.filter((target) => !out.has(target.roomId))
+    if (targets.length > 0) {
+      checks.push({
+        id: 'route',
+        step: 'rooms',
+        ok: stranded.length === 0,
+        text:
+          stranded.length === 0
+            ? `Route · from ${roomName(start)} a runner can reach every room and item the job asks for.`
+            : `Route · from ${roomName(start)} a runner cannot get to ${stranded.map((target) => target.what).join(', ')}: a private or restricted door, or a locked one with no key and nothing in the job that unlocks it, is in the way.`,
+      })
+    }
+  }
+
   // ----------------------------------------------------------------- pay
   const negotiable = pitch !== null && sceneEffects(pitch).some((effect) => effect.kind === 'setNegotiatedPay')
   checks.push({
@@ -227,4 +262,33 @@ export function jobChecks(
   })
 
   return checks
+}
+
+/**
+ * WF-51: the rooms a runner can walk to from `start` on the open map. A
+ * hidden door can be found by searching; a locked one opens with its key or
+ * when the job unlocks it; a private or restricted one does not open.
+ */
+export function jobRoute(world: WorldGraph, start: Guid, unlocked: ReadonlySet<Guid>): Set<Guid> {
+  const live = new Set(world.rooms.filter((room) => room.isLive !== false).map((room) => room.id))
+  const passable = (exit: WorldGraph['exits'][number]) =>
+    !exit.states.includes('private') &&
+    !exit.states.includes('restricted') &&
+    (!exit.states.includes('locked') || Boolean(exit.keyItemId) || unlocked.has(exit.id))
+  const reached = new Set<Guid>([start])
+  const pending = [start]
+  while (pending.length > 0) {
+    const at = pending.shift()!
+    const next = [
+      ...world.exits.filter((exit) => exit.sourceRoomId === at && passable(exit)).map((exit) => exit.destinationRoomId),
+      ...(world.travelLinks ?? []).filter((link) => link.sourceRoomId === at).map((link) => link.destinationRoomId),
+    ]
+    for (const roomId of next) {
+      if (!reached.has(roomId) && (live.has(roomId) || !world.rooms.some((room) => room.id === roomId))) {
+        reached.add(roomId)
+        pending.push(roomId)
+      }
+    }
+  }
+  return reached
 }

@@ -127,6 +127,10 @@ public sealed record RecordTriggerFireChange(
 // and is not set when they have none.
 public sealed record SetFactChange(Guid FactId) : StateChange;
 
+// WF-50: the opposite of a discovery — the acting character's record of
+// having opened something (an unlocked exit) is taken back.
+public sealed record ForgetDiscoveryChange(DiscoverySubjectType SubjectType, Guid SubjectId) : StateChange;
+
 public sealed record ClearFactChange(Guid FactId) : StateChange;
 
 public enum EffectAttachDisposition

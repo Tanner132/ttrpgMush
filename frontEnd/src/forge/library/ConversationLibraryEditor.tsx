@@ -21,12 +21,12 @@ import { useContentDraft } from '../useContentDraft.ts'
  * once, as placing them does.
  */
 export function ConversationLibraryEditor({ id }: { id: string }) {
-  const { references, refreshWorld } = useForgeData()
+  const { references, refreshWorld, world } = useForgeData()
   const guard = useGuardedClick()
   const draft = useContentDraft<Scene>('Scene', id, () => newConversation('New conversation'))
   const giving = useAction()
   const scene = draft.value
-  const scope = useMemo(() => (scene ? libraryScope(scene, references) : null), [scene, references])
+  const scope = useMemo(() => (scene ? libraryScope(scene, references, world.exits) : null), [scene, references, world.exits])
 
   if (draft.loadError) return <StatusBanner tone="danger">{draft.loadError}</StatusBanner>
   if (!scene || !scope) return <p className="forge__hint">Loading the conversation…</p>

@@ -40,13 +40,21 @@ public sealed record PlacedNpcResponse(
     int StunDamage,
     NpcAwareness Awareness,
     string? Description = null,
-    Guid? SceneId = null);
+    Guid? SceneId = null)
+{
+    // WF-84.
+    public bool IsHidden { get; init; }
+    public int DiscoveryThreshold { get; init; }
+}
 
 public sealed record PlaceInteractableRequest(
     string? Name,
     string? Description,
     bool IsHidden,
-    int? DiscoveryThreshold);
+    int? DiscoveryThreshold,
+    // WF-86: inspect (default), read, search or use; and a read's text.
+    string? Kind = null,
+    string? ReadText = null);
 
 public sealed record PlacedInteractableResponse(
     Guid Id,
@@ -54,7 +62,13 @@ public sealed record PlacedInteractableResponse(
     string Name,
     string Description,
     bool IsHidden,
-    int DiscoveryThreshold);
+    int DiscoveryThreshold)
+{
+    public string Kind { get; init; } = Domain.InteractableKinds.Inspect;
+    public string? ReadText { get; init; }
+    public bool IsLocked { get; init; }
+    public Guid? KeyItemId { get; init; }
+}
 
 public sealed record SetEnvironmentModifierRequest(int Modifier);
 
@@ -308,7 +322,20 @@ public static class RoomContentAdminEndpoints
                 title: "Discovery threshold must be between 0 and 10.");
         }
 
-        interactable = new NewRoomInteractable(roomId, request.Name.Trim(), description, request.IsHidden, threshold);
+        var kind = request.Kind ?? Domain.InteractableKinds.Inspect;
+        if (!Domain.InteractableKinds.IsValid(kind))
+        {
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: $"An interactable is one of: {string.Join(", ", Domain.InteractableKinds.All)}.");
+        }
+
+        if (request.ReadText is { Length: > 8000 })
+        {
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "What it says is at most 8000 characters.");
+        }
+
+        interactable = new NewRoomInteractable(roomId, request.Name.Trim(), description, request.IsHidden, threshold, kind,
+            kind == Domain.InteractableKinds.Read ? request.ReadText?.Trim() : null);
         return null;
     }
 
@@ -344,10 +371,20 @@ public static class RoomContentAdminEndpoints
 
     private static PlacedNpcResponse ToResponse(NpcSnapshot npc) =>
         new(npc.Id, npc.TemplateId, npc.Name, npc.RoomId, npc.PhysicalDamage, npc.StunDamage, npc.Awareness,
-            npc.Description, npc.SceneId);
+            npc.Description, npc.SceneId)
+        {
+            IsHidden = npc.IsHidden,
+            DiscoveryThreshold = npc.DiscoveryThreshold,
+        };
 
     private static PlacedInteractableResponse ToResponse(InteractableSnapshot interactable) =>
         new(
             interactable.Id, interactable.RoomId, interactable.Name,
-            interactable.Description, interactable.IsHidden, interactable.DiscoveryThreshold);
+            interactable.Description, interactable.IsHidden, interactable.DiscoveryThreshold)
+        {
+            Kind = interactable.Kind,
+            ReadText = interactable.ReadText,
+            IsLocked = interactable.IsLocked,
+            KeyItemId = interactable.KeyItemId,
+        };
 }

@@ -63,6 +63,19 @@ describe('Places · a large map (WF-40)', () => {
     expect(screen.getByText(/centred on 0, 0/)).toBeInTheDocument()
   })
 
+  it('pans with the compass on the map, and its middle brings the open room back', async () => {
+    const user = userEvent.setup()
+    await openPlaces()
+
+    const compass = screen.getByRole('group', { name: 'Move the map' })
+    await user.click(within(compass).getByRole('button', { name: 'Look east' }))
+    await user.click(within(compass).getByRole('button', { name: 'Look east' }))
+    expect(screen.getByText(/centred on 2, 0/)).toBeInTheDocument()
+
+    await user.click(within(compass).getByRole('button', { name: 'Centre on Downtown' }))
+    expect(screen.getByText(/centred on 0, 0/)).toBeInTheDocument()
+  })
+
   it('marks a room with an exit that leaves the view', async () => {
     const graph = world()
     graph.exits.push({ ...graph.exits[0], id: 'far', sourceRoomId: Ids.alley, destinationRoomId: Ids.dock, direction: 'west' })

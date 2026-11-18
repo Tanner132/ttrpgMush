@@ -38,6 +38,10 @@ public sealed record WorldMap(IReadOnlyDictionary<Guid, WorldMapRoom> Rooms)
     public IReadOnlyList<WorldMapName> Maps { get; init; } = [];
     public IReadOnlyList<WorldDistrictName> Districts { get; init; } = [];
 
+    // WF-87: items the map places, for the Forge's pickers (a key, an item to
+    // deliver).
+    public IReadOnlyList<WorldMapItemName> Items { get; init; } = [];
+
     public static WorldMap Empty { get; } = new(new Dictionary<Guid, WorldMapRoom>());
 
     public WorldMapRoom? FindNpcRoom(Guid npcId) =>
@@ -192,3 +196,5 @@ public static class JobMapValidator
         }
     }
 }
+
+public sealed record WorldMapItemName(Guid Id, string Name, Guid RoomId, bool IsUnique);

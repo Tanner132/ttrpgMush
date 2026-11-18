@@ -364,6 +364,9 @@ export function MapGrid({
         }
       : undefined
 
+  // The room the compass's middle button brings back to the centre.
+  const selected = selectedId ? rooms.find((room) => room.id === selectedId) : undefined
+
   return (
     <div className="forge-map">
       <div className="forge-map__toolbar">
@@ -381,12 +384,6 @@ export function MapGrid({
             </button>
           </div>
         )}
-        <div className="forge-map__pan" role="group" aria-label="Move the map">
-          <button type="button" className="ui-button" aria-label="Look west" onClick={() => onPan(-1, 0)}>◀</button>
-          <button type="button" className="ui-button" aria-label="Look north" onClick={() => onPan(0, 1)}>▲</button>
-          <button type="button" className="ui-button" aria-label="Look south" onClick={() => onPan(0, -1)}>▼</button>
-          <button type="button" className="ui-button" aria-label="Look east" onClick={() => onPan(1, 0)}>▶</button>
-        </div>
         <div className="forge-map__layer" role="group" aria-label="Layer">
           <button type="button" className="ui-button" aria-label="Go down a layer" onClick={() => onLayer(layer - 1)}>
             ▼
@@ -398,6 +395,7 @@ export function MapGrid({
         </div>
       </div>
       {onGoTo && <GoTo rooms={rooms} layer={layer} onGoTo={onGoTo} />}
+      <div className="forge-map__stage">
       <div
         ref={grid}
         className={[
@@ -423,6 +421,36 @@ export function MapGrid({
         onPointerCancel={pointerUp}
       >
         {cells}
+      </div>
+      {/* The compass sits on the grid, outside it, so a click on it is never a drag or a square. */}
+      <div className="forge-map__compass" role="group" aria-label="Move the map">
+        <button type="button" className="forge-map__compass-n" aria-label="Look north" onClick={() => onPan(0, 1)}>
+          ▲
+        </button>
+        <button type="button" className="forge-map__compass-w" aria-label="Look west" onClick={() => onPan(-1, 0)}>
+          ◀
+        </button>
+        <button
+          type="button"
+          className="forge-map__compass-c"
+          aria-label={selected ? `Centre on ${selected.name}` : 'Centre on the selected room'}
+          title={selected ? `Centre on ${selected.name}` : 'No room selected'}
+          disabled={!selected}
+          onClick={() => {
+            if (!selected) return
+            if (selected.mapLayer !== layer) onLayer(selected.mapLayer)
+            onPan(selected.mapX - center.x, selected.mapY - center.y)
+          }}
+        >
+          ◎
+        </button>
+        <button type="button" className="forge-map__compass-e" aria-label="Look east" onClick={() => onPan(1, 0)}>
+          ▶
+        </button>
+        <button type="button" className="forge-map__compass-s" aria-label="Look south" onClick={() => onPan(0, -1)}>
+          ▼
+        </button>
+      </div>
       </div>
       <div className="forge-map__legend" aria-hidden="true">
         <span><i className="forge-map__swatch" />Room</span>

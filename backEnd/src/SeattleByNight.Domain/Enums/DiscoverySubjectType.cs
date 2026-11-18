@@ -8,4 +8,8 @@ public enum DiscoverySubjectType
     Npc = 1,
     // WF-27: a hidden item lying in a room.
     Item = 2,
+    // WF-85: a hidden exit.
+    Exit = 3,
+    // WF-50: a locked exit this character has opened.
+    Unlocked = 4,
 }

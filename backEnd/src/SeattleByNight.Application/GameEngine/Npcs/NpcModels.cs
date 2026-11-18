@@ -20,7 +20,12 @@ public sealed record NpcSnapshot(
     NpcAwareness Awareness,
     string? Description = null,
     Guid? SceneId = null,
-    NpcStatOverrides? Overrides = null);
+    NpcStatOverrides? Overrides = null)
+{
+    // WF-84: out of sight until a character's search finds them.
+    public bool IsHidden { get; init; }
+    public int DiscoveryThreshold { get; init; }
+}
 
 public sealed record NewNpcInstance(
     Guid TemplateId,

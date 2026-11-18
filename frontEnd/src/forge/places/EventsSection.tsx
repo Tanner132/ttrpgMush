@@ -17,9 +17,9 @@ import { ReachNote } from './reach.tsx'
  * in the Jobs tab.
  */
 export function EventsSection({ room }: { room: WorldRoom }) {
-  const { references } = useForgeData()
+  const { references, world } = useForgeData()
   const draft = useContentDraft<Place>('Place', room.id, () => newPlace(room.id, room.name))
-  const scope = useMemo(() => placeScope(room.id, references), [room.id, references])
+  const scope = useMemo(() => placeScope(room.id, references, world.exits), [room.id, references, world.exits])
   const place = draft.value
   const count = place?.triggers.length ?? 0
 

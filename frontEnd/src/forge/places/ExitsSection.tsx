@@ -4,6 +4,8 @@ import { Button } from '../../components/ui/Button.tsx'
 import { Modal } from '../../components/ui/Modal.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
 import {
+  setConcealment,
+  type Concealment,
   createExit,
   createRoom,
   deleteExit,
@@ -22,13 +24,14 @@ import { shortDirection, words } from '../format.ts'
 import { useForgeData } from '../forgeContext.ts'
 import { RoomPicker } from '../RoomPicker.tsx'
 import { useAction } from '../hooks.ts'
-import { joinRooms } from './exits.ts'
+import { joinRooms, keyOptions } from './exits.ts'
+import { ConcealmentFields } from './ConcealmentFields.tsx'
 
 type Editing = { exit: WorldExit } | { direction: ExitDirection }
 
 const StateLabels: Record<ExitState, { label: string; hint: string; tone: 'info' | 'draft' | 'error' }> = {
-  locked: { label: 'Locked', hint: 'Shown, and nobody gets through.', tone: 'draft' },
-  hidden: { label: 'Hidden', hint: 'Not shown or usable until found.', tone: 'info' },
+  locked: { label: 'Locked', hint: 'Shown; opens for whoever carries its key, or a runner content unlocks it for.', tone: 'draft' },
+  hidden: { label: 'Hidden', hint: "Not shown or usable until a runner's search finds it.", tone: 'info' },
   restricted: { label: 'Restricted', hint: 'Nobody gets in this way; anyone inside can still leave. Set it on the doors into a room.', tone: 'error' },
   private: { label: 'Private', hint: "A player's own room. Nobody can go in until player homes exist.", tone: 'draft' },
 }
@@ -47,7 +50,7 @@ function ExitFlags({ exit }: { exit: WorldExit }) {
 }
 
 function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Editing; onClose: () => void }) {
-  const { world, refreshWorld } = useForgeData()
+  const { world, refreshWorld, references } = useForgeData()
   const existing = 'exit' in editing ? editing.exit : null
   const taken = new Map(
     world.exits
@@ -61,6 +64,13 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
   const [newDescription, setNewDescription] = useState('')
   const [bothWays, setBothWays] = useState(true)
   const [states, setStates] = useState<ExitState[]>(existing?.states ?? [])
+  // WF-84/WF-85/WF-50: how hard a hidden door is to find, and its key.
+  const [concealment, setConcealmentValue] = useState<Concealment>({
+    isHidden: existing?.states.includes('hidden') ?? false,
+    searchDifficulty: existing?.discoveryThreshold ?? 0,
+    isLocked: existing?.states.includes('locked') ?? false,
+    keyItemId: existing?.keyItemId ?? null,
+  })
   const toggle = (state: ExitState, on: boolean) =>
     setStates((current) => ExitStateValues.filter((candidate) => (candidate === state ? on : current.includes(candidate))))
   const action = useAction()
@@ -78,6 +88,12 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
           direction,
           states,
           version: existing.version,
+        })
+        await setConcealment('exit', existing.id, {
+          isHidden: states.includes('hidden'),
+          searchDifficulty: states.includes('hidden') ? concealment.searchDifficulty : 0,
+          isLocked: states.includes('locked'),
+          keyItemId: states.includes('locked') ? concealment.keyItemId : null,
         })
       } else {
         if (target === 'new') {
@@ -188,6 +204,19 @@ function ExitDialog({ room, editing, onClose }: { room: WorldRoom; editing: Edit
             <Check key={state} label={StateLabels[state].label} checked={states.includes(state)} onChange={(on) => toggle(state, on)} />
           ))}
         </div>
+        {existing ? (
+          <ConcealmentFields
+            value={{ ...concealment, isHidden: states.includes('hidden'), isLocked: states.includes('locked') }}
+            keys={keyOptions(references)}
+            canLock
+            toggles={false}
+            onChange={setConcealmentValue}
+          />
+        ) : (
+          (states.includes('hidden') || states.includes('locked')) && (
+            <p className="forge__hint">Once the exit exists, edit it to set how hard it is to find and what key opens it.</p>
+          )
+        )}
         <p className="forge__hint">
           {states.length === 0
             ? 'An open door.'

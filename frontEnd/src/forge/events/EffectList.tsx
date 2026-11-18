@@ -20,6 +20,7 @@ function startEffect(kind: EffectKind, scope: EventScope): Effect {
   if (ItemEffects.includes(kind)) return { kind, itemId: scope.allItems[0]?.id }
   // A fact is chosen by the author: the first on the list would be a guess.
   if (kind === 'setFact' || kind === 'clearFact') return { kind }
+  if (kind === 'unlockExit' || kind === 'lockExit') return { kind }
   return { kind }
 }
 
@@ -51,6 +52,23 @@ function EffectFields({ effect, scope, onChange }: { effect: Effect; scope: Even
         placeholder={scope.unnamedNpc ?? (npcs.length === 0 ? 'No NPC stands here' : 'Choose an NPC')}
         hint={effect.kind === 'alertNpc' && scope.alertNpcs ? 'An alarm carries through the whole site.' : undefined}
         onChange={(npcId) => onChange({ ...effect, npcId: npcId || undefined })}
+      />
+    )
+  }
+
+  if (effect.kind === 'unlockExit' || effect.kind === 'lockExit') {
+    return (
+      <Select
+        label="Which door"
+        value={effect.exitId}
+        options={scope.exits}
+        placeholder={scope.exits.length === 0 ? 'No locked door on this map' : 'Choose a door'}
+        hint={
+          effect.kind === 'unlockExit'
+            ? 'Opens for this runner only; it stays locked for everyone else.'
+            : 'Shuts it again for this runner, if something opened it for them.'
+        }
+        onChange={(exitId) => onChange({ ...effect, exitId: exitId || undefined })}
       />
     )
   }

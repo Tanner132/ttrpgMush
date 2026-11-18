@@ -41,7 +41,14 @@ public sealed record WorldItemSnapshot(
     Guid? OwnerCharacterId,
     // WF-27: hidden until a search finds it, per character.
     bool IsHidden = false,
-    int DiscoveryThreshold = 0);
+    int DiscoveryThreshold = 0)
+{
+    // WF-87: a map item (no job; MissionId is empty).
+    public bool IsMapItem { get; init; }
+
+    // WF-86: inside a container in its room; found by searching the container.
+    public Guid? ContainerId { get; init; }
+}
 
 // §39: the receipt payload recorded when a mission reward is granted through
 // the career ledger.

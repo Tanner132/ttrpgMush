@@ -60,7 +60,7 @@ public sealed class MovementStore : IMovementStore
         // to check.
         var exit = await _dbContext.RoomExits
             .Where(e => e.Id == exitId)
-            .Select(e => new MovementExit(e.Id, e.SourceRoomId, e.DestinationRoomId, e.States))
+            .Select(e => new MovementExit(e.Id, e.SourceRoomId, e.DestinationRoomId, e.States) { KeyItemId = e.KeyItemId })
             .FirstOrDefaultAsync(cancellationToken);
 
         // WF-70: a travel link is taken like an open door. Instant for now;
@@ -78,13 +78,13 @@ public sealed class MovementStore : IMovementStore
             return MovementStoreResult.Failure(MoveCharacterError.ExitNotFound);
         }
 
-        if (exit.Has(ExitStates.Hidden))
+        if (exit.Has(ExitStates.Hidden) && !await HasDiscoveredAsync(character.Id, DiscoverySubjectType.Exit, exit.Id, cancellationToken))
         {
             await transaction.RollbackAsync(cancellationToken);
             return MovementStoreResult.Failure(MoveCharacterError.ExitHidden);
         }
 
-        if (exit.Has(ExitStates.Locked))
+        if (exit.Has(ExitStates.Locked) && !await OpensForAsync(character.Id, exit, cancellationToken))
         {
             await transaction.RollbackAsync(cancellationToken);
             return exit.SourceRoomId == character.CurrentRoomId
@@ -173,5 +173,26 @@ public sealed class MovementStore : IMovementStore
         await transaction.CommitAsync(cancellationToken);
 
         return MovementStoreResult.Success(session.Id, exit.SourceRoomId, exit.DestinationRoomId);
+    }
+
+    // WF-85: this character's search found the thing.
+    private Task<bool> HasDiscoveredAsync(Guid characterId, DiscoverySubjectType type, Guid subjectId, CancellationToken cancellationToken)
+    {
+        var subjectType = type.ToString();
+        return _dbContext.CharacterDiscoveries.AnyAsync(
+            d => d.CharacterId == characterId && d.SubjectType == subjectType && d.SubjectId == subjectId, cancellationToken);
+    }
+
+    // WF-50: a locked door is open for a character who opened it before (an
+    // unlock effect) or who carries its key.
+    private async Task<bool> OpensForAsync(Guid characterId, MovementExit exit, CancellationToken cancellationToken)
+    {
+        if (await HasDiscoveredAsync(characterId, DiscoverySubjectType.Unlocked, exit.Id, cancellationToken))
+        {
+            return true;
+        }
+
+        return exit.KeyItemId is { } key
+            && await _dbContext.WorldItemInstances.AnyAsync(item => item.OwnerCharacterId == characterId && item.ItemId == key, cancellationToken);
     }
 }

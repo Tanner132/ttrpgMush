@@ -39,3 +39,14 @@ export async function joinRooms(out: ExitInput, back: ExitInput | null): Promise
   if (back) await ensureExit(back)
   else await removeExits(out.destinationRoomId, out.sourceRoomId)
 }
+
+/** WF-50: what can be a key — every job's items and the map's own. */
+export function keyOptions(references: {
+  missions: { displayName: string; items: { id: string; name: string }[] }[]
+  mapItems?: { id: string; name: string }[]
+}): { id: string; displayName: string }[] {
+  return [
+    ...(references.mapItems ?? []).map((item) => ({ id: item.id, displayName: `${item.name} · on the map` })),
+    ...references.missions.flatMap((mission) => mission.items.map((item) => ({ id: item.id, displayName: `${item.name} · ${mission.displayName}` }))),
+  ].sort((a, b) => a.displayName.localeCompare(b.displayName))
+}

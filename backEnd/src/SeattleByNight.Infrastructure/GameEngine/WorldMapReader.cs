@@ -43,6 +43,8 @@ public sealed class WorldMapReader(SeattleByNightDbContext db) : IWorldMapReader
                 .Select(map => new WorldMapName(map.Id, map.Name)).ToListAsync(cancellationToken),
             Districts = await db.Districts.AsNoTracking().OrderBy(district => district.Name)
                 .Select(district => new WorldDistrictName(district.Id, district.MapId, district.Name)).ToListAsync(cancellationToken),
+            Items = await db.MapItems.AsNoTracking().OrderBy(item => item.Name)
+                .Select(item => new WorldMapItemName(item.Id, item.Name, item.RoomId, item.IsUnique)).ToListAsync(cancellationToken),
         };
     }
 }

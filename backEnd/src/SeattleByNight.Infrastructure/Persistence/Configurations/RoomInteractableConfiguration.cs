@@ -17,6 +17,10 @@ public sealed class RoomInteractableConfiguration : IEntityTypeConfiguration<Roo
         builder.Property(interactable => interactable.Description).HasColumnName("description").HasMaxLength(2000).IsRequired();
         builder.Property(interactable => interactable.IsHidden).HasColumnName("is_hidden").IsRequired();
         builder.Property(interactable => interactable.DiscoveryThreshold).HasColumnName("discovery_threshold").IsRequired();
+        builder.Property(interactable => interactable.Kind).HasColumnName("kind").HasMaxLength(20).HasDefaultValue("inspect").IsRequired();
+        builder.Property(interactable => interactable.ReadText).HasColumnName("read_text").HasMaxLength(8000);
+        builder.Property(interactable => interactable.IsLocked).HasColumnName("is_locked").HasDefaultValue(false).IsRequired();
+        builder.Property(interactable => interactable.KeyItemId).HasColumnName("key_item_id").HasColumnType("uuid");
         builder.Property(interactable => interactable.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
 
         builder.HasIndex(interactable => interactable.RoomId)

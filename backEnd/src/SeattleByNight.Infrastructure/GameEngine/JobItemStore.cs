@@ -18,7 +18,8 @@ public sealed class JobItemStore(SeattleByNightDbContext db, TimeProvider timePr
             .SelectMany(mission => mission.Items.Select(item => (Mission: mission, Item: item)))
             .ToDictionary(entry => entry.Item.Id);
 
-        var rows = await db.WorldItemInstances.ToListAsync(cancellationToken);
+        // WF-87: map items are the map's, not content's.
+        var rows = await db.WorldItemInstances.Where(row => row.MissionId != null).ToListAsync(cancellationToken);
         var roomIds = (await db.Rooms.AsNoTracking().Select(room => room.Id).ToListAsync(cancellationToken))
             .ToHashSet();
         var now = timeProvider.GetUtcNow();

@@ -21,6 +21,7 @@ export type TriggerEvent =
   | 'npcPacified'
   | 'missionAccepted'
   | 'interactableInspected'
+  | 'interactableUsed'
   | 'sneakAttempted'
   | 'combatStarted'
   | 'lockedExitTried'
@@ -43,6 +44,8 @@ export type EffectKind =
   | 'advanceScene'
   | 'setFact'
   | 'clearFact'
+  | 'unlockExit'
+  | 'lockExit'
 
 export type ConditionKind =
   | 'missionAvailable'
@@ -70,6 +73,8 @@ export interface Effect {
   nodeId?: Guid
   /** setFact / clearFact. */
   factId?: Guid
+  /** WF-50: unlockExit / lockExit — which exit, for the runner it happens to. */
+  exitId?: Guid
 }
 
 export interface Condition {

@@ -22,6 +22,9 @@ public sealed record ContentReferences(
     // WF-82: the Library's facts, with what live content sets and tests each.
     public IReadOnlyList<FactReference> Facts { get; init; } = [];
 
+    // WF-87: the map's own items.
+    public IReadOnlyList<WorldMapItemName> MapItems { get; init; } = [];
+
     public static ContentReferences Build(GameContentDocument document, WorldMap map) =>
         new(
             document.Missions
@@ -67,6 +70,7 @@ public sealed record ContentReferences(
             Maps = map.Maps,
             Districts = map.Districts,
             Facts = FactUses.Build(document),
+            MapItems = map.Items,
         };
 }
 

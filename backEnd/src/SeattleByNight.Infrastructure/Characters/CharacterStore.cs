@@ -40,6 +40,20 @@ public sealed class CharacterStore : ICharacterStore
         // dependents have to be cleared in FK-safe order before the character
         // row itself can go. Resource transactions reference both advancements
         // and inventory items, so they come first.
+        // WF-87: what they carried drops in the last room they were in, so
+        // a unique item is never lost and a job's item can still be found.
+        var lastRoom = await _dbContext.Characters
+            .Where(c => c.Id == characterId)
+            .Select(c => c.CurrentRoomId)
+            .SingleAsync(cancellationToken);
+        await _dbContext.WorldItemInstances
+            .Where(item => item.OwnerCharacterId == characterId)
+            .ExecuteUpdateAsync(
+                set => set.SetProperty(item => item.OwnerCharacterId, (Guid?)null)
+                    .SetProperty(item => item.RoomId, (Guid?)lastRoom)
+                    .SetProperty(item => item.ContainerId, (Guid?)null),
+                cancellationToken);
+
         await _dbContext.CharacterResourceTransactions
             .Where(t => t.CharacterId == characterId)
             .ExecuteDeleteAsync(cancellationToken);

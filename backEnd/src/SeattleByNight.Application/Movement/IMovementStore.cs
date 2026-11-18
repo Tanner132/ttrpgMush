@@ -9,6 +9,9 @@ public sealed record MovementExit(
     IReadOnlyList<string> States)
 {
     public bool Has(string state) => States.Contains(state, StringComparer.Ordinal);
+
+    // WF-50: a locked door opens for whoever carries this item.
+    public Guid? KeyItemId { get; init; }
 }
 
 public sealed record MovementStoreResult(

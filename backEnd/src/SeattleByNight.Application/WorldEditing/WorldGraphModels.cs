@@ -28,7 +28,12 @@ public sealed record WorldExit(
     string Direction,
     IReadOnlyList<string> States,
     DateTimeOffset CreatedAtUtc,
-    Guid Version);
+    Guid Version)
+{
+    // WF-84/WF-85/WF-50.
+    public int DiscoveryThreshold { get; init; }
+    public Guid? KeyItemId { get; init; }
+}
 
 // WF-71: one map at a time. Rooms are the map's own; exits are those that
 // start or end on it; travel links are those offered from it. Every map is

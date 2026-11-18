@@ -423,6 +423,11 @@ public enum SceneEffectKind
     SetFact,
     // Removes the named fact from the acting character.
     ClearFact,
+    // WF-50: opens a locked exit for the acting character (the lock stays for
+    // everyone else: nothing a runner does changes the world for others).
+    UnlockExit,
+    // Shuts it again for them.
+    LockExit,
 }
 
 public enum SceneDamageType
@@ -447,7 +452,9 @@ public sealed record SceneEffect(
     Guid? SceneId = null,
     Guid? NodeId = null,
     // setFact / clearFact: which fact.
-    Guid? FactId = null);
+    Guid? FactId = null,
+    // unlockExit / lockExit: which map exit.
+    Guid? ExitId = null);
 
 // ------------------------------------------------------------------------
 // Triggers (Milestone 7): (event, conditions) → reaction sequence. This is
@@ -466,6 +473,9 @@ public enum TriggerEventKind
     NpcPacified,
     MissionAccepted,
     InteractableInspected,
+    // WF-86: a runner used an interactable of kind "use" (a switch). Its
+    // effects are the listener's.
+    InteractableUsed,
     // WF-21. The character tried to sneak past an NPC; the trigger's Outcome
     // filter can pick success or failure.
     SneakAttempted,

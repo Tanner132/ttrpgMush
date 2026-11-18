@@ -492,7 +492,12 @@ public sealed class GameActionExecutor
                 var hiddenItems = await roomContent.GetHiddenItemsInRoomAsync(
                     session.CurrentRoomId, cancellationToken);
                 var hidden = interactables.Where(interactable => interactable.IsHidden).ToList();
-                if (hidden.Count == 0 && hiddenItems.Count == 0)
+                // WF-84/WF-85: hidden NPCs and hidden ways out are found the same way.
+                var hiddenNpcs = (await roomContent.GetNpcsInRoomAsync(session.CurrentRoomId, cancellationToken))
+                    .Where(npc => npc.IsHidden)
+                    .ToList();
+                var hiddenExits = await roomContent.GetHiddenExitsFromRoomAsync(session.CurrentRoomId, cancellationToken);
+                if (hidden.Count == 0 && hiddenItems.Count == 0 && hiddenNpcs.Count == 0 && hiddenExits.Count == 0)
                 {
                     return (null, null);
                 }
@@ -527,6 +532,30 @@ public sealed class GameActionExecutor
                     }
                 }
 
+                if (hiddenNpcs.Count > 0)
+                {
+                    var discoveredNpcs = await roomContent.GetDiscoveredSubjectIdsAsync(
+                        session.CharacterId, DiscoverySubjectType.Npc, cancellationToken);
+                    foreach (var npc in hiddenNpcs.Where(npc => !discoveredNpcs.Contains(npc.Id)
+                        && Concealment.Finds(npc.DiscoveryThreshold, resolution.LimitedHits)))
+                    {
+                        changes.Add(new RecordDiscoveryChange(DiscoverySubjectType.Npc, npc.Id, npc.Name));
+                        found.Add(npc.Name);
+                    }
+                }
+
+                if (hiddenExits.Count > 0)
+                {
+                    var discoveredExits = await roomContent.GetDiscoveredSubjectIdsAsync(
+                        session.CharacterId, DiscoverySubjectType.Exit, cancellationToken);
+                    foreach (var exit in hiddenExits.Where(exit => !discoveredExits.Contains(exit.Id)
+                        && Concealment.Finds(exit.DiscoveryThreshold, resolution.LimitedHits)))
+                    {
+                        changes.Add(new RecordDiscoveryChange(DiscoverySubjectType.Exit, exit.Id, $"a way {exit.Direction}"));
+                        found.Add($"a hidden way {exit.Direction}");
+                    }
+                }
+
                 return found.Count == 0
                     ? (null, null)
                     : ($"You notice: {string.Join(", ", found)}.", null);
@@ -546,7 +575,9 @@ public sealed class GameActionExecutor
         ResolvedTarget target,
         CancellationToken cancellationToken)
     {
-        var plan = BuildUtilityPlan(request.ActionId, session.CharacterId, effects, target);
+        var plan = request.ActionId == DevelopmentGameActions.InspectInteractableActionId && target.Interactable is { } acted
+            ? await InteractAsync(session.CharacterId, acted, cancellationToken)
+            : BuildUtilityPlan(request.ActionId, session.CharacterId, effects, target);
         var emote = plan.Emote;
         var message = plan.Message;
 
@@ -598,12 +629,18 @@ public sealed class GameActionExecutor
         }
 
         // §24: inspecting something is an event content can react to.
+        // WF-86: using a switch is its own event, whose effects are content;
+        // nothing happens through a lock.
         if (string.Equals(
                 request.ActionId, DevelopmentGameActions.InspectInteractableActionId, StringComparison.Ordinal)
-            && target.Interactable is { } inspected)
+            && target.Interactable is { } inspected
+            && !plan.Shut)
         {
             await EnqueueTriggerAsync(
-                request, session, TriggerEventKind.InteractableInspected,
+                request, session,
+                inspected.Kind == SeattleByNight.Domain.InteractableKinds.Use
+                    ? TriggerEventKind.InteractableUsed
+                    : TriggerEventKind.InteractableInspected,
                 interactableId: inspected.Id, cancellationToken: cancellationToken);
         }
 
@@ -614,7 +651,57 @@ public sealed class GameActionExecutor
         IReadOnlyList<StateChange> Changes,
         string? Emote,
         string? Message,
-        string? NpcEmote = null);
+        string? NpcEmote = null,
+        // WF-84: the thing was locked for this character; nothing happened.
+        bool Shut = false);
+
+    // WF-86: acting on an interactable, by what it is. A locked one opens
+    // only for a runner who opened it before or carries its key.
+    private async Task<UtilityPlan> InteractAsync(Guid characterId, InteractableSnapshot interactable, CancellationToken cancellationToken)
+    {
+        if (interactable.IsLocked)
+        {
+            var unlocked = await roomContent.GetDiscoveredSubjectIdsAsync(characterId, DiscoverySubjectType.Unlocked, cancellationToken);
+            var carried = await roomContent.GetCarriedItemIdsAsync(characterId, cancellationToken);
+            if (Concealment.IsShut(true, interactable.Id, interactable.KeyItemId, unlocked, carried))
+            {
+                return new UtilityPlan([], $"tries the {interactable.Name}.", $"The {interactable.Name} is locked.", Shut: true);
+            }
+        }
+
+        switch (interactable.Kind)
+        {
+            case SeattleByNight.Domain.InteractableKinds.Read:
+                return new UtilityPlan(
+                    [],
+                    $"reads the {interactable.Name}.",
+                    string.IsNullOrWhiteSpace(interactable.ReadText)
+                        ? interactable.Description
+                        : $"{interactable.Description}\n{interactable.ReadText}");
+
+            case SeattleByNight.Domain.InteractableKinds.Search:
+            {
+                // What is inside is found by whoever searches it, as a search
+                // of the room finds a hidden item; then it can be taken.
+                var inside = await roomContent.GetItemsInContainerAsync(interactable.Id, cancellationToken);
+                var changes = inside
+                    .Select(item => (StateChange)new RecordDiscoveryChange(DiscoverySubjectType.Item, item.Id, item.Name))
+                    .ToArray();
+                return new UtilityPlan(
+                    changes,
+                    $"searches the {interactable.Name}.",
+                    inside.Count == 0
+                        ? $"The {interactable.Name} is empty."
+                        : $"In the {interactable.Name}: {string.Join(", ", inside.Select(item => item.Name))}.");
+            }
+
+            case SeattleByNight.Domain.InteractableKinds.Use:
+                return new UtilityPlan([], $"uses the {interactable.Name}.", $"You use the {interactable.Name}.");
+
+            default:
+                return new UtilityPlan([], $"inspects the {interactable.Name}.", interactable.Description);
+        }
+    }
 
     private UtilityPlan BuildUtilityPlan(
         string actionId,

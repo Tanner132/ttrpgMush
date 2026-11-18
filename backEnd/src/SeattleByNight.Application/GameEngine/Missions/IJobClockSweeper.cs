@@ -20,8 +20,11 @@ public sealed record JobClockSweepResult(
 {
     public static JobClockSweepResult Empty { get; } = new([], [], [], []);
 
+    // WF-87: map items that came back.
+    public IReadOnlyList<Guid> RespawnedItemIds { get; init; } = [];
+
     public bool DidAnything =>
-        ExpiredJobIds.Count > 0 || ResetJobIds.Count > 0 || ReturnedNpcIds.Count > 0;
+        ExpiredJobIds.Count > 0 || ResetJobIds.Count > 0 || ReturnedNpcIds.Count > 0 || RespawnedItemIds.Count > 0;
 }
 
 public sealed record JobClockNotice(IReadOnlyList<Guid> CharacterIds, string Text);

@@ -12,8 +12,12 @@ public sealed class WorldItemInstance
     public Guid Id { get; set; } = Guid.NewGuid();
     // The job item this row is, by its content id. Unique.
     public Guid ItemId { get; set; }
-    // The job that declares it.
-    public Guid MissionId { get; set; }
+    // The job that declares it. WF-87: null for a map item, whose ItemId is
+    // the MapItem's id (several copies of one that comes back can exist).
+    public Guid? MissionId { get; set; }
+    // WF-86: lying inside a container (an interactable in RoomId), found by
+    // searching it.
+    public Guid? ContainerId { get; set; }
     public string DisplayName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public Guid? RoomId { get; set; }

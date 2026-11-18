@@ -69,7 +69,11 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 exit.Direction,
                 exit.States,
                 exit.CreatedAtUtc,
-                exit.Version))
+                exit.Version)
+            {
+                DiscoveryThreshold = exit.DiscoveryThreshold,
+                KeyItemId = exit.KeyItemId,
+            })
             .Take(MaxExits + 1)
             .ToListAsync(cancellationToken);
 
@@ -187,7 +191,11 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 exit.Direction,
                 exit.States,
                 exit.CreatedAtUtc,
-                exit.Version))
+                exit.Version)
+            {
+                DiscoveryThreshold = exit.DiscoveryThreshold,
+                KeyItemId = exit.KeyItemId,
+            })
             .ToListAsync(cancellationToken);
 
         var incoming = await (from exit in _db.RoomExits.AsNoTracking()
@@ -204,7 +212,11 @@ public sealed class WorldGraphReader : IWorldGraphReader
                 exit.Direction,
                 exit.States,
                 exit.CreatedAtUtc,
-                exit.Version))
+                exit.Version)
+            {
+                DiscoveryThreshold = exit.DiscoveryThreshold,
+                KeyItemId = exit.KeyItemId,
+            })
             .ToListAsync(cancellationToken);
 
         return new WorldRoomDetails(room, outgoing, incoming);

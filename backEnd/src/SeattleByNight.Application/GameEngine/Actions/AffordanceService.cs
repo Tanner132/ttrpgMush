@@ -136,6 +136,14 @@ public sealed class AffordanceService
         await AddMissionAffordancesAsync(affordances, characterId, roomId, cancellationToken);
 
         var npcs = await roomContent.GetNpcsInRoomAsync(roomId, cancellationToken);
+        // WF-84: a hidden NPC is not there to act on until this character's
+        // search has turned them up.
+        if (npcs.Any(npc => npc.IsHidden))
+        {
+            var spotted = await roomContent.GetDiscoveredSubjectIdsAsync(characterId, DiscoverySubjectType.Npc, cancellationToken);
+            npcs = npcs.Where(npc => !npc.IsHidden || spotted.Contains(npc.Id)).ToList();
+        }
+
         foreach (var npc in npcs)
         {
             if (gameContent.Current.ResolveNpcTemplate(npc) is not NpcTemplate template)
@@ -182,10 +190,18 @@ public sealed class AffordanceService
             {
                 if (!interactable.IsHidden || discovered.Contains(interactable.Id))
                 {
+                    // WF-86: the verb says what acting on it does.
+                    var verb = interactable.Kind switch
+                    {
+                        SeattleByNight.Domain.InteractableKinds.Read => "Read",
+                        SeattleByNight.Domain.InteractableKinds.Search => "Search",
+                        SeattleByNight.Domain.InteractableKinds.Use => "Use",
+                        _ => inspect.DisplayName,
+                    };
                     affordances.Add(new GameAffordance(
                         inspect.ActionId,
                         interactable.Id,
-                        $"{inspect.DisplayName} {interactable.Name}",
+                        $"{verb} {interactable.Name}",
                         inspect.Description,
                         inspect.Kind));
                 }

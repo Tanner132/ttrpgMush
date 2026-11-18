@@ -272,6 +272,16 @@ public sealed class SceneEffectResolver(
                 changes.Add(new ClearFactChange(effect.FactId!.Value));
                 break;
 
+            // WF-50: a door opened for this runner, remembered like a discovery.
+            case SceneEffectKind.UnlockExit:
+                changes.Add(new RecordDiscoveryChange(DiscoverySubjectType.Unlocked, effect.ExitId!.Value, "a door"));
+                notes.Add("Something unlocks.");
+                break;
+
+            case SceneEffectKind.LockExit:
+                changes.Add(new ForgetDiscoveryChange(DiscoverySubjectType.Unlocked, effect.ExitId!.Value));
+                break;
+
             case SceneEffectKind.TakeItem:
             {
                 var owned = await missionReader.GetItemsOwnedByCharacterAsync(characterId, cancellationToken);

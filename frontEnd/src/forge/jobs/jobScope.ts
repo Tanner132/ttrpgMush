@@ -1,5 +1,5 @@
-import type { ContentReferences, Guid, WorldRoom } from '../api.ts'
-import { factOptions, PlaceEffects, PlaceEvents, type EventScope } from '../events/scope.ts'
+import type { ContentReferences, Guid, WorldExit, WorldRoom } from '../api.ts'
+import { exitOptions, factOptions, PlaceEffects, PlaceEvents, type EventScope } from '../events/scope.ts'
 import type { Option } from '../fields.tsx'
 import type { ConditionKind, EffectKind, Mission, Scene, TriggerEvent } from '../model.ts'
 
@@ -21,6 +21,8 @@ export interface JobContext {
   scenes: Scene[]
   references: ContentReferences
   rooms: WorldRoom[]
+  /** WF-50: the open map's exits, for door effects. */
+  exits?: WorldExit[]
 }
 
 /** Events a job can hear: a room's own, plus its items being taken and the job being accepted. */
@@ -47,6 +49,8 @@ const SceneEffectKinds: EffectKind[] = [
   'failMission',
   'setFact',
   'clearFact',
+  'unlockExit',
+  'lockExit',
 ]
 
 const SceneConditions: ConditionKind[] = [
@@ -146,6 +150,7 @@ export function listenerScope(roomId: Guid | undefined, context: JobContext): Ev
     tests: tests(context.references, false),
     scenes: prompts(context.scenes),
     facts: factOptions(references),
+    exits: exitOptions(context.exits ?? []),
     canFireOnce: true,
     // Every room is shared: there are always bystanders to show a cover line to.
     canHaveCoverLine: true,
@@ -175,6 +180,7 @@ export function sceneScope(scene: Scene, context: JobContext): EventScope {
     tests: tests(context.references, hasNpc),
     scenes: [],
     facts: factOptions(context.references),
+    exits: exitOptions(context.exits ?? []),
     canFireOnce: false,
     canHaveCoverLine: false,
   }
@@ -206,7 +212,7 @@ export function routeOrder(mission: Mission, johnsonRoomId: Guid | undefined): G
  * author chooses. It belongs to no job, so it can name any live job and any
  * job's item.
  */
-export function libraryScope(scene: Scene, references: ContentReferences): EventScope {
+export function libraryScope(scene: Scene, references: ContentReferences, exits: WorldExit[] = []): EventScope {
   const hasNpc = scene.npcTemplateId !== undefined
   const npcs = mapNpcs(references)
   return {
@@ -229,6 +235,7 @@ export function libraryScope(scene: Scene, references: ContentReferences): Event
     tests: tests(references, hasNpc),
     scenes: [],
     facts: factOptions(references),
+    exits: exitOptions(exits),
     canFireOnce: false,
     canHaveCoverLine: false,
   }

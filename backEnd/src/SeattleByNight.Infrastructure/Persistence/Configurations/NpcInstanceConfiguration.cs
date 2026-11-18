@@ -24,6 +24,8 @@ public sealed class NpcInstanceConfiguration : IEntityTypeConfiguration<NpcInsta
         // Milestone 7 section 4: the placement's overrides. Nullable because
         // absent means "whatever the template says", which is not the same as
         // an empty override.
+        builder.Property(npc => npc.IsHidden).HasColumnName("is_hidden").HasDefaultValue(false).IsRequired();
+        builder.Property(npc => npc.DiscoveryThreshold).HasColumnName("discovery_threshold").HasDefaultValue(0).IsRequired();
         builder.Property(npc => npc.Description).HasColumnName("description").HasMaxLength(2000);
         builder.Property(npc => npc.SceneId).HasColumnName("scene_id").HasColumnType("uuid");
         builder.Property(npc => npc.OverridesJson).HasColumnName("overrides").HasColumnType("jsonb");

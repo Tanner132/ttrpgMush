@@ -46,6 +46,15 @@ public sealed class RoomExitConfiguration : IEntityTypeConfiguration<RoomExit>
             .HasDefaultValueSql("'{}'::text[]")
             .IsRequired();
 
+        builder.Property(e => e.DiscoveryThreshold)
+            .HasColumnName("discovery_threshold")
+            .HasDefaultValue(0)
+            .IsRequired();
+
+        builder.Property(e => e.KeyItemId)
+            .HasColumnName("key_item_id")
+            .HasColumnType("uuid");
+
         builder.Property(e => e.CreatedAtUtc)
             .HasColumnName("created_at_utc")
             .HasColumnType("timestamp with time zone");

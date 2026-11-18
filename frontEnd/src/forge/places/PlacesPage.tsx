@@ -8,6 +8,7 @@ import { DistrictsSection } from './DistrictsSection.tsx'
 import { EventsSection } from './EventsSection.tsx'
 import { ExitsSection } from './ExitsSection.tsx'
 import { MapBar } from './MapBar.tsx'
+import { MapItemsSection } from './MapItemsSection.tsx'
 import { MapGrid, type BuildSpot, type MapMode } from './MapGrid.tsx'
 import { inView } from './mapView.ts'
 import { PaintForm } from './PaintForm.tsx'
@@ -104,20 +105,7 @@ export default function PlacesPage() {
           {room && <RoomSection key={room.id} room={room} />}
           {room && <PlacementSection key={`placement-${room.id}-${room.version}`} room={room} />}
 
-          <Section
-            title="Map"
-            actions={
-              room && (
-                <button
-                  type="button"
-                  className="ui-button"
-                  onClick={() => setView({ x: room.mapX, y: room.mapY, layer: room.mapLayer })}
-                >
-                  Centre on {room.name}
-                </button>
-              )
-            }
-          >
+          <Section title="Map">
             <Segmented
               label="On the map, a click will"
               value={mode}
@@ -200,6 +188,7 @@ export default function PlacesPage() {
         </div>
 
         <div className="forge__column">
+          {room && <MapItemsSection key={`items-${room.id}`} room={room} />}
           {room && <EventsSection key={room.id} room={room} />}
           {room && (
             <UsageSection

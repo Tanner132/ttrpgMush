@@ -9,12 +9,15 @@ import {
   placeRoomInspectable,
   removeRoomInspectable,
   removeRoomNpc,
+  setConcealment,
   updateRoomInspectable,
+  type InteractableKind,
   type WorldInspectable,
   type WorldNpc,
   type WorldRoom,
 } from '../api.ts'
-import { Chip, Empty, NumberInput, Segmented, TextBox, TextInput } from '../fields.tsx'
+import { Check, Chip, Empty, NumberInput, Segmented, Select, TextBox, TextInput } from '../fields.tsx'
+import { keyOptions } from './exits.ts'
 import { useForgeData } from '../forgeContext.ts'
 import { useAction, useLoad } from '../hooks.ts'
 import { WorldNpcDialog } from './WorldNpcDialog.tsx'
@@ -34,6 +37,12 @@ function InspectableDialog({
   const [description, setDescription] = useState(inspectable?.description ?? '')
   const [hidden, setHidden] = useState(inspectable?.isHidden ?? false)
   const [threshold, setThreshold] = useState(inspectable?.isHidden ? inspectable.discoveryThreshold : 2)
+  // WF-86: what acting on it does; WF-84: locked, with a key.
+  const [kind, setKind] = useState<InteractableKind>(inspectable?.kind ?? 'inspect')
+  const [readText, setReadText] = useState(inspectable?.readText ?? '')
+  const [locked, setLocked] = useState(inspectable?.isLocked ?? false)
+  const [keyItemId, setKeyItemId] = useState(inspectable?.keyItemId ?? '')
+  const { references } = useForgeData()
   const action = useAction()
 
   async function save() {
@@ -42,10 +51,20 @@ function InspectableDialog({
       description: description.trim(),
       isHidden: hidden,
       discoveryThreshold: hidden ? threshold : 0,
+      kind,
+      readText: kind === 'read' ? readText.trim() || null : null,
     }
-    const done = await action.run(() =>
-      inspectable ? updateRoomInspectable(room.id, inspectable.id, input) : placeRoomInspectable(room.id, input),
-    )
+    const done = await action.run(async () => {
+      const saved = inspectable ? await updateRoomInspectable(room.id, inspectable.id, input) : await placeRoomInspectable(room.id, input)
+      // One hidden / locked model for every thing in a room.
+      await setConcealment('interactable', saved.id, {
+        isHidden: hidden,
+        searchDifficulty: hidden ? threshold : 0,
+        isLocked: locked,
+        keyItemId: locked ? keyItemId || null : null,
+      })
+      return true
+    })
     if (done) onSaved()
   }
 
@@ -61,6 +80,38 @@ function InspectableDialog({
         <p className="forge__eyebrow">{room.name} · public room</p>
         <TextInput label="Name" value={name} maxLength={200} autoFocus onChange={setName} />
         <TextBox label="What runners see when they inspect it" value={description} rows={3} onChange={setDescription} />
+        <Segmented
+          label="Runners can"
+          value={kind}
+          options={[
+            { id: 'inspect', displayName: 'Inspect' },
+            { id: 'read', displayName: 'Read' },
+            { id: 'search', displayName: 'Search' },
+            { id: 'use', displayName: 'Use' },
+          ]}
+          onChange={setKind}
+        />
+        {kind === 'read' && <TextBox label="What it says" value={readText} rows={4} maxLength={8000} onChange={setReadText} />}
+        <p className="forge__hint">
+          {kind === 'read'
+            ? 'A flyer, a sign, a terminal screen: runners read what it says.'
+            : kind === 'search'
+              ? 'A container. Put items in it from Items in this room; searching it turns them up for the searcher.'
+              : kind === 'use'
+                ? 'A switch or a panel. Using it is an event: add a Runner uses event to this room, or to a job, to say what it does.'
+                : 'Runners inspect it and see its description; a room or job event can react.'}
+        </p>
+        <Check label="Locked" checked={locked} onChange={setLocked} />
+        {locked && (
+          <Select
+            label="Key"
+            value={keyItemId}
+            options={keyOptions(references)}
+            placeholder="No key — only content opens it"
+            hint="Opens for whoever carries this item."
+            onChange={setKeyItemId}
+          />
+        )}
         <div className="forge__grid forge__grid--2">
           <Segmented
             label="Visible"

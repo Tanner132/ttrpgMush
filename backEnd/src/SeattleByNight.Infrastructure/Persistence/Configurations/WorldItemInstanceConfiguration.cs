@@ -25,7 +25,8 @@ public sealed class WorldItemInstanceConfiguration : IEntityTypeConfiguration<Wo
         builder.Property(item => item.DiscoveryThreshold).HasColumnName("discovery_threshold");
         builder.Property(item => item.DisplayName).HasColumnName("display_name").HasMaxLength(200).IsRequired();
         builder.Property(item => item.Description).HasColumnName("description").HasMaxLength(4000).IsRequired();
-        builder.Property(item => item.MissionId).HasColumnName("mission_id").HasColumnType("uuid").IsRequired();
+        builder.Property(item => item.MissionId).HasColumnName("mission_id").HasColumnType("uuid");
+        builder.Property(item => item.ContainerId).HasColumnName("container_id").HasColumnType("uuid");
         builder.Property(item => item.RoomId).HasColumnName("room_id").HasColumnType("uuid");
         builder.Property(item => item.OwnerCharacterId).HasColumnName("owner_character_id").HasColumnType("uuid");
         builder.Property(item => item.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
@@ -37,9 +38,11 @@ public sealed class WorldItemInstanceConfiguration : IEntityTypeConfiguration<Wo
         builder.HasIndex(item => item.OwnerCharacterId)
             .HasDatabaseName("ix_world_item_instances_owner");
 
-        // One row per job item.
+        // One row per job item. WF-87: a map item that comes back has a copy
+        // per time it was taken, so only job items are unique.
         builder.HasIndex(item => item.ItemId)
             .IsUnique()
+            .HasFilter("mission_id IS NOT NULL")
             .HasDatabaseName("ux_world_item_instances_item");
 
         builder.HasIndex(item => item.MissionId)

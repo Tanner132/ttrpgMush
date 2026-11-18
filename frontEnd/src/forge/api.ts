@@ -102,7 +102,7 @@ export interface ContentPalette {
  * WF-33: bump with `ForgeContract.Version` in the API's GameContentEndpoints.cs
  * whenever a content document or Forge request changes shape.
  */
-export const ForgeContractVersion = 4
+export const ForgeContractVersion = 5
 
 export interface PlacedReference {
   id: Guid
@@ -146,6 +146,8 @@ export interface ContentReferences {
   npcTemplates: { id: Guid; displayName: string; isRetired: boolean; hostile: boolean }[]
   /** WF-82: the Library's facts, with what live content sets and tests each. */
   facts?: FactReference[]
+  /** WF-87: the map's own items, for key and item pickers. */
+  mapItems?: { id: Guid; name: string; roomId: Guid; isUnique: boolean }[]
   places: { id: Guid; displayName: string; isRetired: boolean }[]
   /**
    * Every room on every map, with who stands in it and what can be inspected
@@ -364,6 +366,10 @@ export interface WorldExit {
   states: ExitState[]
   createdAtUtc: string
   version: string
+  /** WF-84/WF-85: hits a search needs to find it, when hidden. */
+  discoveryThreshold?: number
+  /** WF-50: opens for whoever carries this item, when locked. */
+  keyItemId?: Guid | null
 }
 
 /**
@@ -613,6 +619,9 @@ export interface WorldNpc {
   awareness: NpcAwareness
   description: string | null
   sceneId: Guid | null
+  /** WF-84: out of sight until a runner's search finds them. */
+  isHidden?: boolean
+  discoveryThreshold?: number
 }
 
 export interface WorldNpcInput {
@@ -630,13 +639,82 @@ export interface WorldInspectable {
   description: string
   isHidden: boolean
   discoveryThreshold: number
+  /** WF-86: what acting on it does. */
+  kind?: InteractableKind
+  readText?: string | null
+  /** WF-84: locked until opened, or for whoever carries the key. */
+  isLocked?: boolean
+  keyItemId?: Guid | null
 }
+
+export type InteractableKind = 'inspect' | 'read' | 'search' | 'use'
 
 export interface InspectableInput {
   name: string
   description: string
   isHidden: boolean
   discoveryThreshold: number
+  kind?: InteractableKind
+  readText?: string | null
+}
+
+// ------------------------------------------------------- things in rooms
+
+/** WF-84: one hidden / locked model, set the same way on exits, NPCs and interactables. */
+export type ConcealedKind = 'exit' | 'npc' | 'interactable'
+
+export interface Concealment {
+  isHidden: boolean
+  searchDifficulty: number
+  isLocked: boolean
+  keyItemId: Guid | null
+}
+
+export function setConcealment(kind: ConcealedKind, id: Guid, concealment: Concealment): Promise<Concealment> {
+  return apiPut<Concealment>(`${world}/concealment/${kind}/${id}`, concealment)
+}
+
+/** WF-87: an item the map places, not a job. */
+export interface MapItem {
+  id: Guid
+  roomId: Guid
+  containerId: Guid | null
+  name: string
+  description: string
+  isUnique: boolean
+  respawnMinutes: number | null
+  isHidden: boolean
+  searchDifficulty: number
+  status: string
+  version: string
+}
+
+export interface MapItemInput {
+  name: string
+  description: string
+  isUnique: boolean
+  respawnMinutes: number | null
+  isHidden: boolean
+  searchDifficulty: number
+  containerId: Guid | null
+  roomId?: Guid
+  version?: string
+}
+
+export function listMapItems(roomId: Guid, signal?: AbortSignal): Promise<MapItem[]> {
+  return apiGet<MapItem[]>(`${world}/rooms/${roomId}/items`, signal)
+}
+
+export function createMapItem(roomId: Guid, input: MapItemInput): Promise<MapItem> {
+  return apiPost<MapItem>(`${world}/rooms/${roomId}/items`, input)
+}
+
+export function updateMapItem(itemId: Guid, input: MapItemInput): Promise<MapItem> {
+  return apiPut<MapItem>(`${world}/items/${itemId}`, input)
+}
+
+export function deleteMapItem(itemId: Guid): Promise<void> {
+  return apiDelete<void>(`${world}/items/${itemId}`)
 }
 
 export function listRoomNpcs(roomId: Guid, signal?: AbortSignal): Promise<WorldNpc[]> {

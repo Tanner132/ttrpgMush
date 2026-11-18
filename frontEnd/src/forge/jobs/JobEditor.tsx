@@ -46,8 +46,9 @@ function JobEditor({ id }: { id: string }) {
       scenes: job.scenes.map((scene) => edited.get(scene.id) ?? scene),
       references,
       rooms: world.rooms,
+      exits: world.exits,
     }
-  }, [mission, pitch, prompt, job.scenes, references, world.rooms])
+  }, [mission, pitch, prompt, job.scenes, references, world.rooms, world.exits])
 
   const checks = useMemo(
     () => (mission ? jobChecks(mission, job.pitchId ? pitch : null, job.johnsons, world, job.johnsonBlock, references.rooms) : []),

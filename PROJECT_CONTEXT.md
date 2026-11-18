@@ -394,6 +394,14 @@ built follows it; these are the load-bearing rules.
   records the run it was set in and counts only while that run is open. Jobs
   can require or refuse facts before they are offered and set or clear them
   when done; going live refuses anything that tests a fact nothing sets.
+- **Things in rooms (WF-84–87).** Exits, NPCs and interactables share one
+  hidden / locked model: hidden things are found per character by a search
+  scoring their difficulty; locked exits and interactables open for whoever
+  carries their key or a runner an `unlockExit` effect opened them for (an
+  unlock is per runner, never for everyone). Interactables are inspect, read,
+  search (containers) or use (raises `interactableUsed`). Map items
+  (`map_items`) are unique or come back after a set time; a deleted
+  character's carried items drop in their last room.
 - **Draft saves are version-checked (WF-61).** A save that sends
   `expectedUpdatedAtUtc` (or `expectNew`) is refused with 409 when the stored
   draft has moved on; the Forge autosaves this way.

@@ -25,7 +25,7 @@ v1 is ten workstreams:
 | 7 | [Private and owned rooms](#7-private-and-owned-rooms) | Needs design decisions; blocked on 6. 8 fixes how a private room is marked |
 | 8 | [One shared world](#8-one-shared-world) | Phases 1 and 2 merged to `main` (`c6964f6`); phases 3 (the job clock), 4 (fights restrict rooms) and 5 (crews) built 2026-11-17, not committed. Left: the acceptance run (1.4) |
 | 9 | [Room images](#9-room-images) | Decided 2026-11-12; ready to build, independent of the rest |
-| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Phases 1 and 2 committed (`7281b7e`, `0506851`); phases 3 (the map editor at scale), 4 (writing conversations, events and jobs) and 5 (character facts) built 2026-11-17, not committed; phase 6 next |
+| 10 | [World Forge: cities and jobs at scale](#10-world-forge-cities-and-jobs-at-scale) | Designed 2026-11-17 from a UI walkthrough and the owner's end goal; nine phases, all design points settled. Phases 1 and 2 committed (`7281b7e`, `0506851`), phases 3–5 committed (`3ed8d05`); phase 6 (things in rooms) built 2026-11-17, not committed; phase 7 next |
 
 Workstream 8 replaces how jobs run today (1.3) and changes the questions in 3
 and 7; read it before picking either of those up.
@@ -38,10 +38,10 @@ should be built until those are answered and the answers are recorded (rules in
 **Where things stand (2026-11-17).** Workstream 8 phases 1 and 2 and a
 reply's own roll (10.3) are merged to `main` (`c6964f6`). Workstream 10
 phase 1 (the seven defects) and workstream 8 phases 3–5 are committed
-(`7281b7e`), and workstream 10 phase 2 (`0506851`). Workstream 10 phases 3,
-4 and 5 are built and not committed.
+(`7281b7e`), workstream 10 phase 2 (`0506851`), and phases 3–5
+(`3ed8d05`). Workstream 10 phase 6 is built and not committed.
 
-**Suggested order.** Workstream 10 phases 6 to 8, with 2.3 purchases before personal vehicles. The
+**Suggested order.** Workstream 10 phases 7 and 8, with 2.3 purchases before personal vehicles. The
 acceptance run in 1.4 can go any time now that workstream 8 is built.
 Workstream 9 is independent and can go anywhere.
 
@@ -1649,7 +1649,7 @@ running app, which needs the `MapsAndRoomLifecycle` migration. What was built:
 
 #### Phase 3 — The map editor at scale
 
-**Status 2026-11-17: built, not committed.** All eight items with tests
+**Status 2026-11-17: committed (`3ed8d05`).** All eight items with tests
 (`WorldForgePhase3Tests`, `MapAtScale.test.tsx`); not yet tried in the
 running app, which needs the `Districts` migration. The 10.7 timings (a
 five-room block and a fetch job; a 100-room layer) are still to be taken in
@@ -1710,7 +1710,7 @@ the running app. What was built:
 
 #### Phase 4 — Writing conversations, events and jobs
 
-**Status 2026-11-17: built, not committed.** All nine items with tests
+**Status 2026-11-17: committed (`3ed8d05`).** All nine items with tests
 (`WritingJobs.test.tsx`; `SceneEngineTests`, `GameContentLoaderTests` and
 `GameContentEndpointTests` for the server side); not yet tried in the running
 app. The 10.7 count (a conversation with three levels of branching and a roll
@@ -1776,7 +1776,7 @@ a job's events are one flat list with their prompts written elsewhere.
 
 #### Phase 5 — Character facts
 
-**Status 2026-11-17: built, not committed.** All four items with tests
+**Status 2026-11-17: committed (`3ed8d05`).** All four items with tests
 (`FactContentTests`, `CharacterFactTests`, `Facts.test.tsx`); not yet tried in
 the running app, which needs the `CharacterFacts` migration. What was built:
 
@@ -1817,6 +1817,43 @@ a property of the fact, not of the effect that sets it; a fact's "set by" and
 | WF-83 | **Jobs that follow from jobs.** | A job can require or refuse facts before it is offered, and its endings set them, so one job can lead to another and a Johnson can remember a runner. |
 
 #### Phase 6 — Things in rooms
+
+**Status 2026-11-17: built, not committed.** All six items with tests
+(`ThingsInRoomsTests`, `ThingsInRoomsContentTests`, `ThingsInRooms.test.tsx`),
+except a body's loot (below); not yet tried in the running app, which needs
+the `ThingsInRooms` migration. What was built:
+
+- **WF-84.** One hidden / locked model. Exits, NPCs and interactables can be
+  hidden with a search difficulty (exits gained `discovery_threshold`, NPCs
+  `is_hidden` and `discovery_threshold`); exits and interactables can be
+  locked with a key item (`key_item_id`). One endpoint sets it on any of them
+  (`PUT /api/admin/world/concealment/{exit|npc|interactable}/{id}`) and one
+  rule decides it (`Concealment`). A search (Observe Area) now finds hidden
+  NPCs and exits as well as items and inspectables, per character; a hidden
+  NPC is not seen or acted on by anyone who has not found them.
+- **WF-85.** A hidden exit found by a runner's search shows in their room view
+  and can be used by them (`DiscoverySubjectType.Exit`).
+- **WF-50.** A locked door opens for whoever carries its key, and for a runner
+  an `unlockExit` effect opened it for (`DiscoverySubjectType.Unlocked`);
+  `lockExit` shuts it again for them. Decided while building (10.8): an
+  unlock is per runner, not for everyone, by the 10.2 rule that nothing a
+  player does changes the world for others; so a door never needs resetting.
+- **WF-86.** An interactable is one of inspect, read (with its text), search
+  (a container: searching it turns up the items inside, for the searcher) or
+  use (raises the new `interactableUsed` event, whose effects are the room's
+  or a job's listener). A locked one does nothing until opened.
+- **WF-87.** `map_items`: items the map places, made in Places › Items. Unique
+  or not; one that is not comes back in its room its set minutes after it is
+  taken (the job clock's sweep), and the copy taken stays with whoever has it.
+  A map item can lie inside a container. When a character is deleted,
+  everything they carried drops in the last room they were in (this also
+  ends a delete failing on a carried item). Not built: the body to loot when
+  a character dies, which waits on the combat milestone, as the item says.
+- **WF-51.** Go live checks, on the open map, that a runner can get from the
+  Johnson to every room and item the job asks for: hidden doors count as
+  passable (a search finds them), locked ones only with a key or an unlock in
+  the job, private and restricted ones not at all.
+- `ForgeContract.Version` is 5.
 
 | ID | Item | Shape |
 | --- | --- | --- |

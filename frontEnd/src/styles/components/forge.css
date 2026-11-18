@@ -1574,3 +1574,59 @@ button.forge__row-link {
 .forge-graph marker path {
   fill: var(--sb-text-muted);
 }
+
+/* The map's compass: panning laid over the grid's corner, with the middle
+   button bringing the selected room back to the centre. */
+.forge-map__stage {
+  position: relative;
+}
+
+.forge-map__compass {
+  position: absolute;
+  right: var(--sb-space-3);
+  bottom: var(--sb-space-3);
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 32px);
+  grid-template-rows: repeat(3, 32px);
+  grid-template-areas:
+    '. n .'
+    'w c e'
+    '. s .';
+  gap: 2px;
+  padding: 4px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--sb-surface-raised) 85%, transparent);
+  border: 1px solid var(--sb-border);
+}
+
+.forge-map__compass button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--sb-text);
+  background: var(--sb-surface-sunken);
+  border: 1px solid var(--sb-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.forge-map__compass button:hover:not(:disabled),
+.forge-map__compass button:focus-visible {
+  color: var(--sb-accent);
+  border-color: var(--sb-accent);
+}
+
+.forge-map__compass button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.forge-map__compass-n { grid-area: n; }
+.forge-map__compass-w { grid-area: w; }
+.forge-map__compass-c { grid-area: c; border-radius: 50% !important; font-size: 16px !important; }
+.forge-map__compass-e { grid-area: e; }
+.forge-map__compass-s { grid-area: s; }

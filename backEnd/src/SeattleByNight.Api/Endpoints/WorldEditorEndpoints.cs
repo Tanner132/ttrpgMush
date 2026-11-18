@@ -102,6 +102,13 @@ public static class WorldEditorEndpoints
         group.MapGet("/index", GetIndexAsync);
         group.MapGet("/search", SearchAsync);
 
+        // World Forge phase 6: things in rooms.
+        group.MapPut("/concealment/{kind}/{id:guid}", SetConcealmentAsync).RequireAntiforgery();
+        group.MapGet("/rooms/{roomId:guid}/items", ListMapItemsAsync);
+        group.MapPost("/rooms/{roomId:guid}/items", CreateMapItemAsync).RequireAntiforgery();
+        group.MapPut("/items/{itemId:guid}", UpdateMapItemAsync).RequireAntiforgery();
+        group.MapDelete("/items/{itemId:guid}", DeleteMapItemAsync).RequireAntiforgery();
+
         return endpoints;
     }
 
@@ -166,6 +173,39 @@ public static class WorldEditorEndpoints
         Guid linkId, UserManager<ApplicationUser> userManager, IWorldMapStore maps, HttpContext httpContext) =>
         AsActorAsync(userManager, httpContext, async actor =>
             MutationResult(await maps.DeleteTravelLinkAsync(actor, linkId), _ => Results.NoContent()));
+
+    // WF-84: kind is exit, npc or interactable.
+    private static Task<IResult> SetConcealmentAsync(
+        string kind, Guid id, ConcealmentRequest request, UserManager<ApplicationUser> userManager, IThingsInRoomsStore things, HttpContext httpContext) =>
+        Enum.TryParse<ConcealedKind>(kind, ignoreCase: true, out var parsed) && Enum.IsDefined(parsed)
+            ? AsActorAsync(userManager, httpContext, async actor =>
+                MutationResult(
+                    await things.SetConcealmentAsync(actor, parsed, id,
+                        new ConcealmentMutation(request.IsHidden, request.SearchDifficulty ?? 0, request.IsLocked, request.KeyItemId)),
+                    Results.Ok))
+            : Task.FromResult(Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Only an exit, an NPC or an interactable can be hidden or locked."));
+
+    private static async Task<IResult> ListMapItemsAsync(Guid roomId, IThingsInRoomsStore things, CancellationToken cancellationToken) =>
+        Results.Ok(await things.ListMapItemsAsync(roomId, cancellationToken));
+
+    private static Task<IResult> CreateMapItemAsync(
+        Guid roomId, MapItemRequest request, UserManager<ApplicationUser> userManager, IThingsInRoomsStore things, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(
+                await things.CreateMapItemAsync(actor, request.ToMutation(roomId)),
+                value => Results.Created($"/api/admin/world/rooms/{roomId}/items", value)));
+
+    private static Task<IResult> UpdateMapItemAsync(
+        Guid itemId, MapItemRequest request, UserManager<ApplicationUser> userManager, IThingsInRoomsStore things, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(
+                await things.UpdateMapItemAsync(actor, itemId, request.Version ?? Guid.Empty, request.ToMutation(request.RoomId ?? Guid.Empty)),
+                Results.Ok));
+
+    private static Task<IResult> DeleteMapItemAsync(
+        Guid itemId, UserManager<ApplicationUser> userManager, IThingsInRoomsStore things, HttpContext httpContext) =>
+        AsActorAsync(userManager, httpContext, async actor =>
+            MutationResult(await things.DeleteMapItemAsync(actor, itemId), _ => Results.NoContent()));
 
     private static Task<IResult> CreateDistrictAsync(
         DistrictRequest request, UserManager<ApplicationUser> userManager, IWorldMapStore maps, HttpContext httpContext) =>
@@ -394,4 +434,22 @@ public static class WorldEditorEndpoints
                 title: "The world object was changed by another editor."),
             _ => Results.Problem(statusCode: StatusCodes.Status500InternalServerError)
         };
+}
+
+// World Forge phase 6.
+public sealed record ConcealmentRequest(bool IsHidden, int? SearchDifficulty, bool IsLocked, Guid? KeyItemId);
+
+public sealed record MapItemRequest(
+    string? Name,
+    string? Description,
+    bool IsUnique,
+    int? RespawnMinutes,
+    bool IsHidden,
+    int? SearchDifficulty,
+    Guid? ContainerId,
+    Guid? RoomId = null,
+    Guid? Version = null)
+{
+    public MapItemMutation ToMutation(Guid roomId) =>
+        new(roomId, ContainerId, Name ?? string.Empty, Description ?? string.Empty, IsUnique, RespawnMinutes, IsHidden, SearchDifficulty ?? 0);
 }

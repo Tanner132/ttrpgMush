@@ -71,7 +71,35 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
         Guid roomId, CancellationToken cancellationToken) =>
         await dbContext.WorldItemInstances
             .AsNoTracking()
-            .Where(item => item.RoomId == roomId && item.OwnerCharacterId == null && item.IsHidden)
+            // WF-86: what is in a container is found by searching it, not the room.
+            .Where(item => item.RoomId == roomId && item.OwnerCharacterId == null && item.IsHidden && item.ContainerId == null)
+            .OrderBy(item => item.DisplayName)
+            .Select(item => new HiddenItemSnapshot(item.Id, item.DisplayName, item.DiscoveryThreshold))
+            .ToListAsync(cancellationToken);
+
+    // WF-85: hidden ways out of a room, into rooms in play.
+    public async Task<IReadOnlyList<HiddenExitSnapshot>> GetHiddenExitsFromRoomAsync(Guid roomId, CancellationToken cancellationToken) =>
+        await dbContext.RoomExits
+            .AsNoTracking()
+            .Where(exit => exit.SourceRoomId == roomId
+                && exit.States.Contains(Domain.ExitStates.Hidden)
+                && dbContext.Rooms.Any(room => room.Id == exit.DestinationRoomId && room.IsLive))
+            .OrderBy(exit => exit.Direction)
+            .Select(exit => new HiddenExitSnapshot(exit.Id, exit.Direction, exit.DiscoveryThreshold))
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlySet<Guid>> GetCarriedItemIdsAsync(Guid characterId, CancellationToken cancellationToken) =>
+        (await dbContext.WorldItemInstances
+            .AsNoTracking()
+            .Where(item => item.OwnerCharacterId == characterId)
+            .Select(item => item.ItemId)
+            .ToListAsync(cancellationToken))
+        .ToHashSet();
+
+    public async Task<IReadOnlyList<HiddenItemSnapshot>> GetItemsInContainerAsync(Guid containerId, CancellationToken cancellationToken) =>
+        await dbContext.WorldItemInstances
+            .AsNoTracking()
+            .Where(item => item.ContainerId == containerId && item.OwnerCharacterId == null && item.RoomId != null)
             .OrderBy(item => item.DisplayName)
             .Select(item => new HiddenItemSnapshot(item.Id, item.DisplayName, item.DiscoveryThreshold))
             .ToListAsync(cancellationToken);
@@ -146,6 +174,8 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
             Description = interactable.Description,
             IsHidden = interactable.IsHidden,
             DiscoveryThreshold = interactable.DiscoveryThreshold,
+            Kind = interactable.Kind,
+            ReadText = string.IsNullOrWhiteSpace(interactable.ReadText) ? null : interactable.ReadText,
             CreatedAtUtc = timeProvider.GetUtcNow(),
         };
 
@@ -168,6 +198,8 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
         row.Description = interactable.Description;
         row.IsHidden = interactable.IsHidden;
         row.DiscoveryThreshold = interactable.DiscoveryThreshold;
+        row.Kind = interactable.Kind;
+        row.ReadText = string.IsNullOrWhiteSpace(interactable.ReadText) ? null : interactable.ReadText;
 
         auditWriter?.Append(
             actorUserId, AuditActions.RoomInspectableUpdated, AuditTargetTypes.RoomInspectable, row.Id, Details(row));
@@ -242,8 +274,18 @@ public sealed class RoomContentStore : IRoomContentReader, IRoomContentEditor
                 : NpcAwareness.Unaware,
             row.Description,
             row.SceneId,
-            NpcOverrideSerialization.Deserialize(row.OverridesJson));
+            NpcOverrideSerialization.Deserialize(row.OverridesJson))
+        {
+            IsHidden = row.IsHidden,
+            DiscoveryThreshold = row.DiscoveryThreshold,
+        };
 
     private static InteractableSnapshot ToSnapshot(RoomInteractable row) =>
-        new(row.Id, row.RoomId, row.Name, row.Description, row.IsHidden, row.DiscoveryThreshold);
+        new(row.Id, row.RoomId, row.Name, row.Description, row.IsHidden, row.DiscoveryThreshold)
+        {
+            Kind = row.Kind,
+            ReadText = row.ReadText,
+            IsLocked = row.IsLocked,
+            KeyItemId = row.KeyItemId,
+        };
 }

@@ -351,15 +351,21 @@ public sealed class MissionStore : IMissionReader, IMissionAssignmentStore
             row.AcceptedAtUtc,
             row.CompletedAtUtc);
 
+    // An item inside a container is out of sight until the container is
+    // searched, which records it as found, as a search of the room does.
     private static WorldItemSnapshot ToSnapshot(WorldItemInstance row) =>
         new(
             row.Id,
             row.ItemId,
-            row.MissionId,
+            row.MissionId ?? Guid.Empty,
             row.DisplayName,
             row.Description,
             row.RoomId,
             row.OwnerCharacterId,
-            row.IsHidden,
-            row.DiscoveryThreshold);
+            row.IsHidden || row.ContainerId is not null,
+            row.DiscoveryThreshold)
+        {
+            IsMapItem = row.MissionId is null,
+            ContainerId = row.ContainerId,
+        };
 }

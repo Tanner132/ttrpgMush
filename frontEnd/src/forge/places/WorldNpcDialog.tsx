@@ -2,8 +2,8 @@ import { useRef, useState } from 'react'
 import { Button } from '../../components/ui/Button.tsx'
 import { Modal } from '../../components/ui/Modal.tsx'
 import { StatusBanner } from '../../components/ui/StatusBanner.tsx'
-import { moveRoomNpc, NpcAwarenessValues, placeRoomNpc, updateRoomNpc, type Guid, type NpcAwareness, type WorldNpc } from '../api.ts'
-import { Select, TextBox, TextInput } from '../fields.tsx'
+import { moveRoomNpc, NpcAwarenessValues, placeRoomNpc, setConcealment, updateRoomNpc, type Guid, type NpcAwareness, type WorldNpc } from '../api.ts'
+import { Check, NumberInput, Select, TextBox, TextInput } from '../fields.tsx'
 import { useForgeData } from '../forgeContext.ts'
 import { RoomPicker } from '../RoomPicker.tsx'
 import { useAction } from '../hooks.ts'
@@ -43,6 +43,9 @@ export function WorldNpcDialog({
   const [sceneId, setSceneId] = useState(fixedSceneId ?? npc?.sceneId ?? '')
   const [awareness, setAwareness] = useState<NpcAwareness>(npc?.awareness ?? 'Unaware')
   const [roomId, setRoomId] = useState(room.id)
+  // WF-84: a lookout or a sniper, out of sight until a runner's search finds them.
+  const [hidden, setHidden] = useState(npc?.isHidden ?? false)
+  const [difficulty, setDifficulty] = useState(npc?.isHidden ? (npc.discoveryThreshold ?? 2) : 2)
   // Where they stand on the server right now: after a move that went
   // through, a retry asks the new room.
   const standing = useRef(room.id)
@@ -66,8 +69,14 @@ export function WorldNpcDialog({
       sceneId: (fixedSceneId ?? sceneId) || null,
       awareness,
     }
+    const conceal = (id: Guid) => setConcealment('npc', id, { isHidden: hidden, searchDifficulty: hidden ? difficulty : 0, isLocked: false, keyItemId: null })
     const saved = await action.run(async () => {
-      if (!npc) return await placeRoomNpc(roomId, input)
+      if (!npc) {
+        const placed = await placeRoomNpc(roomId, input)
+        if (hidden) await conceal(placed.id)
+        return { ...placed, isHidden: hidden, discoveryThreshold: hidden ? difficulty : 0 }
+      }
+      if (hidden !== (npc.isHidden ?? false) || (hidden && difficulty !== npc.discoveryThreshold)) await conceal(npc.id)
       await prepare?.(templateId)
       let result = await updateRoomNpc(standing.current, npc.id, input)
       committed.current = result
@@ -116,6 +125,10 @@ export function WorldNpcDialog({
             options={NpcAwarenessValues.map((value) => ({ id: value, displayName: value }))}
             onChange={(value) => setAwareness(value as NpcAwareness)}
           />
+        </div>
+        <div className="forge__grid forge__grid--2">
+          <Check label="Hidden until a search finds them" checked={hidden} onChange={setHidden} />
+          {hidden && <NumberInput label="Search hits to find them" value={difficulty} min={0} max={10} onChange={(value) => setDifficulty(value ?? 0)} />}
         </div>
         {npc && (
           <RoomPicker

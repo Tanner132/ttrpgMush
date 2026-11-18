@@ -3,7 +3,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import * as api from '../api.ts'
 import { newPrompt, type Mission, type Place, type Scene } from '../model.ts'
-import { ContentStore, Ids, references, useFakeServer } from '../test/forgeFixtures.ts'
+import { ContentStore, exit, Ids, references, Rooms, useFakeServer, world } from '../test/forgeFixtures.ts'
 import { renderForge } from '../test/renderForge.tsx'
 
 vi.mock('../api.ts', async (importOriginal) => {
@@ -475,6 +475,10 @@ describe('Jobs · events', () => {
 describe('Jobs · go live', () => {
   it('catches a job still on offer after it is accepted, fixes it, and puts the whole job live together', async () => {
     const user = userEvent.setup()
+    // WF-51: a way from the Johnson's coffee shop to the package on the dock.
+    const graph = world()
+    graph.exits.push(exit(Rooms.coffee, Rooms.dock, 'north'))
+    useFakeServer(store, graph, refs)
     await openJob('review')
 
     const checks = screen.getByRole('region', { name: 'Checks' })

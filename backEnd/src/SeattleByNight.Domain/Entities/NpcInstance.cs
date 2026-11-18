@@ -12,6 +12,10 @@ public sealed class NpcInstance
     public Guid TemplateId { get; set; }
     public string Name { get; set; } = string.Empty;
     public Guid RoomId { get; set; }
+    // WF-84: an NPC out of sight (a sniper, a lookout) until a character's
+    // search finds them.
+    public bool IsHidden { get; set; }
+    public int DiscoveryThreshold { get; set; }
 
     // Player-visible description override; null falls through to the template.
     public string? Description { get; set; }

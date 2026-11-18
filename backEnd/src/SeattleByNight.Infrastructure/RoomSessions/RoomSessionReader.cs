@@ -76,11 +76,16 @@ public sealed class RoomSessionReader : IRoomSessionReader
             return null;
         }
 
-        // Hidden doors are left out until found; whatever else is on a door
-        // (locked, restricted, private) is shown.
+        // Hidden doors are left out until found (WF-85: found by this
+        // character's search); whatever else is on a door (locked,
+        // restricted, private) is shown.
+        var exitSubjectType = nameof(DiscoverySubjectType.Exit);
         var exits = await _dbContext.RoomExits
             .AsNoTracking()
-            .Where(e => e.SourceRoomId == character.CurrentRoomId && !e.States.Contains(ExitStates.Hidden))
+            .Where(e => e.SourceRoomId == character.CurrentRoomId
+                && (!e.States.Contains(ExitStates.Hidden)
+                    || _dbContext.CharacterDiscoveries.Any(d =>
+                        d.CharacterId == character.Id && d.SubjectType == exitSubjectType && d.SubjectId == e.Id)))
             .OrderBy(e => e.Direction)
             .Join(
                 // WF-60: a door into a draft room is out of play.
@@ -114,9 +119,13 @@ public sealed class RoomSessionReader : IRoomSessionReader
             .Select(c => new CharacterSummary(c.Id, c.Name))
             .ToListAsync(cancellationToken);
 
+        // WF-84: a hidden NPC is seen only by a character whose search found them.
+        var npcSubjectType = nameof(DiscoverySubjectType.Npc);
         var npcs = await _dbContext.NpcInstances
             .AsNoTracking()
             .Where(n => n.RoomId == character.CurrentRoomId)
+            .Where(n => !n.IsHidden || _dbContext.CharacterDiscoveries.Any(d =>
+                d.CharacterId == character.Id && d.SubjectType == npcSubjectType && d.SubjectId == n.Id))
             .OrderBy(n => n.Name)
             .Select(n => new RoomNpcSummary(n.Id, n.Name))
             .ToListAsync(cancellationToken);

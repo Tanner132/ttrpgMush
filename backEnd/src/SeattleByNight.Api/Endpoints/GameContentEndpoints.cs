@@ -120,7 +120,7 @@ public sealed record GameContentPaletteResponse(
 // file and fails when the two disagree.
 public static class ForgeContract
 {
-    public const int Version = 4;
+    public const int Version = 5;
 }
 
 // Milestone 7 step 3: the World Forge's server surface. Content is stored as

@@ -103,8 +103,12 @@ describe('Places · a public room’s inspectables', () => {
         description: 'Flyers three deep.',
         isHidden: true,
         discoveryThreshold: 2,
+        kind: 'inspect',
+        readText: null,
       }),
     )
+    // WF-84: the one hidden / locked model is saved alongside.
+    expect(api.setConcealment).toHaveBeenCalledWith('interactable', NoticeBoard.id, { isHidden: true, searchDifficulty: 2, isLocked: false, keyItemId: null })
     expect(api.placeRoomInspectable).not.toHaveBeenCalled()
   })
 
